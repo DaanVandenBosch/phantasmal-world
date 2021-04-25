@@ -242,8 +242,9 @@ private fun findAndParseSegments(
                             // Never on the stack.
                             // Eat all remaining arguments.
                             while (i < instruction.args.size) {
-                                newLabels[instruction.args[i].value as Int] =
+                                newLabels[(instruction.args[i] as IntArg).value] =
                                     SegmentType.Instructions
+
                                 i++
                             }
                         }
@@ -347,7 +348,7 @@ private fun getArgLabelValues(
             return true
         }
     } else {
-        val value = instruction.args[paramIdx].value as Int
+        val value = (instruction.args[paramIdx] as IntArg).value
         val oldType = labels[value]
 
         if (
@@ -466,13 +467,13 @@ private fun parseInstructionsSegment(
         // Parse the arguments.
         try {
             val args = parseInstructionArguments(cursor, opcode, dcGcFormat)
-            instructions.add(Instruction(opcode, args, srcLoc = null))
+            instructions.add(Instruction(opcode, args, srcLoc = null, valid = true))
         } catch (e: Exception) {
             if (lenient) {
                 logger.error(e) {
                     "Exception occurred while parsing arguments for instruction ${opcode.mnemonic}."
                 }
-                instructions.add(Instruction(opcode, emptyList(), srcLoc = null))
+                instructions.add(Instruction(opcode, emptyList(), srcLoc = null, valid = false))
             } else {
                 throw e
             }
@@ -565,33 +566,33 @@ private fun parseInstructionArguments(
         for (param in opcode.params) {
             when (param.type) {
                 is ByteType ->
-                    args.add(Arg(cursor.uByte().toInt()))
+                    args.add(IntArg(cursor.uByte().toInt()))
 
                 is ShortType ->
-                    args.add(Arg(cursor.uShort().toInt()))
+                    args.add(IntArg(cursor.uShort().toInt()))
 
                 is IntType ->
-                    args.add(Arg(cursor.int()))
+                    args.add(IntArg(cursor.int()))
 
                 is FloatType ->
-                    args.add(Arg(cursor.float()))
+                    args.add(FloatArg(cursor.float()))
 
                 // Ensure this case is before the LabelType case because ILabelVarType extends
                 // LabelType.
                 is ILabelVarType -> {
                     varargCount++
                     val argSize = cursor.uByte()
-                    args.addAll(cursor.uShortArray(argSize.toInt()).map { Arg(it.toInt()) })
+                    args.addAll(cursor.uShortArray(argSize.toInt()).map { IntArg(it.toInt()) })
                 }
 
                 is LabelType -> {
-                    args.add(Arg(cursor.uShort().toInt()))
+                    args.add(IntArg(cursor.uShort().toInt()))
                 }
 
                 is StringType -> {
                     val maxBytes = min(4096, cursor.bytesLeft)
                     args.add(
-                        Arg(
+                        StringArg(
                             if (dcGcFormat) {
                                 cursor.stringAscii(
                                     maxBytes,
@@ -610,13 +611,13 @@ private fun parseInstructionArguments(
                 }
 
                 is RegType -> {
-                    args.add(Arg(cursor.uByte().toInt()))
+                    args.add(IntArg(cursor.uByte().toInt()))
                 }
 
                 is RegVarType -> {
                     varargCount++
                     val argSize = cursor.uByte()
-                    args.addAll(cursor.uByteArray(argSize.toInt()).map { Arg(it.toInt()) })
+                    args.addAll(cursor.uByteArray(argSize.toInt()).map { IntArg(it.toInt()) })
                 }
 
                 else -> error("Parameter type ${param.type} not implemented.")
@@ -725,7 +726,7 @@ private fun tryParseInstructionsSegment(
                     for (arg in inst.getArgs(index)) {
                         labelCount++
 
-                        if (!labelHolder.hasLabel(arg.value as Int)) {
+                        if (!labelHolder.hasLabel((arg as IntArg).value)) {
                             unknownLabelCount++
                         }
                     }
@@ -805,34 +806,34 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                             }
 
                             when (param.type) {
-                                ByteType -> cursor.writeByte((arg.value as Int).toByte())
-                                ShortType -> cursor.writeShort((arg.value as Int).toShort())
-                                IntType -> cursor.writeInt(arg.value as Int)
-                                FloatType -> cursor.writeFloat(arg.value as Float)
+                                ByteType -> cursor.writeByte(arg.coerceInt().toByte())
+                                ShortType -> cursor.writeShort(arg.coerceInt().toShort())
+                                IntType -> cursor.writeInt(arg.coerceInt())
+                                FloatType -> cursor.writeFloat(arg.coerceFloat())
                                 // Ensure this case is before the LabelType case because
                                 // ILabelVarType extends LabelType.
                                 ILabelVarType -> {
                                     cursor.writeByte(args.size.toByte())
 
                                     for (a in args) {
-                                        cursor.writeShort((a.value as Int).toShort())
+                                        cursor.writeShort(a.coerceInt().toShort())
                                     }
                                 }
-                                is LabelType -> cursor.writeShort((arg.value as Int).toShort())
+                                is LabelType -> cursor.writeShort(arg.coerceInt().toShort())
                                 StringType -> {
-                                    val str = arg.value as String
+                                    val str = arg.coerceString()
 
                                     if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
                                     else cursor.writeStringUtf16(str, 2 * str.length + 2)
                                 }
                                 is RegType -> {
-                                    cursor.writeByte((arg.value as Int).toByte())
+                                    cursor.writeByte(arg.coerceInt().toByte())
                                 }
                                 RegVarType -> {
                                     cursor.writeByte(args.size.toByte())
 
                                     for (a in args) {
-                                        cursor.writeByte((a.value as Int).toByte())
+                                        cursor.writeByte(a.coerceInt().toByte())
                                     }
                                 }
                                 else -> error(

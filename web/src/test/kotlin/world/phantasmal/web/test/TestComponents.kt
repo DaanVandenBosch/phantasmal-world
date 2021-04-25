@@ -68,7 +68,7 @@ class TestComponents(private val ctx: TestContext) {
 
     // Rendering
     var createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer by default {
-        { _ ->
+        {
             object : DisposableThreeRenderer {
                 override val renderer = NopRenderer().unsafeCast<WebGLRenderer>()
                 override fun dispose() {}
@@ -76,15 +76,7 @@ class TestComponents(private val ctx: TestContext) {
         }
     }
 
-    private fun <T> default(defaultValue: () -> T) = LazyDefault {
-        val value = defaultValue()
-
-        if (value is Disposable) {
-            ctx.disposer.add(value)
-        }
-
-        value
-    }
+    private fun <T> default(defaultValue: () -> T) = LazyDefault(defaultValue)
 
     private inner class LazyDefault<T>(private val defaultValue: () -> T) {
         private var initialized = false

@@ -7,6 +7,7 @@ import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.web.shared.messages.*
 import world.phantasmal.web.shared.messages.AssemblyProblem
+import kotlin.math.max
 import kotlin.math.min
 import world.phantasmal.lib.asm.AssemblyProblem as LibAssemblyProblem
 
@@ -197,9 +198,9 @@ class AsmAnalyser {
         var signature: Signature? = null
         var activeParam = -1
 
-        getInstructionForSrcLoc(lineNo, col)?.let { (inst, argIdx) ->
+        getInstructionForSrcLoc(lineNo, col)?.let { (inst, paramIdx) ->
             signature = getSignature(inst.opcode)
-            activeParam = argIdx
+            activeParam = paramIdx
         }
 
         return signature?.let { sig ->
@@ -275,14 +276,14 @@ class AsmAnalyser {
                             val srcLoc = argSrcLocs[i].coarse
 
                             if (positionInside(lineNo, col, srcLoc)) {
-                                val label = arg.value as Int
+                                val label = (arg as IntArg).value
                                 result = getLabelDefinitions(label)
                                 break@loop
                             }
                         }
                     } else {
                         // Stack arguments.
-                        val argSrcLocs = inst.getStackArgSrcLocs(paramIdx)
+                        val argSrcLocs = inst.getArgSrcLocs(paramIdx)
 
                         for ((i, argSrcLoc) in argSrcLocs.withIndex()) {
                             if (positionInside(lineNo, col, argSrcLoc.coarse)) {
@@ -332,7 +333,7 @@ class AsmAnalyser {
             is Ir.Inst -> {
                 val srcLoc = ir.inst.srcLoc?.mnemonic
 
-                if (ir.argIdx == -1 ||
+                if (ir.paramIdx == -1 ||
                     // Also return this instruction if we're right past the mnemonic. E.g. at the
                     // first whitespace character preceding the first argument.
                     (srcLoc != null && col <= srcLoc.col + srcLoc.len)
@@ -373,7 +374,7 @@ class AsmAnalyser {
                             lastCol = mnemonicSrcLoc.col + mnemonicSrcLoc.len
 
                             if (positionInside(lineNo, col, mnemonicSrcLoc)) {
-                                return Ir.Inst(inst, argIdx = -1)
+                                return Ir.Inst(inst, paramIdx = -1)
                             }
                         }
 
@@ -386,26 +387,13 @@ class AsmAnalyser {
                             }
                         }
 
-                        if (inlineStackArgs) {
-                            for ((argIdx, argSrcLoc) in srcLoc.stackArgs.withIndex()) {
-                                instLineNo = argSrcLoc.coarse.lineNo
-                                lastCol = argSrcLoc.coarse.col + argSrcLoc.coarse.len
-
-                                if (positionInside(lineNo, col, argSrcLoc.coarse)) {
-                                    return Ir.Inst(inst, argIdx)
-                                }
-                            }
-                        }
-
                         if (lineNo == instLineNo && col >= lastCol) {
-                            return Ir.Inst(
-                                inst,
-                                if (inlineStackArgs && inst.opcode.stack === StackInteraction.Pop) {
-                                    srcLoc.stackArgs.lastIndex
-                                } else {
-                                    srcLoc.args.lastIndex
-                                },
-                            )
+                            val argIdx = max(0, srcLoc.args.lastIndex) +
+                                    (if (srcLoc.trailingArgSeparator) 1 else 0)
+
+                            val paramIdx = min(argIdx, inst.opcode.params.lastIndex)
+
+                            return Ir.Inst(inst, paramIdx)
                         }
                     }
                 }
@@ -434,7 +422,7 @@ class AsmAnalyser {
         )
 
     private sealed class Ir {
-        data class Inst(val inst: Instruction, val argIdx: Int) : Ir()
+        data class Inst(val inst: Instruction, val paramIdx: Int) : Ir()
     }
 
     companion object {

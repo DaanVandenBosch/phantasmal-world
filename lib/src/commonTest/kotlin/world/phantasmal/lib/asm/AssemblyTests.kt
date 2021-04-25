@@ -34,16 +34,17 @@ class AssemblyTests : LibTestSuite {
                         instructions = mutableListOf(
                             Instruction(
                                 opcode = OP_SET_EPISODE,
-                                args = listOf(Arg(0)),
+                                args = listOf(IntArg(0)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 11),
                                     args = listOf(ArgSrcLoc(SrcLoc(2, 17, 1), SrcLoc(2, 16, 2))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_BB_MAP_DESIGNATE,
-                                args = listOf(Arg(1), Arg(2), Arg(3), Arg(4)),
+                                args = listOf(IntArg(1), IntArg(2), IntArg(3), IntArg(4)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(3, 5, 16),
                                     args = listOf(
@@ -52,38 +53,42 @@ class AssemblyTests : LibTestSuite {
                                         ArgSrcLoc(SrcLoc(3, 28, 1), SrcLoc(3, 27, 3)),
                                         ArgSrcLoc(SrcLoc(3, 31, 1), SrcLoc(3, 30, 2)),
                                     ),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_ARG_PUSHL,
-                                args = listOf(Arg(0)),
+                                args = listOf(IntArg(0)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
                                     args = listOf(ArgSrcLoc(SrcLoc(4, 23, 1), SrcLoc(4, 22, 3))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_ARG_PUSHW,
-                                args = listOf(Arg(150)),
+                                args = listOf(IntArg(150)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
                                     args = listOf(ArgSrcLoc(SrcLoc(4, 26, 3), SrcLoc(4, 25, 4))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_SET_FLOOR_HANDLER,
                                 args = emptyList(),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(4, 5, 17),
-                                    args = emptyList(),
-                                    stackArgs = listOf(
+                                    args = listOf(
                                         ArgSrcLoc(SrcLoc(4, 23, 1), SrcLoc(4, 22, 3)),
                                         ArgSrcLoc(SrcLoc(4, 26, 3), SrcLoc(4, 25, 4)),
                                     ),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_RET,
@@ -91,8 +96,9 @@ class AssemblyTests : LibTestSuite {
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(5, 5, 3),
                                     args = emptyList(),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                         ),
                         srcLoc = SegmentSrcLoc(labels = mutableListOf(SrcLoc(1, 1, 2))),
@@ -102,23 +108,25 @@ class AssemblyTests : LibTestSuite {
                         instructions = mutableListOf(
                             Instruction(
                                 opcode = OP_ARG_PUSHL,
-                                args = listOf(Arg(1)),
+                                args = listOf(IntArg(1)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
                                     args = listOf(ArgSrcLoc(SrcLoc(7, 18, 1), SrcLoc(7, 17, 2))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_SET_MAINWARP,
                                 args = emptyList(),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(7, 5, 12),
-                                    args = emptyList(),
-                                    stackArgs = listOf(
+                                    args = listOf(
                                         ArgSrcLoc(SrcLoc(7, 18, 1), SrcLoc(7, 17, 2)),
                                     ),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_RET,
@@ -126,8 +134,9 @@ class AssemblyTests : LibTestSuite {
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(8, 5, 3),
                                     args = emptyList(),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                         ),
                         srcLoc = SegmentSrcLoc(labels = mutableListOf(SrcLoc(6, 1, 4))),
@@ -160,35 +169,38 @@ class AssemblyTests : LibTestSuite {
                         instructions = mutableListOf(
                             Instruction(
                                 opcode = OP_LETI,
-                                args = listOf(Arg(255), Arg(7)),
+                                args = listOf(IntArg(255), IntArg(7)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 4),
                                     args = listOf(
                                         ArgSrcLoc(SrcLoc(2, 10, 4), SrcLoc(2, 9, 6)),
                                         ArgSrcLoc(SrcLoc(2, 16, 1), SrcLoc(2, 15, 2)),
                                     ),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_ARG_PUSHR,
-                                args = listOf(Arg(255)),
+                                args = listOf(IntArg(255)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
                                     args = listOf(ArgSrcLoc(SrcLoc(3, 10, 4), SrcLoc(3, 9, 5))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_EXIT,
                                 args = emptyList(),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(3, 5, 4),
-                                    args = emptyList(),
-                                    stackArgs = listOf(
+                                    args = listOf(
                                         ArgSrcLoc(SrcLoc(3, 10, 4), SrcLoc(3, 9, 5)),
                                     ),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_RET,
@@ -196,8 +208,9 @@ class AssemblyTests : LibTestSuite {
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(4, 5, 3),
                                     args = emptyList(),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                         ),
                         srcLoc = SegmentSrcLoc(
@@ -231,33 +244,36 @@ class AssemblyTests : LibTestSuite {
                         instructions = mutableListOf(
                             Instruction(
                                 opcode = OP_ARG_PUSHB,
-                                args = listOf(Arg(200)),
+                                args = listOf(IntArg(200)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
                                     args = listOf(ArgSrcLoc(SrcLoc(2, 15, 4), SrcLoc(2, 14, 6))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_ARG_PUSHL,
-                                args = listOf(Arg(3)),
+                                args = listOf(IntArg(3)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
                                     args = listOf(ArgSrcLoc(SrcLoc(2, 21, 1), SrcLoc(2, 20, 2))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_P_DEAD_V3,
                                 args = emptyList(),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 9),
-                                    args = emptyList(),
-                                    stackArgs = listOf(
+                                    args = listOf(
                                         ArgSrcLoc(SrcLoc(2, 15, 4), SrcLoc(2, 14, 6)),
                                         ArgSrcLoc(SrcLoc(2, 21, 1), SrcLoc(2, 20, 2)),
                                     ),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                             Instruction(
                                 opcode = OP_RET,
@@ -265,8 +281,9 @@ class AssemblyTests : LibTestSuite {
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(3, 5, 3),
                                     args = emptyList(),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = true,
                             ),
                         ),
                         srcLoc = SegmentSrcLoc(
@@ -289,6 +306,7 @@ class AssemblyTests : LibTestSuite {
         )
 
         assertTrue(result is Success)
+        // Bytecode contains one invalid instruction.
         assertDeepEquals(
             BytecodeIr(
                 listOf(
@@ -297,12 +315,13 @@ class AssemblyTests : LibTestSuite {
                         instructions = mutableListOf(
                             Instruction(
                                 opcode = OP_RET,
-                                args = emptyList(),
+                                args = listOf(IntArg(100)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 3),
-                                    args = emptyList(),
-                                    stackArgs = emptyList(),
+                                    args = listOf(ArgSrcLoc(SrcLoc(2, 9, 3), SrcLoc(2, 8, 4))),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = false,
                             ),
                         ),
                         srcLoc = SegmentSrcLoc(
@@ -333,14 +352,24 @@ class AssemblyTests : LibTestSuite {
         )
 
         assertTrue(result is Success)
-
-        // Bytecode contains no instructions.
+        // Bytecode contains one invalid instruction.
         assertDeepEquals(
             BytecodeIr(
                 listOf(
                     InstructionSegment(
                         labels = mutableListOf(5000),
-                        instructions = mutableListOf(),
+                        instructions = mutableListOf(
+                            Instruction(
+                                opcode = OP_LETI,
+                                args = listOf(IntArg(100)),
+                                srcLoc = InstructionSrcLoc(
+                                    mnemonic = SrcLoc(2, 5, 4),
+                                    args = listOf(ArgSrcLoc(SrcLoc(2, 10, 4), SrcLoc(2, 9, 5))),
+                                    trailingArgSeparator = false,
+                                ),
+                                valid = false,
+                            ),
+                        ),
                         srcLoc = SegmentSrcLoc(
                             labels = mutableListOf(SrcLoc(1, 1, 5)),
                         ),
@@ -370,7 +399,7 @@ class AssemblyTests : LibTestSuite {
 
         assertTrue(result is Success)
 
-        // Bytecode contains an instruction, since it's technically valid.
+        // Bytecode contains one invalid instruction.
         assertDeepEquals(
             BytecodeIr(
                 listOf(
@@ -379,12 +408,13 @@ class AssemblyTests : LibTestSuite {
                         instructions = mutableListOf(
                             Instruction(
                                 opcode = OP_SWITCH_JMP,
-                                args = listOf(Arg(100)),
+                                args = listOf(IntArg(100)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 10),
                                     args = listOf(ArgSrcLoc(SrcLoc(2, 16, 4), SrcLoc(2, 15, 5))),
-                                    stackArgs = emptyList(),
+                                    trailingArgSeparator = false,
                                 ),
+                                valid = false,
                             ),
                         ),
                         srcLoc = SegmentSrcLoc(

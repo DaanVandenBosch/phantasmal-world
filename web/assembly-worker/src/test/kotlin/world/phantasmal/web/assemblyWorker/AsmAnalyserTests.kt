@@ -54,6 +54,80 @@ class AsmAnalyserTests : AssemblyWorkerTestSuite() {
     }
 
     @Test
+    fun getSignatureHelp_incomplete_instruction() = test {
+        // Three kinds of incomplete instructions.
+        val analyser = createAsmAnalyser(
+            """
+            .code
+            0:
+                leti
+                leti r0
+                leti r0,
+            """.trimIndent()
+        )
+
+        val requestId = 113
+
+        for (col in 1..4) {
+            val response = analyser.getSignatureHelp(requestId, lineNo = 3, col)
+
+            assertDeepEquals(Response.GetSignatureHelp(requestId, null), response)
+        }
+
+        fun sigHelp(activeParameter: Int) = Response.GetSignatureHelp(
+            requestId,
+            SignatureHelp(
+                Signature(
+                    label = "leti Reg<out Int>, Int",
+                    documentation = "Sets a register to the given value.",
+                    listOf(
+                        Parameter(labelStart = 5, labelEnd = 17, null),
+                        Parameter(labelStart = 19, labelEnd = 22, null),
+                    ),
+                ),
+                activeParameter,
+            ),
+        )
+
+        // First instruction: leti
+        for ((colRange, sigHelp) in listOf(
+            5..8 to sigHelp(-1),
+            9..9 to sigHelp(0),
+        )) {
+            for (col in colRange) {
+                val response = analyser.getSignatureHelp(requestId, 3, col)
+
+                assertDeepEquals(sigHelp, response, "col = $col")
+            }
+        }
+
+        // Second instruction: leti r0
+        for ((colRange, sigHelp) in listOf(
+            5..8 to sigHelp(-1),
+            9..12 to sigHelp(0),
+        )) {
+            for (col in colRange) {
+                val response = analyser.getSignatureHelp(requestId, 4, col)
+
+                assertDeepEquals(sigHelp, response, "col = $col")
+            }
+        }
+
+        // Third instruction: leti r0,
+        for ((colRange, sigHelp) in listOf(
+            5..8 to sigHelp(-1),
+            9..12 to sigHelp(0),
+            13..13 to sigHelp(1),
+        )) {
+            for (col in colRange) {
+                val response = analyser.getSignatureHelp(requestId, 5, col)
+
+                assertDeepEquals(sigHelp, response, "col = $col")
+            }
+        }
+    }
+
+    @Test
     fun getHighlights_for_instruction() = test {
         val analyser = createAsmAnalyser(
             """

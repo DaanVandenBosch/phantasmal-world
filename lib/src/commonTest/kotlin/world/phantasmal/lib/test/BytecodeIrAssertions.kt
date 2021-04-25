@@ -61,6 +61,7 @@ fun assertDeepEquals(
     message: String? = null,
 ) {
     assertEquals(expected.opcode, actual.opcode, message)
+    assertEquals(expected.valid, actual.valid, message)
     assertDeepEquals(expected.args, actual.args, ::assertEquals, message)
 
     if (!ignoreSrcLocs) {
@@ -91,9 +92,9 @@ fun assertDeepEquals(
     }
 
     assertNotNull(actual, message)
+    assertEquals(expected.trailingArgSeparator, actual.trailingArgSeparator, message)
     assertDeepEquals(expected.mnemonic, actual.mnemonic, message)
     assertDeepEquals(expected.args, actual.args, ::assertDeepEquals, message)
-    assertDeepEquals(expected.stackArgs, actual.stackArgs, ::assertDeepEquals, message)
 }
 
 fun assertDeepEquals(expected: ArgSrcLoc?, actual: ArgSrcLoc?, message: String? = null) {

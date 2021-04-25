@@ -30,9 +30,3 @@ fun Int.setBit(bit: Int, value: Boolean): Int =
     } else {
         this and (1 shl bit).inv()
     }
-
-expect fun Int.reinterpretAsFloat(): Float
-
-expect fun Float.reinterpretAsInt(): Int
-
-expect fun Float.reinterpretAsUInt(): UInt

@@ -51,7 +51,7 @@ private class StackValueFinder {
             when (instruction.opcode.code) {
                 OP_ARG_PUSHR.code -> {
                     if (pos == 0) {
-                        return getRegisterValue(cfg, instruction, args[0].value as Int)
+                        return getRegisterValue(cfg, instruction, (args[0] as IntArg).value)
                     } else {
                         pos--
                     }
@@ -62,7 +62,7 @@ private class StackValueFinder {
                 OP_ARG_PUSHW.code,
                 -> {
                     if (pos == 0) {
-                        return ValueSet.of(args[0].value as Int)
+                        return ValueSet.of((args[0] as IntArg).value)
                     } else {
                         pos--
                     }

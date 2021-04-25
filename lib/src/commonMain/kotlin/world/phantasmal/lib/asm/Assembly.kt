@@ -131,8 +131,9 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         opcode: Opcode,
         args: List<Arg>,
         mnemonicSrcLoc: SrcLoc?,
+        valid: Boolean,
         argSrcLocs: List<ArgSrcLoc>,
-        stackArgSrcLocs: List<ArgSrcLoc>,
+        trailingArgSeparator: Boolean,
     ) {
         when (val seg = segment) {
             null -> {
@@ -151,11 +152,12 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     Instruction(
                         opcode,
                         args,
+                        valid,
                         InstructionSrcLoc(
                             mnemonic = mnemonicSrcLoc,
                             args = argSrcLocs,
-                            stackArgs = stackArgSrcLocs,
-                        )
+                            trailingArgSeparator,
+                        ),
                     )
                 )
             }
@@ -359,200 +361,169 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         if (opcode == null) {
             addError("Unknown opcode.")
         } else {
-            // Inline arguments.
-            val inlineArgs = mutableListOf<Arg>()
-            val inlineArgSrcLocs = mutableListOf<ArgSrcLoc>()
-            // Stack arguments.
-            val stackArgs = mutableListOf<Arg>()
-            val stackArgSrcLocs = mutableListOf<ArgSrcLoc>()
-
             if (opcode.stack !== StackInteraction.Pop) {
-                // Arguments should be inlined right after the opcode.
-                if (!parseArgs(
-                        opcode,
-                        mnemonicSrcLoc.col,
-                        inlineArgs,
-                        inlineArgSrcLocs,
-                        stack = false,
-                    )
-                ) {
-                    return
-                }
+                // Arguments should be inlined immediately after the opcode.
+                parseArgs(
+                    opcode,
+                    mnemonicSrcLoc,
+                    stack = false,
+                )
             } else {
                 // Arguments should be passed to the opcode via the stack.
-                if (!parseArgs(
-                        opcode,
-                        mnemonicSrcLoc.col,
-                        stackArgs,
-                        stackArgSrcLocs,
-                        stack = true,
-                    )
-                ) {
-                    return
-                }
+                parseArgs(
+                    opcode,
+                    mnemonicSrcLoc,
+                    stack = true,
+                )
             }
-
-            addInstruction(
-                opcode,
-                inlineArgs,
-                mnemonicSrcLoc,
-                inlineArgSrcLocs,
-                stackArgSrcLocs,
-            )
         }
     }
 
-    /**
-     * Returns true iff arguments can be translated to byte code, possibly after truncation.
-     */
-    private fun parseArgs(
-        opcode: Opcode,
-        startCol: Int,
-        args: MutableList<Arg>,
-        srcLocs: MutableList<ArgSrcLoc>,
-        stack: Boolean,
-    ): Boolean {
+    private fun parseArgs(opcode: Opcode, mnemonicSrcLoc: SrcLoc, stack: Boolean) {
+        val immediateArgs = mutableListOf<Arg>()
+        val srcLocs = mutableListOf<ArgSrcLoc>()
         var argCount = 0
-        var semiValid = true
+        var valid = true
         var shouldBeArg = true
         var paramI = 0
+        var prevToken: Token?
         var prevCol: Int
         var prevLen: Int
+        var token = tokenizer.type
         var col = tokenizer.col
         var len = tokenizer.len
 
         tokenizer.nextToken()
 
         while (true) {
+            // Previous token data.
+            prevToken = token
             prevCol = col
             prevLen = len
 
-            val token = tokenizer.type
-            val value = tokenizer.value
+            // Current token data.
+            token = tokenizer.type
             col = tokenizer.col
             len = tokenizer.len
+            val value = tokenizer.value
 
             if (token == null) {
                 break
             }
 
+            // Next token data.
             tokenizer.nextToken()
+            val nextToken = tokenizer.type
+            val nextCol = tokenizer.col
+            val nextLen = tokenizer.len
+
+            val param = opcode.params.getOrNull(paramI)
+            val paramType = param?.type
+
+            // Coarse source position, including surrounding whitespace.
             val coarseCol = prevCol + prevLen
             val coarseLen =
-                if (tokenizer.type === Token.ArgSeparator) tokenizer.col + tokenizer.len - coarseCol
-                else tokenizer.col - coarseCol
+                if (nextToken === Token.ArgSeparator) nextCol + nextLen - coarseCol
+                else nextCol - coarseCol
 
-            if (token !== Token.ArgSeparator) {
+            if (token === Token.ArgSeparator) {
+                if (shouldBeArg) {
+                    addError("Expected an argument.")
+                } else if (param == null || !param.varargs) {
+                    paramI++
+                }
+
+                shouldBeArg = true
+            } else {
+                if (!shouldBeArg) {
+                    addError(coarseCol, col - coarseCol, "Expected a comma.")
+                }
+
+                shouldBeArg = false
+
                 argCount++
-            }
 
-            if (paramI < opcode.params.size) {
-                val param = opcode.params[paramI]
+                // Try to match token type to parameter type.
+                var typeMatch: Boolean
 
-                if (token === Token.ArgSeparator) {
-                    if (shouldBeArg) {
-                        addError("Expected an argument.")
-                    } else if (!param.varargs) {
-                        paramI++
-                    }
+                // If arg is nonnull, types match and argument is syntactically valid.
+                val arg: Arg = when (token) {
+                    Token.Int32 -> {
+                        value as Int
 
-                    shouldBeArg = true
-                } else {
-                    if (!shouldBeArg) {
-                        addError(coarseCol, col - coarseCol, "Expected a comma.")
-                    }
-
-                    shouldBeArg = false
-
-                    // Try to match token type parameter type.
-                    var typeMatch: Boolean
-
-                    // If arg is nonnull, types match and argument is syntactically valid.
-                    val arg: Arg? = when (token) {
-                        Token.Int32 -> {
-                            value as Int
-
-                            when (param.type) {
-                                ByteType -> {
-                                    typeMatch = true
-                                    intValueToArg(value, 1)
-                                }
-                                ShortType,
-                                is LabelType,
-                                -> {
-                                    typeMatch = true
-                                    intValueToArg(value, 2)
-                                }
-                                IntType -> {
-                                    typeMatch = true
-                                    intValueToArg(value, 4)
-                                }
-                                FloatType -> {
-                                    typeMatch = true
-                                    Arg(value.toFloat())
-                                }
-                                else -> {
-                                    typeMatch = false
-                                    null
-                                }
+                        when (paramType) {
+                            ByteType -> {
+                                typeMatch = true
+                                checkIntValue(col, len, value, 1)
                             }
-                        }
-
-                        Token.Float32 -> {
-                            typeMatch = param.type === FloatType
-
-                            if (typeMatch) {
-                                Arg(value as Float)
-                            } else {
-                                null
+                            ShortType,
+                            is LabelType,
+                            -> {
+                                typeMatch = true
+                                checkIntValue(col, len, value, 2)
                             }
-                        }
-
-                        Token.Register -> {
-                            value as Int
-
-                            typeMatch = stack ||
-                                    param.type === RegVarType ||
-                                    param.type is RegType
-
-                            if (value > 255) {
-                                addError("Invalid register reference, expected r0-r255.")
-                                null
-                            } else {
-                                Arg(value)
+                            IntType -> {
+                                typeMatch = true
+                                checkIntValue(col, len, value, 4)
                             }
-                        }
-
-                        Token.Str -> {
-                            typeMatch = param.type === StringType
-
-                            if (typeMatch) {
-                                Arg(value as String)
-                            } else {
-                                null
+                            FloatType -> {
+                                typeMatch = true
+                                FloatArg(value.toFloat())
                             }
-                        }
-
-                        else -> {
-                            typeMatch = false
-                            null
+                            else -> {
+                                typeMatch = false
+                                IntArg(value)
+                            }
                         }
                     }
 
-                    val srcLoc = ArgSrcLoc(
-                        precise = SrcLoc(lineNo, col, len),
-                        coarse = SrcLoc(lineNo, coarseCol, coarseLen),
-                    )
-
-                    if (arg != null) {
-                        args.add(arg)
-                        srcLocs.add(srcLoc)
+                    Token.Float32 -> {
+                        typeMatch = paramType === FloatType
+                        FloatArg(value as Float)
                     }
 
-                    if (!typeMatch) {
-                        semiValid = false
+                    Token.Register -> {
+                        typeMatch = stack ||
+                                paramType === RegVarType ||
+                                paramType is RegType
 
-                        val typeStr: String? = when (param.type) {
+                        value as Int
+
+                        if (value > 255) {
+                            addError(col, len, "Invalid register reference, expected r0-r255.")
+                        }
+
+                        IntArg(value)
+                    }
+
+                    Token.Str -> {
+                        typeMatch = paramType === StringType
+                        StringArg(value as String)
+                    }
+
+                    else -> {
+                        typeMatch = false
+                        UnknownArg(value!!)
+                    }
+                }
+
+                val srcLoc = ArgSrcLoc(
+                    precise = SrcLoc(lineNo, col, len),
+                    coarse = SrcLoc(lineNo, coarseCol, coarseLen),
+                )
+
+                if (!stack) {
+                    immediateArgs.add(arg)
+                }
+
+                srcLocs.add(srcLoc)
+
+                if (!typeMatch) {
+                    valid = false
+
+                    // Don't add a type errors for surplus arguments.
+                    if (param != null) {
+                        val typeStr = when (param.type) {
                             ByteType -> "an 8-bit integer"
                             ShortType -> "a 16-bit integer"
                             IntType -> "a 32-bit integer"
@@ -573,93 +544,103 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             is RegType,
                             -> "a register reference"
 
-                            else -> null
+                            PointerType -> "a pointer" // No known opcodes directly take a pointer.
+
+                            AnyType.Instance -> "an argument" // Should never happen.
                         }
 
-                        addError(
-                            if (typeStr == null) "Unexpected token." else "Expected ${typeStr}."
-                        )
-                    } else if (stack && arg != null) {
-                        // Inject stack push instructions if necessary.
-                        // If the token is a register, push it as a register, otherwise coerce type.
-                        if (token === Token.Register) {
-                            if (param.type is RegType) {
+                        addError(col, len, "Expected ${typeStr}.")
+                    }
+                } else if (stack) {
+                    // Inject stack push instructions if necessary.
+                    checkNotNull(paramType)
+
+                    // If the token is a register, push it as a register, otherwise coerce type.
+                    if (token === Token.Register) {
+                        if (paramType is RegType) {
+                            addInstruction(
+                                OP_ARG_PUSHB,
+                                listOf(arg),
+                                mnemonicSrcLoc = null,
+                                valid = true,
+                                listOf(srcLoc),
+                                trailingArgSeparator = false,
+                            )
+                        } else {
+                            addInstruction(
+                                OP_ARG_PUSHR,
+                                listOf(arg),
+                                mnemonicSrcLoc = null,
+                                valid = true,
+                                listOf(srcLoc),
+                                trailingArgSeparator = false,
+                            )
+                        }
+                    } else {
+                        when (paramType) {
+                            ByteType,
+                            is RegType,
+                            -> {
                                 addInstruction(
                                     OP_ARG_PUSHB,
                                     listOf(arg),
-                                    null,
+                                    mnemonicSrcLoc = null,
+                                    valid = true,
                                     listOf(srcLoc),
-                                    emptyList(),
-                                )
-                            } else {
-                                addInstruction(
-                                    OP_ARG_PUSHR,
-                                    listOf(arg),
-                                    null,
-                                    listOf(srcLoc),
-                                    emptyList(),
+                                    trailingArgSeparator = false,
                                 )
                             }
-                        } else {
-                            when (param.type) {
-                                ByteType,
-                                is RegType,
-                                -> {
-                                    addInstruction(
-                                        OP_ARG_PUSHB,
-                                        listOf(arg),
-                                        null,
-                                        listOf(srcLoc),
-                                        emptyList(),
-                                    )
-                                }
 
-                                ShortType,
-                                is LabelType,
-                                -> {
-                                    addInstruction(
-                                        OP_ARG_PUSHW,
-                                        listOf(arg),
-                                        null,
-                                        listOf(srcLoc),
-                                        emptyList(),
-                                    )
-                                }
+                            ShortType,
+                            is LabelType,
+                            -> {
+                                addInstruction(
+                                    OP_ARG_PUSHW,
+                                    listOf(arg),
+                                    mnemonicSrcLoc = null,
+                                    valid = true,
+                                    listOf(srcLoc),
+                                    trailingArgSeparator = false,
+                                )
+                            }
 
-                                IntType -> {
-                                    addInstruction(
-                                        OP_ARG_PUSHL,
-                                        listOf(arg),
-                                        null,
-                                        listOf(srcLoc),
-                                        emptyList(),
-                                    )
-                                }
+                            IntType -> {
+                                addInstruction(
+                                    OP_ARG_PUSHL,
+                                    listOf(arg),
+                                    mnemonicSrcLoc = null,
+                                    valid = true,
+                                    listOf(srcLoc),
+                                    trailingArgSeparator = false,
+                                )
+                            }
 
-                                FloatType -> {
-                                    addInstruction(
-                                        OP_ARG_PUSHL,
-                                        listOf(Arg((arg.value as Float).toRawBits())),
-                                        null,
-                                        listOf(srcLoc),
-                                        emptyList(),
-                                    )
-                                }
+                            // Floats are pushed as ints.
+                            FloatType -> {
+                                addInstruction(
+                                    OP_ARG_PUSHL,
+                                    listOf(IntArg((arg as FloatArg).value.toRawBits())),
+                                    mnemonicSrcLoc = null,
+                                    valid = true,
+                                    listOf(srcLoc),
+                                    trailingArgSeparator = false,
+                                )
+                            }
 
-                                StringType -> {
-                                    addInstruction(
-                                        OP_ARG_PUSHS,
-                                        listOf(arg),
-                                        null,
-                                        listOf(srcLoc),
-                                        emptyList(),
-                                    )
-                                }
+                            StringType -> {
+                                addInstruction(
+                                    OP_ARG_PUSHS,
+                                    listOf(arg),
+                                    mnemonicSrcLoc = null,
+                                    valid = true,
+                                    listOf(srcLoc),
+                                    trailingArgSeparator = false,
+                                )
+                            }
 
-                                else -> {
-                                    logger.error {
-                                        "Line $lineNo: Type ${param.type::class} not implemented."
-                                    }
+                            else -> {
+                                logger.error {
+                                    "Line $lineNo: Type ${paramType::class} not implemented."
                                 }
                             }
                         }
@@ -672,59 +653,67 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
             if (!inlineStackArgs && opcode.stack === StackInteraction.Pop) 0
             else opcode.params.size
 
-        val errorLength = prevCol + prevLen - startCol
+        val trailingArgSeparator = prevToken === Token.ArgSeparator
 
-        if (!opcode.varargs && argCount != paramCount) {
-            semiValid = argCount >= paramCount
-            addError(
-                startCol,
-                errorLength,
-                "Expected $paramCount argument${
-                    if (paramCount == 1) "" else "s"
-                }, got $argCount.",
-            )
-        } else if (opcode.varargs && argCount < paramCount) {
-            semiValid = argCount >= paramCount - 1
-            // TODO: This check assumes we want at least 1 argument for a vararg parameter.
-            //       Is this correct?
-            addError(
-                startCol,
-                errorLength,
-                "Expected at least $paramCount argument${
-                    if (paramCount == 1) "" else "s"
-                }, got $argCount.",
-            )
+        // Length from the start of the mnemonic until the end of the last token.
+        val errorLength = prevCol + prevLen - mnemonicSrcLoc.col
+
+        if (opcode.varargs) {
+            // Argument count should be equal to or greater than the amount of parameters for variadic
+            // opcodes.
+            if (argCount < paramCount) {
+                valid = false
+                addError(
+                    mnemonicSrcLoc.col,
+                    errorLength,
+                    "Expected at least $paramCount argument${
+                        if (paramCount == 1) "" else "s"
+                    }, got $argCount.",
+                )
+            }
+        } else {
+            // Argument count should match parameter count exactly for non-variadic opcodes.
+            if (argCount != paramCount) {
+                valid = false
+                addError(
+                    mnemonicSrcLoc.col,
+                    errorLength,
+                    "Expected $paramCount argument${
+                        if (paramCount == 1) "" else "s"
+                    }, got $argCount.",
+                )
+            }
         }
 
-        return semiValid
+        // Trailing argument separators are not allowed.
+        if (trailingArgSeparator) {
+            addError(prevCol, prevLen, "Unexpected comma.")
+        }
+
+        addInstruction(opcode, immediateArgs, mnemonicSrcLoc, valid, srcLocs, trailingArgSeparator)
     }
 
-    private fun intValueToArg(value: Int, size: Int): Arg? {
+    private fun checkIntValue(col: Int, len: Int, value: Int, size: Int): Arg {
         // Fast-path 32-bit ints for improved JS perf. Otherwise maxValue would have to be a Long
         // or UInt, which incurs a perf hit in JS.
-        if (size == 4) {
-            return Arg(value)
-        } else {
+        if (size != 4) {
             val bitSize = 8 * size
             // Minimum of the signed version of this integer type.
             val minValue = -(1 shl (bitSize - 1))
             // Maximum of the unsigned version of this integer type.
             val maxValue = (1 shl (bitSize)) - 1
 
-            return when {
+            when {
                 value < minValue -> {
-                    addError("${bitSize}-Bit integer can't be less than ${minValue}.")
-                    null
+                    addError(col, len, "${bitSize}-Bit integer can't be less than ${minValue}.")
                 }
                 value > maxValue -> {
-                    addError("${bitSize}-Bit integer can't be greater than ${maxValue}.")
-                    null
-                }
-                else -> {
-                    Arg(value)
+                    addError(col, len, "${bitSize}-Bit integer can't be greater than ${maxValue}.")
                 }
             }
         }
+
+        return IntArg(value)
     }
 
     private fun parseBytes() {

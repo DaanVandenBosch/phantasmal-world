@@ -3,6 +3,7 @@ package world.phantasmal.lib.asm
 import world.phantasmal.lib.test.LibTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class OpcodeTests : LibTestSuite {
@@ -28,10 +29,13 @@ class OpcodeTests : LibTestSuite {
             assertTrue(!hasVarargs || opcode.params.lastOrNull()?.varargs == true)
             assertEquals(hasVarargs, opcode.varargs)
 
-            // Register references.
             for (param in opcode.params) {
                 val type = param.type
 
+                // Any should only be used with register parameters.
+                assertNotEquals(AnyType.Instance, type)
+
+                // Register references.
                 if (type is RegType) {
                     val registers = type.registers
 

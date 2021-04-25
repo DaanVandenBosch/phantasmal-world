@@ -58,7 +58,7 @@ private class RegisterValueFinder {
 
                 OP_LET.code -> {
                     if (args[0].value == register) {
-                        return find(LinkedHashSet(path), block, i, args[1].value as Int)
+                        return find(LinkedHashSet(path), block, i, (args[1] as IntArg).value)
                     }
                 }
 
@@ -68,7 +68,7 @@ private class RegisterValueFinder {
                 OP_SYNC_LETI.code,
                 -> {
                     if (args[0].value == register) {
-                        return ValueSet.of(args[1].value as Int)
+                        return ValueSet.of((args[1] as IntArg).value)
                     }
                 }
 
@@ -101,7 +101,7 @@ private class RegisterValueFinder {
                 OP_ADDI.code -> {
                     if (args[0].value == register) {
                         val prevVals = find(LinkedHashSet(path), block, i, register)
-                        prevVals += args[1].value as Int
+                        prevVals += (args[1] as IntArg).value
                         return prevVals
                     }
                 }
@@ -109,7 +109,7 @@ private class RegisterValueFinder {
                 OP_SUBI.code -> {
                     if (args[0].value == register) {
                         val prevVals = find(LinkedHashSet(path), block, i, register)
-                        prevVals -= args[1].value as Int
+                        prevVals -= (args[1] as IntArg).value
                         return prevVals
                     }
                 }
@@ -117,7 +117,7 @@ private class RegisterValueFinder {
                 OP_MULI.code -> {
                     if (args[0].value == register) {
                         val prevVals = find(LinkedHashSet(path), block, i, register)
-                        prevVals *= args[1].value as Int
+                        prevVals *= (args[1] as IntArg).value
                         return prevVals
                     }
                 }
@@ -125,7 +125,7 @@ private class RegisterValueFinder {
                 OP_DIVI.code -> {
                     if (args[0].value == register) {
                         val prevVals = find(LinkedHashSet(path), block, i, register)
-                        prevVals /= args[1].value as Int
+                        prevVals /= (args[1] as IntArg).value
                         return prevVals
                     }
                 }
@@ -155,7 +155,7 @@ private class RegisterValueFinder {
                             LinkedHashSet(path),
                             block,
                             i,
-                            args[0].value as Int
+                            (args[0] as IntArg).value
                         ).minOrNull()!!
 
                         val max = max(
@@ -163,7 +163,7 @@ private class RegisterValueFinder {
                                 LinkedHashSet(path),
                                 block,
                                 i,
-                                args[0].value as Int + 1
+                                (args[0] as IntArg).value + 1
                             ).maxOrNull()!!,
                             min + 1,
                         )
@@ -175,8 +175,8 @@ private class RegisterValueFinder {
                 OP_STACK_PUSHM.code,
                 OP_STACK_POPM.code,
                 -> {
-                    val minReg = args[0].value as Int
-                    val maxReg = args[0].value as Int + args[1].value as Int
+                    val minReg = (args[0] as IntArg).value
+                    val maxReg = (args[0] as IntArg).value + (args[1] as IntArg).value
 
                     if (register in minReg until maxReg) {
                         return ValueSet.all()
@@ -192,7 +192,7 @@ private class RegisterValueFinder {
                         val param = params[j]
 
                         if (param.type is RegType && param.type.registers != null) {
-                            val regRef = args[j].value as Int
+                            val regRef = (args[j] as IntArg).value
 
                             for ((k, regParam) in param.type.registers.withIndex()) {
                                 if (regParam.write && regRef + k == register) {
@@ -274,14 +274,15 @@ private class RegisterValueFinder {
 
         return if (register in 1..stack.size) {
             val instruction = stack[register - 1]
-            val value = instruction.args.first().value
+            val arg = instruction.args.first()
 
             when (instruction.opcode.code) {
-                OP_ARG_PUSHR.code -> find(LinkedHashSet(path), block, vaStartIdx, value as Int)
+                OP_ARG_PUSHR.code ->
+                    find(LinkedHashSet(path), block, vaStartIdx, (arg as IntArg).value)
 
                 OP_ARG_PUSHL.code,
                 OP_ARG_PUSHB.code,
-                OP_ARG_PUSHW.code -> ValueSet.of(value as Int)
+                OP_ARG_PUSHW.code -> ValueSet.of((arg as IntArg).value)
 
                 // TODO: Deal with strings.
                 else -> ValueSet.all() // String or pointer

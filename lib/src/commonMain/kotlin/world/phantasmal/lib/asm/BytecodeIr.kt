@@ -103,6 +103,7 @@ class Instruction(
      * Immediate arguments for the opcode.
      */
     val args: List<Arg>,
+    val valid: Boolean,
     val srcLoc: InstructionSrcLoc?,
 ) {
     /**
@@ -144,41 +145,19 @@ class Instruction(
     }
 
     /**
-     * Returns the source locations of the immediate arguments for the parameter at the given index.
+     * Returns the source locations of the (immediate or stack) arguments for the parameter at the
+     * given index.
      */
     fun getArgSrcLocs(paramIndex: Int): List<ArgSrcLoc> {
         val argSrcLocs = srcLoc?.args
             ?: return emptyList()
 
-        val param = opcode.params[paramIndex]
-
-        // Variable length arguments are always last, so we can just gobble up all SrcLocs from
-        // paramIndex onward.
-        return if (param.varargs) {
+        return if (opcode.params[paramIndex].varargs) {
+            // Variadic parameters are always last, so we can just gobble up all SrcLocs from
+            // paramIndex onward.
             argSrcLocs.drop(paramIndex)
         } else {
-            listOf(argSrcLocs[paramIndex])
-        }
-    }
-
-    /**
-     * Returns the source locations of the stack arguments for the parameter at the given index.
-     */
-    fun getStackArgSrcLocs(paramIndex: Int): List<ArgSrcLoc> {
-        val argSrcLocs = srcLoc?.stackArgs
-
-        if (argSrcLocs == null || paramIndex > argSrcLocs.lastIndex) {
-            return emptyList()
-        }
-
-        val param = opcode.params[paramIndex]
-
-        // Variable length arguments are always last, so we can just gobble up all SrcLocs from
-        // paramIndex onward.
-        return if (param.varargs) {
-            argSrcLocs.drop(paramIndex)
-        } else {
-            listOf(argSrcLocs[paramIndex])
+            listOfNotNull(argSrcLocs.getOrNull(paramIndex))
         }
     }
 
@@ -210,9 +189,9 @@ class Instruction(
 
                 StringType -> {
                     if (dcGcFormat) {
-                        (args[0].value as String).length + 1
+                        (args[0] as StringArg).value.length + 1
                     } else {
-                        2 * (args[0].value as String).length + 2
+                        2 * (args[0] as StringArg).value.length + 2
                     }
                 }
 
@@ -232,13 +211,43 @@ class Instruction(
     }
 
     fun copy(): Instruction =
-        Instruction(opcode, args, srcLoc)
+        Instruction(opcode, args, valid, srcLoc).also { it.paramToArgs = paramToArgs }
 }
 
 /**
  * Instruction argument.
  */
-data class Arg(val value: Any)
+sealed class Arg {
+    abstract val value: Any?
+
+    abstract fun coerceInt(): Int
+    abstract fun coerceFloat(): Float
+    abstract fun coerceString(): String
+}
+
+data class IntArg(override val value: Int) : Arg() {
+    override fun coerceInt(): Int = value
+    override fun coerceFloat(): Float = Float.fromBits(value)
+    override fun coerceString(): String = value.toString()
+}
+
+data class FloatArg(override val value: Float) : Arg() {
+    override fun coerceInt(): Int = value.toRawBits()
+    override fun coerceFloat(): Float = value
+    override fun coerceString(): String = value.toString()
+}
+
+data class StringArg(override val value: String) : Arg() {
+    override fun coerceInt(): Int = 0
+    override fun coerceFloat(): Float = 0f
+    override fun coerceString(): String = value
+}
+
+data class UnknownArg(override val value: Any?) : Arg() {
+    override fun coerceInt(): Int = 0
+    override fun coerceFloat(): Float = 0f
+    override fun coerceString(): String = ""
+}
 
 /**
  * Position and length of related source assembly code.
@@ -254,8 +263,15 @@ class SrcLoc(
  */
 class InstructionSrcLoc(
     val mnemonic: SrcLoc?,
+    /**
+     * Immediate or stack argument locations.
+     */
     val args: List<ArgSrcLoc> = emptyList(),
-    val stackArgs: List<ArgSrcLoc> = emptyList(),
+    /**
+     * Does the instruction end with a comma? This can be the case when a user has partially typed
+     * an instruction.
+     */
+    val trailingArgSeparator: Boolean,
 )
 
 /**

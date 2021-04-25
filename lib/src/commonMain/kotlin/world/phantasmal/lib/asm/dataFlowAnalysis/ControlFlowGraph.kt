@@ -167,7 +167,7 @@ private fun createBasicBlocks(cfg: ControlFlowGraphBuilder, segment: Instruction
             // Unconditional jump.
             OP_JMP.code -> {
                 branchType = BranchType.Jump
-                branchLabels = listOf(inst.args[0].value as Int)
+                branchLabels = listOf((inst.args[0] as IntArg).value)
             }
 
             // Conditional jumps.
@@ -175,7 +175,7 @@ private fun createBasicBlocks(cfg: ControlFlowGraphBuilder, segment: Instruction
             OP_JMP_OFF.code,
             -> {
                 branchType = BranchType.ConditionalJump
-                branchLabels = listOf(inst.args[0].value as Int)
+                branchLabels = listOf((inst.args[0] as IntArg).value)
             }
             OP_JMP_E.code,
             OP_JMPI_E.code,
@@ -199,11 +199,11 @@ private fun createBasicBlocks(cfg: ControlFlowGraphBuilder, segment: Instruction
             OP_JMPI_LE.code,
             -> {
                 branchType = BranchType.ConditionalJump
-                branchLabels = listOf(inst.args[2].value as Int)
+                branchLabels = listOf((inst.args[2] as IntArg).value)
             }
             OP_SWITCH_JMP.code -> {
                 branchType = BranchType.ConditionalJump
-                branchLabels = inst.args.drop(1).map { it.value as Int }
+                branchLabels = inst.args.drop(1).map { (it as IntArg).value }
             }
 
             // Calls.
@@ -211,11 +211,11 @@ private fun createBasicBlocks(cfg: ControlFlowGraphBuilder, segment: Instruction
             OP_VA_CALL.code,
             -> {
                 branchType = BranchType.Call
-                branchLabels = listOf(inst.args[0].value as Int)
+                branchLabels = listOf((inst.args[0] as IntArg).value)
             }
             OP_SWITCH_CALL.code -> {
                 branchType = BranchType.Call
-                branchLabels = inst.args.drop(1).map { it.value as Int }
+                branchLabels = inst.args.drop(1).map { (it as IntArg).value }
             }
 
             // All other opcodes.

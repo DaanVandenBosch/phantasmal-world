@@ -15,17 +15,19 @@ class DisassemblyTests : LibTestSuite {
                         Instruction(
                             opcode = OP_SWITCH_JMP,
                             args = listOf(
-                                Arg(90),
-                                Arg(100),
-                                Arg(101),
-                                Arg(102),
+                                IntArg(90),
+                                IntArg(100),
+                                IntArg(101),
+                                IntArg(102),
                             ),
                             srcLoc = null,
+                            valid = true,
                         ),
                         Instruction(
                             opcode = OP_RET,
                             args = emptyList(),
                             srcLoc = null,
+                            valid = true,
                         ),
                     ),
                 )
@@ -57,26 +59,31 @@ class DisassemblyTests : LibTestSuite {
                             opcode = OP_VA_START,
                             args = emptyList(),
                             srcLoc = null,
+                            valid = true,
                         ),
                         Instruction(
                             opcode = OP_ARG_PUSHW,
-                            args = listOf(Arg(1337)),
+                            args = listOf(IntArg(1337)),
                             srcLoc = null,
+                            valid = true,
                         ),
                         Instruction(
                             opcode = OP_VA_CALL,
-                            args = listOf(Arg(100)),
+                            args = listOf(IntArg(100)),
                             srcLoc = null,
+                            valid = true,
                         ),
                         Instruction(
                             opcode = OP_VA_END,
                             args = emptyList(),
                             srcLoc = null,
+                            valid = true,
                         ),
                         Instruction(
                             opcode = OP_RET,
                             args = emptyList(),
                             srcLoc = null,
+                            valid = true,
                         ),
                     ),
                 )

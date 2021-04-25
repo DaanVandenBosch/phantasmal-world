@@ -1,10 +1,7 @@
 package world.phantasmal.lib.asm.dataFlowAnalysis
 
 import mu.KotlinLogging
-import world.phantasmal.lib.asm.InstructionSegment
-import world.phantasmal.lib.asm.OP_BB_MAP_DESIGNATE
-import world.phantasmal.lib.asm.OP_MAP_DESIGNATE
-import world.phantasmal.lib.asm.OP_MAP_DESIGNATE_EX
+import world.phantasmal.lib.asm.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -24,7 +21,7 @@ fun getMapDesignations(
                     cfg = createCfg()
                 }
 
-                val areaId = getRegisterValue(cfg, inst, inst.args[0].value as Int)
+                val areaId = getRegisterValue(cfg, inst, (inst.args[0] as IntArg).value)
 
                 if (areaId.size > 1) {
                     logger.warn {
@@ -34,7 +31,7 @@ fun getMapDesignations(
                 }
 
                 val variantIdRegister =
-                    inst.args[0].value as Int + (if (inst.opcode == OP_MAP_DESIGNATE) 2 else 3)
+                    (inst.args[0] as IntArg).value + (if (inst.opcode == OP_MAP_DESIGNATE) 2 else 3)
                 val variantId = getRegisterValue(cfg, inst, variantIdRegister)
 
                 if (variantId.size > 1) {
@@ -48,7 +45,7 @@ fun getMapDesignations(
             }
 
             OP_BB_MAP_DESIGNATE.code -> {
-                mapDesignations[inst.args[0].value as Int] = inst.args[2].value as Int
+                mapDesignations[(inst.args[0] as IntArg).value] = (inst.args[2] as IntArg).value
             }
         }
     }

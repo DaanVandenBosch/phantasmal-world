@@ -3,7 +3,10 @@ package world.phantasmal.web.core.rendering.conversion
 import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
-import world.phantasmal.core.*
+import world.phantasmal.core.JsArray
+import world.phantasmal.core.asArray
+import world.phantasmal.core.isBitSet
+import world.phantasmal.core.jsArrayOf
 import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.lib.fileFormats.*
 import world.phantasmal.lib.fileFormats.ninja.*
@@ -11,6 +14,21 @@ import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.toQuaternion
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
+import kotlin.collections.List
+import kotlin.collections.MutableList
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.forEach
+import kotlin.collections.forEachIndexed
+import kotlin.collections.getOrPut
+import kotlin.collections.indices
+import kotlin.collections.iterator
+import kotlin.collections.last
+import kotlin.collections.map
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.sum
+import kotlin.collections.withIndex
 
 private val logger = KotlinLogging.logger {}
 
@@ -200,7 +218,7 @@ fun AreaObject.fingerPrint(): String =
         append('_')
         append(meshCount.toString(36))
         append('_')
-        append(radius.reinterpretAsUInt().toString(36))
+        append(radius.toRawBits().toUInt().toString(36))
     }
 
 private fun areaObjectToMesh(

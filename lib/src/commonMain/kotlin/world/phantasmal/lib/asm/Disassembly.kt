@@ -1,7 +1,6 @@
 package world.phantasmal.lib.asm
 
 import mu.KotlinLogging
-import world.phantasmal.core.reinterpretAsFloat
 import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
@@ -212,7 +211,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
                     FloatType -> {
                         // Floats are pushed onto the stack as integers with arg_pushl.
                         if (stack) {
-                            append((arg.value as Int).reinterpretAsFloat())
+                            append(Float.fromBits((arg as IntArg).value))
                         } else {
                             append(arg.value)
                         }
@@ -241,7 +240,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
                     }
 
                     StringType -> {
-                        appendStringArg(arg.value as String)
+                        appendStringArg((arg as StringArg).value)
                     }
 
                     else -> {
