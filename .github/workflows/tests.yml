@@ -23,12 +23,10 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            build/js/node_modules
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+            ~/.gradle
+            .gradle
+            build/js
+          key: ${{ runner.os }}-gradle
 
       - name: Test
         run: ./gradlew check
