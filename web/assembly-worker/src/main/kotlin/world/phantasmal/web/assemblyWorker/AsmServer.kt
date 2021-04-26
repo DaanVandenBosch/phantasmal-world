@@ -2,10 +2,7 @@ package world.phantasmal.web.assemblyWorker
 
 import mu.KotlinLogging
 import world.phantasmal.web.shared.Throttle
-import world.phantasmal.web.shared.messages.ClientMessage
-import world.phantasmal.web.shared.messages.ClientNotification
-import world.phantasmal.web.shared.messages.Request
-import world.phantasmal.web.shared.messages.ServerMessage
+import world.phantasmal.web.shared.messages.*
 import kotlin.time.measureTime
 
 class AsmServer(
@@ -21,53 +18,65 @@ class AsmServer(
     }
 
     private fun processMessages() {
-        // Split messages into ASM changes and other messages. Remove useless/duplicate
-        // notifications.
-        val asmChanges = mutableListOf<ClientNotification>()
-        val otherMessages = mutableListOf<ClientMessage>()
+        try {
+            // Split messages into ASM changes and other messages. Remove useless/duplicate
+            // notifications.
+            val asmChanges = mutableListOf<ClientNotification>()
+            val otherMessages = mutableListOf<ClientMessage>()
 
-        for (message in messageQueue) {
-            when (message) {
-                is ClientNotification.SetAsm -> {
-                    // All previous ASM change messages can be discarded when the entire ASM has
-                    // changed.
-                    asmChanges.clear()
-                    asmChanges.add(message)
+            for (message in messageQueue) {
+                when (message) {
+                    is ClientNotification.SetAsm -> {
+                        // All previous ASM change messages can be discarded when the entire ASM has
+                        // changed.
+                        asmChanges.clear()
+                        asmChanges.add(message)
+                    }
+
+                    is ClientNotification.UpdateAsm ->
+                        asmChanges.add(message)
+
+                    else ->
+                        otherMessages.add(message)
                 }
-
-                is ClientNotification.UpdateAsm ->
-                    asmChanges.add(message)
-
-                else ->
-                    otherMessages.add(message)
             }
+
+            messageQueue.clear()
+
+            // Process ASM changes first.
+            processAsmChanges(asmChanges)
+            otherMessages.forEach(::processMessage)
+        } catch (e: Throwable) {
+            logger.error(e) { "Exception while processing messages." }
+            messageQueue.clear()
         }
-
-        messageQueue.clear()
-
-        // Process ASM changes first.
-        processAsmChanges(asmChanges)
-        otherMessages.forEach(::processMessage)
     }
 
     private fun processAsmChanges(messages: List<ClientNotification>) {
         if (messages.isNotEmpty()) {
             val time = measureTime {
-                for (message in messages) {
-                    when (message) {
-                        is ClientNotification.SetAsm ->
-                            asmAnalyser.setAsm(message.asm, message.inlineStackArgs)
+                val responses = try {
+                    for (message in messages) {
+                        when (message) {
+                            is ClientNotification.SetAsm ->
+                                asmAnalyser.setAsm(message.asm, message.inlineStackArgs)
 
-                        is ClientNotification.UpdateAsm ->
-                            asmAnalyser.updateAsm(message.changes)
+                            is ClientNotification.UpdateAsm ->
+                                asmAnalyser.updateAsm(message.changes)
 
-                        else ->
-                            // Should be processed by processMessage.
-                            logger.error { "Unexpected ${message::class.simpleName}." }
+                            else ->
+                                // Should be processed by processMessage.
+                                logger.error { "Unexpected ${message::class.simpleName}." }
+                        }
                     }
+
+                    asmAnalyser.processAsm()
+                } catch (e: Throwable) {
+                    logger.error(e) { "Exception while processing ASM changes." }
+                    emptyList<Response<*>>()
                 }
 
-                asmAnalyser.processAsm().forEach(sendMessage)
+                responses.forEach(sendMessage)
             }
 
             logger.trace {
@@ -78,13 +87,18 @@ class AsmServer(
 
     private fun processMessage(message: ClientMessage) {
         val time = measureTime {
-            when (message) {
-                is ClientNotification.SetAsm,
-                is ClientNotification.UpdateAsm ->
-                    // Should have been processed by processAsmChanges.
-                    logger.error { "Unexpected ${message::class.simpleName}." }
+            try {
+                when (message) {
+                    is ClientNotification.SetAsm,
+                    is ClientNotification.UpdateAsm,
+                    ->
+                        // Should have been processed by processAsmChanges.
+                        logger.error { "Unexpected ${message::class.simpleName}." }
 
-                is Request -> processRequest(message)
+                    is Request -> processRequest(message)
+                }
+            } catch (e: Throwable) {
+                logger.error(e) { "Exception while processing ${message::class.simpleName}." }
             }
         }
 

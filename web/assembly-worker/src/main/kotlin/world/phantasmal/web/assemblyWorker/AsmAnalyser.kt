@@ -3,6 +3,7 @@ package world.phantasmal.web.assemblyWorker
 import world.phantasmal.core.*
 import world.phantasmal.lib.asm.*
 import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
+import world.phantasmal.lib.asm.dataFlowAnalysis.ValueSet
 import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.web.shared.messages.*
@@ -198,9 +199,9 @@ class AsmAnalyser {
         var signature: Signature? = null
         var activeParam = -1
 
-        getInstructionForSrcLoc(lineNo, col)?.let { (inst, paramIdx) ->
-            signature = getSignature(inst.opcode)
-            activeParam = paramIdx
+        getInstructionForSrcLoc(lineNo, col)?.let { result ->
+            signature = getSignature(result.inst.opcode)
+            activeParam = result.paramIdx
         }
 
         return signature?.let { sig ->
@@ -263,55 +264,27 @@ class AsmAnalyser {
         var result = emptyList<AsmRange>()
 
         getInstructionForSrcLoc(lineNo, col)?.inst?.let { inst ->
-            loop@
-            for ((paramIdx, param) in inst.opcode.params.withIndex()) {
-                if (param.type is LabelType) {
-                    if (inst.opcode.stack != StackInteraction.Pop) {
-                        // Immediate arguments.
-                        val args = inst.getArgs(paramIdx)
-                        val argSrcLocs = inst.getArgSrcLocs(paramIdx)
-
-                        for (i in 0 until min(args.size, argSrcLocs.size)) {
-                            val arg = args[i]
-                            val srcLoc = argSrcLocs[i].coarse
-
-                            if (positionInside(lineNo, col, srcLoc)) {
-                                val label = (arg as IntArg).value
-                                result = getLabelDefinitions(label)
-                                break@loop
-                            }
-                        }
-                    } else {
-                        // Stack arguments.
-                        val argSrcLocs = inst.getArgSrcLocs(paramIdx)
-
-                        for ((i, argSrcLoc) in argSrcLocs.withIndex()) {
-                            if (positionInside(lineNo, col, argSrcLoc.coarse)) {
-                                val labelValues = getStackValue(cfg, inst, argSrcLocs.lastIndex - i)
-
-                                if (labelValues.size <= 5) {
-                                    result = labelValues.flatMap(::getLabelDefinitions)
-                                }
-
-                                break@loop
-                            }
+            getLabelArguments(
+                inst,
+                doCheck = { argSrcLoc -> positionInside(lineNo, col, argSrcLoc.coarse) },
+                processImmediateArg = { label, _ ->
+                    result = getLabelDefinitionsAndReferences(label, references = false)
+                    false
+                },
+                processStackArg = { labels, _, _ ->
+                    if (labels.size <= 5) {
+                        result = labels.flatMap {
+                            getLabelDefinitionsAndReferences(it, references = false)
                         }
                     }
-                }
-            }
+
+                    false
+                },
+            )
         }
 
         return Response.GetDefinition(requestId, result)
     }
-
-    private fun getLabelDefinitions(label: Int): List<AsmRange> =
-        bytecodeIr.segments.asSequence()
-            .filter { label in it.labels }
-            .mapNotNull { segment ->
-                val labelIdx = segment.labels.indexOf(label)
-                segment.srcLoc.labels.getOrNull(labelIdx)?.toAsmRange()
-            }
-            .toList()
 
     fun getLabels(requestId: Int): Response.GetLabels {
         val result = bytecodeIr.segments.asSequence()
@@ -327,9 +300,13 @@ class AsmAnalyser {
     }
 
     fun getHighlights(requestId: Int, lineNo: Int, col: Int): Response.GetHighlights {
-        val result = mutableListOf<AsmRange>()
+        val results = mutableListOf<AsmRange>()
 
         when (val ir = getIrForSrcLoc(lineNo, col)) {
+            is Ir.Label -> {
+                results.addAll(getLabelDefinitionsAndReferences(ir.label))
+            }
+
             is Ir.Inst -> {
                 val srcLoc = ir.inst.srcLoc?.mnemonic
 
@@ -338,20 +315,42 @@ class AsmAnalyser {
                     // first whitespace character preceding the first argument.
                     (srcLoc != null && col <= srcLoc.col + srcLoc.len)
                 ) {
+                    // Find all instructions with the same opcode.
                     for (segment in bytecodeIr.segments) {
                         if (segment is InstructionSegment) {
                             for (inst in segment.instructions) {
                                 if (inst.opcode.code == ir.inst.opcode.code) {
-                                    inst.srcLoc?.mnemonic?.toAsmRange()?.let(result::add)
+                                    inst.srcLoc?.mnemonic?.toAsmRange()?.let(results::add)
                                 }
                             }
                         }
                     }
+                } else {
+                    getLabelArguments(
+                        ir.inst,
+                        doCheck = { argSrcLoc -> positionInside(lineNo, col, argSrcLoc.coarse) },
+                        processImmediateArg = { label, _ ->
+                            results.addAll(getLabelDefinitionsAndReferences(label))
+                            false
+                        },
+                        processStackArg = { labels, pushInst, _ ->
+                            // Filter out arg_pushr labels, because register values could be
+                            // used for anything.
+                            if (pushInst != null &&
+                                pushInst.opcode.code != OP_ARG_PUSHR.code &&
+                                labels.size == 1L
+                            ) {
+                                results.addAll(getLabelDefinitionsAndReferences(labels[0]!!))
+                            }
+
+                            false
+                        },
+                    )
                 }
             }
         }
 
-        return Response.GetHighlights(requestId, result)
+        return Response.GetHighlights(requestId, results)
     }
 
     private fun getInstructionForSrcLoc(lineNo: Int, col: Int): Ir.Inst? =
@@ -359,6 +358,15 @@ class AsmAnalyser {
 
     private fun getIrForSrcLoc(lineNo: Int, col: Int): Ir? {
         for (segment in bytecodeIr.segments) {
+            for ((index, srcLoc) in segment.srcLoc.labels.withIndex()) {
+                if (srcLoc.lineNo == lineNo &&
+                    col >= srcLoc.col &&
+                    col < srcLoc.col + srcLoc.len
+                ) {
+                    return Ir.Label(segment.labels[index])
+                }
+            }
+
             if (segment is InstructionSegment) {
                 // Loop over instructions in reverse order so stack popping instructions will be
                 // handled before the related stack pushing instructions when inlineStackArgs is on.
@@ -403,6 +411,120 @@ class AsmAnalyser {
         return null
     }
 
+    /**
+     * Returns all labels arguments of [instruction] with their value.
+     */
+    private fun getLabelArguments(
+        instruction: Instruction,
+        doCheck: (ArgSrcLoc) -> Boolean,
+        processImmediateArg: (label: Int, ArgSrcLoc) -> Boolean,
+        processStackArg: (label: ValueSet, Instruction?, ArgSrcLoc) -> Boolean,
+    ) {
+        loop@
+        for ((paramIdx, param) in instruction.opcode.params.withIndex()) {
+            if (param.type is LabelType) {
+                if (instruction.opcode.stack != StackInteraction.Pop) {
+                    // Immediate arguments.
+                    val args = instruction.getArgs(paramIdx)
+                    val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
+
+                    for (i in 0 until min(args.size, argSrcLocs.size)) {
+                        val arg = args[i]
+                        val srcLoc = argSrcLocs[i]
+
+                        if (doCheck(srcLoc)) {
+                            val label = (arg as IntArg).value
+
+                            if (!processImmediateArg(label, srcLoc)) {
+                                break@loop
+                            }
+                        }
+                    }
+                } else {
+                    // Stack arguments.
+                    val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
+
+                    for ((i, srcLoc) in argSrcLocs.withIndex()) {
+                        if (doCheck(srcLoc)) {
+                            val (labelValues, pushInstruction) =
+                                getStackValue(cfg, instruction, argSrcLocs.lastIndex - i)
+
+                            if (!processStackArg(labelValues, pushInstruction, srcLoc)) {
+                                break@loop
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns all definitions and all arguments that references the given [label].
+     */
+    private fun getLabelDefinitionsAndReferences(
+        label: Int,
+        definitions: Boolean = true,
+        references: Boolean = true,
+    ): List<AsmRange> {
+        val results = mutableListOf<AsmRange>()
+
+        for (segment in bytecodeIr.segments) {
+            // Add label definitions to the results.
+            if (definitions) {
+                val labelIdx = segment.labels.indexOf(label)
+
+                if (labelIdx != -1) {
+                    segment.srcLoc.labels.getOrNull(labelIdx)?.let { srcLoc ->
+                        results.add(
+                            AsmRange(
+                                startLineNo = srcLoc.lineNo,
+                                startCol = srcLoc.col,
+                                endLineNo = srcLoc.lineNo,
+                                // Exclude the trailing ":" character.
+                                endCol = srcLoc.col + srcLoc.len - 1,
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Find all instruction arguments that reference the label.
+            if (references) {
+                if (segment is InstructionSegment) {
+                    for (inst in segment.instructions) {
+                        getLabelArguments(
+                            inst,
+                            doCheck = { true },
+                            processImmediateArg = { labelArg, argSrcLoc ->
+                                if (labelArg == label) {
+                                    results.add(argSrcLoc.precise.toAsmRange())
+                                }
+
+                                true
+                            },
+                            processStackArg = { labelArg, pushInst, argSrcLoc ->
+                                // Filter out arg_pushr labels, because register values could be
+                                // used for anything.
+                                if (pushInst != null &&
+                                    pushInst.opcode.code != OP_ARG_PUSHR.code &&
+                                    labelArg.size == 1L &&
+                                    label in labelArg
+                                ) {
+                                    results.add(argSrcLoc.precise.toAsmRange())
+                                }
+
+                                true
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        return results
+    }
+
     private fun positionInside(lineNo: Int, col: Int, srcLoc: SrcLoc?): Boolean =
         if (srcLoc == null) {
             false
@@ -422,7 +544,8 @@ class AsmAnalyser {
         )
 
     private sealed class Ir {
-        data class Inst(val inst: Instruction, val paramIdx: Int) : Ir()
+        class Label(val label: Int) : Ir()
+        class Inst(val inst: Instruction, val paramIdx: Int) : Ir()
     }
 
     companion object {

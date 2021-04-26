@@ -193,6 +193,45 @@ class AsmAnalyserTests : AssemblyWorkerTestSuite() {
         assertEquals(AsmRange(5, 5, 5, 9), response.result[2])
     }
 
+    @Test
+    fun getHighlights_for_label() = test {
+        // The following ASM contains, in the given order:
+        // - Label 100
+        // - Reference to label 100 by arg_pushl instruction
+        // - Reference to label 100 by arg_pushr instruction (should not be highlighted, the value
+        //   comes from a register and might be used for many things)
+        // - Immediate argument referencing label 100
+        val analyser = createAsmAnalyser(
+            """
+            .code
+            100:
+                set_floor_handler 0, 100
+                leti r0, 100
+                set_floor_handler 0, r0
+                jmp 100
+            """.trimIndent()
+        )
+
+        val requestId = 2999
+
+        for ((lineNo, col) in listOf(
+            // Cursor is at center of label 100.
+            Pair(2, 2),
+            // Cursor is at center of the first set_floor_handler label argument.
+            Pair(3, 27),
+            // Cursor is at center of the jmp label argument.
+            Pair(6, 10),
+        )) {
+            val response = analyser.getHighlights(requestId, lineNo, col)
+
+            assertEquals(requestId, response.id)
+            assertEquals(3, response.result.size)
+            assertEquals(AsmRange(2, 1, 2, 4), response.result[0])
+            assertEquals(AsmRange(3, 26, 3, 29), response.result[1])
+            assertEquals(AsmRange(6, 9, 6, 12), response.result[2])
+        }
+    }
+
     private fun createAsmAnalyser(asm: String): AsmAnalyser {
         val analyser = AsmAnalyser()
         analyser.setAsm(asm.split("\n"), inlineStackArgs = true)

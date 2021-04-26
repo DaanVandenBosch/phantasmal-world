@@ -7,9 +7,14 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * Computes the possible values of a stack element at the nth position from the top, right before a
- * specific instruction.
+ * specific instruction. If the stack element's value can be traced back to a single push
+ * instruction, that instruction is also returned.
  */
-fun getStackValue(cfg: ControlFlowGraph, instruction: Instruction, position: Int): ValueSet {
+fun getStackValue(
+    cfg: ControlFlowGraph,
+    instruction: Instruction,
+    position: Int,
+): Pair<ValueSet, Instruction?> {
     val block = cfg.getBlockForInstruction(instruction)
 
     return StackValueFinder().find(
@@ -30,10 +35,10 @@ private class StackValueFinder {
         block: BasicBlock,
         end: Int,
         position: Int,
-    ): ValueSet {
+    ): Pair<ValueSet, Instruction?> {
         if (++iterations > 100) {
             logger.warn { "Too many iterations." }
-            return ValueSet.all()
+            return Pair(ValueSet.all(), null)
         }
 
         var pos = position
@@ -51,7 +56,13 @@ private class StackValueFinder {
             when (instruction.opcode.code) {
                 OP_ARG_PUSHR.code -> {
                     if (pos == 0) {
-                        return getRegisterValue(cfg, instruction, (args[0] as IntArg).value)
+                        val arg = args[0]
+
+                        return if (arg is IntArg) {
+                            Pair(getRegisterValue(cfg, instruction, arg.value), instruction)
+                        } else {
+                            Pair(ValueSet.all(), instruction)
+                        }
                     } else {
                         pos--
                     }
@@ -62,7 +73,13 @@ private class StackValueFinder {
                 OP_ARG_PUSHW.code,
                 -> {
                     if (pos == 0) {
-                        return ValueSet.of((args[0] as IntArg).value)
+                        val arg = args[0]
+
+                        return if (arg is IntArg) {
+                            Pair(ValueSet.of(arg.value), instruction)
+                        } else {
+                            Pair(ValueSet.all(), instruction)
+                        }
                     } else {
                         pos--
                     }
@@ -73,7 +90,7 @@ private class StackValueFinder {
                 OP_ARG_PUSHS.code,
                 -> {
                     if (pos == 0) {
-                        return ValueSet.all()
+                        return Pair(ValueSet.all(), instruction)
                     } else {
                         pos--
                     }
@@ -82,17 +99,29 @@ private class StackValueFinder {
         }
 
         val values = ValueSet.empty()
+        var instruction: Instruction? = null
+        var multipleInstructions = false
         path.add(block)
 
         for (from in block.from) {
             // Bail out from loops.
             if (from in path) {
-                return ValueSet.all()
+                return Pair(ValueSet.all(), null)
             }
 
-            values.union(find(LinkedHashSet(path), cfg, from, from.end, pos))
+            val (fromValues, fromInstruction) = find(LinkedHashSet(path), cfg, from, from.end, pos)
+            values.union(fromValues)
+
+            if (!multipleInstructions) {
+                if (instruction == null) {
+                    instruction = fromInstruction
+                } else if (instruction != fromInstruction) {
+                    instruction = null
+                    multipleInstructions = true
+                }
+            }
         }
 
-        return values
+        return Pair(values, instruction)
     }
 }

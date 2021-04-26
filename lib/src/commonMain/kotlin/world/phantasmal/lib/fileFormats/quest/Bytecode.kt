@@ -331,7 +331,7 @@ private fun getArgLabelValues(
             cfg,
             instruction,
             instruction.opcode.params.size - paramIdx - 1,
-        )
+        ).first
 
         if (stackValues.size <= 20) {
             for (value in stackValues) {

@@ -28,6 +28,7 @@ fun getRegisterValue(cfg: ControlFlowGraph, instruction: Instruction, register: 
 private class RegisterValueFinder {
     private var iterations = 0
 
+    // TODO: Deal with incorrect argument types.
     fun find(
         path: MutableSet<BasicBlock>,
         block: BasicBlock,
@@ -267,7 +268,8 @@ private class RegisterValueFinder {
                     OP_ARG_PUSHW.code,
                     OP_ARG_PUSHA.code,
                     OP_ARG_PUSHO.code,
-                    OP_ARG_PUSHS.code -> stack.add(instruction)
+                    OP_ARG_PUSHS.code,
+                    -> stack.add(instruction)
                 }
             }
         }
@@ -282,7 +284,8 @@ private class RegisterValueFinder {
 
                 OP_ARG_PUSHL.code,
                 OP_ARG_PUSHB.code,
-                OP_ARG_PUSHW.code -> ValueSet.of((arg as IntArg).value)
+                OP_ARG_PUSHW.code,
+                -> ValueSet.of((arg as IntArg).value)
 
                 // TODO: Deal with strings.
                 else -> ValueSet.all() // String or pointer

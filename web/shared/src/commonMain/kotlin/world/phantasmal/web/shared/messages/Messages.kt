@@ -120,9 +120,21 @@ sealed class Response<T> : ServerMessage() {
 
 @Serializable
 data class AsmRange(
+    /**
+     * Starting line of the range, inclusive.
+     */
     val startLineNo: Int,
+    /**
+     * Starting column of the range, inclusive.
+     */
     val startCol: Int,
+    /**
+     * Ending line of the range, exclusive.
+     */
     val endLineNo: Int,
+    /**
+     * Ending column of the range, exclusive.
+     */
     val endCol: Int,
 )
 

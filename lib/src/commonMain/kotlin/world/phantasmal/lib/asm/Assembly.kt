@@ -551,7 +551,9 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
                         addError(col, len, "Expected ${typeStr}.")
                     }
-                } else if (stack) {
+                }
+
+                if (stack) {
                     // Inject stack push instructions if necessary.
                     checkNotNull(paramType)
 
