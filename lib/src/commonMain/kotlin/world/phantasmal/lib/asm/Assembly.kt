@@ -422,9 +422,11 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
             // Coarse source position, including surrounding whitespace.
             val coarseCol = prevCol + prevLen
-            val coarseLen =
-                if (nextToken === Token.ArgSeparator) nextCol + nextLen - coarseCol
-                else nextCol - coarseCol
+            val coarseLen = when (nextToken) {
+                Token.ArgSeparator -> nextCol + nextLen - coarseCol
+                null -> nextCol - coarseCol + 1
+                else -> nextCol - coarseCol
+            }
 
             if (token === Token.ArgSeparator) {
                 if (shouldBeArg) {
@@ -503,7 +505,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
 
                     else -> {
                         typeMatch = false
-                        UnknownArg(value!!)
+                        UnknownArg(value)
                     }
                 }
 
@@ -553,10 +555,9 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     }
                 }
 
-                if (stack) {
-                    // Inject stack push instructions if necessary.
-                    checkNotNull(paramType)
-
+                // Inject stack push instructions if necessary. Don't inject push instruction if
+                // there's no parameter for the argument (i.e. too many arguments).
+                if (stack && paramType != null) {
                     // If the token is a register, push it as a register, otherwise coerce type.
                     if (token === Token.Register) {
                         if (paramType is RegType) {
