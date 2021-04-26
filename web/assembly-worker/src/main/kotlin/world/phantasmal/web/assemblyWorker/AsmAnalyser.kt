@@ -234,8 +234,8 @@ class AsmAnalyser {
                 }
             )
 
-            // Put the parameter doc and the instruction doc in the same string to match the look of the
-            // signature help.
+            // Put the parameter doc and the instruction doc in the same string to match the look of
+            // the signature help.
             var doc = ""
 
             // Parameter doc.

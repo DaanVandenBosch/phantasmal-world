@@ -37,7 +37,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(0)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 11),
-                                    args = listOf(ArgSrcLoc(SrcLoc(2, 17, 1), SrcLoc(2, 16, 2))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(2, 17, 1), SrcLoc(2, 16, 3))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = true,
@@ -51,7 +51,7 @@ class AssemblyTests : LibTestSuite {
                                         ArgSrcLoc(SrcLoc(3, 22, 1), SrcLoc(3, 21, 3)),
                                         ArgSrcLoc(SrcLoc(3, 25, 1), SrcLoc(3, 24, 3)),
                                         ArgSrcLoc(SrcLoc(3, 28, 1), SrcLoc(3, 27, 3)),
-                                        ArgSrcLoc(SrcLoc(3, 31, 1), SrcLoc(3, 30, 2)),
+                                        ArgSrcLoc(SrcLoc(3, 31, 1), SrcLoc(3, 30, 3)),
                                     ),
                                     trailingArgSeparator = false,
                                 ),
@@ -72,7 +72,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(150)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(4, 26, 3), SrcLoc(4, 25, 4))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(4, 26, 3), SrcLoc(4, 25, 5))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = true,
@@ -84,7 +84,7 @@ class AssemblyTests : LibTestSuite {
                                     mnemonic = SrcLoc(4, 5, 17),
                                     args = listOf(
                                         ArgSrcLoc(SrcLoc(4, 23, 1), SrcLoc(4, 22, 3)),
-                                        ArgSrcLoc(SrcLoc(4, 26, 3), SrcLoc(4, 25, 4)),
+                                        ArgSrcLoc(SrcLoc(4, 26, 3), SrcLoc(4, 25, 5)),
                                     ),
                                     trailingArgSeparator = false,
                                 ),
@@ -111,7 +111,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(1)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(7, 18, 1), SrcLoc(7, 17, 2))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(7, 18, 1), SrcLoc(7, 17, 3))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = true,
@@ -122,7 +122,7 @@ class AssemblyTests : LibTestSuite {
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(7, 5, 12),
                                     args = listOf(
-                                        ArgSrcLoc(SrcLoc(7, 18, 1), SrcLoc(7, 17, 2)),
+                                        ArgSrcLoc(SrcLoc(7, 18, 1), SrcLoc(7, 17, 3)),
                                     ),
                                     trailingArgSeparator = false,
                                 ),
@@ -174,7 +174,7 @@ class AssemblyTests : LibTestSuite {
                                     mnemonic = SrcLoc(2, 5, 4),
                                     args = listOf(
                                         ArgSrcLoc(SrcLoc(2, 10, 4), SrcLoc(2, 9, 6)),
-                                        ArgSrcLoc(SrcLoc(2, 16, 1), SrcLoc(2, 15, 2)),
+                                        ArgSrcLoc(SrcLoc(2, 16, 1), SrcLoc(2, 15, 3)),
                                     ),
                                     trailingArgSeparator = false,
                                 ),
@@ -185,7 +185,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(255)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(3, 10, 4), SrcLoc(3, 9, 5))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(3, 10, 4), SrcLoc(3, 9, 6))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = true,
@@ -196,7 +196,7 @@ class AssemblyTests : LibTestSuite {
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(3, 5, 4),
                                     args = listOf(
-                                        ArgSrcLoc(SrcLoc(3, 10, 4), SrcLoc(3, 9, 5)),
+                                        ArgSrcLoc(SrcLoc(3, 10, 4), SrcLoc(3, 9, 6)),
                                     ),
                                     trailingArgSeparator = false,
                                 ),
@@ -257,7 +257,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(3)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(2, 21, 1), SrcLoc(2, 20, 2))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(2, 21, 1), SrcLoc(2, 20, 3))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = true,
@@ -269,7 +269,7 @@ class AssemblyTests : LibTestSuite {
                                     mnemonic = SrcLoc(2, 5, 9),
                                     args = listOf(
                                         ArgSrcLoc(SrcLoc(2, 15, 4), SrcLoc(2, 14, 6)),
-                                        ArgSrcLoc(SrcLoc(2, 21, 1), SrcLoc(2, 20, 2)),
+                                        ArgSrcLoc(SrcLoc(2, 21, 1), SrcLoc(2, 20, 3)),
                                     ),
                                     trailingArgSeparator = false,
                                 ),
@@ -318,7 +318,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(100)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 3),
-                                    args = listOf(ArgSrcLoc(SrcLoc(2, 9, 3), SrcLoc(2, 8, 4))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(2, 9, 3), SrcLoc(2, 8, 5))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = false,
@@ -364,7 +364,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(100)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 4),
-                                    args = listOf(ArgSrcLoc(SrcLoc(2, 10, 4), SrcLoc(2, 9, 5))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(2, 10, 4), SrcLoc(2, 9, 6))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = false,
@@ -411,7 +411,7 @@ class AssemblyTests : LibTestSuite {
                                 args = listOf(IntArg(100)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 10),
-                                    args = listOf(ArgSrcLoc(SrcLoc(2, 16, 4), SrcLoc(2, 15, 5))),
+                                    args = listOf(ArgSrcLoc(SrcLoc(2, 16, 4), SrcLoc(2, 15, 6))),
                                     trailingArgSeparator = false,
                                 ),
                                 valid = false,
