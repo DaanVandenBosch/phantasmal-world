@@ -117,26 +117,23 @@ class Instruction(
      */
     fun getArgs(paramIndex: Int): List<Arg> {
         if (paramToArgs == null) {
-            val paramToArgs: MutableList<MutableList<Arg>> = mutableListOf()
+            val paramToArgs: MutableList<List<Arg>> = mutableListOf()
             this.paramToArgs = paramToArgs
 
             if (opcode.stack !== StackInteraction.Pop) {
                 for (i in opcode.params.indices) {
                     val param = opcode.params[i]
-                    val pArgs = mutableListOf<Arg>()
-                    paramToArgs.add(pArgs)
 
                     // Variable length arguments are always last, so we can just gobble up all
                     // arguments from this point.
-                    if (param.varargs) {
+                    val pArgs = if (param.varargs) {
                         check(i == opcode.params.lastIndex)
-
-                        for (j in i until args.size) {
-                            pArgs.add(args[j])
-                        }
+                        args.drop(i)
                     } else {
-                        pArgs.add(args[i])
+                        listOfNotNull(args.getOrNull(i))
                     }
+
+                    paramToArgs.add(pArgs)
                 }
             }
         }
