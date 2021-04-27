@@ -326,25 +326,56 @@ class AsmAnalyser {
                         }
                     }
                 } else {
-                    visitLabelArguments(
+                    visitArgs(
                         ir.inst,
-                        accept = { argSrcLoc -> positionInside(lineNo, col, argSrcLoc.coarse) },
-                        processImmediateArg = { label, _ ->
-                            results.addAll(getLabelDefinitionsAndReferences(label))
-                            VisitAction.Return
+                        processParam = { VisitAction.Go },
+                        processImmediateArg = { param, arg, argSrcLoc ->
+                            if (positionInside(lineNo, col, argSrcLoc.coarse)) {
+                                (arg as? IntArg)?.let {
+                                    when (param.type) {
+                                        is LabelType -> {
+                                            results.addAll(
+                                                getLabelDefinitionsAndReferences(arg.value)
+                                            )
+                                        }
+                                        is RegRefType -> {
+                                            results.addAll(getRegisterReferences(arg.value))
+                                        }
+                                        else -> Unit
+                                    }
+                                }
+
+                                VisitAction.Return
+                            } else {
+                                VisitAction.Continue
+                            }
                         },
-                        processStackArg = { labels, pushInst, _ ->
-                            // Filter out arg_pushr labels, because register values could be
-                            // used for anything.
-                            if (pushInst != null &&
-                                pushInst.opcode.code != OP_ARG_PUSHR.code &&
-                                labels.size == 1L
-                            ) {
-                                results.addAll(getLabelDefinitionsAndReferences(labels[0]!!))
+                        processStackArgSrcLoc = { _, argSrcLoc ->
+                            if (positionInside(lineNo, col, argSrcLoc.coarse)) {
+                                VisitAction.Go
+                            } else {
+                                VisitAction.Continue
+                            }
+                        },
+                        processStackArg = { param, _, pushInst, _ ->
+                            if (pushInst != null) {
+                                val pushArg = pushInst.args.firstOrNull()
+
+                                if (pushArg is IntArg) {
+                                    if (pushInst.opcode.code == OP_ARG_PUSHR.code ||
+                                        param.type is RegRefType
+                                    ) {
+                                        results.addAll(getRegisterReferences(pushArg.value))
+                                    } else if (param.type is LabelType) {
+                                        results.addAll(
+                                            getLabelDefinitionsAndReferences(pushArg.value)
+                                        )
+                                    }
+                                }
                             }
 
                             VisitAction.Return
-                        },
+                        }
                     )
                 }
             }
@@ -411,95 +442,48 @@ class AsmAnalyser {
         return null
     }
 
-    /**
-     * Visits all label arguments of [instruction] with their value.
-     */
-    private fun visitLabelArguments(
-        instruction: Instruction,
-        accept: (ArgSrcLoc) -> Boolean,
-        processImmediateArg: (label: Int, ArgSrcLoc) -> VisitAction,
-        processStackArg: (label: ValueSet, Instruction?, ArgSrcLoc) -> VisitAction,
-    ) {
-        visitArgs(
-            instruction,
-            processParam = { if (it.type is LabelType) VisitAction.Go else VisitAction.Continue },
-            processImmediateArg = { arg, srcLoc ->
-                if (accept(srcLoc)) {
-                    processImmediateArg((arg as IntArg).value, srcLoc)
-                } else VisitAction.Continue
-            },
-            processStackArgSrcLoc = { srcLoc ->
-                if (accept(srcLoc)) VisitAction.Go
-                else VisitAction.Continue
-            },
-            processStackArg = { value, pushInst, srcLoc ->
-                processStackArg(value, pushInst, srcLoc)
-            }
-        )
-    }
+    private fun getRegisterReferences(register: Int): List<AsmRange> {
+        val results = mutableListOf<AsmRange>()
 
-    private enum class VisitAction {
-        Go, Break, Continue, Return
-    }
+        for (segment in bytecodeIr.segments) {
+            if (segment is InstructionSegment) {
+                for (inst in segment.instructions) {
+                    visitArgs(
+                        inst,
+                        processParam = { VisitAction.Go },
+                        processImmediateArg = { param, arg, argSrcLoc ->
+                            if (param.type is RegRefType &&
+                                arg is IntArg &&
+                                arg.value == register
+                            ) {
+                                results.add(argSrcLoc.precise.toAsmRange())
+                            }
 
-    /**
-     * Visits all arguments of [instruction], including stack arguments.
-     */
-    private fun visitArgs(
-        instruction: Instruction,
-        processParam: (Param) -> VisitAction,
-        processImmediateArg: (Arg, ArgSrcLoc) -> VisitAction,
-        processStackArgSrcLoc: (ArgSrcLoc) -> VisitAction,
-        processStackArg: (ValueSet, Instruction?, ArgSrcLoc) -> VisitAction,
-    ) {
-        for ((paramIdx, param) in instruction.opcode.params.withIndex()) {
-            when (processParam(param)) {
-                VisitAction.Go -> Unit // Keep going.
-                VisitAction.Break -> break // Same as Stop.
-                VisitAction.Continue -> continue
-                VisitAction.Return -> return
-            }
+                            VisitAction.Go
+                        },
+                        processStackArgSrcLoc = { param, _ ->
+                            if (param.type is RegRefType) VisitAction.Go
+                            else VisitAction.Continue
+                        },
+                        processStackArg = { _, _, pushInst, argSrcLoc ->
+                            if (pushInst != null &&
+                                pushInst.opcode.code != OP_ARG_PUSHR.code
+                            ) {
+                                val pushArg = pushInst.args.firstOrNull()
 
-            if (instruction.opcode.stack !== StackInteraction.Pop) {
-                // Immediate arguments.
-                val args = instruction.getArgs(paramIdx)
-                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
+                                if (pushArg is IntArg && pushArg.value == register) {
+                                    results.add(argSrcLoc.precise.toAsmRange())
+                                }
+                            }
 
-                for (i in 0 until min(args.size, argSrcLocs.size)) {
-                    val arg = args[i]
-                    val srcLoc = argSrcLocs[i]
-
-                    when (processImmediateArg(arg, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue // Same as Down.
-                        VisitAction.Return -> return
-                    }
-                }
-            } else {
-                // Stack arguments.
-                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
-
-                for ((i, srcLoc) in argSrcLocs.withIndex()) {
-                    when (processStackArgSrcLoc(srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue
-                        VisitAction.Return -> return
-                    }
-
-                    val (labelValues, pushInstruction) =
-                        getStackValue(cfg, instruction, argSrcLocs.lastIndex - i)
-
-                    when (processStackArg(labelValues, pushInstruction, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue // Same as Down.
-                        VisitAction.Return -> return
-                    }
+                            VisitAction.Go
+                        }
+                    )
                 }
             }
         }
+
+        return results
     }
 
     /**
@@ -566,6 +550,101 @@ class AsmAnalyser {
         }
 
         return results
+    }
+
+    /**
+     * Visits all label arguments of [instruction] with their value.
+     */
+    private fun visitLabelArguments(
+        instruction: Instruction,
+        accept: (ArgSrcLoc) -> Boolean,
+        processImmediateArg: (label: Int, ArgSrcLoc) -> VisitAction,
+        processStackArg: (label: ValueSet, Instruction?, ArgSrcLoc) -> VisitAction,
+    ) {
+        visitArgs(
+            instruction,
+            processParam = { if (it.type is LabelType) VisitAction.Go else VisitAction.Continue },
+            processImmediateArg = { _, arg, srcLoc ->
+                if (accept(srcLoc) && arg is IntArg) {
+                    processImmediateArg(arg.value, srcLoc)
+                } else VisitAction.Continue
+            },
+            processStackArgSrcLoc = { _, srcLoc ->
+                if (accept(srcLoc)) VisitAction.Go
+                else VisitAction.Continue
+            },
+            processStackArg = { _, value, pushInst, srcLoc ->
+                processStackArg(value, pushInst, srcLoc)
+            }
+        )
+    }
+
+    private enum class VisitAction {
+        Go, Break, Continue, Return
+    }
+
+    /**
+     * Visits all arguments of [instruction], including stack arguments.
+     */
+    private fun visitArgs(
+        instruction: Instruction,
+        processParam: (Param) -> VisitAction,
+        processImmediateArg: (Param, Arg, ArgSrcLoc) -> VisitAction,
+        processStackArgSrcLoc: (Param, ArgSrcLoc) -> VisitAction,
+        processStackArg: (Param, ValueSet, Instruction?, ArgSrcLoc) -> VisitAction,
+    ) {
+        for ((paramIdx, param) in instruction.opcode.params.withIndex()) {
+            when (processParam(param)) {
+                VisitAction.Go -> Unit // Keep going.
+                VisitAction.Break -> break // Same as Stop.
+                VisitAction.Continue -> continue
+                VisitAction.Return -> return
+            }
+
+            if (instruction.opcode.stack !== StackInteraction.Pop) {
+                // Immediate arguments.
+                val args = instruction.getArgs(paramIdx)
+                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
+
+                for (i in 0 until min(args.size, argSrcLocs.size)) {
+                    val arg = args[i]
+                    val srcLoc = argSrcLocs[i]
+
+                    when (processImmediateArg(param, arg, srcLoc)) {
+                        VisitAction.Go -> Unit // Keep going.
+                        VisitAction.Break -> break
+                        VisitAction.Continue -> continue // Same as Down.
+                        VisitAction.Return -> return
+                    }
+                }
+            } else {
+                // Stack arguments.
+                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
+
+                // Never varargs.
+                for (srcLoc in argSrcLocs) {
+                    when (processStackArgSrcLoc(param, srcLoc)) {
+                        VisitAction.Go -> Unit // Keep going.
+                        VisitAction.Break -> break
+                        VisitAction.Continue -> continue
+                        VisitAction.Return -> return
+                    }
+
+                    val (labelValues, pushInstruction) = getStackValue(
+                        cfg,
+                        instruction,
+                        instruction.opcode.params.lastIndex - paramIdx,
+                    )
+
+                    when (processStackArg(param, labelValues, pushInstruction, srcLoc)) {
+                        VisitAction.Go -> Unit // Keep going.
+                        VisitAction.Break -> break
+                        VisitAction.Continue -> continue // Same as Down.
+                        VisitAction.Return -> return
+                    }
+                }
+            }
+        }
     }
 
     private fun positionInside(lineNo: Int, col: Int, srcLoc: SrcLoc?): Boolean =

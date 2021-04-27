@@ -232,6 +232,36 @@ class AsmAnalyserTests : AssemblyWorkerTestSuite() {
         }
     }
 
+    @Test
+    fun getHighlights_for_register() = test {
+        val analyser = createAsmAnalyser(
+            """
+            .code
+            100:
+                leti r13, 4031
+                set_floor_handler 0, r13
+                leti r17, 5379
+                npc_param_v3 r13, 4
+            """.trimIndent()
+        )
+
+        val requestId = 2999
+
+        for ((lineNo, col) in listOf(
+            Pair(3, 11),
+            Pair(4, 27),
+            Pair(6, 19),
+        )) {
+            val response = analyser.getHighlights(requestId, lineNo, col)
+
+            assertEquals(requestId, response.id)
+            assertEquals(3, response.result.size)
+            assertEquals(AsmRange(3, 10, 3, 13), response.result[0])
+            assertEquals(AsmRange(4, 26, 4, 29), response.result[1])
+            assertEquals(AsmRange(6, 18, 6, 21), response.result[2])
+        }
+    }
+
     private fun createAsmAnalyser(asm: String): AsmAnalyser {
         val analyser = AsmAnalyser()
         analyser.setAsm(asm.split("\n"), inlineStackArgs = true)
