@@ -3,10 +3,10 @@ package world.phantasmal.web.questEditor.models
 import world.phantasmal.core.math.floorMod
 import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.lib.fileFormats.quest.QuestEntity
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.listVal
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.minus
 import world.phantasmal.web.core.rendering.conversion.vec3ToEuler
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree
@@ -24,38 +24,38 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
      */
     val entity: Entity,
 ) {
-    private val _sectionId = mutableVal(entity.sectionId.toInt())
-    private val _section = mutableVal<SectionModel?>(null)
-    private val _sectionInitialized = mutableVal(false)
-    private val _position = mutableVal(vec3ToThree(entity.position))
-    private val _worldPosition = mutableVal(_position.value)
-    private val _rotation = mutableVal(vec3ToEuler(entity.rotation))
-    private val _worldRotation = mutableVal(_rotation.value)
+    private val _sectionId = mutableCell(entity.sectionId.toInt())
+    private val _section = mutableCell<SectionModel?>(null)
+    private val _sectionInitialized = mutableCell(false)
+    private val _position = mutableCell(vec3ToThree(entity.position))
+    private val _worldPosition = mutableCell(_position.value)
+    private val _rotation = mutableCell(vec3ToEuler(entity.rotation))
+    private val _worldRotation = mutableCell(_rotation.value)
 
     val type: Type get() = entity.type
 
     val areaId: Int get() = entity.areaId
 
-    val sectionId: Val<Int> = _sectionId
+    val sectionId: Cell<Int> = _sectionId
 
-    val section: Val<SectionModel?> = _section
-    val sectionInitialized: Val<Boolean> = _sectionInitialized
+    val section: Cell<SectionModel?> = _section
+    val sectionInitialized: Cell<Boolean> = _sectionInitialized
 
     /**
      * Section-relative position
      */
-    val position: Val<Vector3> = _position
+    val position: Cell<Vector3> = _position
 
-    val worldPosition: Val<Vector3> = _worldPosition
+    val worldPosition: Cell<Vector3> = _worldPosition
 
     /**
      * Section-relative rotation
      */
-    val rotation: Val<Euler> = _rotation
+    val rotation: Cell<Euler> = _rotation
 
-    val worldRotation: Val<Euler> = _worldRotation
+    val worldRotation: Cell<Euler> = _worldRotation
 
-    val properties: ListVal<QuestEntityPropModel> = listVal(*Array(type.properties.size) {
+    val properties: ListCell<QuestEntityPropModel> = listCell(*Array(type.properties.size) {
         QuestEntityPropModel(this, type.properties[it])
     })
 

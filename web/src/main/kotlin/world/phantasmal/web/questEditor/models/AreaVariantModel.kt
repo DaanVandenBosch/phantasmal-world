@@ -1,17 +1,17 @@
 package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.core.requireNonNegative
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.mutableListCell
 
 class AreaVariantModel(val id: Int, val area: AreaModel) {
-    private val _sections = mutableListVal<SectionModel>()
+    private val _sections = mutableListCell<SectionModel>()
 
     // Exception for Seaside Area at Night, variant 1.
     // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
     val name: String = if (area.id == 16 && id == 1) "West Tower" else area.name
 
-    val sections: ListVal<SectionModel> = _sections
+    val sections: ListCell<SectionModel> = _sections
 
     init {
         requireNonNegative(id, "id")

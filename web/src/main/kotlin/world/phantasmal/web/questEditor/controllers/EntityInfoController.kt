@@ -2,10 +2,10 @@ package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.emptyListVal
-import world.phantasmal.observable.value.value
-import world.phantasmal.observable.value.zeroIntVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.zeroIntCell
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3
@@ -21,43 +21,43 @@ class EntityInfoController(
     private val areaStore: AreaStore,
     private val questEditorStore: QuestEditorStore,
 ) : Controller() {
-    val unavailable: Val<Boolean> = questEditorStore.selectedEntity.isNull()
-    val enabled: Val<Boolean> = questEditorStore.questEditingEnabled
+    val unavailable: Cell<Boolean> = questEditorStore.selectedEntity.isNull()
+    val enabled: Cell<Boolean> = questEditorStore.questEditingEnabled
 
-    val type: Val<String> = questEditorStore.selectedEntity.map {
+    val type: Cell<String> = questEditorStore.selectedEntity.map {
         it?.let { if (it is QuestNpcModel) "NPC" else "Object" } ?: ""
     }
 
-    val name: Val<String> = questEditorStore.selectedEntity.map { it?.type?.simpleName ?: "" }
+    val name: Cell<String> = questEditorStore.selectedEntity.map { it?.type?.simpleName ?: "" }
 
-    val sectionId: Val<Int> = questEditorStore.selectedEntity
-        .flatMap { it?.sectionId ?: zeroIntVal() }
+    val sectionId: Cell<Int> = questEditorStore.selectedEntity
+        .flatMap { it?.sectionId ?: zeroIntCell() }
 
-    val waveId: Val<Int> = questEditorStore.selectedEntity
+    val waveId: Cell<Int> = questEditorStore.selectedEntity
         .flatMap { entity ->
             if (entity is QuestNpcModel) {
                 entity.wave.map { it.id }
             } else {
-                zeroIntVal()
+                zeroIntCell()
             }
         }
 
-    val waveHidden: Val<Boolean> = questEditorStore.selectedEntity.map { it !is QuestNpcModel }
+    val waveHidden: Cell<Boolean> = questEditorStore.selectedEntity.map { it !is QuestNpcModel }
 
-    private val pos: Val<Vector3> =
+    private val pos: Cell<Vector3> =
         questEditorStore.selectedEntity.flatMap { it?.position ?: DEFAULT_POSITION }
-    val posX: Val<Double> = pos.map { it.x }
-    val posY: Val<Double> = pos.map { it.y }
-    val posZ: Val<Double> = pos.map { it.z }
+    val posX: Cell<Double> = pos.map { it.x }
+    val posY: Cell<Double> = pos.map { it.y }
+    val posZ: Cell<Double> = pos.map { it.z }
 
-    private val rot: Val<Euler> =
+    private val rot: Cell<Euler> =
         questEditorStore.selectedEntity.flatMap { it?.rotation ?: DEFAULT_ROTATION }
-    val rotX: Val<Double> = rot.map { radToDeg(it.x) }
-    val rotY: Val<Double> = rot.map { radToDeg(it.y) }
-    val rotZ: Val<Double> = rot.map { radToDeg(it.z) }
+    val rotX: Cell<Double> = rot.map { radToDeg(it.x) }
+    val rotY: Cell<Double> = rot.map { radToDeg(it.y) }
+    val rotZ: Cell<Double> = rot.map { radToDeg(it.z) }
 
-    val props: Val<List<QuestEntityPropModel>> =
-        questEditorStore.selectedEntity.flatMap { it?.properties ?: emptyListVal() }
+    val props: Cell<List<QuestEntityPropModel>> =
+        questEditorStore.selectedEntity.flatMap { it?.properties ?: emptyListCell() }
 
     fun focused() {
         questEditorStore.makeMainUndoCurrent()
@@ -178,7 +178,7 @@ class EntityInfoController(
     }
 
     companion object {
-        private val DEFAULT_POSITION = value(Vector3(0.0, 0.0, 0.0))
-        private val DEFAULT_ROTATION = value(euler(0.0, 0.0, 0.0))
+        private val DEFAULT_POSITION = cell(Vector3(0.0, 0.0, 0.0))
+        private val DEFAULT_ROTATION = cell(euler(0.0, 0.0, 0.0))
     }
 }

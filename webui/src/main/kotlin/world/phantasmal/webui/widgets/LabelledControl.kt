@@ -1,6 +1,6 @@
 package world.phantasmal.webui.widgets
 
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 
 enum class LabelPosition {
     Before,
@@ -8,20 +8,20 @@ enum class LabelPosition {
 }
 
 abstract class LabelledControl(
-    visible: Val<Boolean>,
-    enabled: Val<Boolean>,
-    tooltip: Val<String?>,
+    visible: Cell<Boolean>,
+    enabled: Cell<Boolean>,
+    tooltip: Cell<String?>,
     label: String?,
-    labelVal: Val<String>?,
+    labelCell: Cell<String>?,
     val preferredLabelPosition: LabelPosition,
 ) : Control(visible, enabled, tooltip) {
     protected val labelId: String = uniqueId()
 
     val label: Label? by lazy {
-        if (label == null && labelVal == null) {
+        if (label == null && labelCell == null) {
             null
         } else {
-            Label(visible, enabled, label, labelVal, htmlFor = labelId)
+            Label(visible, enabled, label, labelCell, htmlFor = labelId)
         }
     }
 }

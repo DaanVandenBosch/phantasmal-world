@@ -1,19 +1,19 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 
 class IntInput(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Val<Int> = value(0),
+    value: Cell<Int> = cell(0),
     onChange: (Int) -> Unit = {},
     min: Int? = null,
     max: Int? = null,
@@ -23,7 +23,7 @@ class IntInput(
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
     value,
     onChange,

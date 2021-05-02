@@ -3,31 +3,31 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.emptyListVal
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
 class Select<T : Any>(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     private val className: String? = null,
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    private val items: Val<List<T>> = emptyListVal(),
+    private val items: Cell<List<T>> = emptyListCell(),
     private val itemToString: (T) -> String = Any::toString,
-    private val selected: Val<T?> = nullVal(),
+    private val selected: Cell<T?> = nullCell(),
     private val onSelect: (T) -> Unit = {},
-) : LabelledControl(visible, enabled, tooltip, label, labelVal, preferredLabelPosition) {
-    private val buttonText = mutableVal(" ")
+) : LabelledControl(visible, enabled, tooltip, label, labelCell, preferredLabelPosition) {
+    private val buttonText = mutableCell(" ")
 
     private lateinit var menu: Menu<T>
-    private val menuVisible = mutableVal(false)
+    private val menuVisible = mutableCell(false)
     private var justOpened = false
 
     override fun Node.createElement() =
@@ -41,7 +41,7 @@ class Select<T : Any>(
 
             addWidget(Button(
                 enabled = enabled,
-                textVal = buttonText,
+                textCell = buttonText,
                 iconRight = Icon.TriangleDown,
                 onMouseDown = ::onButtonMouseDown,
                 onMouseUp = { onButtonMouseUp() },

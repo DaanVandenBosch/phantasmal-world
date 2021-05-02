@@ -3,13 +3,13 @@ package world.phantasmal.web.questEditor.models
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.fileFormats.quest.DatUnknown
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.SimpleListVal
-import world.phantasmal.observable.value.list.flatMapToList
-import world.phantasmal.observable.value.list.listVal
-import world.phantasmal.observable.value.map
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.SimpleListCell
+import world.phantasmal.observable.cell.list.flatMapToList
+import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.observable.cell.map
+import world.phantasmal.observable.cell.mutableCell
 
 class QuestModel(
     id: Int,
@@ -30,41 +30,41 @@ class QuestModel(
     val shopItems: UIntArray,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
-    private val _id = mutableVal(0)
-    private val _language = mutableVal(0)
-    private val _name = mutableVal("")
-    private val _shortDescription = mutableVal("")
-    private val _longDescription = mutableVal("")
-    private val _mapDesignations = mutableVal(mapDesignations)
-    private val _npcs = SimpleListVal(npcs) { arrayOf(it.sectionInitialized, it.wave) }
-    private val _objects = SimpleListVal(objects) { arrayOf(it.sectionInitialized) }
-    private val _events = SimpleListVal(events)
+    private val _id = mutableCell(0)
+    private val _language = mutableCell(0)
+    private val _name = mutableCell("")
+    private val _shortDescription = mutableCell("")
+    private val _longDescription = mutableCell("")
+    private val _mapDesignations = mutableCell(mapDesignations)
+    private val _npcs = SimpleListCell(npcs) { arrayOf(it.sectionInitialized, it.wave) }
+    private val _objects = SimpleListCell(objects) { arrayOf(it.sectionInitialized) }
+    private val _events = SimpleListCell(events)
 
-    val id: Val<Int> = _id
-    val language: Val<Int> = _language
-    val name: Val<String> = _name
-    val shortDescription: Val<String> = _shortDescription
-    val longDescription: Val<String> = _longDescription
+    val id: Cell<Int> = _id
+    val language: Cell<Int> = _language
+    val name: Cell<String> = _name
+    val shortDescription: Cell<String> = _shortDescription
+    val longDescription: Cell<String> = _longDescription
 
     /**
      * Map of area IDs to area variant IDs. One designation per area.
      */
-    val mapDesignations: Val<Map<Int, Int>> = _mapDesignations
+    val mapDesignations: Cell<Map<Int, Int>> = _mapDesignations
 
     /**
      * Map of area IDs to entity counts.
      */
-    val entitiesPerArea: Val<Map<Int, Int>>
+    val entitiesPerArea: Cell<Map<Int, Int>>
 
     /**
      * One variant per area.
      */
-    val areaVariants: ListVal<AreaVariantModel>
+    val areaVariants: ListCell<AreaVariantModel>
 
-    val npcs: ListVal<QuestNpcModel> = _npcs
-    val objects: ListVal<QuestObjectModel> = _objects
+    val npcs: ListCell<QuestNpcModel> = _npcs
+    val objects: ListCell<QuestObjectModel> = _objects
 
-    val events: ListVal<QuestEventModel> = _events
+    val events: ListCell<QuestEventModel> = _events
 
     var bytecodeIr: BytecodeIr = bytecodeIr
         private set
@@ -106,7 +106,7 @@ class QuestModel(
                     }
                 }
 
-                listVal(*variants.values.toTypedArray())
+                listCell(*variants.values.toTypedArray())
             }
     }
 

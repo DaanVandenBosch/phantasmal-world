@@ -2,14 +2,14 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.map
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.map
+import world.phantasmal.observable.cell.mutableCell
 
 class QuestNpcModel(npc: QuestNpc, waveId: Int) : QuestEntityModel<NpcType, QuestNpc>(npc) {
-    private val _waveId = mutableVal(waveId)
+    private val _waveId = mutableCell(waveId)
 
-    val wave: Val<WaveModel> = map(_waveId, sectionId) { id, sectionId ->
+    val wave: Cell<WaveModel> = map(_waveId, sectionId) { id, sectionId ->
         WaveModel(id, areaId, sectionId)
     }
 

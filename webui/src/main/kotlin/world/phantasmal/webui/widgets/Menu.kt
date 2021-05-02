@@ -6,19 +6,19 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.emptyListVal
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 
 class Menu<T : Any>(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
-    private val items: Val<List<T>> = emptyListVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
+    private val items: Cell<List<T>> = emptyListCell(),
     private val itemToString: (T) -> String = Any::toString,
     private val onSelect: (T) -> Unit = {},
     private val onCancel: () -> Unit = {},

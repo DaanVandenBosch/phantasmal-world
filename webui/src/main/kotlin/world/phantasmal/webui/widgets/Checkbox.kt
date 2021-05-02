@@ -1,21 +1,21 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.input
 
 class Checkbox(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.After,
-    private val checked: Val<Boolean>? = null,
+    private val checked: Cell<Boolean>? = null,
     private val onChange: ((Boolean) -> Unit)? = null,
-) : LabelledControl(visible, enabled, tooltip, label, labelVal, preferredLabelPosition) {
+) : LabelledControl(visible, enabled, tooltip, label, labelCell, preferredLabelPosition) {
     override fun Node.createElement() =
         input {
             id = labelId

@@ -3,15 +3,15 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.*
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.controllers.Column
 import world.phantasmal.webui.controllers.TableController
 import world.phantasmal.webui.dom.*
 
 class Table<T>(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
     private val ctrl: TableController<T>,
     private val className: String? = null,
     /**

@@ -3,9 +3,9 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import world.phantasmal.core.Failure
 import world.phantasmal.core.PwResult
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.emptyStringVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.emptyStringCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.li
 import world.phantasmal.webui.dom.ul
@@ -15,10 +15,10 @@ import world.phantasmal.webui.dom.ul
  * button in the footer which triggers onDismiss.
  */
 class ResultDialog(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    result: Val<PwResult<*>?>,
-    message: Val<String> = emptyStringVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    result: Cell<PwResult<*>?>,
+    message: Cell<String> = emptyStringCell(),
     onDismiss: () -> Unit = {},
 ) : Widget(visible, enabled) {
     private val dialog = addDisposable(

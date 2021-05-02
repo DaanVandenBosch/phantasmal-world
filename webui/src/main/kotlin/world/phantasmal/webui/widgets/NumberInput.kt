@@ -1,16 +1,16 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 
 abstract class NumberInput<T : Number>(
-    visible: Val<Boolean>,
-    enabled: Val<Boolean>,
-    tooltip: Val<String?>,
+    visible: Cell<Boolean>,
+    enabled: Cell<Boolean>,
+    tooltip: Cell<String?>,
     label: String?,
-    labelVal: Val<String>?,
+    labelCell: Cell<String>?,
     preferredLabelPosition: LabelPosition,
-    value: Val<T>,
+    value: Cell<T>,
     onChange: (T) -> Unit,
     private val min: Int?,
     private val max: Int?,
@@ -20,7 +20,7 @@ abstract class NumberInput<T : Number>(
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
     className = "pw-number-input",
     value,

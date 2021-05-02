@@ -1,15 +1,15 @@
 package world.phantasmal.web.viewer.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.eq
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.eq
 import world.phantasmal.webui.dom.li
 import world.phantasmal.webui.dom.ul
 import world.phantasmal.webui.widgets.Widget
 
 class SelectionWidget<T>(
     private val items: List<T>,
-    private val selected: Val<T?>,
+    private val selected: Cell<T?>,
     private val onSelect: (T) -> Unit,
     private val itemToString: (T) -> String,
     private val borderLeft: Boolean = false,

@@ -1,12 +1,12 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.and
-import world.phantasmal.observable.value.eq
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.emptyListVal
-import world.phantasmal.observable.value.list.flatMapToList
-import world.phantasmal.observable.value.list.listVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.and
+import world.phantasmal.observable.cell.eq
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.list.flatMapToList
+import world.phantasmal.observable.cell.list.listCell
 import world.phantasmal.web.questEditor.actions.*
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
@@ -14,20 +14,20 @@ import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
 class EventsController(private val store: QuestEditorStore) : Controller() {
-    val unavailable: Val<Boolean> = store.currentQuest.isNull()
-    val enabled: Val<Boolean> = store.questEditingEnabled
-    val removeEventEnabled: Val<Boolean> = enabled and store.selectedEvent.isNotNull()
+    val unavailable: Cell<Boolean> = store.currentQuest.isNull()
+    val enabled: Cell<Boolean> = store.questEditingEnabled
+    val removeEventEnabled: Cell<Boolean> = enabled and store.selectedEvent.isNotNull()
 
-    val events: ListVal<QuestEventModel> =
+    val events: ListCell<QuestEventModel> =
         flatMapToList(store.currentQuest, store.currentArea) { quest, area ->
             if (quest != null && area != null) {
                 quest.events.filtered { it.areaId == area.id }
             } else {
-                emptyListVal()
+                emptyListCell()
             }
         }
 
-    val eventActionTypes: ListVal<String> = listVal(
+    val eventActionTypes: ListCell<String> = listCell(
         QuestEventActionModel.SpawnNpcs.SHORT_NAME,
         QuestEventActionModel.Door.Unlock.SHORT_NAME,
         QuestEventActionModel.Door.Lock.SHORT_NAME,
@@ -42,7 +42,7 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
         store.makeMainUndoCurrent()
     }
 
-    fun isSelected(event: QuestEventModel): Val<Boolean> =
+    fun isSelected(event: QuestEventModel): Cell<Boolean> =
         store.selectedEvent eq event
 
     fun selectEvent(event: QuestEventModel?) {

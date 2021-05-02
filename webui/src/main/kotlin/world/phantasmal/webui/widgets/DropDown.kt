@@ -3,27 +3,27 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.emptyListVal
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
 class Dropdown<T : Any>(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     private val text: String? = null,
     private val iconLeft: Icon? = null,
-    items: Val<List<T>>? = null,
+    items: Cell<List<T>>? = null,
     private val itemToString: (T) -> String = Any::toString,
     private val onSelect: (T) -> Unit = {},
 ) : Control(visible, enabled, tooltip) {
-    private val items: Val<List<T>> = items ?: emptyListVal()
+    private val items: Cell<List<T>> = items ?: emptyListCell()
 
-    private val menuVisible = mutableVal(false)
+    private val menuVisible = mutableCell(false)
 
     private lateinit var menu: Menu<T>
     private var justOpened = false

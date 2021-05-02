@@ -1,28 +1,28 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.formatAsHoursAndMinutes
 import kotlin.time.Duration
 import kotlin.time.minutes
 
 class DurationInput(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Val<Duration>,
+    value: Cell<Duration>,
     onChange: (Duration) -> Unit = {},
 ) : Input<Duration>(
     visible,
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
     className = "pw-duration-input",
     value,

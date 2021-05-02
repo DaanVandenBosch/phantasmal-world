@@ -1,13 +1,13 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 
 class LazyLoader(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
     private val createWidget: () -> Widget,
 ) : Widget(visible, enabled) {
     private var initialized = false

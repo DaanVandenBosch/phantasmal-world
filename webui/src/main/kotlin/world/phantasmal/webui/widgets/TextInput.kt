@@ -1,19 +1,19 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.emptyStringVal
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.emptyStringCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 
 class TextInput(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Val<String> = emptyStringVal(),
+    value: Cell<String> = emptyStringCell(),
     onChange: (String) -> Unit = {},
     private val maxLength: Int? = null,
 ) : Input<String>(
@@ -21,7 +21,7 @@ class TextInput(
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
     className = "pw-text-input",
     value,

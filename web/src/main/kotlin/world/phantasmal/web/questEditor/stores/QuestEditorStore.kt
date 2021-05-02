@@ -3,8 +3,8 @@ package world.phantasmal.web.questEditor.stores
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.lib.Episode
-import world.phantasmal.observable.value.*
-import world.phantasmal.observable.value.list.emptyListVal
+import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.core.stores.UiStore
@@ -23,21 +23,21 @@ class QuestEditorStore(
     private val areaStore: AreaStore,
     private val undoManager: UndoManager,
 ) : Store() {
-    private val _devMode = mutableVal(false)
-    private val _currentQuest = mutableVal<QuestModel?>(null)
-    private val _currentArea = mutableVal<AreaModel?>(null)
-    private val _selectedEvent = mutableVal<QuestEventModel?>(null)
-    private val _highlightedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
-    private val _selectedEntity = mutableVal<QuestEntityModel<*, *>?>(null)
+    private val _devMode = mutableCell(false)
+    private val _currentQuest = mutableCell<QuestModel?>(null)
+    private val _currentArea = mutableCell<AreaModel?>(null)
+    private val _selectedEvent = mutableCell<QuestEventModel?>(null)
+    private val _highlightedEntity = mutableCell<QuestEntityModel<*, *>?>(null)
+    private val _selectedEntity = mutableCell<QuestEntityModel<*, *>?>(null)
     private val mainUndo = UndoStack(undoManager)
-    private val _showCollisionGeometry = mutableVal(true)
+    private val _showCollisionGeometry = mutableCell(true)
 
-    val devMode: Val<Boolean> = _devMode
+    val devMode: Cell<Boolean> = _devMode
 
     private val runner = QuestRunner()
-    val currentQuest: Val<QuestModel?> = _currentQuest
-    val currentArea: Val<AreaModel?> = _currentArea
-    val currentAreaVariant: Val<AreaVariantModel?> =
+    val currentQuest: Cell<QuestModel?> = _currentQuest
+    val currentArea: Cell<AreaModel?> = _currentArea
+    val currentAreaVariant: Cell<AreaVariantModel?> =
         map(currentArea, currentQuest.flatMapNull { it?.areaVariants }) { area, variants ->
             if (area != null && variants != null) {
                 variants.find { it.area.id == area.id } ?: area.areaVariants.first()
@@ -45,31 +45,31 @@ class QuestEditorStore(
                 null
             }
         }
-    val selectedEvent: Val<QuestEventModel?> = _selectedEvent
+    val selectedEvent: Cell<QuestEventModel?> = _selectedEvent
 
     /**
      * The entity the user is currently hovering over.
      */
-    val highlightedEntity: Val<QuestEntityModel<*, *>?> = _highlightedEntity
+    val highlightedEntity: Cell<QuestEntityModel<*, *>?> = _highlightedEntity
 
     /**
      * The entity the user has selected, typically by clicking it.
      */
-    val selectedEntity: Val<QuestEntityModel<*, *>?> = _selectedEntity
+    val selectedEntity: Cell<QuestEntityModel<*, *>?> = _selectedEntity
 
-    val questEditingEnabled: Val<Boolean> = currentQuest.isNotNull() and !runner.running
+    val questEditingEnabled: Cell<Boolean> = currentQuest.isNotNull() and !runner.running
 
-    val canUndo: Val<Boolean> = questEditingEnabled and undoManager.canUndo
-    val firstUndo: Val<Action?> = undoManager.firstUndo
-    val canRedo: Val<Boolean> = questEditingEnabled and undoManager.canRedo
-    val firstRedo: Val<Action?> = undoManager.firstRedo
+    val canUndo: Cell<Boolean> = questEditingEnabled and undoManager.canUndo
+    val firstUndo: Cell<Action?> = undoManager.firstUndo
+    val canRedo: Cell<Boolean> = questEditingEnabled and undoManager.canRedo
+    val firstRedo: Cell<Action?> = undoManager.firstRedo
 
     /**
      * True if there have been changes since the last save.
      */
-    val canSaveChanges: Val<Boolean> = !undoManager.allAtSavePoint
+    val canSaveChanges: Cell<Boolean> = !undoManager.allAtSavePoint
 
-    val showCollisionGeometry: Val<Boolean> = _showCollisionGeometry
+    val showCollisionGeometry: Cell<Boolean> = _showCollisionGeometry
 
     init {
         addDisposables(
@@ -86,7 +86,7 @@ class QuestEditorStore(
             }
         }
 
-        observe(currentQuest.flatMap { it?.npcs ?: emptyListVal() }) { npcs ->
+        observe(currentQuest.flatMap { it?.npcs ?: emptyListCell() }) { npcs ->
             val selected = selectedEntity.value
 
             if (selected is QuestNpcModel && selected !in npcs) {
@@ -94,7 +94,7 @@ class QuestEditorStore(
             }
         }
 
-        observe(currentQuest.flatMap { it?.objects ?: emptyListVal() }) { objects ->
+        observe(currentQuest.flatMap { it?.objects ?: emptyListCell() }) { objects ->
             val selected = selectedEntity.value
 
             if (selected is QuestObjectModel && selected !in objects) {

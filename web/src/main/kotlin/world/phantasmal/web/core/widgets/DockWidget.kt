@@ -3,8 +3,8 @@ package world.phantasmal.web.core.widgets
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.web.core.controllers.*
 import world.phantasmal.web.externals.goldenLayout.GoldenLayout
 import world.phantasmal.webui.dom.div
@@ -14,7 +14,7 @@ import world.phantasmal.webui.widgets.Widget
 private val logger = KotlinLogging.logger {}
 
 class DockWidget(
-    visible: Val<Boolean> = trueVal(),
+    visible: Cell<Boolean> = trueCell(),
     private val ctrl: DockController,
     private val createWidget: (id: String) -> Widget,
 ) : Widget(visible) {

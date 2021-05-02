@@ -67,7 +67,7 @@ class ViewerToolbarWidget(private val ctrl: ViewerToolbarController) : Widget() 
                     ),
                     Label(
                         enabled = ctrl.animationControlsEnabled,
-                        textVal = ctrl.maxFrame,
+                        textCell = ctrl.maxFrame,
                     ),
                     Button(
                         className = "pw-viewer-toolbar-clear-animation",

@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.cell
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EventsController
 import world.phantasmal.webui.dom.Icon
@@ -29,14 +29,14 @@ class EventsWidget(private val ctrl: EventsController) : Widget() {
                             enabled = ctrl.enabled,
                             text = "Add",
                             iconLeft = Icon.Plus,
-                            tooltip = value("Add a new event"),
+                            tooltip = cell("Add a new event"),
                             onClick = { ctrl.addEvent() },
                         ),
                         Button(
                             enabled = ctrl.removeEventEnabled,
                             text = "Remove",
                             iconLeft = Icon.Remove,
-                            tooltip = value("Remove the selected event"),
+                            tooltip = cell("Remove the selected event"),
                             onClick = { ctrl.removeSelectedEvent() },
                         ),
                     )

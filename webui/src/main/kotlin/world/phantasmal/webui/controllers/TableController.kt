@@ -1,8 +1,8 @@
 package world.phantasmal.webui.controllers
 
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.nullVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.nullCell
 
 class Column<T>(
     val key: String,
@@ -17,8 +17,8 @@ class Column<T>(
     val headerClassName: String? = null,
     val className: String? = null,
     val textAlign: String? = null,
-    val footer: Val<String?> = nullVal(),
-    val footerTooltip: Val<String?> = nullVal(),
+    val footer: Cell<String?> = nullCell(),
+    val footerTooltip: Cell<String?> = nullCell(),
 )
 
 enum class SortDirection {
@@ -40,8 +40,8 @@ abstract class TableController<T> : Controller() {
     open val fixedColumns: Int = 0
     open val hasFooter: Boolean = false
 
-    abstract val values: ListVal<T>
-    abstract val columns: ListVal<Column<T>>
+    abstract val values: ListCell<T>
+    abstract val columns: ListCell<Column<T>>
 
     open fun sort(sortColumns: List<SortColumn<T>>) {
         error("Not sortable.")

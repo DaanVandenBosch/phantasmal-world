@@ -6,17 +6,17 @@ import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.value.MutableVal
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.eq
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.MutableCell
+import world.phantasmal.observable.cell.eq
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.stores.Store
 
 interface ApplicationUrl {
-    val url: Val<String>
+    val url: Cell<String>
 
     fun pushUrl(url: String)
 
@@ -24,16 +24,16 @@ interface ApplicationUrl {
 }
 
 class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
-    private val _currentTool: MutableVal<PwToolType>
+    private val _currentTool: MutableCell<PwToolType>
 
-    private val _path = mutableVal("")
-    private val _server = mutableVal(Server.Ephinea)
+    private val _path = mutableCell("")
+    private val _server = mutableCell(Server.Ephinea)
 
     /**
      * Maps full paths to maps of parameters and their values. In other words we keep track of
      * parameter values per [applicationUrl].
      */
-    private val parameters: MutableMap<String, MutableMap<String, MutableVal<String?>>> =
+    private val parameters: MutableMap<String, MutableMap<String, MutableCell<String?>>> =
         mutableMapOf()
     private val globalKeyDownHandlers: MutableMap<String, suspend (e: KeyboardEvent) -> Unit> =
         mutableMapOf()
@@ -55,32 +55,28 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
     /**
      * The tool that is currently visible.
      */
-    val currentTool: Val<PwToolType>
+    val currentTool: Cell<PwToolType>
 
     /**
-     * Map of tools to a boolean Val that says whether they are the current tool or not.
+     * Map of tools to a boolean cell that says whether they are the current tool or not.
      */
-    val toolToActive: Map<PwToolType, Val<Boolean>>
+    val toolToActive: Map<PwToolType, Cell<Boolean>>
 
     /**
      * Application URL without the tool path prefix.
      */
-    val path: Val<String> = _path
+    val path: Cell<String> = _path
 
     /**
      * The private server we're currently showing data and tools for.
      */
-    val server: Val<Server> = _server
+    val server: Cell<Server> = _server
 
     init {
-        _currentTool = mutableVal(defaultTool)
+        _currentTool = mutableCell(defaultTool)
         currentTool = _currentTool
 
-        toolToActive = tools
-            .map { tool ->
-                tool to (currentTool eq tool)
-            }
-            .toMap()
+        toolToActive = tools.associateWith { tool -> currentTool eq tool }
 
         addDisposables(
             window.disposableListener("keydown", ::dispatchGlobalKeyDown),
@@ -111,7 +107,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         path: String,
         parameter: String,
         setInitialValue: (String?) -> Unit,
-        value: Val<String?>,
+        value: Cell<String?>,
         onChange: (String?) -> Unit,
     ): Disposable {
         require(parameter !== FEATURES_PARAM) {
@@ -119,7 +115,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         }
 
         val pathParams = parameters.getOrPut("/${tool.slug}$path", ::mutableMapOf)
-        val param = pathParams.getOrPut(parameter) { mutableVal(null) }
+        val param = pathParams.getOrPut(parameter) { mutableCell(null) }
 
         setInitialValue(param.value)
 
@@ -142,7 +138,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
     private fun setParameter(
         tool: PwToolType,
         path: String,
-        parameter: MutableVal<String?>,
+        parameter: MutableCell<String?>,
         value: String?,
         replaceUrl: Boolean,
     ) {
@@ -194,7 +190,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
                         features.add(feature)
                     }
                 } else {
-                    params.getOrPut(param) { mutableVal(value) }.value = value
+                    params.getOrPut(param) { mutableCell(value) }.value = value
                 }
             }
         }
@@ -262,6 +258,6 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
     companion object {
         private const val FEATURES_PARAM = "features"
         private val SLUG_TO_PW_TOOL: Map<String, PwToolType> =
-            PwToolType.values().map { it.slug to it }.toMap()
+            PwToolType.values().associateBy { it.slug }
     }
 }

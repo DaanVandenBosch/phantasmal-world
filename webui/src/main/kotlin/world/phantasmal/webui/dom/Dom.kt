@@ -10,9 +10,9 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListChangeEvent
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.ListChangeEvent
 
 fun <E : Event> EventTarget.disposableListener(
     type: String,
@@ -147,10 +147,10 @@ fun Node.icon(icon: Icon): HTMLElement {
 
 fun <T> bindChildrenTo(
     parent: Element,
-    list: Val<List<T>>,
+    list: Cell<List<T>>,
     createChild: Node.(T, index: Int) -> Node,
 ): Disposable =
-    if (list is ListVal) {
+    if (list is ListCell) {
         bindChildrenTo(parent, list, createChild)
     } else {
         bindChildrenTo(parent, list, createChild, childrenRemoved = { /* Do nothing. */ })
@@ -158,10 +158,10 @@ fun <T> bindChildrenTo(
 
 fun <T> bindDisposableChildrenTo(
     parent: Element,
-    list: Val<List<T>>,
+    list: Cell<List<T>>,
     createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
 ): Disposable =
-    if (list is ListVal) {
+    if (list is ListCell) {
         bindDisposableChildrenTo(parent, list, createChild)
     } else {
         val disposer = Disposer()
@@ -187,7 +187,7 @@ fun <T> bindDisposableChildrenTo(
 
 fun <T> bindChildrenTo(
     parent: Element,
-    list: ListVal<T>,
+    list: ListCell<T>,
     createChild: Node.(T, index: Int) -> Node,
     after: (ListChangeEvent<T>) -> Unit = {},
 ): Disposable =
@@ -203,7 +203,7 @@ fun <T> bindChildrenTo(
 
 fun <T> bindDisposableChildrenTo(
     parent: Element,
-    list: ListVal<T>,
+    list: ListCell<T>,
     createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
     after: (ListChangeEvent<T>) -> Unit = {},
 ): Disposable {
@@ -231,7 +231,7 @@ fun <T> bindDisposableChildrenTo(
 
 private fun <T> bindChildrenTo(
     parent: Element,
-    list: Val<List<T>>,
+    list: Cell<List<T>>,
     createChild: Node.(T, index: Int) -> Node,
     childrenRemoved: () -> Unit,
 ): Disposable =
@@ -250,7 +250,7 @@ private fun <T> bindChildrenTo(
 
 private fun <T> bindChildrenTo(
     parent: Element,
-    list: ListVal<T>,
+    list: ListCell<T>,
     createChild: Node.(T, index: Int) -> Node,
     childrenRemoved: (index: Int, count: Int) -> Unit,
     after: (ListChangeEvent<T>) -> Unit,

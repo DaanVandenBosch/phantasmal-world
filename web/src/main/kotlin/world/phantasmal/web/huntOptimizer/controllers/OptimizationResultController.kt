@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.web.huntOptimizer.models.OptimalMethodModel
 import world.phantasmal.web.huntOptimizer.stores.HuntOptimizerStore
 import world.phantasmal.webui.controllers.Column
@@ -15,11 +15,11 @@ class OptimizationResultController(
     override val fixedColumns = 4
     override val hasFooter = true
 
-    override val values: ListVal<OptimalMethodModel> =
-        huntOptimizerStore.optimizationResult.mapToListVal { it.optimalMethods }
+    override val values: ListCell<OptimalMethodModel> =
+        huntOptimizerStore.optimizationResult.mapToList { it.optimalMethods }
 
-    override val columns: ListVal<Column<OptimalMethodModel>> =
-        huntOptimizerStore.optimizationResult.mapToListVal { result ->
+    override val columns: ListCell<Column<OptimalMethodModel>> =
+        huntOptimizerStore.optimizationResult.mapToList { result ->
             var totalRuns = .0
             var totalTime = Duration.ZERO
 
@@ -33,7 +33,7 @@ class OptimizationResultController(
                     key = DIFF_COL,
                     title = "Difficulty",
                     width = 80,
-                    footer = value("Totals:"),
+                    footer = cell("Totals:"),
                 ),
                 Column(
                     key = METHOD_COL,
@@ -62,8 +62,8 @@ class OptimizationResultController(
                     width = 60,
                     textAlign = "right",
                     tooltip = { it.runs.toString() },
-                    footer = value(totalRuns.toRoundedString(1)),
-                    footerTooltip = value(totalRuns.toString()),
+                    footer = cell(totalRuns.toRoundedString(1)),
+                    footerTooltip = cell(totalRuns.toString()),
                 ),
                 Column(
                     key = TOTAL_TIME_COL,
@@ -71,8 +71,8 @@ class OptimizationResultController(
                     width = 60,
                     textAlign = "right",
                     tooltip = { it.totalTime.inHours.toString() },
-                    footer = value(totalTime.inHours.toRoundedString(1)),
-                    footerTooltip = value(totalTime.inHours.toString()),
+                    footer = cell(totalTime.inHours.toRoundedString(1)),
+                    footerTooltip = cell(totalTime.inHours.toString()),
                 ),
                 *Array(result.wantedItems.size) { index ->
                     val wanted = result.wantedItems[index]
@@ -86,8 +86,8 @@ class OptimizationResultController(
                         width = 80,
                         textAlign = "right",
                         tooltip = { it.itemTypeIdToCount[wanted.id]?.toString() },
-                        footer = value(totalCount.toRoundedString(2)),
-                        footerTooltip = value(totalCount.toString()),
+                        footer = cell(totalCount.toRoundedString(2)),
+                        footerTooltip = cell(totalCount.toString()),
                     )
                 },
             )

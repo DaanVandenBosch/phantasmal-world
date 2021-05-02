@@ -2,9 +2,9 @@ package world.phantasmal.web.huntOptimizer.models
 
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.orElse
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.cell.orElse
 import kotlin.time.Duration
 
 class HuntMethodModel(
@@ -16,7 +16,7 @@ class HuntMethodModel(
      */
     val defaultTime: Duration,
 ) {
-    private val _userTime = mutableVal<Duration?>(null)
+    private val _userTime = mutableCell<Duration?>(null)
 
     val episode: Episode = quest.episode
 
@@ -25,9 +25,9 @@ class HuntMethodModel(
     /**
      * The time it takes to complete the quest in hours as specified by the user.
      */
-    val userTime: Val<Duration?> = _userTime
+    val userTime: Cell<Duration?> = _userTime
 
-    val time: Val<Duration> = userTime.orElse { defaultTime }
+    val time: Cell<Duration> = userTime.orElse { defaultTime }
 
     fun setUserTime(userTime: Duration?) {
         _userTime.value = userTime

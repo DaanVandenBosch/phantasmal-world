@@ -3,21 +3,21 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.button
 import world.phantasmal.webui.dom.icon
 import world.phantasmal.webui.dom.span
 
 open class Button(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     private val className: String? = null,
     private val text: String? = null,
-    private val textVal: Val<String>? = null,
+    private val textCell: Cell<String>? = null,
     private val iconLeft: Icon? = null,
     private val iconRight: Icon? = null,
     private val onMouseDown: ((MouseEvent) -> Unit)? = null,
@@ -53,8 +53,8 @@ open class Button(
                 span {
                     className = "pw-button-center"
 
-                    if (textVal != null) {
-                        observe(textVal) {
+                    if (textCell != null) {
+                        observe(textCell) {
                             textContent = it
                             hidden = it.isEmpty()
                         }

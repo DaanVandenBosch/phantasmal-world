@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.rendering
 
-import world.phantasmal.observable.value.list.emptyListVal
+import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -32,7 +32,7 @@ class QuestEditorMeshManager(
                                 (wave == null || it.wave.value == wave)
                     }
                 } else {
-                    emptyListVal()
+                    emptyListCell()
                 }
             )
         }
@@ -47,7 +47,7 @@ class QuestEditorMeshManager(
                         it.sectionInitialized.value && it.areaId == area.id
                     }
                 } else {
-                    emptyListVal()
+                    emptyListCell()
                 }
             )
         }

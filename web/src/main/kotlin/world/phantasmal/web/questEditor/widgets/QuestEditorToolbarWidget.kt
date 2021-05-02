@@ -5,8 +5,8 @@ import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.Version
-import world.phantasmal.observable.value.list.listVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.list.listCell
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
@@ -22,13 +22,13 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                     Dropdown(
                         text = "New quest",
                         iconLeft = Icon.NewFile,
-                        items = listVal(Episode.I),
+                        items = listCell(Episode.I),
                         itemToString = { "Episode $it" },
                         onSelect = { scope.launch { ctrl.createNewQuest(it) } },
                     ),
                     FileButton(
                         text = "Open file...",
-                        tooltip = value("Open a quest file (Ctrl-O)"),
+                        tooltip = cell("Open a quest file (Ctrl-O)"),
                         iconLeft = Icon.File,
                         types = ctrl.supportedFileTypes,
                         multiple = true,
@@ -45,7 +45,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         text = "Save as...",
                         iconLeft = Icon.Save,
                         enabled = ctrl.saveAsEnabled,
-                        tooltip = value("Save this quest to a new file (Ctrl-Shift-S)"),
+                        tooltip = cell("Save this quest to a new file (Ctrl-Shift-S)"),
                         onClick = { ctrl.saveAs() },
                     ),
                     Button(
@@ -71,7 +71,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                     ),
                     Checkbox(
                         label = "Simple view",
-                        tooltip = value(
+                        tooltip = cell(
                             "Whether the collision or the render geometry should be shown",
                         ),
                         checked = ctrl.showCollisionGeometry,
@@ -82,7 +82,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
 
             val saveAsDialog = addDisposable(Dialog(
                 visible = ctrl.saveAsDialogVisible,
-                title = value("Save As"),
+                title = cell("Save As"),
                 content = {
                     div {
                         className = "pw-quest-editor-toolbar-save-as"
@@ -99,7 +99,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
 
                         val versionSelect = Select(
                             label = "Version:",
-                            items = listVal(Version.GC, Version.BB),
+                            items = listCell(Version.GC, Version.BB),
                             selected = ctrl.version,
                             itemToString = {
                                 when (it) {

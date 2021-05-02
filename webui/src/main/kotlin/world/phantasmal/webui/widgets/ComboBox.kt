@@ -4,30 +4,30 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.*
-import world.phantasmal.observable.value.list.emptyListVal
+import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.webui.dom.*
 
 class ComboBox<T : Any>(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     private val className: String? = null,
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    private val items: Val<List<T>> = emptyListVal(),
+    private val items: Cell<List<T>> = emptyListCell(),
     private val itemToString: (T) -> String = Any::toString,
-    private val selected: Val<T?> = nullVal(),
+    private val selected: Cell<T?> = nullCell(),
     private val onSelect: (T) -> Unit = {},
     private val placeholderText: String? = null,
     private val filter: (String) -> Unit = {},
-) : LabelledControl(visible, enabled, tooltip, label, labelVal, preferredLabelPosition) {
+) : LabelledControl(visible, enabled, tooltip, label, labelCell, preferredLabelPosition) {
     private lateinit var input: HTMLInputElement
     private var prevInputValue = ""
 
     private lateinit var menu: Menu<T>
-    private val menuVisible = mutableVal(false)
+    private val menuVisible = mutableCell(false)
 
     override fun Node.createElement() =
         div {

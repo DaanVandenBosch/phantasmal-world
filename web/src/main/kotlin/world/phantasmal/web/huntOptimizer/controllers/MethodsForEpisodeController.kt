@@ -2,9 +2,9 @@ package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.listVal
-import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 import world.phantasmal.webui.controllers.Column
@@ -17,14 +17,14 @@ class MethodsForEpisodeController(
     private val huntMethodStore: HuntMethodStore,
     episode: Episode,
 ) : TableController<HuntMethodModel>() {
-    private val methods = mutableListVal<HuntMethodModel>()
+    private val methods = mutableListCell<HuntMethodModel>()
     private val enemies: List<NpcType> = NpcType.VALUES.filter { it.enemy && it.episode == episode }
 
     override val fixedColumns = 2
 
-    override val values: ListVal<HuntMethodModel> = methods
+    override val values: ListCell<HuntMethodModel> = methods
 
-    override val columns: ListVal<Column<HuntMethodModel>> = listVal(
+    override val columns: ListCell<Column<HuntMethodModel>> = listCell(
         Column(
             key = METHOD_COL_KEY,
             title = "Method",

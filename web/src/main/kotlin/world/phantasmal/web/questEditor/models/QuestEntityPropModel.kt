@@ -5,12 +5,12 @@ import world.phantasmal.lib.fileFormats.ninja.radToAngle
 import world.phantasmal.lib.fileFormats.quest.EntityProp
 import world.phantasmal.lib.fileFormats.quest.EntityPropType
 import world.phantasmal.lib.fileFormats.quest.ObjectType
-import world.phantasmal.observable.value.MutableVal
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.MutableCell
+import world.phantasmal.observable.cell.mutableCell
 
 class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: EntityProp) {
-    private val _value: MutableVal<Any> = mutableVal(when (prop.type) {
+    private val _value: MutableCell<Any> = mutableCell(when (prop.type) {
         EntityPropType.I32 -> entity.entity.data.getInt(prop.offset)
         EntityPropType.F32 -> entity.entity.data.getFloat(prop.offset)
         EntityPropType.Angle -> angleToRad(entity.entity.data.getInt(prop.offset))
@@ -48,7 +48,7 @@ class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: Ent
     val name: String = prop.name
     val offset = prop.offset
     val type: EntityPropType = prop.type
-    val value: Val<Any> = _value
+    val value: Cell<Any> = _value
 
     fun setValue(value: Any, propagateToEntity: Boolean = true) {
         when (type) {

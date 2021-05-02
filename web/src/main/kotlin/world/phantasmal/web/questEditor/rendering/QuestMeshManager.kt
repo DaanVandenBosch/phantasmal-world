@@ -6,8 +6,8 @@ import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.lib.Episode
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListChangeEvent
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.ListChangeEvent
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.AreaVariantModel
@@ -48,7 +48,7 @@ abstract class QuestMeshManager protected constructor(
         }
     }
 
-    protected fun loadNpcMeshes(npcs: ListVal<QuestNpcModel>) {
+    protected fun loadNpcMeshes(npcs: ListCell<QuestNpcModel>) {
         npcLoadJob?.cancel()
         npcLoadJob = scope.launch {
             npcObserver?.dispose()
@@ -58,7 +58,7 @@ abstract class QuestMeshManager protected constructor(
         }
     }
 
-    protected fun loadObjectMeshes(objects: ListVal<QuestObjectModel>) {
+    protected fun loadObjectMeshes(objects: ListCell<QuestObjectModel>) {
         objectLoadJob?.cancel()
         objectLoadJob = scope.launch {
             objectObserver?.dispose()

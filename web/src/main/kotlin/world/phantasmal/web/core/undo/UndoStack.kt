@@ -1,32 +1,32 @@
 package world.phantasmal.web.core.undo
 
-import world.phantasmal.observable.value.*
-import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.core.actions.Action
 
 /**
  * Full-fledged linear undo/redo implementation.
  */
 class UndoStack(manager: UndoManager) : Undo {
-    private val stack = mutableListVal<Action>()
+    private val stack = mutableListCell<Action>()
 
     /**
      * The index where new actions are inserted. If not equal to the [stack]'s size, points to the
      * action that will be redone when calling [redo].
      */
-    private val index = mutableVal(0)
-    private val savePointIndex = mutableVal(0)
+    private val index = mutableCell(0)
+    private val savePointIndex = mutableCell(0)
     private var undoingOrRedoing = false
 
-    override val canUndo: Val<Boolean> = index gt 0
+    override val canUndo: Cell<Boolean> = index gt 0
 
-    override val canRedo: Val<Boolean> = map(stack, index) { stack, index -> index < stack.size }
+    override val canRedo: Cell<Boolean> = map(stack, index) { stack, index -> index < stack.size }
 
-    override val firstUndo: Val<Action?> = index.map { stack.value.getOrNull(it - 1) }
+    override val firstUndo: Cell<Action?> = index.map { stack.value.getOrNull(it - 1) }
 
-    override val firstRedo: Val<Action?> = index.map { stack.value.getOrNull(it) }
+    override val firstRedo: Cell<Action?> = index.map { stack.value.getOrNull(it) }
 
-    override val atSavePoint: Val<Boolean> = index eq savePointIndex
+    override val atSavePoint: Cell<Boolean> = index eq savePointIndex
 
     init {
         manager.addUndo(this)

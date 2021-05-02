@@ -1,11 +1,11 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.falseVal
-import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.falseCell
+import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.test.WebuiTestSuite
 import kotlin.test.Test
@@ -43,8 +43,8 @@ class WidgetTests : WebuiTestSuite {
 
     @Test
     fun ancestorVisible_and_selfOrAncestorVisible_update_when_visible_changes() = test {
-        val parentVisible = mutableVal(true)
-        val childVisible = mutableVal(true)
+        val parentVisible = mutableCell(true)
+        val childVisible = mutableCell(true)
         val grandChild = DummyWidget()
         val child = DummyWidget(childVisible, grandChild)
         val parent = disposer.add(DummyWidget(parentVisible, child))
@@ -81,7 +81,7 @@ class WidgetTests : WebuiTestSuite {
     @Test
     fun added_child_widgets_have_ancestorVisible_and_selfOrAncestorVisible_set_correctly() =
         test {
-            val parent = disposer.add(DummyWidget(visible = falseVal()))
+            val parent = disposer.add(DummyWidget(visible = falseCell()))
             val child = parent.addChild(DummyWidget())
 
             assertTrue(parent.ancestorVisible.value)
@@ -92,7 +92,7 @@ class WidgetTests : WebuiTestSuite {
 
     @Test
     fun bindChildWidgetsTo() = test {
-        val list = mutableListVal("a", "b", "c")
+        val list = mutableListCell("a", "b", "c")
         var childDisposals = 0
 
         val parent = object : Widget() {
@@ -136,7 +136,7 @@ class WidgetTests : WebuiTestSuite {
     }
 
     private class DummyWidget(
-        visible: Val<Boolean> = trueVal(),
+        visible: Cell<Boolean> = trueCell(),
         private val child: Widget? = null,
     ) : Widget(visible = visible) {
         override fun Node.createElement() =

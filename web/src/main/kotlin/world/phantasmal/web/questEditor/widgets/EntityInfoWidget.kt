@@ -8,8 +8,8 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
 import world.phantasmal.lib.fileFormats.quest.EntityPropType
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
 import world.phantasmal.web.questEditor.models.QuestEntityPropModel
@@ -88,11 +88,15 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
             ))
         }
 
-    private fun Node.createCoordRow(label: String, value: Val<Double>, onChange: (Double) -> Unit) {
+    private fun Node.createCoordRow(
+        label: String,
+        value: Cell<Double>,
+        onChange: (Double) -> Unit,
+    ) {
         tr {
             className = COORD_CLASS
 
-            val inputValue = mutableVal(value.value)
+            val inputValue = mutableCell(value.value)
             var timeout = -1
 
             observe(value) {

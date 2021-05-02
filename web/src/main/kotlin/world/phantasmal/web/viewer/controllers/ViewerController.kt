@@ -1,6 +1,6 @@
 package world.phantasmal.web.viewer.controllers
 
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.controllers.PathAwareTab
 import world.phantasmal.web.core.controllers.PathAwareTabContainerController
@@ -27,10 +27,10 @@ class ViewerController(
     tabs = listOf(ViewerTab.Mesh, ViewerTab.Texture),
 ) {
     val characterClasses: List<CharacterClass> = CharacterClass.VALUES_LIST
-    val currentCharacterClass: Val<CharacterClass?> = store.currentCharacterClass
+    val currentCharacterClass: Cell<CharacterClass?> = store.currentCharacterClass
 
     val animations: List<AnimationModel> = store.animations
-    val currentAnimation: Val<AnimationModel?> = store.currentAnimation
+    val currentAnimation: Cell<AnimationModel?> = store.currentAnimation
 
     suspend fun setCurrentCharacterClass(char: CharacterClass?) {
         store.setCurrentCharacterClass(char)

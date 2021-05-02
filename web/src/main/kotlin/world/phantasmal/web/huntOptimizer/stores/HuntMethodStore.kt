@@ -5,8 +5,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
@@ -26,9 +26,9 @@ class HuntMethodStore(
     private val assetLoader: AssetLoader,
     private val huntMethodPersister: HuntMethodPersister,
 ) : Store() {
-    private val _methods = mutableListVal<HuntMethodModel> { arrayOf(it.time) }
+    private val _methods = mutableListCell<HuntMethodModel> { arrayOf(it.time) }
 
-    val methods: ListVal<HuntMethodModel> by lazy {
+    val methods: ListCell<HuntMethodModel> by lazy {
         observe(uiStore.server) { loadMethods(it) }
         _methods
     }

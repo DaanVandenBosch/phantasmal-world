@@ -3,7 +3,7 @@ package world.phantasmal.web.questEditor.rendering.input.state
 import mu.KotlinLogging
 import world.phantasmal.core.asJsArray
 import world.phantasmal.lib.fileFormats.ninja.XjObject
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.minusAssign
 import world.phantasmal.web.core.plusAssign
@@ -34,11 +34,11 @@ class StateContext(
      */
     private var highlightedMesh: Pair<Mesh, List<Color>>? = null
 
-    val devMode: Val<Boolean> = questEditorStore.devMode
-    val quest: Val<QuestModel?> = questEditorStore.currentQuest
-    val area: Val<AreaModel?> = questEditorStore.currentArea
-    val wave: Val<WaveModel?> = questEditorStore.selectedEvent.flatMapNull { it?.wave }
-    val selectedEntity: Val<QuestEntityModel<*, *>?> = questEditorStore.selectedEntity
+    val devMode: Cell<Boolean> = questEditorStore.devMode
+    val quest: Cell<QuestModel?> = questEditorStore.currentQuest
+    val area: Cell<AreaModel?> = questEditorStore.currentArea
+    val wave: Cell<WaveModel?> = questEditorStore.selectedEvent.flatMapNull { it?.wave }
+    val selectedEntity: Cell<QuestEntityModel<*, *>?> = questEditorStore.selectedEntity
 
     fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {
         questEditorStore.setHighlightedEntity(entity)

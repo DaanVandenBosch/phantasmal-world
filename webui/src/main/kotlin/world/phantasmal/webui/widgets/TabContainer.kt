@@ -1,17 +1,17 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.eq
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.eq
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.controllers.Tab
 import world.phantasmal.webui.controllers.TabContainerController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.span
 
 class TabContainer<T : Tab>(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
     private val ctrl: TabContainerController<T>,
     private val createWidget: (T) -> Widget,
 ) : Widget(visible, enabled) {

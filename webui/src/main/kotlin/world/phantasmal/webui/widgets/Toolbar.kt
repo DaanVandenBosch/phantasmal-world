@@ -1,16 +1,16 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 
 /**
  * Takes ownership of the given [children].
  */
 class Toolbar(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
     children: List<Widget>,
 ) : Widget(visible, enabled) {
     private val childWidgets = children

@@ -6,7 +6,7 @@ import world.phantasmal.core.*
 import world.phantasmal.lib.Endianness
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.*
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.cell.*
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.files.writeBuffer
@@ -30,22 +30,22 @@ class QuestEditorToolbarController(
     private val areaStore: AreaStore,
     private val questEditorStore: QuestEditorStore,
 ) : Controller() {
-    private val _resultDialogVisible = mutableVal(false)
-    private val _result = mutableVal<PwResult<*>?>(null)
-    private val saving = mutableVal(false)
+    private val _resultDialogVisible = mutableCell(false)
+    private val _result = mutableCell<PwResult<*>?>(null)
+    private val saving = mutableCell(false)
 
     // We mainly disable saving while a save is underway for visual feedback that a save is
     // happening/has happened.
     private val savingEnabled = questEditorStore.currentQuest.isNotNull() and !saving
-    private val _saveAsDialogVisible = mutableVal(false)
-    private val fileHolder = mutableVal<FileHolder?>(null)
-    private val _filename = mutableVal("")
-    private val _version = mutableVal(Version.BB)
+    private val _saveAsDialogVisible = mutableCell(false)
+    private val fileHolder = mutableCell<FileHolder?>(null)
+    private val _filename = mutableCell("")
+    private val _version = mutableCell(Version.BB)
 
     // Result
 
-    val resultDialogVisible: Val<Boolean> = _resultDialogVisible
-    val result: Val<PwResult<*>?> = _result
+    val resultDialogVisible: Cell<Boolean> = _resultDialogVisible
+    val result: Cell<PwResult<*>?> = _result
 
     val supportedFileTypes = listOf(
         FileType(
@@ -56,43 +56,43 @@ class QuestEditorToolbarController(
 
     // Saving
 
-    val saveEnabled: Val<Boolean> =
+    val saveEnabled: Cell<Boolean> =
         savingEnabled and questEditorStore.canSaveChanges and UserAgentFeatures.fileSystemApi
-    val saveTooltip: Val<String> =
+    val saveTooltip: Cell<String> =
         if (UserAgentFeatures.fileSystemApi) {
             questEditorStore.canSaveChanges.map {
                 (if (it) "Save changes" else "No changes to save") + " (Ctrl-S)"
             }
         } else {
-            value("This browser doesn't support saving changes to existing files")
+            cell("This browser doesn't support saving changes to existing files")
         }
-    val saveAsEnabled: Val<Boolean> = savingEnabled
-    val saveAsDialogVisible: Val<Boolean> = _saveAsDialogVisible
+    val saveAsEnabled: Cell<Boolean> = savingEnabled
+    val saveAsDialogVisible: Cell<Boolean> = _saveAsDialogVisible
     val showSaveAsDialogNameField: Boolean = !UserAgentFeatures.fileSystemApi
-    val filename: Val<String> = _filename
-    val version: Val<Version> = _version
+    val filename: Cell<String> = _filename
+    val version: Cell<Version> = _version
 
     // Undo
 
-    val undoTooltip: Val<String> = questEditorStore.firstUndo.map { action ->
+    val undoTooltip: Cell<String> = questEditorStore.firstUndo.map { action ->
         (action?.let { "Undo \"${action.description}\"" } ?: "Nothing to undo") + " (Ctrl-Z)"
     }
 
-    val undoEnabled: Val<Boolean> = questEditorStore.canUndo
+    val undoEnabled: Cell<Boolean> = questEditorStore.canUndo
 
     // Redo
 
-    val redoTooltip: Val<String> = questEditorStore.firstRedo.map { action ->
+    val redoTooltip: Cell<String> = questEditorStore.firstRedo.map { action ->
         (action?.let { "Redo \"${action.description}\"" } ?: "Nothing to redo") + " (Ctrl-Shift-Z)"
     }
 
-    val redoEnabled: Val<Boolean> = questEditorStore.canRedo
+    val redoEnabled: Cell<Boolean> = questEditorStore.canRedo
 
     // Areas
 
     // Ensure the areas list is updated when entities are added or removed (the count in the label
     // should update).
-    val areas: Val<List<AreaAndLabel>> = questEditorStore.currentQuest.flatMap { quest ->
+    val areas: Cell<List<AreaAndLabel>> = questEditorStore.currentQuest.flatMap { quest ->
         quest?.let {
             map(quest.entitiesPerArea, quest.areaVariants) { entitiesPerArea, variants ->
                 areaStore.getAreasForEpisode(quest.episode).map { area ->
@@ -101,18 +101,18 @@ class QuestEditorToolbarController(
                     AreaAndLabel(area, name + (entityCount?.let { " ($it)" } ?: ""))
                 }
             }
-        } ?: value(emptyList())
+        } ?: cell(emptyList())
     }
 
-    val currentArea: Val<AreaAndLabel?> = map(areas, questEditorStore.currentArea) { areas, area ->
+    val currentArea: Cell<AreaAndLabel?> = map(areas, questEditorStore.currentArea) { areas, area ->
         areas.find { it.area == area }
     }
 
-    val areaSelectEnabled: Val<Boolean> = questEditorStore.currentQuest.isNotNull()
+    val areaSelectEnabled: Cell<Boolean> = questEditorStore.currentQuest.isNotNull()
 
     // Settings
 
-    val showCollisionGeometry: Val<Boolean> = questEditorStore.showCollisionGeometry
+    val showCollisionGeometry: Cell<Boolean> = questEditorStore.showCollisionGeometry
 
     init {
         addDisposables(

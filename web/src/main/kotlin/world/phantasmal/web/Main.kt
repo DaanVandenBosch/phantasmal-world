@@ -15,7 +15,7 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.application.Application
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
@@ -90,7 +90,7 @@ private fun createThreeRenderer(canvas: HTMLCanvasElement): DisposableThreeRende
 private class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
     private val path: String get() = window.location.pathname
 
-    override val url = mutableVal(window.location.hash.substring(1))
+    override val url = mutableCell(window.location.hash.substring(1))
 
     private val popStateListener = window.disposableListener<PopStateEvent>("popstate", {
         url.value = window.location.hash.substring(1)

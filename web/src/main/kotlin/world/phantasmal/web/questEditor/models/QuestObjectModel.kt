@@ -2,13 +2,13 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.lib.fileFormats.quest.ObjectType
 import world.phantasmal.lib.fileFormats.quest.QuestObject
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.mutableCell
 
 class QuestObjectModel(obj: QuestObject) : QuestEntityModel<ObjectType, QuestObject>(obj) {
-    private val _model = mutableVal(obj.model)
+    private val _model = mutableCell(obj.model)
 
-    val model: Val<Int?> = _model
+    val model: Cell<Int?> = _model
 
     fun setModel(model: Int, propagateToProps: Boolean = true) {
         _model.value = model

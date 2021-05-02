@@ -3,7 +3,7 @@ package world.phantasmal.web.questEditor.widgets
 import org.w3c.dom.*
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.cell
 import world.phantasmal.web.questEditor.controllers.EventsController
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
@@ -151,7 +151,7 @@ class EventWidget(
                         addWidget(
                             disposer.add(IntInput(
                                 enabled = ctrl.enabled,
-                                tooltip = value("Section"),
+                                tooltip = cell("Section"),
                                 value = action.sectionId,
                                 onChange = { ctrl.setActionSectionId(event, action, it) },
                                 min = 0,
@@ -162,7 +162,7 @@ class EventWidget(
                         addWidget(
                             disposer.add(IntInput(
                                 enabled = ctrl.enabled,
-                                tooltip = value("Appear flag"),
+                                tooltip = cell("Appear flag"),
                                 value = action.appearFlag,
                                 onChange = { ctrl.setActionAppearFlag(event, action, it) },
                                 min = 0,
@@ -177,7 +177,7 @@ class EventWidget(
                         addWidget(
                             disposer.add(IntInput(
                                 enabled = ctrl.enabled,
-                                tooltip = value("Door"),
+                                tooltip = cell("Door"),
                                 value = action.doorId,
                                 onChange = { ctrl.setActionDoorId(event, action, it) },
                                 min = 0,
@@ -207,7 +207,7 @@ class EventWidget(
                 addWidget(
                     disposer.add(Button(
                         enabled = ctrl.enabled,
-                        tooltip = value("Remove this action from the event"),
+                        tooltip = cell("Remove this action from the event"),
                         iconLeft = Icon.Remove,
                         onClick = { ctrl.removeAction(event, action) }
                     )),

@@ -1,23 +1,23 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.emptyStringVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.emptyStringCell
 import world.phantasmal.web.questEditor.actions.EditPropertyAction
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
 class QuestInfoController(private val store: QuestEditorStore) : Controller() {
-    val unavailable: Val<Boolean> = store.currentQuest.isNull()
-    val enabled: Val<Boolean> = store.questEditingEnabled
+    val unavailable: Cell<Boolean> = store.currentQuest.isNull()
+    val enabled: Cell<Boolean> = store.questEditingEnabled
 
-    val episode: Val<String> = store.currentQuest.map { it?.episode?.name ?: "" }
-    val id: Val<Int> = store.currentQuest.flatMap { it?.id ?: value(0) }
-    val name: Val<String> = store.currentQuest.flatMap { it?.name ?: emptyStringVal() }
-    val shortDescription: Val<String> =
-        store.currentQuest.flatMap { it?.shortDescription ?: emptyStringVal() }
-    val longDescription: Val<String> =
-        store.currentQuest.flatMap { it?.longDescription ?: emptyStringVal() }
+    val episode: Cell<String> = store.currentQuest.map { it?.episode?.name ?: "" }
+    val id: Cell<Int> = store.currentQuest.flatMap { it?.id ?: cell(0) }
+    val name: Cell<String> = store.currentQuest.flatMap { it?.name ?: emptyStringCell() }
+    val shortDescription: Cell<String> =
+        store.currentQuest.flatMap { it?.shortDescription ?: emptyStringCell() }
+    val longDescription: Cell<String> =
+        store.currentQuest.flatMap { it?.longDescription ?: emptyStringCell() }
 
     fun focused() {
         store.makeMainUndoCurrent()

@@ -7,10 +7,10 @@ import mu.KotlinLogging
 import world.phantasmal.core.*
 import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.EnemyDropTable
 import world.phantasmal.web.core.stores.ItemDropStore
@@ -44,11 +44,11 @@ class HuntOptimizerStore(
     private val itemTypeStore: ItemTypeStore,
     private val itemDropStore: ItemDropStore,
 ) : Store() {
-    private val _huntableItems = mutableListVal<ItemType>()
-    private val _wantedItems = mutableListVal<WantedItemModel> { arrayOf(it.amount) }
-    private val _optimizationResult = mutableVal(OptimizationResultModel(emptyList(), emptyList()))
+    private val _huntableItems = mutableListCell<ItemType>()
+    private val _wantedItems = mutableListCell<WantedItemModel> { arrayOf(it.amount) }
+    private val _optimizationResult = mutableCell(OptimizationResultModel(emptyList(), emptyList()))
 
-    val huntableItems: ListVal<ItemType> by lazy {
+    val huntableItems: ListCell<ItemType> by lazy {
         observe(uiStore.server) { server ->
             _huntableItems.clear()
 
@@ -64,12 +64,12 @@ class HuntOptimizerStore(
         _huntableItems
     }
 
-    val wantedItems: ListVal<WantedItemModel> by lazy {
+    val wantedItems: ListCell<WantedItemModel> by lazy {
         observe(uiStore.server) { loadWantedItems(it) }
         _wantedItems
     }
 
-    val optimizationResult: Val<OptimizationResultModel> = _optimizationResult
+    val optimizationResult: Cell<OptimizationResultModel> = _optimizationResult
 
     init {
         observe(wantedItems) {

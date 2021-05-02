@@ -7,10 +7,10 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.get
 import org.w3c.dom.pointerevents.PointerEvent
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.emptyStringVal
-import world.phantasmal.observable.value.isEmpty
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.emptyStringCell
+import world.phantasmal.observable.cell.isEmpty
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.dom
 import world.phantasmal.webui.dom.h1
@@ -18,10 +18,10 @@ import world.phantasmal.webui.dom.section
 
 // TODO: Use HTML dialog element.
 open class Dialog(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    private val title: Val<String>,
-    private val description: Val<String> = emptyStringVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    private val title: Cell<String>,
+    private val description: Cell<String> = emptyStringCell(),
     private val content: Node.() -> Unit = {},
     private val footer: Node.() -> Unit = {},
     protected val onDismiss: () -> Unit = {},

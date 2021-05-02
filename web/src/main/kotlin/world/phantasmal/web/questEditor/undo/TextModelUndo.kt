@@ -4,11 +4,11 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.MutableCell
+import world.phantasmal.observable.cell.eq
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.observable.emitter
-import world.phantasmal.observable.value.MutableVal
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.eq
-import world.phantasmal.observable.value.mutableVal
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.core.undo.Undo
 import world.phantasmal.web.core.undo.UndoManager
@@ -18,7 +18,7 @@ import world.phantasmal.web.externals.monacoEditor.ITextModel
 class TextModelUndo(
     undoManager: UndoManager,
     private val description: String,
-    model: Val<ITextModel?>,
+    model: Cell<ITextModel?>,
 ) : Undo, TrackedDisposable() {
     private val action = object : Action {
         override val description: String = this@TextModelUndo.description
@@ -35,21 +35,21 @@ class TextModelUndo(
     private val modelObserver: Disposable
     private var modelChangeObserver: IDisposable? = null
 
-    private val _canUndo: MutableVal<Boolean> = mutableVal(false)
-    private val _canRedo: MutableVal<Boolean> = mutableVal(false)
+    private val _canUndo: MutableCell<Boolean> = mutableCell(false)
+    private val _canRedo: MutableCell<Boolean> = mutableCell(false)
     private val _didUndo = emitter<Unit>()
     private val _didRedo = emitter<Unit>()
 
-    private val currentVersionId = mutableVal<Int?>(null)
-    private val savePointVersionId = mutableVal<Int?>(null)
+    private val currentVersionId = mutableCell<Int?>(null)
+    private val savePointVersionId = mutableCell<Int?>(null)
 
-    override val canUndo: Val<Boolean> = _canUndo
-    override val canRedo: Val<Boolean> = _canRedo
+    override val canUndo: Cell<Boolean> = _canUndo
+    override val canRedo: Cell<Boolean> = _canRedo
 
-    override val firstUndo: Val<Action?> = canUndo.map { if (it) action else null }
-    override val firstRedo: Val<Action?> = canRedo.map { if (it) action else null }
+    override val firstUndo: Cell<Action?> = canUndo.map { if (it) action else null }
+    override val firstRedo: Cell<Action?> = canRedo.map { if (it) action else null }
 
-    override val atSavePoint: Val<Boolean> = savePointVersionId eq currentVersionId
+    override val atSavePoint: Cell<Boolean> = savePointVersionId eq currentVersionId
 
     val didUndo: Observable<Unit> = _didUndo
     val didRedo: Observable<Unit> = _didRedo

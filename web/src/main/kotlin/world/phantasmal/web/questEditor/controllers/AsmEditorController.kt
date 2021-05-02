@@ -1,27 +1,27 @@
 package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.not
-import world.phantasmal.observable.value.or
-import world.phantasmal.observable.value.orElse
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.not
+import world.phantasmal.observable.cell.or
+import world.phantasmal.observable.cell.orElse
 import world.phantasmal.web.externals.monacoEditor.ITextModel
 import world.phantasmal.web.externals.monacoEditor.createModel
 import world.phantasmal.web.questEditor.stores.AsmStore
 import world.phantasmal.webui.controllers.Controller
 
 class AsmEditorController(private val store: AsmStore) : Controller() {
-    val enabled: Val<Boolean> = store.editingEnabled
-    val readOnly: Val<Boolean> = !enabled or store.textModel.isNull()
+    val enabled: Cell<Boolean> = store.editingEnabled
+    val readOnly: Cell<Boolean> = !enabled or store.textModel.isNull()
 
-    val textModel: Val<ITextModel> = store.textModel.orElse { EMPTY_MODEL }
+    val textModel: Cell<ITextModel> = store.textModel.orElse { EMPTY_MODEL }
 
     val didUndo: Observable<Unit> = store.didUndo
     val didRedo: Observable<Unit> = store.didRedo
 
-    val inlineStackArgs: Val<Boolean> = store.inlineStackArgs
-    val inlineStackArgsEnabled: Val<Boolean> = store.problems.map { it.isEmpty() }
-    val inlineStackArgsTooltip: Val<String> =
+    val inlineStackArgs: Cell<Boolean> = store.inlineStackArgs
+    val inlineStackArgsEnabled: Cell<Boolean> = store.problems.map { it.isEmpty() }
+    val inlineStackArgsTooltip: Cell<String> =
         inlineStackArgsEnabled.map { enabled ->
             buildString {
                 append("Transform arg_push* opcodes to be inline with the opcode the arguments are given to.")

@@ -13,8 +13,8 @@ import world.phantasmal.lib.fileFormats.ninja.*
 import world.phantasmal.lib.fileFormats.parseAfs
 import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.lib.fileFormats.parseAreaRenderGeometry
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore
@@ -24,21 +24,21 @@ import world.phantasmal.webui.files.FileHandle
 private val logger = KotlinLogging.logger {}
 
 class ViewerToolbarController(private val store: ViewerStore) : Controller() {
-    private val _resultDialogVisible = mutableVal(false)
-    private val _result = mutableVal<PwResult<*>?>(null)
+    private val _resultDialogVisible = mutableCell(false)
+    private val _result = mutableCell<PwResult<*>?>(null)
 
-    val applyTexturesEnabled: Val<Boolean> = store.applyTexturesEnabled
-    val applyTextures: Val<Boolean> = store.applyTextures
-    val showSkeletonEnabled: Val<Boolean> = store.showSkeletonEnabled
-    val showSkeleton: Val<Boolean> = store.showSkeleton
-    val playAnimation: Val<Boolean> = store.animationPlaying
-    val frameRate: Val<Int> = store.frameRate
-    val frame: Val<Int> = store.frame
-    val animationControlsEnabled: Val<Boolean> = store.currentNinjaMotion.isNotNull()
-    val maxFrame: Val<String> = store.currentNinjaMotion.map { "/ ${it?.frameCount ?: 0}" }
-    val resultDialogVisible: Val<Boolean> = _resultDialogVisible
-    val result: Val<PwResult<*>?> = _result
-    val resultMessage: Val<String> = result.map {
+    val applyTexturesEnabled: Cell<Boolean> = store.applyTexturesEnabled
+    val applyTextures: Cell<Boolean> = store.applyTextures
+    val showSkeletonEnabled: Cell<Boolean> = store.showSkeletonEnabled
+    val showSkeleton: Cell<Boolean> = store.showSkeleton
+    val playAnimation: Cell<Boolean> = store.animationPlaying
+    val frameRate: Cell<Int> = store.frameRate
+    val frame: Cell<Int> = store.frame
+    val animationControlsEnabled: Cell<Boolean> = store.currentNinjaMotion.isNotNull()
+    val maxFrame: Cell<String> = store.currentNinjaMotion.map { "/ ${it?.frameCount ?: 0}" }
+    val resultDialogVisible: Cell<Boolean> = _resultDialogVisible
+    val result: Cell<PwResult<*>?> = _result
+    val resultMessage: Cell<String> = result.map {
         when (it) {
             is Success, null -> "Encountered some problems while opening files."
             is Failure -> "An error occurred while opening files."

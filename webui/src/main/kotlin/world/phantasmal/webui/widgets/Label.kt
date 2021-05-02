@@ -1,15 +1,15 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.label
 
 class Label(
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
     private val text: String? = null,
-    private val textVal: Val<String>? = null,
+    private val textCell: Cell<String>? = null,
     private val htmlFor: String? = null,
 ) : Widget(visible, enabled) {
     override fun Node.createElement() =
@@ -17,8 +17,8 @@ class Label(
             className = "pw-label"
             this@Label.htmlFor?.let { htmlFor = it }
 
-            if (textVal != null) {
-                text(textVal)
+            if (textCell != null) {
+                text(textCell)
             } else if (text != null) {
                 textContent = text
             }

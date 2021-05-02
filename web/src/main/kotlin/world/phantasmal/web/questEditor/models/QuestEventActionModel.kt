@@ -1,18 +1,18 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.mutableCell
 
 sealed class QuestEventActionModel {
     abstract val shortName: String
 
     class SpawnNpcs(sectionId: Int, appearFlag: Int) : QuestEventActionModel() {
-        private val _sectionId = mutableVal(sectionId)
-        private val _appearFlag = mutableVal(appearFlag)
+        private val _sectionId = mutableCell(sectionId)
+        private val _appearFlag = mutableCell(appearFlag)
 
         override val shortName = SHORT_NAME
-        val sectionId: Val<Int> = _sectionId
-        val appearFlag: Val<Int> = _appearFlag
+        val sectionId: Cell<Int> = _sectionId
+        val appearFlag: Cell<Int> = _appearFlag
 
         fun setSectionId(sectionId: Int) {
             _sectionId.value = sectionId
@@ -28,9 +28,9 @@ sealed class QuestEventActionModel {
     }
 
     sealed class Door(doorId: Int) : QuestEventActionModel() {
-        private val _doorId = mutableVal(doorId)
+        private val _doorId = mutableCell(doorId)
 
-        val doorId: Val<Int> = _doorId
+        val doorId: Cell<Int> = _doorId
 
         fun setDoorId(doorId: Int) {
             _doorId.value = doorId
@@ -54,10 +54,10 @@ sealed class QuestEventActionModel {
     }
 
     class TriggerEvent(eventId: Int) : QuestEventActionModel() {
-        private val _eventId = mutableVal(eventId)
+        private val _eventId = mutableCell(eventId)
 
         override val shortName = SHORT_NAME
-        val eventId: Val<Int> = _eventId
+        val eventId: Cell<Int> = _eventId
 
         fun setEventId(eventId: Int) {
             _eventId.value = eventId

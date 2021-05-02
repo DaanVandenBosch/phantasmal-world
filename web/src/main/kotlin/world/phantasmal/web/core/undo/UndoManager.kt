@@ -1,25 +1,25 @@
 package world.phantasmal.web.core.undo
 
-import world.phantasmal.observable.value.*
-import world.phantasmal.observable.value.list.mutableListVal
+import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.core.actions.Action
 
 class UndoManager {
-    private val undos = mutableListVal<Undo>(NopUndo) { arrayOf(it.atSavePoint) }
-    private val _current = mutableVal<Undo>(NopUndo)
+    private val undos = mutableListCell<Undo>(NopUndo) { arrayOf(it.atSavePoint) }
+    private val _current = mutableCell<Undo>(NopUndo)
 
-    val current: Val<Undo> = _current
+    val current: Cell<Undo> = _current
 
-    val canUndo: Val<Boolean> = current.flatMap { it.canUndo }
-    val canRedo: Val<Boolean> = current.flatMap { it.canRedo }
-    val firstUndo: Val<Action?> = current.flatMap { it.firstUndo }
-    val firstRedo: Val<Action?> = current.flatMap { it.firstRedo }
+    val canUndo: Cell<Boolean> = current.flatMap { it.canUndo }
+    val canRedo: Cell<Boolean> = current.flatMap { it.canRedo }
+    val firstUndo: Cell<Action?> = current.flatMap { it.firstUndo }
+    val firstRedo: Cell<Action?> = current.flatMap { it.firstRedo }
 
     /**
      * True if all undos are at the most recent save point. I.e., true if there are no changes to
      * save.
      */
-    val allAtSavePoint: Val<Boolean> = undos.all { it.atSavePoint.value }
+    val allAtSavePoint: Cell<Boolean> = undos.all { it.atSavePoint.value }
 
     fun addUndo(undo: Undo) {
         undos.add(undo)
@@ -56,11 +56,11 @@ class UndoManager {
     }
 
     private object NopUndo : Undo {
-        override val canUndo = falseVal()
-        override val canRedo = falseVal()
-        override val firstUndo = nullVal()
-        override val firstRedo = nullVal()
-        override val atSavePoint = trueVal()
+        override val canUndo = falseCell()
+        override val canRedo = falseCell()
+        override val firstUndo = nullCell()
+        override val firstRedo = nullCell()
+        override val atSavePoint = trueCell()
 
         override fun undo(): Boolean = false
 

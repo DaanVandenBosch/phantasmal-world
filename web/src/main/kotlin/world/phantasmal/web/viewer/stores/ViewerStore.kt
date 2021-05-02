@@ -9,11 +9,11 @@ import world.phantasmal.lib.fileFormats.ninja.NinjaObject
 import world.phantasmal.lib.fileFormats.ninja.NjMotion
 import world.phantasmal.lib.fileFormats.ninja.NjObject
 import world.phantasmal.lib.fileFormats.ninja.XvrTexture
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.and
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.and
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.rendering.conversion.PSO_FRAME_RATE
 import world.phantasmal.web.core.stores.UiStore
@@ -39,53 +39,54 @@ class ViewerStore(
     uiStore: UiStore,
 ) : Store() {
     // Ninja concepts.
-    private val _currentNinjaGeometry = mutableVal<NinjaGeometry?>(null)
-    private val _currentTextures = mutableListVal<XvrTexture?>()
-    private val _currentNinjaMotion = mutableVal<NjMotion?>(null)
+    private val _currentNinjaGeometry = mutableCell<NinjaGeometry?>(null)
+    private val _currentTextures = mutableListCell<XvrTexture?>()
+    private val _currentNinjaMotion = mutableCell<NjMotion?>(null)
 
     // High-level concepts.
-    private val _currentCharacterClass = mutableVal<CharacterClass?>(CharacterClass.VALUES.random())
-    private val _currentSectionId = mutableVal(SectionId.VALUES.random())
+    private val _currentCharacterClass =
+        mutableCell<CharacterClass?>(CharacterClass.VALUES.random())
+    private val _currentSectionId = mutableCell(SectionId.VALUES.random())
     private val _currentBody =
-        mutableVal((1.._currentCharacterClass.value!!.bodyStyleCount).random())
-    private val _currentAnimation = mutableVal<AnimationModel?>(null)
+        mutableCell((1.._currentCharacterClass.value!!.bodyStyleCount).random())
+    private val _currentAnimation = mutableCell<AnimationModel?>(null)
 
     // Settings.
-    private val _applyTextures = mutableVal(true)
-    private val _showSkeleton = mutableVal(false)
-    private val _animationPlaying = mutableVal(true)
-    private val _frameRate = mutableVal(PSO_FRAME_RATE)
-    private val _frame = mutableVal(0)
+    private val _applyTextures = mutableCell(true)
+    private val _showSkeleton = mutableCell(false)
+    private val _animationPlaying = mutableCell(true)
+    private val _frameRate = mutableCell(PSO_FRAME_RATE)
+    private val _frame = mutableCell(0)
 
     // Ninja concepts.
-    val currentNinjaGeometry: Val<NinjaGeometry?> = _currentNinjaGeometry
-    val currentTextures: ListVal<XvrTexture?> = _currentTextures
-    val currentNinjaMotion: Val<NjMotion?> = _currentNinjaMotion
+    val currentNinjaGeometry: Cell<NinjaGeometry?> = _currentNinjaGeometry
+    val currentTextures: ListCell<XvrTexture?> = _currentTextures
+    val currentNinjaMotion: Cell<NjMotion?> = _currentNinjaMotion
 
     // High-level concepts.
-    val currentCharacterClass: Val<CharacterClass?> = _currentCharacterClass
-    val currentSectionId: Val<SectionId> = _currentSectionId
-    val currentBody: Val<Int> = _currentBody
+    val currentCharacterClass: Cell<CharacterClass?> = _currentCharacterClass
+    val currentSectionId: Cell<SectionId> = _currentSectionId
+    val currentBody: Cell<Int> = _currentBody
     val animations: List<AnimationModel> = (0 until 572).map {
         AnimationModel(
             "Animation ${it + 1}",
             "/player/animation/animation_${it.toString().padStart(3, '0')}.njm",
         )
     }
-    val currentAnimation: Val<AnimationModel?> = _currentAnimation
+    val currentAnimation: Cell<AnimationModel?> = _currentAnimation
 
     // Settings.
-    val applyTexturesEnabled: Val<Boolean> = _currentNinjaGeometry.map {
+    val applyTexturesEnabled: Cell<Boolean> = _currentNinjaGeometry.map {
         it == null || it !is NinjaGeometry.Collision
     }
-    val applyTextures: Val<Boolean> = applyTexturesEnabled and _applyTextures
-    val showSkeletonEnabled: Val<Boolean> = _currentNinjaGeometry.map {
+    val applyTextures: Cell<Boolean> = applyTexturesEnabled and _applyTextures
+    val showSkeletonEnabled: Cell<Boolean> = _currentNinjaGeometry.map {
         it is NinjaGeometry.Object && it.obj is NjObject
     }
-    val showSkeleton: Val<Boolean> = showSkeletonEnabled and _showSkeleton
-    val animationPlaying: Val<Boolean> = _animationPlaying
-    val frameRate: Val<Int> = _frameRate
-    val frame: Val<Int> = _frame
+    val showSkeleton: Cell<Boolean> = showSkeletonEnabled and _showSkeleton
+    val animationPlaying: Cell<Boolean> = _animationPlaying
+    val frameRate: Cell<Int> = _frameRate
+    val frame: Cell<Int> = _frame
 
     init {
         for (path in listOf(ViewerUrls.mesh, ViewerUrls.texture)) {

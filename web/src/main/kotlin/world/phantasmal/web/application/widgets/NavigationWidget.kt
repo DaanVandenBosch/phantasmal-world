@@ -1,11 +1,12 @@
 package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.falseVal
-import world.phantasmal.observable.value.list.listVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.falseCell
+import world.phantasmal.observable.cell.list.listCell
 import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.core.dom.externalLink
+import world.phantasmal.web.core.models.Server
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.icon
@@ -29,11 +30,11 @@ class NavigationWidget(private val ctrl: NavigationController) : Widget() {
                 className = "pw-application-navigation-right"
 
                 val serverSelect = Select(
-                    enabled = falseVal(),
+                    enabled = falseCell(),
                     label = "Server:",
-                    items = listVal("Ephinea"),
-                    selected = value("Ephinea"),
-                    tooltip = value("Only Ephinea is supported at the moment"),
+                    items = listCell(Server.Ephinea.uiName),
+                    selected = cell(Server.Ephinea.uiName),
+                    tooltip = cell("Only ${Server.Ephinea.uiName} is supported at the moment"),
                 )
                 addChild(serverSelect.label!!)
                 addChild(serverSelect)

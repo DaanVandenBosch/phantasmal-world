@@ -13,7 +13,7 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.cell.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.*
 
@@ -21,17 +21,17 @@ abstract class Widget(
     /**
      * By default determines the hidden attribute of its [element].
      */
-    val visible: Val<Boolean> = trueVal(),
+    val visible: Cell<Boolean> = trueCell(),
     /**
      * By default determines the disabled attribute of its [element] and whether or not the
      * "pw-disabled" class is added.
      */
-    val enabled: Val<Boolean> = trueVal(),
-    val tooltip: Val<String?> = nullVal(),
+    val enabled: Cell<Boolean> = trueCell(),
+    val tooltip: Cell<String?> = nullCell(),
 ) : DisposableContainer() {
-    private val _ancestorVisible = mutableVal(true)
+    private val _ancestorVisible = mutableCell(true)
     private val _children = mutableListOf<Widget>()
-    private val _size = HTMLElementSizeVal()
+    private val _size = HTMLElementSizeCell()
 
     private val elementDelegate = lazy {
         val el = documentFragment().createElement()
@@ -77,14 +77,14 @@ abstract class Widget(
     /**
      * True if this widget's ancestors are [visible], false otherwise.
      */
-    val ancestorVisible: Val<Boolean> = _ancestorVisible
+    val ancestorVisible: Cell<Boolean> = _ancestorVisible
 
     /**
      * True if this widget and all of its ancestors are [visible], false otherwise.
      */
-    val selfOrAncestorVisible: Val<Boolean> = visible and ancestorVisible
+    val selfOrAncestorVisible: Cell<Boolean> = visible and ancestorVisible
 
-    val size: Val<Size> = _size
+    val size: Cell<Size> = _size
 
     val children: List<Widget> = _children
 
@@ -161,14 +161,14 @@ abstract class Widget(
     }
 
     protected fun <T> Element.bindChildrenTo(
-        list: Val<List<T>>,
+        list: Cell<List<T>>,
         createChild: Node.(T, index: Int) -> Node,
     ) {
         addDisposable(bindChildrenTo(this, list, createChild))
     }
 
     protected fun <T> Element.bindDisposableChildrenTo(
-        list: Val<List<T>>,
+        list: Cell<List<T>>,
         createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
     ) {
         addDisposable(bindDisposableChildrenTo(this, list, createChild))
@@ -178,7 +178,7 @@ abstract class Widget(
      * Creates a widget for every element in [list] and adds it as a child.
      */
     protected fun <T> Element.bindChildWidgetsTo(
-        list: Val<List<T>>,
+        list: Cell<List<T>>,
         createChild: (T, index: Int) -> Widget,
     ) {
         val create: Node.(T, Int) -> Pair<Node, Disposable> = { value: T, index: Int ->

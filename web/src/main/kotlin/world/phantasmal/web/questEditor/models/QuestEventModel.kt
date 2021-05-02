@@ -1,10 +1,10 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.SimpleListVal
-import world.phantasmal.observable.value.map
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.SimpleListCell
+import world.phantasmal.observable.cell.map
+import world.phantasmal.observable.cell.mutableCell
 
 class QuestEventModel(
     id: Int,
@@ -15,19 +15,19 @@ class QuestEventModel(
     val unknown: Int,
     actions: MutableList<QuestEventActionModel>,
 ) {
-    private val _id = mutableVal(id)
-    private val _sectionId = mutableVal(sectionId)
-    private val _waveId = mutableVal(waveId)
-    private val _delay = mutableVal(delay)
-    private val _actions = SimpleListVal(actions)
+    private val _id = mutableCell(id)
+    private val _sectionId = mutableCell(sectionId)
+    private val _waveId = mutableCell(waveId)
+    private val _delay = mutableCell(delay)
+    private val _actions = SimpleListCell(actions)
 
-    val id: Val<Int> = _id
-    val sectionId: Val<Int> = _sectionId
-    val wave: Val<WaveModel> = map(_waveId, _sectionId) { id, sectionId ->
+    val id: Cell<Int> = _id
+    val sectionId: Cell<Int> = _sectionId
+    val wave: Cell<WaveModel> = map(_waveId, _sectionId) { id, sectionId ->
         WaveModel(id, areaId, sectionId)
     }
-    val delay: Val<Int> = _delay
-    val actions: ListVal<QuestEventActionModel> = _actions
+    val delay: Cell<Int> = _delay
+    val actions: ListCell<QuestEventActionModel> = _actions
 
     fun setId(id: Int) {
         _id.value = id

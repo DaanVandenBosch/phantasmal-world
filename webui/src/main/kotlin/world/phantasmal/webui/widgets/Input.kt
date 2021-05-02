@@ -2,26 +2,26 @@ package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.span
 
 abstract class Input<T>(
-    visible: Val<Boolean>,
-    enabled: Val<Boolean>,
-    tooltip: Val<String?>,
+    visible: Cell<Boolean>,
+    enabled: Cell<Boolean>,
+    tooltip: Cell<String?>,
     label: String?,
-    labelVal: Val<String>?,
+    labelCell: Cell<String>?,
     preferredLabelPosition: LabelPosition,
     private val className: String,
-    private val value: Val<T>,
+    private val value: Cell<T>,
     private val onChange: (T) -> Unit,
 ) : LabelledControl(
     visible,
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
 ) {
     private var settingValue = false

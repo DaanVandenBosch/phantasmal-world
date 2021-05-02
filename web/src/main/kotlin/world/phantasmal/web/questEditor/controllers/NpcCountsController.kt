@@ -1,17 +1,17 @@
 package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.emptyListVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
 class NpcCountsController(private val store: QuestEditorStore) : Controller() {
-    val unavailable: Val<Boolean> = store.currentQuest.isNull()
+    val unavailable: Cell<Boolean> = store.currentQuest.isNull()
 
-    val npcCounts: Val<List<NameWithCount>> = store.currentQuest
-        .flatMap { it?.npcs ?: emptyListVal() }
+    val npcCounts: Cell<List<NameWithCount>> = store.currentQuest
+        .flatMap { it?.npcs ?: emptyListCell() }
         .map(::countNpcs)
 
     fun focused() {

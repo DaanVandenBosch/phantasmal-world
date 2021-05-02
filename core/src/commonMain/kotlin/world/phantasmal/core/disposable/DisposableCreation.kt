@@ -1,6 +1,6 @@
 package world.phantasmal.core.disposable
 
-private object StubDisposable : Disposable {
+private object NopDisposable : Disposable {
     override fun dispose() {
         // Do nothing.
     }
@@ -8,4 +8,7 @@ private object StubDisposable : Disposable {
 
 fun disposable(dispose: () -> Unit): Disposable = SimpleDisposable(dispose)
 
-fun stubDisposable(): Disposable = StubDisposable
+/**
+ * Returns a disposable that does nothing when disposed.
+ */
+fun nopDisposable(): Disposable = NopDisposable

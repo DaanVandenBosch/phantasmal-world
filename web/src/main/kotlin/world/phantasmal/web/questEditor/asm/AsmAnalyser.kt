@@ -11,9 +11,9 @@ import mu.KotlinLogging
 import org.w3c.dom.Worker
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.observable.emitter
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
 import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.web.shared.messages.*
 import kotlin.coroutines.Continuation
@@ -24,7 +24,7 @@ private val logger = KotlinLogging.logger {}
 class AsmAnalyser {
     private var inlineStackArgs: Boolean = true
     private var _mapDesignations = emitter<Map<Int, Int>>()
-    private val _problems = mutableListVal<AssemblyProblem>()
+    private val _problems = mutableListCell<AssemblyProblem>()
 
     private val worker = Worker("/assembly-worker.js")
     private var nextRequestId = atomic(0)
@@ -35,7 +35,7 @@ class AsmAnalyser {
     private val inFlightRequests = mutableMapOf<Int, CancellableContinuation<*>>()
 
     val mapDesignations: Observable<Map<Int, Int>> = _mapDesignations
-    val problems: ListVal<AssemblyProblem> = _problems
+    val problems: ListCell<AssemblyProblem> = _problems
 
     init {
         worker.onmessage = { e ->

@@ -2,7 +2,7 @@ package world.phantasmal.web.viewer.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.cell
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.controllers.CharacterClassOptionsController
 import world.phantasmal.webui.dom.div
@@ -23,7 +23,7 @@ class CharacterClassOptionsWidget(private val ctrl: CharacterClassOptionsControl
                         enabled = ctrl.enabled,
                         className = "pw-viewer-character-class-options-section-id",
                         label = "Section ID:",
-                        items = value(SectionId.VALUES_LIST),
+                        items = cell(SectionId.VALUES_LIST),
                         selected = ctrl.currentSectionId,
                         onSelect = { sectionId ->
                             scope.launch { ctrl.setCurrentSectionId(sectionId) }

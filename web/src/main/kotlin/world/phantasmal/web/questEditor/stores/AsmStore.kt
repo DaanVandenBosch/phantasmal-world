@@ -8,9 +8,9 @@ import world.phantasmal.core.disposable.disposable
 import world.phantasmal.lib.asm.assemble
 import world.phantasmal.lib.asm.disassemble
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.AsmAnalyser
@@ -30,8 +30,8 @@ class AsmStore(
     private val questEditorStore: QuestEditorStore,
     private val undoManager: UndoManager,
 ) : Store() {
-    private val _inlineStackArgs = mutableVal(true)
-    private var _textModel = mutableVal<ITextModel?>(null)
+    private val _inlineStackArgs = mutableCell(true)
+    private var _textModel = mutableCell<ITextModel?>(null)
 
     private var setBytecodeIrTimeout: Int? = null
 
@@ -43,16 +43,16 @@ class AsmStore(
 
     private val undo = addDisposable(TextModelUndo(undoManager, "Script edits", _textModel))
 
-    val inlineStackArgs: Val<Boolean> = _inlineStackArgs
+    val inlineStackArgs: Cell<Boolean> = _inlineStackArgs
 
-    val textModel: Val<ITextModel?> = _textModel
+    val textModel: Cell<ITextModel?> = _textModel
 
-    val editingEnabled: Val<Boolean> = questEditorStore.questEditingEnabled
+    val editingEnabled: Cell<Boolean> = questEditorStore.questEditingEnabled
 
     val didUndo: Observable<Unit> = undo.didUndo
     val didRedo: Observable<Unit> = undo.didRedo
 
-    val problems: ListVal<AssemblyProblem> = asmAnalyser.problems
+    val problems: ListCell<AssemblyProblem> = asmAnalyser.problems
 
     init {
         observe(questEditorStore.currentQuest) { quest ->
