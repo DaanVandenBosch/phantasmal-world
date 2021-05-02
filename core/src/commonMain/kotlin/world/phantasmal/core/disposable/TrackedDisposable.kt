@@ -9,22 +9,14 @@ abstract class TrackedDisposable : Disposable {
         private set
 
     init {
-        disposableCount++
-
-        if (trackPrecise) {
-            @Suppress("LeakingThis")
-            disposables.add(this)
-        }
+        @Suppress("LeakingThis")
+        track(this)
     }
 
     override fun dispose() {
         if (!disposed) {
             disposed = true
-            disposableCount--
-
-            if (trackPrecise) {
-                disposables.remove(this)
-            }
+            untrack(this)
         }
     }
 
@@ -50,6 +42,22 @@ abstract class TrackedDisposable : Disposable {
             } finally {
                 this.trackPrecise = initialTrackPrecise
                 disposables = initialDisposables
+            }
+        }
+
+        fun track(disposable: Disposable) {
+            disposableCount++
+
+            if (trackPrecise) {
+                disposables.add(disposable)
+            }
+        }
+
+        fun untrack(disposable: Disposable) {
+            disposableCount--
+
+            if (trackPrecise) {
+                disposables.remove(disposable)
             }
         }
 
