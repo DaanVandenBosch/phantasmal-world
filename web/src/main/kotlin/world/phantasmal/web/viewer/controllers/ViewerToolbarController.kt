@@ -81,7 +81,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
             var ninjaMotion: NjMotion? = null
 
             for (file in files) {
-                val extension = file.extension()?.toLowerCase()
+                val extension = file.extension()?.lowercase()
 
                 val cursor = file.cursor(Endianness.Little)
                 var fileResult: PwResult<*>

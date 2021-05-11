@@ -171,7 +171,7 @@ class AsmAnalyser {
     }
 
     fun getCompletions(requestId: Int, lineNo: Int, col: Int): Response.GetCompletions {
-        val text = getLine(lineNo)?.take(col)?.trim()?.toLowerCase() ?: ""
+        val text = getLine(lineNo)?.take(col)?.trim()?.lowercase() ?: ""
 
         val completions: List<CompletionItem> = when {
             KEYWORD_REGEX.matches(text) -> KEYWORD_SUGGESTIONS

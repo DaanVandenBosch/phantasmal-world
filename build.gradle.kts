@@ -2,9 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("js") version "1.4.32" apply false
-    kotlin("multiplatform") version "1.4.32" apply false
-    kotlin("plugin.serialization") version "1.4.32" apply false
+    kotlin("js") version "1.5.0" apply false
+    kotlin("multiplatform") version "1.5.0" apply false
+    kotlin("plugin.serialization") version "1.5.0" apply false
 }
 
 tasks.wrapper {
@@ -12,10 +12,10 @@ tasks.wrapper {
 }
 
 subprojects {
-    project.extra["coroutinesVersion"] = "1.4.3"
+    project.extra["coroutinesVersion"] = "1.5.0-RC"
     project.extra["junitVersion"] = "5.7.1"
     project.extra["kotlinLoggingVersion"] = "2.0.6"
-    project.extra["ktorVersion"] = "1.5.3"
+    project.extra["ktorVersion"] = "1.5.4"
     project.extra["log4jVersion"] = "2.14.1"
     project.extra["serializationVersion"] = "1.1.0"
     project.extra["slf4jVersion"] = "1.7.30"
@@ -28,7 +28,7 @@ subprojects {
     tasks.withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = "11"
-            freeCompilerArgs += listOf(
+            freeCompilerArgs = freeCompilerArgs + listOf(
                 "-Xjvm-default=all"
             )
         }

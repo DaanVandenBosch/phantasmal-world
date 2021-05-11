@@ -19,7 +19,6 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.time.Duration
-import kotlin.time.minutes
 
 class HuntMethodStore(
     private val uiStore: UiStore,
@@ -109,8 +108,8 @@ class HuntMethodStore(
     }
 
     companion object {
-        private val DEFAULT_DURATION = 30.minutes
-        private val DEFAULT_GOVERNMENT_TEST_DURATION = 45.minutes
-        private val DEFAULT_LARGE_ENEMY_COUNT_DURATION = 45.minutes
+        private val DEFAULT_DURATION = Duration.minutes(30)
+        private val DEFAULT_GOVERNMENT_TEST_DURATION = Duration.minutes(45)
+        private val DEFAULT_LARGE_ENEMY_COUNT_DURATION = Duration.minutes(45)
     }
 }

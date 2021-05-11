@@ -79,7 +79,7 @@ actual class Buffer private constructor(
             val len = maxByteLength / 2
 
             for (i in 0 until len) {
-                val codePoint = getShort(offset + i * 2).toChar()
+                val codePoint = getShort(offset + i * 2).toInt().toChar()
 
                 if (nullTerminated && codePoint == '0') {
                     break
@@ -211,7 +211,7 @@ actual class Buffer private constructor(
             val buf = withSize(str.length, endianness)
 
             for (i in 0 until buf.size) {
-                buf.setByte(i, str[i].toByte())
+                buf.setByte(i, str[i].code.toByte())
             }
 
             return buf

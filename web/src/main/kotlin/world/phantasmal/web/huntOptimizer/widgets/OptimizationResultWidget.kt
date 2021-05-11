@@ -18,6 +18,7 @@ import world.phantasmal.webui.formatAsHoursAndMinutes
 import world.phantasmal.webui.toRoundedString
 import world.phantasmal.webui.widgets.Table
 import world.phantasmal.webui.widgets.Widget
+import kotlin.time.DurationUnit.HOURS
 
 class OptimizationResultWidget(private val ctrl: OptimizationResultController) : Widget() {
     override fun Node.createElement() =
@@ -26,41 +27,45 @@ class OptimizationResultWidget(private val ctrl: OptimizationResultController) :
 
             h2 { textContent = "Ideal Combination of Methods" }
 
-            addWidget(Table(
-                ctrl = ctrl,
-                className = "pw-hunt-optimizer-optimization-result-table",
-                renderCell = { optimalMethod, column ->
-                    when (column.key) {
-                        DIFF_COL -> optimalMethod.difficulty
-                        METHOD_COL -> optimalMethod.name
-                        EPISODE_COL -> optimalMethod.episode
-                        SECTION_ID_COL -> dom {
-                            span {
-                                style.display = "flex"
+            addWidget(
+                Table(
+                    ctrl = ctrl,
+                    className = "pw-hunt-optimizer-optimization-result-table",
+                    renderCell = { optimalMethod, column ->
+                        when (column.key) {
+                            DIFF_COL -> optimalMethod.difficulty
+                            METHOD_COL -> optimalMethod.name
+                            EPISODE_COL -> optimalMethod.episode
+                            SECTION_ID_COL -> dom {
+                                span {
+                                    style.display = "flex"
 
-                                for (sectionId in optimalMethod.sectionIds) {
-                                    sectionIdIcon(sectionId, size = 17)
+                                    for (sectionId in optimalMethod.sectionIds) {
+                                        sectionIdIcon(sectionId, size = 17)
+                                    }
                                 }
                             }
+                            TIME_PER_RUN_COL -> optimalMethod.methodTime.formatAsHoursAndMinutes()
+                            RUNS_COL -> optimalMethod.runs.toRoundedString(1)
+                            TOTAL_TIME_COL ->
+                                optimalMethod.totalTime.toDouble(HOURS).toRoundedString(1)
+                            else -> {
+                                optimalMethod.itemTypeIdToCount[column.key.toInt()]
+                                    ?.toRoundedString(2)
+                                    ?: ""
+                            }
                         }
-                        TIME_PER_RUN_COL -> optimalMethod.methodTime.formatAsHoursAndMinutes()
-                        RUNS_COL -> optimalMethod.runs.toRoundedString(1)
-                        TOTAL_TIME_COL -> optimalMethod.totalTime.inHours.toRoundedString(1)
-                        else -> {
-                            optimalMethod.itemTypeIdToCount[column.key.toInt()]
-                                ?.toRoundedString(2)
-                                ?: ""
-                        }
-                    }
-                },
-            ))
+                    },
+                )
+            )
         }
 
     companion object {
         init {
             @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
             // language=css
-            style("""
+            style(
+                """
                 .pw-hunt-optimizer-optimization-result {
                     flex-grow: 1;
                     display: flex;
@@ -74,7 +79,8 @@ class OptimizationResultWidget(private val ctrl: OptimizationResultController) :
                     border-top: var(--pw-border);
                     border-left: var(--pw-border);
                 }
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 }

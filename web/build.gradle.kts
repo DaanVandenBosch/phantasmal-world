@@ -36,10 +36,10 @@ dependencies {
     implementation(project(":web:shared"))
 
     implementation("io.github.microutils:kotlin-logging-js:$kotlinLoggingVersion")
-    implementation("io.ktor:ktor-client-core-js:$ktorVersion")
-    implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-serialization:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.0")
     implementation(npm("golden-layout", "^1.5.9"))
     implementation(npm("monaco-editor", "0.20.0"))
     implementation(npm("three", "^0.127.0"))

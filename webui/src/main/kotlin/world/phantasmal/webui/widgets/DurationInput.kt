@@ -6,7 +6,6 @@ import world.phantasmal.observable.cell.nullCell
 import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.formatAsHoursAndMinutes
 import kotlin.time.Duration
-import kotlin.time.minutes
 
 class DurationInput(
     visible: Cell<Boolean> = trueCell(),
@@ -43,11 +42,11 @@ class DurationInput(
             val minutes = minutesStr.toIntOrNull()
 
             if (hours != null && minutes != null) {
-                return (hours * 60 + minutes).minutes
+                return Duration.minutes(hours * 60 + minutes)
             }
         }
 
-        return input.value.toIntOrNull()?.minutes ?: Duration.ZERO
+        return input.value.toIntOrNull()?.let(Duration::minutes) ?: Duration.ZERO
     }
 
     override fun setInputValue(input: HTMLInputElement, value: Duration) {
@@ -58,11 +57,13 @@ class DurationInput(
         init {
             @Suppress("CssUnusedSymbol")
             // language=css
-            style("""
+            style(
+                """
                 .pw-duration-input-inner {
                     text-align: center;
                 }
-            """.trimIndent())
+                """.trimIndent()
+            )
         }
     }
 }

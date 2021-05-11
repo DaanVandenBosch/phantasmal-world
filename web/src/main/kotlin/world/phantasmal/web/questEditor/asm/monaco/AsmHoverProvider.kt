@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.asm.monaco
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.promise
 import world.phantasmal.web.externals.monacoEditor.CancellationToken
 import world.phantasmal.web.externals.monacoEditor.HoverProvider
@@ -11,13 +10,14 @@ import world.phantasmal.webui.obj
 import kotlin.js.Promise
 import world.phantasmal.web.externals.monacoEditor.Hover as MonacoHover
 
-class AsmHoverProvider(private val analyser: AsmAnalyser) : HoverProvider {
+class AsmHoverProvider(private val analyser: AsmAnalyser) :
+    MonacoProvider(), HoverProvider {
     override fun provideHover(
         model: ITextModel,
         position: Position,
         token: CancellationToken,
     ): Promise<MonacoHover?> =
-        GlobalScope.promise {
+        scope.promise {
             analyser.getHover(position.lineNumber, position.column)?.let { hover ->
                 obj<MonacoHover> {
                     contents = Array(hover.contents.size) { i ->

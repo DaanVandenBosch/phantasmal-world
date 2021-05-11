@@ -1,6 +1,5 @@
 package world.phantasmal.lib.cursor
 
-import kotlin.experimental.and
 import kotlin.math.min
 
 abstract class AbstractWritableCursor
@@ -42,7 +41,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
         buildString {
             for (i in 0 until maxByteLength) {
                 // Use Byte instead of UByte for better KJS perf.
-                val codePoint = (byte().toShort() and 0xFF).toChar()
+                val codePoint = (byte().toInt() and 0xFF).toChar()
 
                 if (nullTerminated && codePoint == '\u0000') {
                     if (dropRemaining) {
@@ -65,7 +64,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
             val len = maxByteLength / 2
 
             for (i in 0 until len) {
-                val codePoint = short().toChar()
+                val codePoint = short().toInt().toChar()
 
                 if (nullTerminated && codePoint == '\u0000') {
                     if (dropRemaining) {
@@ -151,7 +150,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
         val len = min(byteLength, str.length)
 
         for (i in 0 until len) {
-            writeByte(str[i].toByte())
+            writeByte(str[i].code.toByte())
         }
 
         val padLen = byteLength - len
@@ -170,7 +169,7 @@ protected constructor(protected val offset: Int) : WritableCursor {
         val len = min(maxLen, str.length)
 
         for (i in 0 until len) {
-            writeShort(str[i].toShort())
+            writeShort(str[i].code.toShort())
         }
 
         val padLen = maxLen - len

@@ -35,7 +35,7 @@ fun assemble(
         val warnings = result.problems.count { it.severity == Severity.Warning }
         val errors = result.problems.count { it.severity == Severity.Error }
 
-        "Assembly finished in ${time.inMilliseconds}ms with $warnings warnings and $errors errors."
+        "Assembly finished in ${time.inWholeMilliseconds}ms with $warnings warnings and $errors errors."
     }
 
     return result

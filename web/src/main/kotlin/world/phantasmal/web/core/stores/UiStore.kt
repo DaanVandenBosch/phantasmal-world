@@ -239,7 +239,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         if (e.ctrlKey) bindingParts.add("Ctrl")
         if (e.altKey) bindingParts.add("Alt")
         if (e.shiftKey) bindingParts.add("Shift")
-        bindingParts.add(e.key.toUpperCase())
+        bindingParts.add(e.key.uppercase())
 
         val binding = bindingParts.joinToString("-")
 

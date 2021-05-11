@@ -8,6 +8,7 @@ import world.phantasmal.webui.controllers.Column
 import world.phantasmal.webui.controllers.TableController
 import world.phantasmal.webui.toRoundedString
 import kotlin.time.Duration
+import kotlin.time.DurationUnit.HOURS
 
 class OptimizationResultController(
     huntOptimizerStore: HuntOptimizerStore,
@@ -28,7 +29,7 @@ class OptimizationResultController(
                 totalTime += optimalMethod.totalTime
             }
 
-            listOf<Column<OptimalMethodModel>>(
+            listOf(
                 Column(
                     key = DIFF_COL,
                     title = "Difficulty",
@@ -70,13 +71,13 @@ class OptimizationResultController(
                     title = "Total Hours",
                     width = 60,
                     textAlign = "right",
-                    tooltip = { it.totalTime.inHours.toString() },
-                    footer = cell(totalTime.inHours.toRoundedString(1)),
-                    footerTooltip = cell(totalTime.inHours.toString()),
+                    tooltip = { it.totalTime.toDouble(HOURS).toString() },
+                    footer = cell(totalTime.toDouble(HOURS).toRoundedString(1)),
+                    footerTooltip = cell(totalTime.toDouble(HOURS).toString()),
                 ),
                 *Array(result.wantedItems.size) { index ->
                     val wanted = result.wantedItems[index]
-                    val totalCount = result.optimalMethods.sumByDouble {
+                    val totalCount = result.optimalMethods.sumOf {
                         it.itemTypeIdToCount[wanted.id] ?: .0
                     }
 
