@@ -41,12 +41,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
     implementation(npm("golden-layout", "^1.5.9"))
+    // Can't upgrade monaco-editor until https://github.com/microsoft/monaco-editor/issues/2466 is fixed.
     implementation(npm("monaco-editor", "0.20.0"))
-    implementation(npm("three", "^0.127.0"))
+    implementation(npm("three", "^0.128.0"))
     implementation(npm("javascript-lp-solver", "0.4.17"))
 
-    implementation(devNpm("file-loader", "^6.0.0"))
-    implementation(devNpm("monaco-editor-webpack-plugin", "1.9.0"))
+    implementation(devNpm("file-loader", "^6.2.0"))
+    // Can't upgrade monaco-editor-webpack-plugin until monaco-editor is upgraded.
+    implementation(devNpm("monaco-editor-webpack-plugin", "1.9.1"))
 
     testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))

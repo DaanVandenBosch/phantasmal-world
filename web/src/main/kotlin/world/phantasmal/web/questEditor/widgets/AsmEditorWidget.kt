@@ -70,6 +70,7 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
             }
 
             observe(ctrl.didRedo) {
+                editor.focus()
                 editor.trigger(
                     source = AsmEditorWidget::class.simpleName,
                     handlerId = "redo",
