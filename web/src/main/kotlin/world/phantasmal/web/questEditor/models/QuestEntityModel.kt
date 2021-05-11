@@ -1,6 +1,5 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.core.math.floorMod
 import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.lib.fileFormats.quest.QuestEntity
 import world.phantasmal.observable.cell.Cell
@@ -184,9 +183,9 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
 
         private fun floorModEuler(euler: Euler): Euler =
             euler.set(
-                floorMod(euler.x, 2 * PI),
-                floorMod(euler.y, 2 * PI),
-                floorMod(euler.z, 2 * PI),
+                euler.x.mod(2 * PI),
+                euler.y.mod(2 * PI),
+                euler.z.mod(2 * PI),
             )
     }
 }
