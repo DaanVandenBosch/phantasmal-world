@@ -65,7 +65,7 @@ class Application(
                 {
                     MainContentWidget(
                         mainContentController,
-                        tools.map { it.toolType to it::initialize }.toMap()
+                        tools.associate { it.toolType to it::initialize },
                     )
                 }
             )
@@ -83,7 +83,7 @@ class Application(
     }
 
     private fun keydown(e: KeyboardEvent) {
-        if (e.ctrlKey && !e.altKey && e.key.toUpperCase() == "Z") {
+        if (e.ctrlKey && !e.altKey && e.key.uppercase() == "Z") {
             e.preventDefault()
         }
     }

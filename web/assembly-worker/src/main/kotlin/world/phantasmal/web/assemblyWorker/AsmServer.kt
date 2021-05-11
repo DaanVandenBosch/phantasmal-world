@@ -80,7 +80,7 @@ class AsmServer(
             }
 
             logger.trace {
-                "Processed ${messages.size} assembly changes in ${time.inMilliseconds}ms."
+                "Processed ${messages.size} assembly changes in ${time.inWholeMilliseconds}ms."
             }
         }
     }
@@ -102,7 +102,7 @@ class AsmServer(
             }
         }
 
-        logger.trace { "Processed ${message::class.simpleName} in ${time.inMilliseconds}ms." }
+        logger.trace { "Processed ${message::class.simpleName} in ${time.inWholeMilliseconds}ms." }
     }
 
     private fun processRequest(message: Request) {

@@ -316,20 +316,20 @@ class LineTokenizer {
         val ident = slice()
         value = ident
 
-        if (ident.getCodePointAt(0) !in ('a'.toInt())..('z'.toInt())) {
+        if (ident.getCodePointAt(0) !in 'a'.code..'z'.code) {
             type = Token.InvalidIdent
             return
         }
 
         for (i in 1 until ident.length) {
             when (ident.getCodePointAt(i)) {
-                in ('0'.toInt())..('9'.toInt()),
-                in ('a'.toInt())..('z'.toInt()),
-                ('_').toInt(),
-                ('=').toInt(),
-                ('<').toInt(),
-                ('>').toInt(),
-                ('!').toInt(),
+                in '0'.code..'9'.code,
+                in 'a'.code..'z'.code,
+                '_'.code,
+                '='.code,
+                '<'.code,
+                '>'.code,
+                '!'.code,
                 -> {
                     // Valid character.
                 }

@@ -27,6 +27,7 @@ import world.phantasmal.web.shared.dto.ItemType
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.stores.Store
+import kotlin.time.DurationUnit.HOURS
 
 private val logger = KotlinLogging.logger {}
 
@@ -233,9 +234,8 @@ class HuntOptimizerStore(
                 for (sectionId in SectionId.VALUES) {
                     // Will contain an entry per wanted item dropped by enemies in this method/
                     // difficulty/section ID combo.
-                    val variable: dynamic = obj {
-                        time = method.time.value.inHours
-                    }
+                    val time = method.time.value.toDouble(HOURS)
+                    val variable: dynamic = obj { this.time = time }
                     // Only add the variable if the method provides at least 1 item we want.
                     var addVariable = false
 

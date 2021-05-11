@@ -94,13 +94,15 @@ fun parseDat(cursor: Cursor): DatFile {
                 3 -> parseEvents(entitiesCursor, areaId, events)
                 else -> {
                     // Unknown entity types 4 and 5 (challenge mode).
-                    unknowns.add(DatUnknown(
-                        entityType,
-                        totalSize,
-                        areaId,
-                        entitiesSize,
-                        data = cursor.byteArray(entitiesSize),
-                    ))
+                    unknowns.add(
+                        DatUnknown(
+                            entityType,
+                            totalSize,
+                            areaId,
+                            entitiesSize,
+                            data = cursor.byteArray(entitiesSize),
+                        )
+                    )
                 }
             }
 
@@ -129,10 +131,12 @@ private fun parseEntities(
     val entityCount = cursor.size / entitySize
 
     repeat(entityCount) {
-        entities.add(DatEntity(
-            areaId,
-            data = cursor.buffer(entitySize),
-        ))
+        entities.add(
+            DatEntity(
+                areaId,
+                data = cursor.buffer(entitySize),
+            )
+        )
     }
 }
 
@@ -169,15 +173,17 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
                 mutableListOf()
             }
 
-        events.add(DatEvent(
-            id,
-            sectionId,
-            wave,
-            delay,
-            actions,
-            areaId,
-            unknown,
-        ))
+        events.add(
+            DatEvent(
+                id,
+                sectionId,
+                wave,
+                delay,
+                actions,
+                areaId,
+                unknown,
+            )
+        )
     }
 
     if (cursor.position != actionsOffset) {
@@ -212,25 +218,33 @@ private fun parseEventActions(cursor: Cursor): MutableList<DatEventAction> {
             (1).toByte() -> break@outer
 
             EVENT_ACTION_SPAWN_NPCS ->
-                actions.add(DatEventAction.SpawnNpcs(
-                    sectionId = cursor.short(),
-                    appearFlag = cursor.short(),
-                ))
+                actions.add(
+                    DatEventAction.SpawnNpcs(
+                        sectionId = cursor.short(),
+                        appearFlag = cursor.short(),
+                    )
+                )
 
             EVENT_ACTION_UNLOCK ->
-                actions.add(DatEventAction.Unlock(
-                    doorId = cursor.short(),
-                ))
+                actions.add(
+                    DatEventAction.Unlock(
+                        doorId = cursor.short(),
+                    )
+                )
 
             EVENT_ACTION_LOCK ->
-                actions.add(DatEventAction.Lock(
-                    doorId = cursor.short(),
-                ))
+                actions.add(
+                    DatEventAction.Lock(
+                        doorId = cursor.short(),
+                    )
+                )
 
             EVENT_ACTION_TRIGGER_EVENT ->
-                actions.add(DatEventAction.TriggerEvent(
-                    eventId = cursor.int(),
-                ))
+                actions.add(
+                    DatEventAction.TriggerEvent(
+                        eventId = cursor.int(),
+                    )
+                )
 
             else -> {
                 logger.warn { "Unexpected event action type ${type}." }
@@ -246,7 +260,7 @@ fun writeDat(dat: DatFile): Buffer {
     val buffer = Buffer.withCapacity(
         dat.objs.size * (16 + OBJECT_BYTE_SIZE) +
                 dat.npcs.size * (16 + NPC_BYTE_SIZE) +
-                dat.unknowns.sumBy { it.totalSize },
+                dat.unknowns.sumOf { it.totalSize },
         endianness = Endianness.Little,
     )
     val cursor = buffer.cursor()

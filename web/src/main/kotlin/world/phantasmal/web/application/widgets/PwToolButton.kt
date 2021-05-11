@@ -15,7 +15,7 @@ class PwToolButton(
     private val toggled: Observable<Boolean>,
     private val onMouseDown: () -> Unit,
 ) : Control(visible = trueCell(), enabled = trueCell(), tooltip = nullCell()) {
-    private val inputId = "pw-application-pw-tool-button-${tool.name.toLowerCase()}"
+    private val inputId = "pw-application-pw-tool-button-${tool.name.lowercase()}"
 
     override fun Node.createElement() =
         span {

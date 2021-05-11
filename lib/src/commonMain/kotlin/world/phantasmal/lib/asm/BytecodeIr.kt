@@ -43,7 +43,7 @@ class InstructionSegment(
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.Instructions, labels, srcLoc) {
     override fun size(dcGcFormat: Boolean): Int =
-        instructions.sumBy { it.getSize(dcGcFormat) }
+        instructions.sumOf { it.getSize(dcGcFormat) }
 
     override fun copy(): InstructionSegment =
         InstructionSegment(

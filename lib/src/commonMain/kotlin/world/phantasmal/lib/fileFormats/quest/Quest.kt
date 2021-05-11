@@ -159,7 +159,7 @@ fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestDat
     var binFile: QstContainedFile? = null
 
     for (file in files) {
-        val fileName = file.filename.trim().toLowerCase()
+        val fileName = file.filename.trim().lowercase()
 
         if (fileName.endsWith(".dat")) {
             datFile = file
