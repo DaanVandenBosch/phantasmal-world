@@ -16,16 +16,21 @@ class Throttle(
 ) {
     private var timeout: Int? = null
     private var invokeOnTimeout = false
+    private var function: () -> Unit = {}
 
     operator fun invoke(f: () -> Unit) {
+        function = f
+
         if (timeout == null) {
             if (leading) {
-                f()
+                function()
+            } else if (trailing) {
+                invokeOnTimeout = true
             }
 
             timeout = self.setTimeout({
                 if (invokeOnTimeout) {
-                    f()
+                    function()
                 }
 
                 timeout = null
