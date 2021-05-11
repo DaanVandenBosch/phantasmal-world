@@ -3,101 +3,133 @@ package world.phantasmal.web.questEditor.models
 import world.phantasmal.core.math.floorMod
 import world.phantasmal.lib.fileFormats.quest.EntityType
 import world.phantasmal.lib.fileFormats.quest.QuestEntity
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.mutableVal
-import world.phantasmal.web.core.*
-import world.phantasmal.web.core.rendering.conversion.babylonToVec3
-import world.phantasmal.web.core.rendering.conversion.vec3ToBabylon
-import world.phantasmal.web.externals.babylon.Quaternion
-import world.phantasmal.web.externals.babylon.Vector3
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.web.core.minus
+import world.phantasmal.web.core.rendering.conversion.vec3ToEuler
+import world.phantasmal.web.core.rendering.conversion.vec3ToThree
+import world.phantasmal.web.core.timesAssign
+import world.phantasmal.web.core.toEuler
+import world.phantasmal.web.externals.three.Euler
+import world.phantasmal.web.externals.three.Quaternion
+import world.phantasmal.web.externals.three.Vector3
 import kotlin.math.PI
 
 abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
-    private val entity: Entity,
+    /**
+     * Don't modify the underlying entity directly because most of those modifications will not be
+     * reflected in this model's properties.
+     */
+    val entity: Entity,
 ) {
-    private val _sectionId = mutableVal(entity.sectionId)
-    private val _section = mutableVal<SectionModel?>(null)
-    private val _sectionInitialized = mutableVal(false)
-    private val _position = mutableVal(vec3ToBabylon(entity.position))
-    private val _worldPosition = mutableVal(_position.value)
-    private val _rotation = mutableVal(vec3ToBabylon(entity.rotation))
-    private val _worldRotation = mutableVal(_rotation.value)
+    private val _sectionId = mutableCell(entity.sectionId.toInt())
+    private val _section = mutableCell<SectionModel?>(null)
+    private val _sectionInitialized = mutableCell(false)
+    private val _position = mutableCell(vec3ToThree(entity.position))
+    private val _worldPosition = mutableCell(_position.value)
+    private val _rotation = mutableCell(vec3ToEuler(entity.rotation))
+    private val _worldRotation = mutableCell(_rotation.value)
 
     val type: Type get() = entity.type
 
     val areaId: Int get() = entity.areaId
 
-    val sectionId: Val<Int> = _sectionId
+    val sectionId: Cell<Int> = _sectionId
 
-    val section: Val<SectionModel?> = _section
-    val sectionInitialized: Val<Boolean> = _sectionInitialized
+    val section: Cell<SectionModel?> = _section
+    val sectionInitialized: Cell<Boolean> = _sectionInitialized
 
     /**
      * Section-relative position
      */
-    val position: Val<Vector3> = _position
+    val position: Cell<Vector3> = _position
 
-    val worldPosition: Val<Vector3> = _worldPosition
+    val worldPosition: Cell<Vector3> = _worldPosition
 
     /**
      * Section-relative rotation
      */
-    val rotation: Val<Vector3> = _rotation
+    val rotation: Cell<Euler> = _rotation
 
-    val worldRotation: Val<Vector3> = _worldRotation
+    val worldRotation: Cell<Euler> = _worldRotation
 
-    fun setSection(section: SectionModel) {
-        require(section.areaVariant.area.id == areaId) {
-            "Quest entities can't be moved across areas."
+    val properties: ListCell<QuestEntityPropModel> = listCell(*Array(type.properties.size) {
+        QuestEntityPropModel(this, type.properties[it])
+    })
+
+    open fun setSectionId(sectionId: Int) {
+        entity.sectionId = sectionId.toShort()
+        _sectionId.value = sectionId
+
+        if (sectionId != _section.value?.id) {
+            _section.value = null
         }
-
-        entity.sectionId = section.id
-
-        _section.value = section
-        _sectionId.value = section.id
-
-        setPosition(position.value)
-        setRotation(rotation.value)
-
-        setSectionInitialized()
     }
 
     fun setSectionInitialized() {
         _sectionInitialized.value = true
     }
 
+    /**
+     * @param keepRelativeTransform If true, keep the entity's relative transform and update its
+     * world transform. Otherwise keep its world transform and update its relative transform.
+     */
+    fun setSection(section: SectionModel, keepRelativeTransform: Boolean = false) {
+        require(section.areaVariant.area.id == areaId) {
+            "Quest entities can't be moved across areas."
+        }
+
+        entity.sectionId = section.id.toShort()
+        _sectionId.value = section.id
+
+        _section.value = section
+
+        if (keepRelativeTransform) {
+            // Update world position and rotation by calling setPosition and setRotation with the
+            // current position and rotation.
+            setPosition(position.value)
+            setRotation(rotation.value)
+        } else {
+            // Update relative position and rotation by calling setWorldPosition and
+            // setWorldRotation with the current world position and rotation.
+            setWorldPosition(worldPosition.value)
+            setWorldRotation(worldRotation.value)
+        }
+
+        setSectionInitialized()
+    }
+
     fun setPosition(pos: Vector3) {
-        entity.position = babylonToVec3(pos)
+        entity.setPosition(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
 
         _position.value = pos
 
         val section = section.value
 
         _worldPosition.value =
-            section?.rotationQuaternion?.transformed(pos)?.also {
-                it += section.position
-            } ?: pos
+            if (section == null) pos
+            else pos.clone().applyEuler(section.rotation).add(section.position)
     }
 
     fun setWorldPosition(pos: Vector3) {
-        _worldPosition.value = pos
-
         val section = section.value
 
         val relPos =
             if (section == null) pos
-            else (pos - section.position).also {
-                section.inverseRotationQuaternion.transform(it)
-            }
+            else (pos - section.position).applyEuler(section.inverseRotation)
 
-        entity.position = babylonToVec3(relPos)
+        entity.setPosition(relPos.x.toFloat(), relPos.y.toFloat(), relPos.z.toFloat())
+
+        _worldPosition.value = pos
         _position.value = relPos
     }
 
-    fun setRotation(rot: Vector3) {
+    fun setRotation(rot: Euler) {
         floorModEuler(rot)
 
-        entity.rotation = babylonToVec3(rot)
+        entity.setRotation(rot.x.toFloat(), rot.y.toFloat(), rot.z.toFloat())
         _rotation.value = rot
 
         val section = section.value
@@ -105,59 +137,43 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
         if (section == null) {
             _worldRotation.value = rot
         } else {
-            Quaternion.FromEulerAnglesToRef(rot.x, rot.y, rot.z, q1)
-            Quaternion.FromEulerAnglesToRef(
-                section.rotation.x,
-                section.rotation.y,
-                section.rotation.z,
-                q2
-            )
+            q1.setFromEuler(rot)
+            q2.setFromEuler(section.rotation)
             q1 *= q2
-            val worldRot = q1.toEulerAngles()
-            floorModEuler(worldRot)
-            _worldRotation.value = worldRot
+            _worldRotation.value = floorModEuler(q1.toEuler())
         }
     }
 
-    fun setWorldRotation(rot: Vector3) {
+    fun setWorldRotation(rot: Euler) {
         floorModEuler(rot)
-
-        _worldRotation.value = rot
 
         val section = section.value
 
         val relRot = if (section == null) {
             rot
         } else {
-            Quaternion.FromEulerAnglesToRef(rot.x, rot.y, rot.z, q1)
-            Quaternion.FromEulerAnglesToRef(
-                section.rotation.x,
-                section.rotation.y,
-                section.rotation.z,
-                q2
-            )
+            q1.setFromEuler(rot)
+            q2.setFromEuler(section.rotation)
             q2.invert()
             q1 *= q2
-            val relRot = q1.toEulerAngles()
-            floorModEuler(relRot)
-            relRot
+            floorModEuler(q1.toEuler())
         }
 
-        entity.rotation = babylonToVec3(relRot)
+        entity.setRotation(relRot.x.toFloat(), relRot.y.toFloat(), relRot.z.toFloat())
+        _worldRotation.value = rot
         _rotation.value = relRot
-    }
-
-    private fun floorModEuler(euler: Vector3) {
-        euler.set(
-            floorMod(euler.x, 2 * PI),
-            floorMod(euler.y, 2 * PI),
-            floorMod(euler.z, 2 * PI),
-        )
     }
 
     companion object {
         // These quaternions are used as temporary variables to avoid memory allocation.
         private val q1 = Quaternion()
         private val q2 = Quaternion()
+
+        private fun floorModEuler(euler: Euler): Euler =
+            euler.set(
+                floorMod(euler.x, 2 * PI),
+                floorMod(euler.y, 2 * PI),
+                floorMod(euler.z, 2 * PI),
+            )
     }
 }

@@ -1,22 +1,25 @@
 package world.phantasmal.web.questEditor.loading
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import world.phantasmal.core.disposable.TrackedDisposable
 
-class LoadingCache<K, V>(private val disposeValue: (V) -> Unit) : TrackedDisposable() {
+@OptIn(ExperimentalCoroutinesApi::class)
+class LoadingCache<K, V>(
+    private val loadValue: suspend (K) -> V,
+    private val disposeValue: (V) -> Unit,
+) : TrackedDisposable() {
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val map = mutableMapOf<K, Deferred<V>>()
 
-    operator fun set(key: K, value: Deferred<V>) {
-        map[key] = value
-    }
+    val values: Collection<Deferred<V>> = map.values
 
-    @Suppress("DeferredIsResult")
-    fun getOrPut(key: K, defaultValue: () -> Deferred<V>): Deferred<V> =
-        map.getOrPut(key, defaultValue)
+    suspend fun get(key: K): V =
+        map.getOrPut(key) { scope.async { loadValue(key) } }.await()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun internalDispose() {
+    fun getIfPresentNow(key: K): V? =
+        map[key]?.takeIf { it.isCompleted }?.getCompleted()
+
+    override fun dispose() {
         map.values.forEach {
             if (it.isActive) {
                 it.cancel()
@@ -25,6 +28,7 @@ class LoadingCache<K, V>(private val disposeValue: (V) -> Unit) : TrackedDisposa
             }
         }
 
-        super.internalDispose()
+        scope.cancel("LoadingCache disposed.")
+        super.dispose()
     }
 }

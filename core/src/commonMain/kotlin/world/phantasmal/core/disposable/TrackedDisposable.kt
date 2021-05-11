@@ -9,29 +9,19 @@ abstract class TrackedDisposable : Disposable {
         private set
 
     init {
-        disposableCount++
-
-        if (trackPrecise) {
-            @Suppress("LeakingThis")
-            disposables.add(this)
-        }
+        @Suppress("LeakingThis")
+        track(this)
     }
 
-    final override fun dispose() {
+    override fun dispose() {
         if (!disposed) {
             disposed = true
-            disposableCount--
-            disposables.remove(this)
-            internalDispose()
+            untrack(this)
         }
-    }
-
-    protected open fun internalDispose() {
-        // Do nothing.
     }
 
     companion object {
-        const val DISPOSABLE_PRINT_COUNT = 10
+        private const val DISPOSABLE_PRINT_COUNT = 10
 
         var disposables: MutableSet<Disposable> = mutableSetOf()
         var trackPrecise = false
@@ -42,34 +32,53 @@ abstract class TrackedDisposable : Disposable {
             val initialCount = disposableCount
             val initialTrackPrecise = this.trackPrecise
             val initialDisposables = disposables
+
             this.trackPrecise = trackPrecise
             disposables = mutableSetOf()
 
             try {
                 block()
-                checkLeaks(disposableCount - initialCount)
+                checkLeakCountZero(disposableCount - initialCount)
             } finally {
                 this.trackPrecise = initialTrackPrecise
                 disposables = initialDisposables
             }
         }
 
-        fun checkLeaks(leakCount: Int) {
-            buildString {
-                append("$leakCount TrackedDisposables were leaked")
+        fun track(disposable: Disposable) {
+            disposableCount++
 
-                if (trackPrecise) {
-                    append(": ")
-                    disposables.take(DISPOSABLE_PRINT_COUNT).joinTo(this) {
-                        it::class.simpleName ?: "Anonymous"
+            if (trackPrecise) {
+                disposables.add(disposable)
+            }
+        }
+
+        fun untrack(disposable: Disposable) {
+            disposableCount--
+
+            if (trackPrecise) {
+                disposables.remove(disposable)
+            }
+        }
+
+        fun checkLeakCountZero(leakCount: Int) {
+            check(leakCount == 0) {
+                buildString {
+                    append("$leakCount TrackedDisposables were leaked")
+
+                    if (trackPrecise) {
+                        append(": ")
+                        disposables.take(DISPOSABLE_PRINT_COUNT).joinTo(this) {
+                            it::class.simpleName ?: "Anonymous"
+                        }
+
+                        if (disposables.size > DISPOSABLE_PRINT_COUNT) {
+                            append(",..")
+                        }
                     }
 
-                    if (disposables.size > DISPOSABLE_PRINT_COUNT) {
-                        append(",..")
-                    }
+                    append(".")
                 }
-
-                append(".")
             }
         }
     }

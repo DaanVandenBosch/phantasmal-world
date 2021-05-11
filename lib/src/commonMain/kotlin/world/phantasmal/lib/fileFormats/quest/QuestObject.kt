@@ -6,11 +6,16 @@ import world.phantasmal.lib.fileFormats.ninja.angleToRad
 import world.phantasmal.lib.fileFormats.ninja.radToAngle
 import kotlin.math.roundToInt
 
-class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<ObjectType> {
-    var typeId: Int
-        get() = data.getInt(0)
+class QuestObject(override var areaId: Int, override val data: Buffer) : QuestEntity<ObjectType> {
+    constructor(type: ObjectType, areaId: Int) : this(areaId, Buffer.withSize(OBJECT_BYTE_SIZE)) {
+        setObjectDefaultData(type, data)
+        this.type = type
+    }
+
+    var typeId: Short
+        get() = data.getShort(0)
         set(value) {
-            data.setInt(0, value)
+            data.setShort(0, value)
         }
 
     override var type: ObjectType
@@ -19,18 +24,28 @@ class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<Obje
             typeId = value.typeId ?: -1
         }
 
-    override var sectionId: Int
-        get() = data.getShort(12).toInt()
+    var id: Short
+        get() = data.getShort(8)
         set(value) {
-            data.setShort(12, value.toShort())
+            data.setShort(8, value)
+        }
+
+    var groupId: Short
+        get() = data.getShort(10)
+        set(value) {
+            data.setShort(10, value)
+        }
+
+    override var sectionId: Short
+        get() = data.getShort(12)
+        set(value) {
+            data.setShort(12, value)
         }
 
     override var position: Vec3
         get() = Vec3(data.getFloat(16), data.getFloat(20), data.getFloat(24))
         set(value) {
-            data.setFloat(16, value.x)
-            data.setFloat(20, value.y)
-            data.setFloat(24, value.z)
+            setPosition(value.x, value.y, value.z)
         }
 
     override var rotation: Vec3
@@ -40,9 +55,7 @@ class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<Obje
             angleToRad(data.getInt(36)),
         )
         set(value) {
-            data.setInt(28, radToAngle(value.x))
-            data.setInt(32, radToAngle(value.y))
-            data.setInt(36, radToAngle(value.z))
+            setRotation(value.x, value.y, value.z)
         }
 
     val scriptLabel: Int?
@@ -95,5 +108,17 @@ class QuestObject(override var areaId: Int, val data: Buffer) : QuestEntity<Obje
         require(data.size == OBJECT_BYTE_SIZE) {
             "Data size should be $OBJECT_BYTE_SIZE but was ${data.size}."
         }
+    }
+
+    override fun setPosition(x: Float, y: Float, z: Float) {
+        data.setFloat(16, x)
+        data.setFloat(20, y)
+        data.setFloat(24, z)
+    }
+
+    override fun setRotation(x: Float, y: Float, z: Float) {
+        data.setInt(28, radToAngle(x))
+        data.setInt(32, radToAngle(y))
+        data.setInt(36, radToAngle(z))
     }
 }

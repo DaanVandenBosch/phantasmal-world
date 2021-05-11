@@ -3,21 +3,20 @@ package world.phantasmal.web.questEditor.controllers
 import org.w3c.files.File
 import world.phantasmal.core.Failure
 import world.phantasmal.core.Severity
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.web.externals.babylon.Vector3
-import world.phantasmal.web.questEditor.actions.EditNameAction
-import world.phantasmal.web.questEditor.actions.TranslateEntityAction
+import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
+import world.phantasmal.webui.files.FileHandle
 import kotlin.test.*
 
-class QuestEditorToolbarControllerTests : WebTestSuite() {
+class QuestEditorToolbarControllerTests : WebTestSuite {
     @Test
-    fun can_create_a_new_quest() = asyncTest {
+    fun can_create_a_new_quest() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
-            components.questLoader,
+            components.uiStore,
             components.areaStore,
             components.questEditorStore,
         ))
@@ -28,16 +27,16 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun a_failure_is_exposed_when_openFiles_fails() = asyncTest {
+    fun a_failure_is_exposed_when_openFiles_fails() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
-            components.questLoader,
+            components.uiStore,
             components.areaStore,
             components.questEditorStore,
         ))
 
         assertNull(ctrl.result.value)
 
-        ctrl.openFiles(listOf(File(arrayOf(), "unknown.extension")))
+        ctrl.openFiles(listOf(FileHandle.Simple(File(arrayOf(), "unknown.extension"))))
 
         val result = ctrl.result.value
 
@@ -51,9 +50,9 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun undo_state_changes_correctly() = asyncTest {
+    fun undo_state_changes_correctly() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
-            components.questLoader,
+            components.uiStore,
             components.areaStore,
             components.questEditorStore,
         ))
@@ -81,9 +80,15 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
         assertFalse(ctrl.redoEnabled.value)
 
         // Add an action to the undo stack.
-        components.questEditorStore.executeAction(EditNameAction(quest, "New Name", quest.name.value))
+        components.questEditorStore.executeAction(
+            object : Action {
+                override val description: String = "Do action"
+                override fun execute() {}
+                override fun undo() {}
+            }
+        )
 
-        assertEquals("Undo \"Edit name\" (Ctrl-Z)", ctrl.undoTooltip.value)
+        assertEquals("Undo \"Do action\" (Ctrl-Z)", ctrl.undoTooltip.value)
         assertTrue(ctrl.undoEnabled.value)
 
         assertEquals(nothingToRedo, ctrl.redoTooltip.value)
@@ -95,29 +100,35 @@ class QuestEditorToolbarControllerTests : WebTestSuite() {
         assertEquals(nothingToUndo, ctrl.undoTooltip.value)
         assertFalse(ctrl.undoEnabled.value)
 
-        assertEquals("Redo \"Edit name\" (Ctrl-Shift-Z)", ctrl.redoTooltip.value)
+        assertEquals("Redo \"Do action\" (Ctrl-Shift-Z)", ctrl.redoTooltip.value)
         assertTrue(ctrl.redoEnabled.value)
     }
 
     @Test
-    fun area_state_changes_correctly() = asyncTest {
+    fun state_changes_correctly_when_a_quest_is_loaded() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
-            components.questLoader,
+            components.uiStore,
             components.areaStore,
             components.questEditorStore,
         ))
 
         // No quest loaded.
 
+        // No current area and no areas to select.
         assertTrue(ctrl.areas.value.isEmpty())
         assertNull(ctrl.currentArea.value)
         assertFalse(ctrl.areaSelectEnabled.value)
+        // Nothing to save.
+        assertFalse(ctrl.saveAsEnabled.value)
 
         // Load quest.
         components.questEditorStore.setCurrentQuest(createQuestModel())
 
+        // We have some areas and one area is selected at this point.
         assertTrue(ctrl.areas.value.isNotEmpty())
         assertNotNull(ctrl.currentArea.value)
         assertTrue(ctrl.areaSelectEnabled.value)
+        // We can save the current quest.
+        assertTrue(ctrl.saveAsEnabled.value)
     }
 }

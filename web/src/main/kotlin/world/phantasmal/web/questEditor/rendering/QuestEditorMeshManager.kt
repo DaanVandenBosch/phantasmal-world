@@ -1,50 +1,60 @@
 package world.phantasmal.web.questEditor.rendering
 
-import kotlinx.coroutines.CoroutineScope
-import world.phantasmal.lib.fileFormats.quest.Episode
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.listVal
+import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
-import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestEditorMeshManager(
-    scope: CoroutineScope,
-    questEditorStore: QuestEditorStore,
-    renderer: QuestRenderer,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
-) : QuestMeshManager(scope, questEditorStore, renderer, areaAssetLoader, entityAssetLoader) {
+    questEditorStore: QuestEditorStore,
+    renderContext: QuestRenderContext,
+) : QuestMeshManager(areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
     init {
-        disposer.addAll(
-            questEditorStore.currentQuest.map(questEditorStore.currentArea, ::getAreaVariantDetails)
-                .observe { (details) ->
-                    loadMeshes(details.episode, details.areaVariant, details.npcs, details.objects)
-                },
-        )
-    }
-
-    private fun getAreaVariantDetails(quest: QuestModel?, area: AreaModel?): AreaVariantDetails {
-        quest?.let {
-            val areaVariant = area?.let {
-                quest.areaVariants.value.find { it.area.id == area.id } ?: area.areaVariants.first()
-            }
-
-            areaVariant?.let {
-                val npcs = quest.npcs.filtered { it.areaId == area.id }
-                val objects = quest.objects.filtered { it.areaId == area.id }
-                return AreaVariantDetails(quest.episode, areaVariant, npcs, objects)
-            }
+        observe(
+            questEditorStore.currentQuest,
+            questEditorStore.currentAreaVariant,
+        ) { quest, areaVariant ->
+            loadAreaMeshes(quest?.episode, areaVariant)
         }
 
-        return AreaVariantDetails(null, null, listVal(), listVal())
-    }
+        observe(
+            questEditorStore.currentQuest,
+            questEditorStore.currentArea,
+            questEditorStore.selectedEvent.flatMapNull { it?.wave },
+        ) { quest, area, wave ->
+            loadNpcMeshes(
+                if (quest != null && area != null) {
+                    quest.npcs.filtered {
+                        it.sectionInitialized.value &&
+                                it.areaId == area.id &&
+                                (wave == null || it.wave.value == wave)
+                    }
+                } else {
+                    emptyListCell()
+                }
+            )
+        }
 
-    private class AreaVariantDetails(
-        val episode: Episode?,
-        val areaVariant: AreaVariantModel?,
-        val npcs: ListVal<QuestNpcModel>,
-        val objects: ListVal<QuestObjectModel>,
-    )
+        observe(
+            questEditorStore.currentQuest,
+            questEditorStore.currentArea,
+        ) { quest, area ->
+            loadObjectMeshes(
+                if (quest != null && area != null) {
+                    quest.objects.filtered {
+                        it.sectionInitialized.value && it.areaId == area.id
+                    }
+                } else {
+                    emptyListCell()
+                }
+            )
+        }
+
+        observe(questEditorStore.showCollisionGeometry) {
+            renderContext.collisionGeometryVisible = it
+            renderContext.renderGeometryVisible = !it
+        }
+    }
 }

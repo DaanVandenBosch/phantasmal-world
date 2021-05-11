@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
@@ -10,9 +10,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class NpcCountsControllerTests : WebTestSuite() {
+class NpcCountsControllerTests : WebTestSuite {
     @Test
-    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = asyncTest {
+    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = testAsync {
         val store = components.questEditorStore
         val ctrl = disposer.add(NpcCountsController(store))
 

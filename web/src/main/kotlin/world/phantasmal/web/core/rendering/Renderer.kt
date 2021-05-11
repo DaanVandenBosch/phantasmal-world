@@ -1,53 +1,76 @@
 package world.phantasmal.web.core.rendering
 
+import kotlinx.browser.document
+import kotlinx.browser.window
 import mu.KotlinLogging
 import org.w3c.dom.HTMLCanvasElement
-import world.phantasmal.web.externals.babylon.*
 import world.phantasmal.webui.DisposableContainer
+import world.phantasmal.web.externals.three.Renderer as ThreeRenderer
 
 private val logger = KotlinLogging.logger {}
 
-abstract class Renderer(
-    val canvas: HTMLCanvasElement,
-    val engine: Engine,
-) : DisposableContainer() {
-    private val light: HemisphericLight
+abstract class Renderer : DisposableContainer() {
+    protected abstract val context: RenderContext
+    protected abstract val threeRenderer: ThreeRenderer
+    protected abstract val inputManager: InputManager
 
-    abstract val camera: Camera
+    val canvas: HTMLCanvasElement get() = context.canvas
 
-    val scene = Scene(engine)
-
-    init {
-        with(scene) {
-            useRightHandedSystem = true
-            clearColor = Color4.FromInts(0x18, 0x18, 0x18, 0xFF)
-        }
-
-        light = HemisphericLight("Light", Vector3(-1.0, 1.0, 1.0), scene)
-    }
-
-    override fun internalDispose() {
-        camera.dispose()
-        light.dispose()
-        scene.dispose()
-        engine.dispose()
-        super.internalDispose()
-    }
+    private var rendering = false
+    private var animationFrameHandle: Int = 0
 
     fun startRendering() {
         logger.trace { "${this::class.simpleName} - start rendering." }
-        engine.runRenderLoop(::render)
+
+        if (!rendering) {
+            rendering = true
+            renderLoop()
+        }
     }
 
     fun stopRendering() {
         logger.trace { "${this::class.simpleName} - stop rendering." }
-        engine.stopRenderLoop()
+
+        rendering = false
+        window.cancelAnimationFrame(animationFrameHandle)
+    }
+
+    open fun setSize(width: Int, height: Int) {
+        if (width == 0 || height == 0) return
+
+        context.width = width
+        context.height = height
+        context.canvas.width = width
+        context.canvas.height = height
+
+        threeRenderer.setSize(width.toDouble(), height.toDouble())
+
+        inputManager.setSize(width, height)
     }
 
     protected open fun render() {
-        val lightDirection = Vector3(-1.0, 1.0, 1.0)
-        lightDirection.rotateByQuaternionToRef(camera.absoluteRotation, lightDirection)
-        light.direction = lightDirection
-        scene.render()
+        inputManager.beforeRender()
+
+        threeRenderer.render(context.scene, context.camera)
+    }
+
+    private fun renderLoop() {
+        if (rendering) {
+            animationFrameHandle = window.requestAnimationFrame {
+                try {
+                    render()
+                } finally {
+                    renderLoop()
+                }
+            }
+        }
+    }
+
+    companion object {
+        fun createCanvas(): HTMLCanvasElement =
+            (document.createElement("CANVAS") as HTMLCanvasElement).apply {
+                tabIndex = 0
+                style.outline = "none"
+            }
     }
 }

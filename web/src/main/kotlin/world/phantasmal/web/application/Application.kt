@@ -1,7 +1,7 @@
 package world.phantasmal.web.application
 
 import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.datetime.Clock
 import org.w3c.dom.DragEvent
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
@@ -14,9 +14,9 @@ import world.phantasmal.web.application.widgets.MainContentWidget
 import world.phantasmal.web.application.widgets.NavigationWidget
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.externals.babylon.Engine
 import world.phantasmal.web.huntOptimizer.HuntOptimizer
 import world.phantasmal.web.questEditor.QuestEditor
 import world.phantasmal.web.viewer.Viewer
@@ -24,50 +24,50 @@ import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
 
 class Application(
-    scope: CoroutineScope,
     rootElement: HTMLElement,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
-    createEngine: (HTMLCanvasElement) -> Engine,
+    createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
+    clock: Clock,
 ) : DisposableContainer() {
     init {
         addDisposables(
             // Disable native undo/redo.
-            disposableListener(document, "beforeinput", ::beforeInput),
+            document.disposableListener("beforeinput", ::beforeInput),
             // Work-around for FireFox:
-            disposableListener(document, "keydown", ::keydown),
+            document.disposableListener("keydown", ::keydown),
 
             // Disable native drag-and-drop to avoid users dragging in unsupported file formats and
             // leaving the application unexpectedly.
-            disposableListener(document, "dragenter", ::dragenter),
-            disposableListener(document, "dragover", ::dragover),
-            disposableListener(document, "drop", ::drop),
+            document.disposableListener("dragenter", ::dragenter),
+            document.disposableListener("dragover", ::dragover),
+            document.disposableListener("drop", ::drop),
         )
 
         // Initialize core stores shared by several submodules.
-        val uiStore = addDisposable(UiStore(scope, applicationUrl))
+        val uiStore = addDisposable(UiStore(applicationUrl))
 
         // The various tools Phantasmal World consists of.
         val tools: List<PwTool> = listOf(
-            Viewer(createEngine),
-            QuestEditor(assetLoader, uiStore, createEngine),
-            HuntOptimizer(assetLoader, uiStore),
+            addDisposable(Viewer(assetLoader, uiStore, createThreeRenderer)),
+            addDisposable(QuestEditor(assetLoader, uiStore, createThreeRenderer)),
+            addDisposable(HuntOptimizer(assetLoader, uiStore)),
         )
 
         // Controllers.
-        val navigationController = addDisposable(NavigationController(uiStore))
+        val navigationController = addDisposable(NavigationController(uiStore, clock))
         val mainContentController = addDisposable(MainContentController(uiStore))
 
         // Initialize application view.
         val applicationWidget = addDisposable(
             ApplicationWidget(
-                scope,
-                NavigationWidget(scope, navigationController),
-                MainContentWidget(
-                    scope,
-                    mainContentController,
-                    tools.map { it.toolType to it::initialize }.toMap()
-                )
+                { NavigationWidget(navigationController) },
+                {
+                    MainContentWidget(
+                        mainContentController,
+                        tools.map { it.toolType to it::initialize }.toMap()
+                    )
+                }
             )
         )
 

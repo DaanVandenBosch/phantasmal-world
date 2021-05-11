@@ -16,17 +16,18 @@ class IffChunkHeader(val type: Int, val size: Int)
  * IFF files contain chunks preceded by an 8-byte header.
  * The header consists of 4 ASCII characters for the "Type ID" and a 32-bit integer specifying the chunk size.
  */
-fun parseIff(cursor: Cursor): PwResult<List<IffChunk>> =
-    parse(cursor) { chunkCursor, type, size -> IffChunk(type, chunkCursor.take(size)) }
+fun parseIff(cursor: Cursor, silent: Boolean = false): PwResult<List<IffChunk>> =
+    parse(cursor, silent) { chunkCursor, type, size -> IffChunk(type, chunkCursor.take(size)) }
 
 /**
  * Parses just the chunk headers.
  */
-fun parseIffHeaders(cursor: Cursor): PwResult<List<IffChunkHeader>> =
-    parse(cursor) { _, type, size -> IffChunkHeader(type, size) }
+fun parseIffHeaders(cursor: Cursor, silent: Boolean = false): PwResult<List<IffChunkHeader>> =
+    parse(cursor, silent) { _, type, size -> IffChunkHeader(type, size) }
 
 private fun <T> parse(
     cursor: Cursor,
+    silent: Boolean,
     getChunk: (Cursor, type: Int, size: Int) -> T,
 ): PwResult<List<T>> {
     val result = PwResult.build<List<T>>(logger)
@@ -40,11 +41,14 @@ private fun <T> parse(
 
         if (size > cursor.bytesLeft) {
             corrupted = true
-            result.addProblem(
-                if (chunks.isEmpty()) Severity.Error else Severity.Warning,
-                "IFF file corrupted.",
-                "Size $size was too large (only ${cursor.bytesLeft} bytes left) at position $sizePos."
-            )
+
+            if (!silent) {
+                result.addProblem(
+                    if (chunks.isEmpty()) Severity.Error else Severity.Warning,
+                    "IFF file corrupted.",
+                    "Size $size was too large (only ${cursor.bytesLeft} bytes left) at position $sizePos."
+                )
+            }
 
             break
         }

@@ -7,7 +7,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class PrsCompressTests : LibTestSuite() {
+class PrsCompressTests : LibTestSuite {
     @Test
     fun edge_case_0_bytes() {
         val compressed = prsCompress(Buffer.withSize(0).cursor())

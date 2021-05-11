@@ -2,7 +2,13 @@ plugins {
     kotlin("multiplatform")
 }
 
+val coroutinesVersion: String by project.ext
+val junitVersion: String by project.extra
 val kotlinLoggingVersion: String by project.extra
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
 
 kotlin {
     js(IR) {
@@ -12,8 +18,13 @@ kotlin {
     jvm()
 
     sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+        }
+
         commonMain {
             dependencies {
+                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 api("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
             }
         }
@@ -33,7 +44,8 @@ kotlin {
 
         getByName("jvmTest") {
             dependencies {
-                implementation(kotlin("test-junit"))
+                implementation(kotlin("test-junit5"))
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
             }
         }
     }

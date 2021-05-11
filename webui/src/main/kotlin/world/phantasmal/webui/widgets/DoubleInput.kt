@@ -1,33 +1,30 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.round
 
 class DoubleInput(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Val<Double> = value(0.0),
+    value: Cell<Double> = cell(0.0),
     onChange: (Double) -> Unit = {},
     roundTo: Int = 2,
 ) : NumberInput<Double>(
-    scope,
     visible,
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
     value,
     onChange,

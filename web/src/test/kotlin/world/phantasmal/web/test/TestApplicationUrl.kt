@@ -1,14 +1,14 @@
 package world.phantasmal.web.test
 
-import world.phantasmal.observable.value.MutableVal
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.MutableCell
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.stores.ApplicationUrl
 
 class TestApplicationUrl(initialUrl: String) : ApplicationUrl {
     private val stack = mutableListOf(initialUrl)
     private var stackIdx = 0 // Points to the current URL entry in the stack.
 
-    override val url: MutableVal<String> = mutableVal(initialUrl)
+    override val url: MutableCell<String> = mutableCell(initialUrl)
 
     val historyEntries: Int get() = stackIdx
     val canGoBack: Boolean get() = stackIdx > 0

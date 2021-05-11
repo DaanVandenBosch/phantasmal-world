@@ -6,11 +6,13 @@ import org.w3c.dom.Element
 
 @JsModule("golden-layout")
 @JsNonModule
-open external class GoldenLayout(configuration: Config, container: Element = definedExternally) {
-    open fun init()
-    open fun updateSize(width: Double, height: Double)
-    open fun registerComponent(name: String, component: Any)
-    open fun destroy()
+external class GoldenLayout(configuration: Config, container: Element = definedExternally) {
+    fun init()
+    fun updateSize(width: Double, height: Double)
+    fun registerComponent(name: String, component: Any)
+    fun destroy()
+    fun <E> on(eventName: String, callback: (E) -> Unit, context: Any = definedExternally)
+    fun toConfig(): dynamic
 
     interface Settings {
         var hasHeaders: Boolean?
@@ -44,11 +46,12 @@ open external class GoldenLayout(configuration: Config, container: Element = def
     interface ItemConfig {
         var type: String
         var content: Array<ItemConfig>?
-        var width: Number?
-        var height: Number?
-        var id: dynamic /* String? | Array<String>? */
+        var width: Double?
+        var height: Double?
+        var id: String? /* String? | Array<String>? */
         var isClosable: Boolean?
         var title: String?
+        var activeItemIndex: Int?
     }
 
     interface ComponentConfig : ItemConfig {

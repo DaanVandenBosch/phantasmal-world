@@ -1,14 +1,15 @@
 package world.phantasmal.lib.fileFormats.quest
 
 import mu.KotlinLogging
-import world.phantasmal.core.PwResult
-import world.phantasmal.core.PwResultBuilder
-import world.phantasmal.core.Severity
-import world.phantasmal.core.Success
-import world.phantasmal.lib.assembly.InstructionSegment
-import world.phantasmal.lib.assembly.OP_SET_EPISODE
-import world.phantasmal.lib.assembly.Segment
-import world.phantasmal.lib.assembly.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.core.*
+import world.phantasmal.lib.Episode
+import world.phantasmal.lib.asm.BytecodeIr
+import world.phantasmal.lib.asm.InstructionSegment
+import world.phantasmal.lib.asm.OP_SET_EPISODE
+import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
+import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.lib.buffer.Buffer
+import world.phantasmal.lib.compression.prs.prsCompress
 import world.phantasmal.lib.compression.prs.prsDecompress
 import world.phantasmal.lib.cursor.Cursor
 import world.phantasmal.lib.cursor.cursor
@@ -22,15 +23,21 @@ class Quest(
     var shortDescription: String,
     var longDescription: String,
     var episode: Episode,
-    val objects: List<QuestObject>,
-    val npcs: List<QuestNpc>,
-    val events: List<DatEvent>,
-    val datUnknowns: List<DatUnknown>,
-    val byteCodeIr: List<Segment>,
+    val objects: MutableList<QuestObject>,
+    val npcs: MutableList<QuestNpc>,
+    val events: MutableList<DatEvent>,
+    /**
+     * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
+     */
+    val datUnknowns: MutableList<DatUnknown>,
+    var bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
-    val mapDesignations: Map<Int, Int>,
+    val mapDesignations: MutableMap<Int, Int>,
 )
 
+/**
+ * High level quest parsing function that delegates to [parseBin] and [parseDat].
+ */
 fun parseBinDatToQuest(
     binCursor: Cursor,
     datCursor: Cursor,
@@ -56,34 +63,34 @@ fun parseBinDatToQuest(
     }
 
     val dat = parseDat(datDecompressed.value)
-    val objects = dat.objs.map { QuestObject(it.areaId, it.data) }
+    val objects = dat.objs.mapTo(mutableListOf()) { QuestObject(it.areaId, it.data) }
     // Initialize NPCs with random episode and correct it later.
-    val npcs = dat.npcs.map { QuestNpc(Episode.I, it.areaId, it.data) }
+    val npcs = dat.npcs.mapTo(mutableListOf()) { QuestNpc(Episode.I, it.areaId, it.data) }
 
     // Extract episode and map designations from byte code.
     var episode = Episode.I
-    var mapDesignations = emptyMap<Int, Int>()
+    var mapDesignations = mutableMapOf<Int, Int>()
 
-    val parseByteCodeResult = parseByteCode(
-        bin.byteCode,
+    val parseBytecodeResult = parseBytecode(
+        bin.bytecode,
         bin.labelOffsets,
         extractScriptEntryPoints(objects, npcs),
         bin.format == BinFormat.DC_GC,
         lenient,
     )
 
-    result.addResult(parseByteCodeResult)
+    result.addResult(parseBytecodeResult)
 
-    if (parseByteCodeResult !is Success) {
+    if (parseBytecodeResult !is Success) {
         return result.failure()
     }
 
-    val byteCodeIr = parseByteCodeResult.value
+    val bytecodeIr = parseBytecodeResult.value
 
-    if (byteCodeIr.isEmpty()) {
+    if (bytecodeIr.segments.isEmpty()) {
         result.addProblem(Severity.Warning, "File contains no instruction labels.")
     } else {
-        val instructionSegments = byteCodeIr.filterIsInstance<InstructionSegment>()
+        val instructionSegments = bytecodeIr.instructionSegments()
 
         var label0Segment: InstructionSegment? = null
 
@@ -101,7 +108,8 @@ fun parseBinDatToQuest(
                 npc.episode = episode
             }
 
-            mapDesignations = getMapDesignations(instructionSegments, label0Segment)
+            mapDesignations =
+                getMapDesignations(label0Segment) { ControlFlowGraph.create(bytecodeIr) }
         } else {
             result.addProblem(Severity.Warning, "No instruction segment for label 0 found.")
         }
@@ -118,7 +126,7 @@ fun parseBinDatToQuest(
         npcs,
         events = dat.events,
         datUnknowns = dat.unknowns,
-        byteCodeIr,
+        bytecodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
     ))
@@ -130,6 +138,9 @@ class QuestData(
     val online: Boolean,
 )
 
+/**
+ * High level .qst parsing function that delegates to [parseQst], [parseBin] and [parseDat].
+ */
 fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestData> {
     val result = PwResult.build<QuestData>(logger)
 
@@ -226,4 +237,67 @@ private fun extractScriptEntryPoints(
     }
 
     return entryPoints
+}
+
+/**
+ * Returns a .bin and .dat file in that order.
+ */
+fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
+    val dat = writeDat(DatFile(
+        objs = quest.objects.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
+        npcs = quest.npcs.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
+        events = quest.events,
+        unknowns = quest.datUnknowns,
+    ))
+
+    val binFormat = when (version) {
+        Version.DC, Version.GC -> BinFormat.DC_GC
+        Version.PC -> BinFormat.PC
+        Version.BB -> BinFormat.BB
+    }
+
+    val (bytecode, labelOffsets) = writeBytecode(quest.bytecodeIr, binFormat == BinFormat.DC_GC)
+
+    val bin = writeBin(BinFile(
+        binFormat,
+        quest.id,
+        quest.language,
+        quest.name,
+        quest.shortDescription,
+        quest.longDescription,
+        bytecode,
+        labelOffsets,
+        quest.shopItems,
+    ))
+
+    return Pair(bin, dat)
+}
+
+/**
+ * Creates a .qst file from [quest].
+ */
+fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Boolean): Buffer {
+    val (bin, dat) = writeQuestToBinDat(quest, version)
+
+    val baseFilename = (filenameBase(filename) ?: filename).take(11)
+    val questName = quest.name.take(if (version == Version.BB) 23 else 31)
+
+    return writeQst(QstContent(
+        version,
+        online,
+        files = listOf(
+            QstContainedFile(
+                id = quest.id,
+                filename = "$baseFilename.dat",
+                questName = questName,
+                data = prsCompress(dat.cursor()).buffer(),
+            ),
+            QstContainedFile(
+                id = quest.id,
+                filename = "$baseFilename.bin",
+                questName = questName,
+                data = prsCompress(bin.cursor()).buffer(),
+            ),
+        ),
+    ))
 }

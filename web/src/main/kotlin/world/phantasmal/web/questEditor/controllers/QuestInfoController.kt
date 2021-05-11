@@ -1,32 +1,33 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.isNull
-import world.phantasmal.observable.value.value
-import world.phantasmal.web.questEditor.actions.EditIdAction
-import world.phantasmal.web.questEditor.actions.EditLongDescriptionAction
-import world.phantasmal.web.questEditor.actions.EditNameAction
-import world.phantasmal.web.questEditor.actions.EditShortDescriptionAction
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.emptyStringCell
+import world.phantasmal.web.questEditor.actions.EditPropertyAction
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
 class QuestInfoController(private val store: QuestEditorStore) : Controller() {
-    val unavailable: Val<Boolean> = store.currentQuest.isNull()
-    val enabled: Val<Boolean> = store.questEditingEnabled
+    val unavailable: Cell<Boolean> = store.currentQuest.isNull()
+    val enabled: Cell<Boolean> = store.questEditingEnabled
 
-    val episode: Val<String> = store.currentQuest.map { it?.episode?.name ?: "" }
-    val id: Val<Int> = store.currentQuest.flatMap { it?.id ?: value(0) }
-    val name: Val<String> = store.currentQuest.flatMap { it?.name ?: value("") }
-    val shortDescription: Val<String> =
-        store.currentQuest.flatMap { it?.shortDescription ?: value("") }
-    val longDescription: Val<String> =
-        store.currentQuest.flatMap { it?.longDescription ?: value("") }
+    val episode: Cell<String> = store.currentQuest.map { it?.episode?.name ?: "" }
+    val id: Cell<Int> = store.currentQuest.flatMap { it?.id ?: cell(0) }
+    val name: Cell<String> = store.currentQuest.flatMap { it?.name ?: emptyStringCell() }
+    val shortDescription: Cell<String> =
+        store.currentQuest.flatMap { it?.shortDescription ?: emptyStringCell() }
+    val longDescription: Cell<String> =
+        store.currentQuest.flatMap { it?.longDescription ?: emptyStringCell() }
+
+    fun focused() {
+        store.makeMainUndoCurrent()
+    }
 
     fun setId(id: Int) {
         if (!enabled.value) return
 
         store.currentQuest.value?.let { quest ->
-            store.executeAction(EditIdAction(quest, id, quest.id.value))
+            store.executeAction(EditPropertyAction("Edit ID", quest::setId, id, quest.id.value))
         }
     }
 
@@ -34,7 +35,9 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
         if (!enabled.value) return
 
         store.currentQuest.value?.let { quest ->
-            store.executeAction(EditNameAction(quest, name, quest.name.value))
+            store.executeAction(
+                EditPropertyAction("Edit name", quest::setName, name, quest.name.value)
+            )
         }
     }
 
@@ -43,7 +46,12 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
 
         store.currentQuest.value?.let { quest ->
             store.executeAction(
-                EditShortDescriptionAction(quest, shortDescription, quest.shortDescription.value)
+                EditPropertyAction(
+                    "Edit short description",
+                    quest::setShortDescription,
+                    shortDescription,
+                    quest.shortDescription.value,
+                )
             )
         }
     }
@@ -53,7 +61,12 @@ class QuestInfoController(private val store: QuestEditorStore) : Controller() {
 
         store.currentQuest.value?.let { quest ->
             store.executeAction(
-                EditLongDescriptionAction(quest, longDescription, quest.longDescription.value)
+                EditPropertyAction(
+                    "Edit long description",
+                    quest::setLongDescription,
+                    longDescription,
+                    quest.longDescription.value,
+                )
             )
         }
     }

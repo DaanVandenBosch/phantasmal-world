@@ -1,11 +1,15 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.lib.assembly.Segment
-import world.phantasmal.lib.fileFormats.quest.Episode
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.lib.Episode
+import world.phantasmal.lib.asm.BytecodeIr
+import world.phantasmal.lib.fileFormats.quest.DatUnknown
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.SimpleListCell
+import world.phantasmal.observable.cell.list.flatMapToList
+import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.observable.cell.map
+import world.phantasmal.observable.cell.mutableCell
 
 class QuestModel(
     id: Int,
@@ -17,37 +21,53 @@ class QuestModel(
     mapDesignations: Map<Int, Int>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
-    val byteCodeIr: List<Segment>,
+    events: MutableList<QuestEventModel>,
+    /**
+     * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
+     */
+    val datUnknowns: List<DatUnknown>,
+    bytecodeIr: BytecodeIr,
+    val shopItems: UIntArray,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
-    private val _id = mutableVal(0)
-    private val _language = mutableVal(0)
-    private val _name = mutableVal("")
-    private val _shortDescription = mutableVal("")
-    private val _longDescription = mutableVal("")
-    private val _mapDesignations = mutableVal(mapDesignations)
-    private val _npcs = mutableListVal(npcs)
-    private val _objects = mutableListVal(objects)
+    private val _id = mutableCell(0)
+    private val _language = mutableCell(0)
+    private val _name = mutableCell("")
+    private val _shortDescription = mutableCell("")
+    private val _longDescription = mutableCell("")
+    private val _mapDesignations = mutableCell(mapDesignations)
+    private val _npcs = SimpleListCell(npcs) { arrayOf(it.sectionInitialized, it.wave) }
+    private val _objects = SimpleListCell(objects) { arrayOf(it.sectionInitialized) }
+    private val _events = SimpleListCell(events)
 
-    val id: Val<Int> = _id
-    val language: Val<Int> = _language
-    val name: Val<String> = _name
-    val shortDescription: Val<String> = _shortDescription
-    val longDescription: Val<String> = _longDescription
-    val mapDesignations: Val<Map<Int, Int>> = _mapDesignations
+    val id: Cell<Int> = _id
+    val language: Cell<Int> = _language
+    val name: Cell<String> = _name
+    val shortDescription: Cell<String> = _shortDescription
+    val longDescription: Cell<String> = _longDescription
+
+    /**
+     * Map of area IDs to area variant IDs. One designation per area.
+     */
+    val mapDesignations: Cell<Map<Int, Int>> = _mapDesignations
 
     /**
      * Map of area IDs to entity counts.
      */
-    val entitiesPerArea: Val<Map<Int, Int>>
+    val entitiesPerArea: Cell<Map<Int, Int>>
 
     /**
      * One variant per area.
      */
-    val areaVariants: Val<List<AreaVariantModel>>
+    val areaVariants: ListCell<AreaVariantModel>
 
-    val npcs: ListVal<QuestNpcModel> = _npcs
-    val objects: ListVal<QuestObjectModel> = _objects
+    val npcs: ListCell<QuestNpcModel> = _npcs
+    val objects: ListCell<QuestObjectModel> = _objects
+
+    val events: ListCell<QuestEventModel> = _events
+
+    var bytecodeIr: BytecodeIr = bytecodeIr
+        private set
 
     init {
         setId(id)
@@ -56,7 +76,7 @@ class QuestModel(
         setShortDescription(shortDescription)
         setLongDescription(longDescription)
 
-        entitiesPerArea = this.npcs.map(this.objects) { ns, os ->
+        entitiesPerArea = map(this.npcs, this.objects) { ns, os ->
             val map = mutableMapOf<Int, Int>()
 
             for (npc in ns) {
@@ -71,10 +91,10 @@ class QuestModel(
         }
 
         areaVariants =
-            entitiesPerArea.map(this.mapDesignations) { entitiesPerArea, mds ->
+            flatMapToList(entitiesPerArea, this.mapDesignations) { entitiesPerArea, mds ->
                 val variants = mutableMapOf<Int, AreaVariantModel>()
 
-                for (areaId in entitiesPerArea.values) {
+                for (areaId in entitiesPerArea.keys) {
                     getVariant(episode, areaId, 0)?.let {
                         variants[areaId] = it
                     }
@@ -86,7 +106,7 @@ class QuestModel(
                     }
                 }
 
-                variants.values.toList()
+                listCell(*variants.values.toTypedArray())
             }
     }
 
@@ -127,5 +147,43 @@ class QuestModel(
 
         _longDescription.value = longDescription
         return this
+    }
+
+    fun addEntity(entity: QuestEntityModel<*, *>) {
+        when (entity) {
+            is QuestNpcModel -> addNpc(entity)
+            is QuestObjectModel -> addObject(entity)
+        }
+    }
+
+    fun setMapDesignations(mapDesignations: Map<Int, Int>) {
+        _mapDesignations.value = mapDesignations
+    }
+
+    fun addNpc(npc: QuestNpcModel) {
+        _npcs.add(npc)
+    }
+
+    fun addObject(obj: QuestObjectModel) {
+        _objects.add(obj)
+    }
+
+    fun removeEntity(entity: QuestEntityModel<*, *>) {
+        when (entity) {
+            is QuestNpcModel -> _npcs.remove(entity)
+            is QuestObjectModel -> _objects.remove(entity)
+        }
+    }
+
+    fun addEvent(index: Int, event: QuestEventModel) {
+        _events.add(index, event)
+    }
+
+    fun removeEvent(event: QuestEventModel) {
+        _events.remove(event)
+    }
+
+    fun setBytecodeIr(bytecodeIr: BytecodeIr) {
+        this.bytecodeIr = bytecodeIr
     }
 }

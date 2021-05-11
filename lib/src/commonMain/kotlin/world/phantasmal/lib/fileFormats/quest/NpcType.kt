@@ -1,5 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.Episode
+
 private val FRIENDLY_NPC_PROPERTIES = listOf(
     EntityProp(name = "Movement distance", offset = 44, type = EntityPropType.F32),
     EntityProp(name = "Hide register", offset = 52, type = EntityPropType.F32),
@@ -36,9 +38,8 @@ enum class NpcType(
     /**
      * NPC-specific properties.
      */
-    val properties: List<EntityProp> = emptyList(),
+    override val properties: List<EntityProp> = emptyList(),
 ) : EntityType {
-
     //
     // Unknown NPCs
     //
@@ -1478,4 +1479,11 @@ enum class NpcType(
      * The type of this NPC's rare variant if it has one.
      */
     val rareType: NpcType? by lazy { rareType?.invoke() }
+
+    companion object {
+        /**
+         * Use this instead of [values] to avoid unnecessary copying.
+         */
+        val VALUES: Array<NpcType> = values()
+    }
 }

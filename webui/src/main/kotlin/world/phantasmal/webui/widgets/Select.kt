@@ -1,66 +1,56 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.*
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
 class Select<T : Any>(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
+    private val className: String? = null,
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    items: List<T>? = null,
-    itemsVal: Val<List<T>>? = null,
+    private val items: Cell<List<T>> = emptyListCell(),
     private val itemToString: (T) -> String = Any::toString,
-    selected: T? = null,
-    selectedVal: Val<T?>? = null,
+    private val selected: Cell<T?> = nullCell(),
     private val onSelect: (T) -> Unit = {},
-) : LabelledControl(
-    scope,
-    visible,
-    enabled,
-    tooltip,
-    label,
-    labelVal,
-    preferredLabelPosition,
-) {
-    private val items: Val<List<T>> = itemsVal ?: value(items ?: emptyList())
-    private val selected: Val<T?> = selectedVal ?: value(selected)
-
-    private val buttonText = mutableVal(" ")
-    private val menuVisible = mutableVal(false)
+) : LabelledControl(visible, enabled, tooltip, label, labelCell, preferredLabelPosition) {
+    private val buttonText = mutableCell(" ")
 
     private lateinit var menu: Menu<T>
+    private val menuVisible = mutableCell(false)
     private var justOpened = false
 
     override fun Node.createElement() =
         div {
             className = "pw-select"
 
+            this@Select.className?.let { classList.add(it) }
+
             // Default to a single space so the inner text part won't be hidden.
             observe(selected) { buttonText.value = it?.let(itemToString) ?: " " }
 
             addWidget(Button(
-                scope,
                 enabled = enabled,
-                textVal = buttonText,
+                textCell = buttonText,
                 iconRight = Icon.TriangleDown,
                 onMouseDown = ::onButtonMouseDown,
                 onMouseUp = { onButtonMouseUp() },
                 onKeyDown = ::onButtonKeyDown,
-            ))
+            )).element.id = labelId
             menu = addWidget(Menu(
-                scope,
                 visible = menuVisible,
                 enabled = enabled,
-                itemsVal = items,
+                items = items,
                 itemToString = itemToString,
                 onSelect = ::select,
                 onCancel = { menuVisible.value = false },
@@ -86,14 +76,20 @@ class Select<T : Any>(
 
     private fun onButtonKeyDown(e: KeyboardEvent) {
         when (e.key) {
-            "Enter", " " -> {
-                e.preventDefault()
-                e.stopPropagation()
+            "ArrowDown" -> {
+                if (items.value.isNotEmpty()) {
+                    if (selected.value == null) {
+                        select(items.value.first())
+                    } else {
+                        val index = items.value.indexOf(selected.value) + 1
 
-                justOpened = !menuVisible.value
-                menuVisible.value = true
-                selected.value?.let(menu::highlightItem)
-                menu.focus()
+                        if (index >= items.value.size) {
+                            select(items.value.first())
+                        } else {
+                            select(items.value[index])
+                        }
+                    }
+                }
             }
 
             "ArrowUp" -> {
@@ -112,27 +108,20 @@ class Select<T : Any>(
                 }
             }
 
-            "ArrowDown" -> {
-                if (items.value.isNotEmpty()) {
-                    if (selected.value == null) {
-                        select(items.value.first())
-                    } else {
-                        val index = items.value.indexOf(selected.value) + 1
+            "Enter", " " -> {
+                e.preventDefault()
+                e.stopPropagation()
 
-                        if (index >= items.value.size) {
-                            select(items.value.first())
-                        } else {
-                            select(items.value[index])
-                        }
-                    }
-                }
+                justOpened = !menuVisible.value
+                menuVisible.value = true
+                selected.value?.let(menu::highlightItem)
+                menu.focus()
             }
         }
     }
 
     private fun select(item: T) {
         menuVisible.value = false
-        buttonText.value = itemToString(item)
         onSelect(item)
     }
 
@@ -152,7 +141,7 @@ class Select<T : Any>(
                 }
 
                 .pw-select .pw-menu {
-                    top: 25px;
+                    top: 23px;
                     left: 0;
                     min-width: 100%;
                 }

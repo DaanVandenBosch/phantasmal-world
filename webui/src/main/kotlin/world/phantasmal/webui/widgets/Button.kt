@@ -1,24 +1,23 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.button
 import world.phantasmal.webui.dom.icon
 import world.phantasmal.webui.dom.span
 
 open class Button(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
+    private val className: String? = null,
     private val text: String? = null,
-    private val textVal: Val<String>? = null,
+    private val textCell: Cell<String>? = null,
     private val iconLeft: Icon? = null,
     private val iconRight: Icon? = null,
     private val onMouseDown: ((MouseEvent) -> Unit)? = null,
@@ -27,10 +26,13 @@ open class Button(
     private val onKeyDown: ((KeyboardEvent) -> Unit)? = null,
     private val onKeyUp: ((KeyboardEvent) -> Unit)? = null,
     private val onKeyPress: ((KeyboardEvent) -> Unit)? = null,
-) : Control(scope, visible, enabled, tooltip) {
+) : Control(visible, enabled, tooltip) {
     override fun Node.createElement() =
         button {
             className = "pw-button"
+
+            this@Button.className?.let { classList.add(it) }
+
             onmousedown = onMouseDown
             onmouseup = onMouseUp
             onclick = onClick
@@ -51,8 +53,8 @@ open class Button(
                 span {
                     className = "pw-button-center"
 
-                    if (textVal != null) {
-                        observe(textVal) {
+                    if (textCell != null) {
+                        observe(textCell) {
                             textContent = it
                             hidden = it.isEmpty()
                         }
@@ -75,7 +77,7 @@ open class Button(
     companion object {
         init {
             @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
-// language=css
+            // language=css
             style("""
                 .pw-button {
                     display: inline-flex;
@@ -83,12 +85,12 @@ open class Button(
                     align-items: stretch;
                     align-content: stretch;
                     box-sizing: border-box;
-                    height: 26px;
+                    height: 24px;
                     padding: 0;
                     border: var(--pw-control-border);
                     color: var(--pw-control-text-color);
                     outline: none;
-                    font-size: 13px;
+                    font-size: 12px;
                     font-family: var(--pw-font-family), sans-serif;
                     overflow: hidden;
                 }
@@ -100,8 +102,8 @@ open class Button(
                     align-items: center;
                     box-sizing: border-box;
                     background-color: var(--pw-control-bg-color);
-                    height: 24px;
-                    padding: 3px 5px;
+                    height: 22px;
+                    padding: 2px 3px;
                     border: var(--pw-control-inner-border);
                     overflow: hidden;
                 }

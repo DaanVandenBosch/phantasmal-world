@@ -1,50 +1,52 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
-import world.phantasmal.observable.value.Val
+import org.w3c.dom.HTMLInputElement
+import world.phantasmal.observable.cell.Cell
 
 abstract class NumberInput<T : Number>(
-    scope: CoroutineScope,
-    visible: Val<Boolean>,
-    enabled: Val<Boolean>,
-    tooltip: Val<String?>,
+    visible: Cell<Boolean>,
+    enabled: Cell<Boolean>,
+    tooltip: Cell<String?>,
     label: String?,
-    labelVal: Val<String>?,
+    labelCell: Cell<String>?,
     preferredLabelPosition: LabelPosition,
-    value: Val<T>,
+    value: Cell<T>,
     onChange: (T) -> Unit,
-    min: Int?,
-    max: Int?,
-    step: Int?,
+    private val min: Int?,
+    private val max: Int?,
+    private val step: Int?,
 ) : Input<T>(
-    scope,
     visible,
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
     className = "pw-number-input",
-    inputClassName = "pw-number-input-inner",
-    inputType = "number",
     value,
     onChange,
-    maxLength = null,
-    min,
-    max,
-    step,
 ) {
+    override fun interceptInputElement(input: HTMLInputElement) {
+        super.interceptInputElement(input)
+
+        input.type = "number"
+        input.classList.add("pw-number-input-inner")
+        min?.let { input.min = it.toString() }
+        max?.let { input.max = it.toString() }
+        input.step = step?.toString() ?: "any"
+    }
+
     companion object {
         init {
             @Suppress("CssUnusedSymbol")
             // language=css
             style("""
                 .pw-number-input {
-                    width: 54px;
+                    width: 60px;
                 }
 
-                .pw-number-input .pw-number-input-inner {
-                    padding-right: 1px;
+                .pw-input-inner.pw-number-input-inner {
+                    padding-right: 0;
                 }
             """.trimIndent())
         }

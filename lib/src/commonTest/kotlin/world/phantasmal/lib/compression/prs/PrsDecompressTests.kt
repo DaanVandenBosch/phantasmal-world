@@ -9,7 +9,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class PrsDecompressTests : LibTestSuite() {
+class PrsDecompressTests : LibTestSuite {
     @Test
     fun edge_case_0_bytes() {
         testWithBuffer(Buffer.withSize(0))
@@ -71,7 +71,7 @@ class PrsDecompressTests : LibTestSuite() {
     }
 
     @Test
-    fun decompress_towards_the_future() = asyncTest {
+    fun decompress_towards_the_future() = testAsync {
         val orig = readFile("/quest118_e_decompressed.bin")
         val test = prsDecompress(readFile("/quest118_e.bin")).unwrap()
 
@@ -79,7 +79,7 @@ class PrsDecompressTests : LibTestSuite() {
     }
 
     @Test
-    fun compress_and_decompress_towards_the_future() = asyncTest {
+    fun compress_and_decompress_towards_the_future() = testAsync {
         val orig = readFile("/quest118_e_decompressed.bin")
         val test = prsDecompress(prsCompress(orig)).unwrap()
         orig.seekStart(0)

@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import kotlin.test.Test
@@ -8,9 +8,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class QuestInfoControllerTests : WebTestSuite() {
+class QuestInfoControllerTests : WebTestSuite {
     @Test
-    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = asyncTest {
+    fun exposes_correct_model_before_and_after_a_quest_is_loaded() = testAsync {
         val store = components.questEditorStore
         val ctrl = disposer.add(QuestInfoController(store))
 
@@ -35,7 +35,7 @@ class QuestInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun can_edit_simple_properties_undo_edits_and_redo_edits() = asyncTest {
+    fun can_edit_simple_properties_undo_edits_and_redo_edits() = testAsync {
         val store = components.questEditorStore
         val ctrl = disposer.add(QuestInfoController(store))
 
@@ -84,5 +84,24 @@ class QuestInfoControllerTests : WebTestSuite() {
         assertEquals("name 2", ctrl.name.value)
         assertEquals("short 2", ctrl.shortDescription.value)
         assertEquals("long 2", ctrl.longDescription.value)
+    }
+
+    @Test
+    fun when_focused_main_undo_becomes_current_undo() = testAsync {
+        val store = components.questEditorStore
+        val ctrl = disposer.add(QuestInfoController(store))
+
+        // Put something on the undo stack.
+        store.setCurrentQuest(createQuestModel(
+            name = "original name",
+        ))
+        ctrl.setName("new name")
+
+        components.undoManager.makeNopCurrent()
+
+        // After focusing, the main undo stack becomes the current undo and we can undo.
+        ctrl.focused()
+
+        assertTrue(store.canUndo.value)
     }
 }

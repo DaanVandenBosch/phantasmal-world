@@ -1,7 +1,7 @@
 package world.phantasmal.web.test
 
-import world.phantasmal.lib.assembly.Segment
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
+import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
 import world.phantasmal.web.questEditor.models.QuestModel
@@ -16,7 +16,7 @@ fun createQuestModel(
     episode: Episode = Episode.I,
     npcs: List<QuestNpcModel> = emptyList(),
     objects: List<QuestObjectModel> = emptyList(),
-    byteCodeIr: List<Segment> = emptyList(),
+    bytecodeIr: BytecodeIr = BytecodeIr(emptyList()),
 ): QuestModel =
     QuestModel(
         id,
@@ -28,8 +28,14 @@ fun createQuestModel(
         emptyMap(),
         npcs.toMutableList(),
         objects.toMutableList(),
-        byteCodeIr,
+        events = mutableListOf(),
+        datUnknowns = emptyList(),
+        bytecodeIr,
+        UIntArray(0),
     ) { _, _, _ -> null }
 
 fun createQuestNpcModel(type: NpcType, episode: Episode): QuestNpcModel =
-    QuestNpcModel(QuestNpc(type, episode, areaId = 0, wave = 0), wave = null)
+    QuestNpcModel(
+        QuestNpc(type, episode, areaId = 0, wave = 0),
+        waveId = 0,
+    )

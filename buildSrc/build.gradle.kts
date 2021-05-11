@@ -1,10 +1,10 @@
 plugins {
-    kotlin("jvm") version "1.4.20-RC"
+    kotlin("jvm") version "1.4.32"
     `java-gradle-plugin`
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 gradlePlugin {

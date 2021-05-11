@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
  * Test suite for all [Cursor] implementations. There is a subclass of this suite for every [Cursor]
  * implementation.
  */
-abstract class CursorTests : LibTestSuite() {
+abstract class CursorTests : LibTestSuite {
     abstract fun createCursor(
         bytes: ByteArray,
         endianness: Endianness,

@@ -22,7 +22,7 @@ fun parseXjModel(cursor: Cursor): XjModel {
 
     val vertices = mutableListOf<XjVertex>()
 
-    if (vertexInfoCount >= 1) {
+    if (vertexInfoCount > 0) {
         // TODO: parse all vertex info tables.
         vertices.addAll(parseVertexInfoTable(cursor, vertexInfoTableOffset))
     }
@@ -102,11 +102,11 @@ private fun parseVertexInfoTable(cursor: Cursor, vertexInfoTableOffset: Int): Li
 
 private fun parseTriangleStripTable(
     cursor: Cursor,
-    triangle_strip_list_offset: Int,
-    triangle_strip_count: Int,
+    triangleStripListOffset: Int,
+    triangleStripCount: Int,
 ): List<XjMesh> {
-    return (0 until triangle_strip_count).map { i ->
-        cursor.seekStart(triangle_strip_list_offset + i * 20)
+    return (0 until triangleStripCount).map { i ->
+        cursor.seekStart(triangleStripListOffset + i * 20)
 
         val materialTableOffset = cursor.int()
         val materialTableSize = cursor.int()
@@ -124,7 +124,7 @@ private fun parseTriangleStripTable(
 
         XjMesh(
             material,
-            indices = List(indexCount) { indices[it].toInt() },
+            indices = indices.map { it.toInt() },
         )
     }
 }

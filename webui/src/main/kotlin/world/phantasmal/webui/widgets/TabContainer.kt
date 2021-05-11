@@ -1,22 +1,20 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.eq
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.eq
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.controllers.Tab
-import world.phantasmal.webui.controllers.TabController
+import world.phantasmal.webui.controllers.TabContainerController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.span
 
 class TabContainer<T : Tab>(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    private val ctrl: TabController<T>,
-    private val createWidget: (CoroutineScope, T) -> Widget,
-) : Widget(scope, visible, enabled) {
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    private val ctrl: TabContainerController<T>,
+    private val createWidget: (T) -> Widget,
+) : Widget(visible, enabled) {
     override fun Node.createElement() =
         div {
             className = "pw-tab-container"
@@ -48,9 +46,8 @@ class TabContainer<T : Tab>(
                 for (tab in ctrl.tabs) {
                     addChild(
                         LazyLoader(
-                            scope,
                             visible = ctrl.activeTab eq tab,
-                            createWidget = { scope -> createWidget(scope, tab) }
+                            createWidget = { createWidget(tab) }
                         )
                     )
                 }
@@ -75,8 +72,8 @@ class TabContainer<T : Tab>(
 
                 .pw-tab-container-bar {
                     box-sizing: border-box;
-                    height: 28px;
-                    min-height: 28px; /* To avoid bar from getting squished when pane content gets larger than pane in Firefox. */
+                    height: 26px;
+                    min-height: 26px; /* To avoid bar from getting squished when pane content gets larger than pane in Firefox. */
                     padding: 3px 3px 0 3px;
                     border-bottom: var(--pw-border);
                 }
@@ -86,12 +83,12 @@ class TabContainer<T : Tab>(
                     display: inline-flex;
                     align-items: center;
                     height: calc(100% + 1px);
-                    padding: 0 10px;
+                    padding: 0 8px;
                     border: var(--pw-border);
                     margin: 0 1px -1px 1px;
                     background-color: var(--pw-tab-bg-color);
                     color: var(--pw-tab-text-color);
-                    font-size: 13px;
+                    font-size: 12px;
                 }
 
                 .pw-tab-container-tab:hover {
@@ -107,13 +104,9 @@ class TabContainer<T : Tab>(
 
                 .pw-tab-container-panes {
                     flex-grow: 1;
-                    display: flex;
-                    flex-direction: row;
+                    display: grid;
+                    grid-template: 100% / 100%;
                     overflow: hidden;
-                }
-
-                .pw-tab-container-panes > * {
-                    flex-grow: 1;
                 }
             """.trimIndent())
         }

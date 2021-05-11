@@ -1,71 +1,45 @@
 package world.phantasmal.web.questEditor.rendering
 
 import org.w3c.dom.HTMLCanvasElement
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.externals.babylon.ArcRotateCamera
-import world.phantasmal.web.externals.babylon.Engine
-import world.phantasmal.web.externals.babylon.TransformNode
-import world.phantasmal.web.externals.babylon.Vector3
-import kotlin.math.PI
-import kotlin.math.max
+import world.phantasmal.web.externals.three.PerspectiveCamera
+import world.phantasmal.web.questEditor.loading.AreaAssetLoader
+import world.phantasmal.web.questEditor.loading.EntityAssetLoader
+import world.phantasmal.web.questEditor.rendering.input.QuestInputManager
+import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
-class QuestRenderer(canvas: HTMLCanvasElement, engine: Engine) : Renderer(canvas, engine) {
-    override val camera = ArcRotateCamera("Camera", PI / 2, PI / 6, 500.0, Vector3.Zero(), scene)
+class QuestRenderer(
+    areaAssetLoader: AreaAssetLoader,
+    entityAssetLoader: EntityAssetLoader,
+    questEditorStore: QuestEditorStore,
+    createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
+) : Renderer() {
+    override val context = addDisposable(QuestRenderContext(
+        createCanvas(),
+        PerspectiveCamera(
+            fov = 45.0,
+            aspect = 1.0,
+            near = 10.0,
+            far = 5_000.0,
+        ),
+    ))
 
-    var collisionGeometry: TransformNode? = null
+    override val threeRenderer = addDisposable(createThreeRenderer(context.canvas)).renderer
+
+    override val inputManager = addDisposable(QuestInputManager(questEditorStore, context))
 
     init {
-        with(camera) {
-            inertia = 0.0
-            angularSensibilityX = 200.0
-            angularSensibilityY = 200.0
-            // Set lowerBetaLimit to avoid shitty camera implementation from breaking completely
-            // when looking directly down.
-            lowerBetaLimit = 0.4
-            panningInertia = 0.0
-            panningAxis = Vector3(1.0, 0.0, -1.0)
-            pinchDeltaPercentage = 0.1
-            wheelDeltaPercentage = 0.1
-
-            updatePanningSensibility()
-            onViewMatrixChangedObservable.add({ _, _ ->
-                updatePanningSensibility()
-            })
-
-            enableCameraControls()
-
-            camera.storeState()
-        }
-    }
-
-    fun resetCamera() {
-        camera.restoreState()
-    }
-
-    fun enableCameraControls() {
-        camera.attachControl(
-            canvas,
-            noPreventDefault = false,
-            useCtrlForPanning = false,
-            panningMouseButton = 0
+        addDisposables(
+            QuestEditorMeshManager(
+                areaAssetLoader,
+                entityAssetLoader,
+                questEditorStore,
+                context,
+            ),
         )
-    }
 
-    fun disableCameraControls() {
-        camera.detachControl()
-    }
-
-    override fun render() {
-        camera.minZ = max(0.01, camera.radius / 100)
-        camera.maxZ = max(2_000.0, 10 * camera.radius)
-        super.render()
-    }
-
-    /**
-     * Make "panningSensibility" an inverse function of radius to make panning work "sensibly" at
-     * all distances.
-     */
-    private fun updatePanningSensibility() {
-        camera.panningSensibility = 1_000 / camera.radius
+        observe(questEditorStore.currentQuest) { inputManager.resetCamera() }
+        observe(questEditorStore.currentAreaVariant) { inputManager.resetCamera() }
     }
 }

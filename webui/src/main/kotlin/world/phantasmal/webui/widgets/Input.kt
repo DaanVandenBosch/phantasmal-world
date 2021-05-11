@@ -1,36 +1,27 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.span
 
 abstract class Input<T>(
-    scope: CoroutineScope,
-    visible: Val<Boolean>,
-    enabled: Val<Boolean>,
-    tooltip: Val<String?>,
+    visible: Cell<Boolean>,
+    enabled: Cell<Boolean>,
+    tooltip: Cell<String?>,
     label: String?,
-    labelVal: Val<String>?,
+    labelCell: Cell<String>?,
     preferredLabelPosition: LabelPosition,
     private val className: String,
-    private val inputClassName: String,
-    private val inputType: String,
-    private val value: Val<T>,
+    private val value: Cell<T>,
     private val onChange: (T) -> Unit,
-    private val maxLength: Int?,
-    private val min: Int?,
-    private val max: Int?,
-    private val step: Int?,
 ) : LabelledControl(
-    scope,
     visible,
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
 ) {
     private var settingValue = false
@@ -40,29 +31,25 @@ abstract class Input<T>(
             classList.add("pw-input", this@Input.className)
 
             input {
-                classList.add("pw-input-inner", inputClassName)
-                type = inputType
+                id = labelId
+                classList.add("pw-input-inner")
 
                 observe(this@Input.enabled) { disabled = !it }
 
                 onchange = { callOnChange(this) }
 
-                onkeydown = { e ->
-                    if (e.key == "Enter") {
-                        callOnChange(this)
-                    }
-                }
+                interceptInputElement(this)
 
                 observe(this@Input.value) {
                     setInputValue(this, it)
                 }
-
-                this@Input.maxLength?.let { maxLength = it }
-                this@Input.min?.let { min = it.toString() }
-                this@Input.max?.let { max = it.toString() }
-                this@Input.step?.let { step = it.toString() }
             }
         }
+
+    /**
+     * Called during [createElement].
+     */
+    protected open fun interceptInputElement(input: HTMLInputElement) {}
 
     protected abstract fun getInputValue(input: HTMLInputElement): T
 
@@ -87,20 +74,20 @@ abstract class Input<T>(
                 .pw-input {
                     display: inline-block;
                     box-sizing: border-box;
-                    height: 24px;
+                    height: 22px;
                     border: var(--pw-input-border);
                 }
 
-                .pw-input .pw-input-inner {
+                .pw-input-inner {
                     box-sizing: border-box;
                     width: 100%;
                     height: 100%;
-                    padding: 0 3px;
+                    padding: 0 2px;
                     border: var(--pw-input-inner-border);
                     background-color: var(--pw-input-bg-color);
                     color: var(--pw-input-text-color);
                     outline: none;
-                    font-size: 13px;
+                    font-size: 12px;
                 }
 
                 .pw-input:hover {
@@ -111,11 +98,11 @@ abstract class Input<T>(
                     border: var(--pw-input-border-focus);
                 }
 
-                .pw-input.disabled {
+                .pw-input.pw-disabled {
                     border: var(--pw-input-border-disabled);
                 }
 
-                .pw-input.disabled .pw-input-inner {
+                .pw-input.pw-disabled > .pw-input-inner {
                     color: var(--pw-input-text-color-disabled);
                     background-color: var(--pw-input-bg-color-disabled);
                 }

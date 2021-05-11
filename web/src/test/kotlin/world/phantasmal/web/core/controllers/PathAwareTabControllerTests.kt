@@ -9,7 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
-class PathAwareTabControllerTests : WebTestSuite() {
+class PathAwareTabControllerTests : WebTestSuite {
     @Test
     fun activeTab_is_initialized_correctly() = test {
         setup { ctrl, appUrl ->
@@ -42,13 +42,13 @@ class PathAwareTabControllerTests : WebTestSuite() {
     @Test
     fun applicationUrl_changes_when_switch_to_tool_with_tabs() = test {
         val appUrl = TestApplicationUrl("/")
-        val uiStore = disposer.add(UiStore(scope, appUrl))
+        val uiStore = disposer.add(UiStore(appUrl))
 
         disposer.add(
-            PathAwareTabController(uiStore, PwToolType.HuntOptimizer, listOf(
-                PathAwareTab("A", "/a"),
-                PathAwareTab("B", "/b"),
-                PathAwareTab("C", "/c"),
+            PathAwareTabContainerController(uiStore, PwToolType.HuntOptimizer, listOf(
+                TestTab("A", "/a"),
+                TestTab("B", "/b"),
+                TestTab("C", "/c"),
             ))
         )
 
@@ -68,20 +68,25 @@ class PathAwareTabControllerTests : WebTestSuite() {
     }
 
     private fun TestContext.setup(
-        block: (PathAwareTabController<PathAwareTab>, applicationUrl: TestApplicationUrl) -> Unit,
+        block: (
+            PathAwareTabContainerController<TestTab>,
+            applicationUrl: TestApplicationUrl,
+        ) -> Unit,
     ) {
         val applicationUrl = TestApplicationUrl("/${PwToolType.HuntOptimizer.slug}/b")
-        val uiStore = disposer.add(UiStore(scope, applicationUrl))
+        val uiStore = disposer.add(UiStore(applicationUrl))
         uiStore.setCurrentTool(PwToolType.HuntOptimizer)
 
         val ctrl = disposer.add(
-            PathAwareTabController(uiStore, PwToolType.HuntOptimizer, listOf(
-                PathAwareTab("A", "/a"),
-                PathAwareTab("B", "/b"),
-                PathAwareTab("C", "/c"),
+            PathAwareTabContainerController(uiStore, PwToolType.HuntOptimizer, listOf(
+                TestTab("A", "/a"),
+                TestTab("B", "/b"),
+                TestTab("C", "/c"),
             ))
         )
 
         block(ctrl, applicationUrl)
     }
+
+    private class TestTab(override val title: String, override val path: String) : PathAwareTab
 }

@@ -1,5 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.Episode
+
 class Area(
     val id: Int,
     val name: String,
@@ -14,9 +16,6 @@ class AreaVariant(
 
 fun getAreasForEpisode(episode: Episode): List<Area> =
     AREAS.getValue(episode)
-
-fun getAreaVariant(episode: Episode, areaId: Int, variantId: Int): AreaVariant? =
-    AREAS.getValue(episode).find { it.id == areaId }?.areaVariants?.getOrNull(variantId)
 
 private val AREAS by lazy {
     var order = 0
@@ -72,7 +71,7 @@ private val AREAS by lazy {
 
     @Suppress("UNUSED_CHANGED_VALUE")
     val ep4 = listOf(
-        createArea(0, "Pioneer II (Ep. IV)", order++, 1),
+        createArea(0, "Pioneer II", order++, 1),
         createArea(1, "Crater Route 1", order++, 1),
         createArea(2, "Crater Route 2", order++, 1),
         createArea(3, "Crater Route 3", order++, 1),

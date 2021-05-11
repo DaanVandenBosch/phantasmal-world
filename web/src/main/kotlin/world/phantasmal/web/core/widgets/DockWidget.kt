@@ -1,53 +1,25 @@
 package world.phantasmal.web.core.widgets
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.trueVal
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.web.core.controllers.*
 import world.phantasmal.web.externals.goldenLayout.GoldenLayout
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
 
-private const val HEADER_HEIGHT = 24
-private const val DEFAULT_HEADER_HEIGHT = 20
-
-/**
- * This value is used to work around a bug in GoldenLayout related to headerHeight.
- */
-private const val HEADER_HEIGHT_DIFF = HEADER_HEIGHT - DEFAULT_HEADER_HEIGHT
-
-sealed class DockedItem(val flex: Int?)
-sealed class DockedContainer(flex: Int?, val items: List<DockedItem>) : DockedItem(flex)
-
-class DockedRow(
-    flex: Int? = null,
-    items: List<DockedItem> = emptyList(),
-) : DockedContainer(flex, items)
-
-class DockedColumn(
-    flex: Int? = null,
-    items: List<DockedItem> = emptyList(),
-) : DockedContainer(flex, items)
-
-class DockedStack(
-    flex: Int? = null,
-    items: List<DockedItem> = emptyList(),
-) : DockedContainer(flex, items)
-
-class DockedWidget(
-    val id: String,
-    val title: String,
-    flex: Int? = null,
-    val createWidget: (CoroutineScope) -> Widget,
-) : DockedItem(flex)
+private val logger = KotlinLogging.logger {}
 
 class DockWidget(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    private val item: DockedItem,
-) : Widget(scope, visible) {
-    private lateinit var goldenLayout: GoldenLayout
+    visible: Cell<Boolean> = trueCell(),
+    private val ctrl: DockController,
+    private val createWidget: (id: String) -> Widget,
+) : Widget(visible) {
+    private var goldenLayout: GoldenLayout? = null
+    private val idToChildWidget = mutableMapOf<String, Widget>()
 
     init {
         js("""require("golden-layout/src/css/goldenlayout-base.css");""")
@@ -57,9 +29,117 @@ class DockWidget(
         div {
             className = "pw-core-dock"
 
-            val idToCreate = mutableMapOf<String, (CoroutineScope) -> Widget>()
+            val outerElement = this
 
-            val config = obj<GoldenLayout.Config> {
+            scope.launch {
+                val dockedWidgetIds = mutableSetOf<String>()
+
+                val config = createConfig(ctrl.initialConfig(), dockedWidgetIds)
+
+                if (disposed) return@launch
+
+                if (outerElement.offsetWidth == 0 || outerElement.offsetHeight == 0) {
+                    // Temporarily set width and height so GoldenLayout initializes correctly.
+                    style.width = "1000px"
+                    style.height = "700px"
+                }
+
+                val goldenLayout = GoldenLayout(config, outerElement)
+                this@DockWidget.goldenLayout = goldenLayout
+
+                dockedWidgetIds.forEach { id ->
+                    // registerComponent expects a regular function and not an arrow function. This
+                    // function will be called with new.
+                    goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
+                        createChildWidget(id, container)
+                    }
+                }
+
+                goldenLayout.on<Any>("stateChanged", { onStateChanged() })
+
+                goldenLayout.on("stackCreated", ::onStackCreated)
+
+                goldenLayout.init()
+
+                style.width = ""
+                style.height = ""
+
+                addDisposable(size.observe { (size) ->
+                    goldenLayout.updateSize(size.width, size.height)
+                })
+            }
+        }
+
+    override fun dispose() {
+        goldenLayout?.destroy()
+        super.dispose()
+    }
+
+    private fun createChildWidget(id: String, container: GoldenLayout.Container) {
+        val node = container.getElement()[0] as Node
+
+        val widget =
+            try {
+                idToChildWidget[id]?.let { prevWidget ->
+                    logger.error { """Widget with ID "$id" was already created.""" }
+                    prevWidget.dispose()
+                }
+
+                node.addChild(createWidget(id)).apply {
+                    focus()
+                }
+            } catch (e: Exception) {
+                logger.error(e) { """Couldn't instantiate widget with ID "$id".""" }
+
+                node.addChild(UnavailableWidget(
+                    message = "Something went wrong while initializing this tab.",
+                ))
+            }
+
+        idToChildWidget[id] = widget
+
+        container.on("close", {
+            removeChild(widget)
+            idToChildWidget.remove(id)
+        })
+    }
+
+    private fun onStateChanged() {
+        val content = goldenLayout?.toConfig()?.content
+
+        if (content is Array<*> && content.length > 0) {
+            fromGoldenLayoutConfig(
+                content.unsafeCast<Array<GoldenLayout.ItemConfig>>().first(),
+                useWidthAsFlex = null,
+            )?.let {
+                scope.launch { ctrl.configChanged(it) }
+            }
+        }
+    }
+
+    private fun onStackCreated(stack: GoldenLayout.ContentItem) {
+        stack.on("activeContentItemChanged", { item: GoldenLayout.ContentItem ->
+            val config = item.config.unsafeCast<GoldenLayout.ComponentConfig>()
+
+            if (config.componentName != undefined) {
+                idToChildWidget[config.componentName]?.focus()
+            }
+        })
+    }
+
+    companion object {
+        private const val HEADER_HEIGHT = 22
+
+        /**
+         * This value is used to work around a bug in GoldenLayout related to headerHeight.
+         */
+        private const val HEADER_HEIGHT_DIFF = 4
+
+        private fun createConfig(
+            item: DockedItem,
+            dockedWidgetIds: MutableSet<String>,
+        ): GoldenLayout.Config =
+            obj {
                 settings = obj<GoldenLayout.Settings> {
                     showPopoutIcon = false
                     showMaximiseIcon = false
@@ -69,90 +149,116 @@ class DockWidget(
                     headerHeight = HEADER_HEIGHT
                 }
                 content = arrayOf(
-                    toConfigContent(item, idToCreate)
+                    toGoldenLayoutConfig(item, dockedWidgetIds)
                 )
             }
 
-            // Temporarily set width and height so GoldenLayout initializes correctly.
-            style.width = "1000px"
-            style.height = "700px"
-
-            goldenLayout = GoldenLayout(config, this)
-
-            idToCreate.forEach { (id, create) ->
-                goldenLayout.registerComponent(id) { container: GoldenLayout.Container ->
-                    val node = container.getElement()[0] as Node
-                    val widget = create(scope)
-                    node.addChild(widget)
-                    widget.focus()
-                }
+        private fun toGoldenLayoutConfig(
+            item: DockedItem,
+            dockedWidgetIds: MutableSet<String>,
+        ): GoldenLayout.ItemConfig {
+            val itemType = when (item) {
+                is DockedRow -> "row"
+                is DockedColumn -> "column"
+                is DockedStack -> "stack"
+                is DockedWidget -> "component"
             }
 
-            goldenLayout.init()
+            return when (item) {
+                is DockedWidget -> {
+                    require(dockedWidgetIds.add(item.id)) {
+                        """ID ${item.id} is used more than once."""
+                    }
 
-            style.width = ""
-            style.height = ""
+                    obj<GoldenLayout.ComponentConfig> {
+                        title = item.title
+                        type = "component"
+                        componentName = item.id
+                        isClosable = false
 
-            addDisposable(size.observe { (size) ->
-                goldenLayout.updateSize(size.width, size.height)
-            })
-        }
-
-    override fun internalDispose() {
-        goldenLayout.destroy()
-        super.internalDispose()
-    }
-
-    private fun toConfigContent(
-        item: DockedItem,
-        idToCreate: MutableMap<String, (CoroutineScope) -> Widget>,
-    ): GoldenLayout.ItemConfig {
-        val itemType = when (item) {
-            is DockedRow -> "row"
-            is DockedColumn -> "column"
-            is DockedStack -> "stack"
-            is DockedWidget -> "component"
-        }
-
-        return when (item) {
-            is DockedWidget -> {
-                idToCreate[item.id] = item.createWidget
-
-                obj<GoldenLayout.ComponentConfig> {
-                    title = item.title
-                    type = "component"
-                    componentName = item.id
-                    isClosable = false
-
-                    if (item.flex != null) {
-                        width = item.flex
-                        height = item.flex
+                        if (item.flex != null) {
+                            width = item.flex
+                            height = item.flex
+                        }
                     }
                 }
+
+                is DockedContainer ->
+                    obj {
+                        type = itemType
+                        content = Array(item.items.size) {
+                            toGoldenLayoutConfig(item.items[it], dockedWidgetIds)
+                        }
+
+                        if (item.flex != null) {
+                            width = item.flex
+                            height = item.flex
+                        }
+
+                        if (item is DockedStack) {
+                            activeItemIndex = item.activeItemIndex
+                        }
+                    }
+            }
+        }
+
+        private fun fromGoldenLayoutConfig(
+            item: GoldenLayout.ItemConfig,
+            useWidthAsFlex: Boolean?,
+        ): DockedItem? {
+            val flex = when (useWidthAsFlex) {
+                true -> item.width
+                false -> item.height
+                null -> null
             }
 
-            is DockedContainer ->
-                obj {
-                    type = itemType
-                    content = Array(item.items.size) { toConfigContent(item.items[it], idToCreate) }
+            return when (item.type) {
+                "row" -> DockedRow(
+                    flex,
+                    items = item.content
+                        ?.mapNotNull { fromGoldenLayoutConfig(it, useWidthAsFlex = true) }
+                        ?: emptyList()
+                )
 
-                    if (item.flex != null) {
-                        width = item.flex
-                        height = item.flex
+                "column" -> DockedColumn(
+                    flex,
+                    items = item.content
+                        ?.mapNotNull { fromGoldenLayoutConfig(it, useWidthAsFlex = false) }
+                        ?: emptyList()
+                )
+
+                "stack" -> {
+                    DockedStack(
+                        item.activeItemIndex,
+                        flex,
+                        items = item.content
+                            ?.mapNotNull { fromGoldenLayoutConfig(it, useWidthAsFlex = null) }
+                            ?: emptyList()
+                    )
+                }
+
+                "component" -> {
+                    val id =
+                        (item.unsafeCast<GoldenLayout.ComponentConfig>()).componentName as String?
+                    val title = item.title
+
+                    if (id == null || title == null) {
+                        null
+                    } else {
+                        DockedWidget(id, title, flex)
                     }
                 }
-        }
-    }
 
-    companion object {
+                else -> null
+            }
+        }
+
         init {
             // Use #pw-root for higher specificity than the default GoldenLayout CSS.
-            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
+            @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty", "CssInvalidPropertyValue")
             // language=css
             style("""
                 .pw-core-dock {
-                    width: 100%;
-                    height: 100%;
                     overflow: hidden;
                 }
                 
@@ -171,13 +277,13 @@ class DockWidget(
                     cursor: default;
                     display: inline-flex;
                     align-items: center;
-                    height: 23px;
-                    padding: 0 10px;
+                    height: ${HEADER_HEIGHT - 1}px;
+                    padding: 0 8px;
                     border: var(--pw-border);
                     margin: 0 1px -1px 1px;
                     background-color: hsl(0, 0%, 12%);
                     color: hsl(0, 0%, 75%);
-                    font-size: 13px;
+                    font-size: 12px;
                 }
                 
                 #pw-root .lm_header .lm_tabs .lm_tab:hover {

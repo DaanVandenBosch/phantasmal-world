@@ -1,5 +1,6 @@
 package world.phantasmal.lib.fileFormats.quest
 
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.buffer.Buffer
 import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.ninja.angleToRad
@@ -9,20 +10,21 @@ import kotlin.math.roundToInt
 class QuestNpc(
     var episode: Episode,
     override var areaId: Int,
-    val data: Buffer,
+    override val data: Buffer,
 ) : QuestEntity<NpcType> {
     constructor(
         type: NpcType,
         episode: Episode,
         areaId: Int,
-        wave: Int,
+        wave: Short,
     ) : this(episode, areaId, Buffer.withSize(NPC_BYTE_SIZE)) {
+        setNpcDefaultData(type, data)
         this.type = type
-        // TODO: Set default data.
-        // Set area_id after type, because you might want to overwrite the area_id that type has
+        // Set areaId after type, because you might want to overwrite the areaId that type has
         // determined.
         this.areaId = areaId
-        // TODO: Set wave properties.
+        this.wave = wave
+        this.wave2 = wave.toInt()
     }
 
     var typeId: Short
@@ -69,18 +71,28 @@ class QuestNpc(
             }
         }
 
-    override var sectionId: Int
-        get() = data.getShort(12).toInt()
+    override var sectionId: Short
+        get() = data.getShort(12)
         set(value) {
-            data.setShort(12, value.toShort())
+            data.setShort(12, value)
+        }
+
+    var wave: Short
+        get() = data.getShort(14)
+        set(value) {
+            data.setShort(14, value)
+        }
+
+    var wave2: Int
+        get() = data.getInt(16)
+        set(value) {
+            data.setInt(16, value)
         }
 
     override var position: Vec3
         get() = Vec3(data.getFloat(20), data.getFloat(24), data.getFloat(28))
         set(value) {
-            data.setFloat(20, value.x)
-            data.setFloat(24, value.y)
-            data.setFloat(28, value.z)
+            setPosition(value.x, value.y, value.z)
         }
 
     override var rotation: Vec3
@@ -90,9 +102,16 @@ class QuestNpc(
             angleToRad(data.getInt(40)),
         )
         set(value) {
-            data.setInt(32, radToAngle(value.x))
-            data.setInt(36, radToAngle(value.y))
-            data.setInt(40, radToAngle(value.z))
+            setRotation(value.x, value.y, value.z)
+        }
+
+    /**
+     * Only seems to be valid for non-enemies.
+     */
+    var id: Int
+        get() = data.getFloat(56).roundToInt()
+        set(value) {
+            data.setFloat(56, value.toFloat())
         }
 
     /**
@@ -120,5 +139,17 @@ class QuestNpc(
         require(data.size == NPC_BYTE_SIZE) {
             "Data size should be $NPC_BYTE_SIZE but was ${data.size}."
         }
+    }
+
+    override fun setPosition(x: Float, y: Float, z: Float) {
+        data.setFloat(20, x)
+        data.setFloat(24, y)
+        data.setFloat(28, z)
+    }
+
+    override fun setRotation(x: Float, y: Float, z: Float) {
+        data.setInt(32, radToAngle(x))
+        data.setInt(36, radToAngle(y))
+        data.setInt(40, radToAngle(z))
     }
 }

@@ -1,85 +1,84 @@
 package world.phantasmal.web.questEditor.rendering
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.core.disposable.TrackedDisposable
-import world.phantasmal.lib.fileFormats.quest.Episode
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListValChangeEvent
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.DisposableSupervisedScope
+import world.phantasmal.lib.Episode
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.ListChangeEvent
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.webui.DisposableContainer
 
 /**
  * Loads the necessary area and entity 3D models into [QuestRenderer].
  */
 abstract class QuestMeshManager protected constructor(
-    private val scope: CoroutineScope,
-    questEditorStore: QuestEditorStore,
-    private val renderer: QuestRenderer,
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
-) : TrackedDisposable() {
-    protected val disposer = Disposer()
-
-    private val areaDisposer = disposer.add(Disposer())
-    private val areaMeshManager = AreaMeshManager(renderer, areaAssetLoader)
-    private val npcMeshManager = disposer.add(
-        EntityMeshManager(scope, questEditorStore, renderer, entityAssetLoader)
+    questEditorStore: QuestEditorStore,
+    renderContext: QuestRenderContext,
+) : DisposableContainer() {
+    private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Default))
+    private val areaMeshManager = AreaMeshManager(renderContext, areaAssetLoader)
+    private val npcMeshManager = addDisposable(
+        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader)
     )
-    private val objectMeshManager = disposer.add(
-        EntityMeshManager(scope, questEditorStore, renderer, entityAssetLoader)
+    private val objectMeshManager = addDisposable(
+        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader)
     )
 
-    private var loadJob: Job? = null
+    private var areaLoadJob: Job? = null
+    private var npcLoadJob: Job? = null
+    private var objectLoadJob: Job? = null
 
-    protected fun loadMeshes(
-        episode: Episode?,
-        areaVariant: AreaVariantModel?,
-        npcs: ListVal<QuestNpcModel>,
-        objects: ListVal<QuestObjectModel>,
-    ) {
-        loadJob?.cancel()
-        loadJob = scope.launch {
-            // Reset models.
-            areaDisposer.disposeAll()
+    private var npcObserver: Disposable? = null
+    private var objectObserver: Disposable? = null
+
+    protected fun loadAreaMeshes(episode: Episode?, areaVariant: AreaVariantModel?) {
+        areaLoadJob?.cancel()
+        areaLoadJob = scope.launch {
+            areaMeshManager.load(episode, areaVariant)
+        }
+    }
+
+    protected fun loadNpcMeshes(npcs: ListCell<QuestNpcModel>) {
+        npcLoadJob?.cancel()
+        npcLoadJob = scope.launch {
+            npcObserver?.dispose()
             npcMeshManager.removeAll()
+
+            npcObserver = npcs.observeList(callNow = true, ::npcsChanged)
+        }
+    }
+
+    protected fun loadObjectMeshes(objects: ListCell<QuestObjectModel>) {
+        objectLoadJob?.cancel()
+        objectLoadJob = scope.launch {
+            objectObserver?.dispose()
             objectMeshManager.removeAll()
 
-            renderer.resetCamera()
-
-            // Load area model.
-            areaMeshManager.load(episode, areaVariant)
-
-            // Load entity meshes.
-            areaDisposer.addAll(
-                npcs.observeList(callNow = true, ::npcsChanged),
-                objects.observeList(callNow = true, ::objectsChanged),
-            )
+            objectObserver = objects.observeList(callNow = true, ::objectsChanged)
         }
     }
 
-    override fun internalDispose() {
-        disposer.dispose()
-        super.internalDispose()
-    }
-
-    private fun npcsChanged(change: ListValChangeEvent<QuestNpcModel>) {
-        if (change is ListValChangeEvent.Change) {
-            npcMeshManager.remove(change.removed)
-            npcMeshManager.add(change.inserted)
+    private fun npcsChanged(change: ListChangeEvent<QuestNpcModel>) {
+        if (change is ListChangeEvent.Change) {
+            change.removed.forEach(npcMeshManager::remove)
+            change.inserted.forEach(npcMeshManager::add)
         }
     }
 
-    private fun objectsChanged(change: ListValChangeEvent<QuestObjectModel>) {
-        if (change is ListValChangeEvent.Change) {
-            objectMeshManager.remove(change.removed)
-            objectMeshManager.add(change.inserted)
+    private fun objectsChanged(change: ListChangeEvent<QuestObjectModel>) {
+        if (change is ListChangeEvent.Change) {
+            change.removed.forEach(objectMeshManager::remove)
+            change.inserted.forEach(objectMeshManager::add)
         }
     }
 }

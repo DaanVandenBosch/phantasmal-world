@@ -2,17 +2,26 @@ package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.controllers.PathAwareTab
-import world.phantasmal.web.core.controllers.PathAwareTabController
+import world.phantasmal.web.core.controllers.PathAwareTabContainerController
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls
 
+sealed class HuntOptimizerTab(
+    override val title: String,
+    override val path: String,
+) : PathAwareTab {
+    object Optimize : HuntOptimizerTab("Optimize", HuntOptimizerUrls.optimize)
+    object Methods : HuntOptimizerTab("Methods", HuntOptimizerUrls.methods)
+    object Help : HuntOptimizerTab("Help", HuntOptimizerUrls.help)
+}
+
 class HuntOptimizerController(uiStore: UiStore) :
-    PathAwareTabController<PathAwareTab>(
+    PathAwareTabContainerController<HuntOptimizerTab>(
         uiStore,
         PwToolType.HuntOptimizer,
-        listOf(
-            PathAwareTab("Optimize", HuntOptimizerUrls.optimize),
-            PathAwareTab("Methods", HuntOptimizerUrls.methods),
-            PathAwareTab("Help", HuntOptimizerUrls.help)
+        tabs = listOf(
+            HuntOptimizerTab.Optimize,
+            HuntOptimizerTab.Methods,
+            HuntOptimizerTab.Help,
         )
     )

@@ -3,8 +3,10 @@ package world.phantasmal.testUtils
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 
-abstract class AbstractTestSuite<Ctx : TestContext> {
-    fun test(testBlock: Ctx.() -> Unit) {
+interface AbstractTestSuite<Ctx : TestContext> {
+    fun test(slow: Boolean = false, testBlock: Ctx.() -> Unit) {
+        if (slow && !canExecuteSlowTests()) return
+
         TrackedDisposable.checkNoLeaks(trackPrecise = true) {
             val disposer = Disposer()
 
@@ -14,15 +16,18 @@ abstract class AbstractTestSuite<Ctx : TestContext> {
         }
     }
 
-    fun asyncTest(testBlock: suspend Ctx.() -> Unit) = world.phantasmal.testUtils.asyncTest {
-        TrackedDisposable.checkNoLeaks(trackPrecise = true) {
-            val disposer = Disposer()
+    fun testAsync(slow: Boolean = false, testBlock: suspend Ctx.() -> Unit) =
+        world.phantasmal.testUtils.testAsync lambda@{
+            if (slow && !canExecuteSlowTests()) return@lambda
 
-            testBlock(createContext(disposer))
+            TrackedDisposable.checkNoLeaks(trackPrecise = true) {
+                val disposer = Disposer()
 
-            disposer.dispose()
+                testBlock(createContext(disposer))
+
+                disposer.dispose()
+            }
         }
-    }
 
-    protected abstract fun createContext(disposer: Disposer): Ctx
+    fun createContext(disposer: Disposer): Ctx
 }

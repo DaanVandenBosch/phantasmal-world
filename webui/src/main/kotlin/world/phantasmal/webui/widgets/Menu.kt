@@ -1,37 +1,32 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.*
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 
 class Menu<T : Any>(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
-    items: List<T>? = null,
-    itemsVal: Val<List<T>>? = null,
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
+    private val items: Cell<List<T>> = emptyListCell(),
     private val itemToString: (T) -> String = Any::toString,
     private val onSelect: (T) -> Unit = {},
     private val onCancel: () -> Unit = {},
 ) : Widget(
-    scope,
     visible,
     enabled,
     tooltip,
 ) {
-    private val items: Val<List<T>> = itemsVal ?: value(items ?: emptyList())
     private lateinit var innerElement: HTMLElement
     private var highlightedIndex: Int? = null
     private var highlightedElement: Element? = null
@@ -48,7 +43,7 @@ class Menu<T : Any>(
 
             innerElement = div {
                 className = "pw-menu-inner"
-                onmouseover = ::innerMouseOver
+                onmouseover = ::onInnerMouseOver
 
                 bindChildrenTo(items) { item, index ->
                     div {
@@ -61,7 +56,7 @@ class Menu<T : Any>(
             observe(this@Menu.visible) {
                 if (it) {
                     onDocumentMouseDownListener =
-                        disposableListener(document, "mousedown", ::onDocumentMouseDown)
+                        document.disposableListener("mousedown", ::onDocumentMouseDown)
                 } else {
                     onDocumentMouseDownListener?.dispose()
                     onDocumentMouseDownListener = null
@@ -77,12 +72,16 @@ class Menu<T : Any>(
                 }
             }
 
-            disposableListener(document, "keydown", ::onDocumentKeyDown)
+            observe(items) {
+                clearHighlightItem()
+            }
+
+            addDisposable(document.disposableListener("keydown", ::onDocumentKeyDown))
         }
 
-    override fun internalDispose() {
+    override fun dispose() {
         onDocumentMouseDownListener?.dispose()
-        super.internalDispose()
+        super.dispose()
     }
 
     override fun focus() {
@@ -98,6 +97,28 @@ class Menu<T : Any>(
         }
     }
 
+    fun highlightNext() {
+        highlightItemAt(
+            when (val idx = highlightedIndex) {
+                null, items.value.lastIndex -> 0
+                else -> idx + 1
+            }
+        )
+    }
+
+    fun highlightPrev() {
+        highlightItemAt(
+            when (val idx = highlightedIndex) {
+                null, 0 -> items.value.lastIndex
+                else -> idx - 1
+            }
+        )
+    }
+
+    fun selectHighlighted() {
+        highlightedIndex?.let(::selectItem)
+    }
+
     private fun onMouseUp(e: MouseEvent) {
         val target = e.target
 
@@ -110,28 +131,18 @@ class Menu<T : Any>(
         when (e.key) {
             "ArrowDown" -> {
                 e.preventDefault()
-                highlightItemAt(
-                    when (val idx = highlightedIndex) {
-                        null, items.value.lastIndex -> 0
-                        else -> idx + 1
-                    }
-                )
+                highlightNext()
             }
 
             "ArrowUp" -> {
                 e.preventDefault()
-                highlightItemAt(
-                    when (val idx = highlightedIndex) {
-                        null, 0 -> items.value.lastIndex
-                        else -> idx - 1
-                    }
-                )
+                highlightPrev()
             }
 
             "Enter", " " -> {
                 e.preventDefault()
                 e.stopPropagation()
-                highlightedIndex?.let(::selectItem)
+                selectHighlighted()
             }
         }
     }
@@ -140,7 +151,7 @@ class Menu<T : Any>(
         onCancel()
     }
 
-    private fun innerMouseOver(e: MouseEvent) {
+    private fun onInnerMouseOver(e: MouseEvent) {
         val target = e.target
 
         if (target is HTMLElement) {
@@ -211,7 +222,7 @@ class Menu<T : Any>(
                 }
 
                 .pw-menu > .pw-menu-inner > * {
-                    padding: 4px 8px;
+                    padding: 3px 6px;
                     white-space: nowrap;
                 }
 

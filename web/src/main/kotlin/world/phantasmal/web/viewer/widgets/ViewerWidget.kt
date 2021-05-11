@@ -1,31 +1,49 @@
 package world.phantasmal.web.viewer.widgets
 
-import kotlinx.coroutines.CoroutineScope
-import org.w3c.dom.HTMLCanvasElement
+import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.core.widgets.RendererWidget
+import world.phantasmal.web.viewer.controllers.ViewerController
+import world.phantasmal.web.viewer.controllers.ViewerTab
 import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.widgets.TabContainer
 import world.phantasmal.webui.widgets.Widget
 
-/**
- * Takes ownership of the widget returned by [createToolbar].
- */
 class ViewerWidget(
-    scope: CoroutineScope,
-    private val createToolbar: (CoroutineScope) -> Widget,
-    private val canvas: HTMLCanvasElement,
-    private val renderer: Renderer,
-) : Widget(scope) {
+    private val ctrl: ViewerController,
+    private val createToolbar: () -> Widget,
+    private val createCharacterClassOptionsWidget: () -> CharacterClassOptionsWidget,
+    private val createMeshWidget: () -> Widget,
+    private val createTextureWidget: () -> Widget,
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-viewer-viewer"
 
-            addChild(createToolbar(scope))
-            div {
-                className = "pw-viewer-viewer-container"
+            addChild(createToolbar())
 
-                addChild(RendererWidget(scope, canvas, renderer))
+            div {
+                className = "pw-viewer-viewer-content"
+
+                addChild(SelectionWidget(
+                    ctrl.characterClasses,
+                    ctrl.currentCharacterClass,
+                    { char -> scope.launch { ctrl.setCurrentCharacterClass(char) } },
+                    { it.uiName },
+                ))
+                addChild(createCharacterClassOptionsWidget())
+                addChild(TabContainer(ctrl = ctrl, createWidget = { tab ->
+                    when (tab) {
+                        ViewerTab.Mesh -> createMeshWidget()
+                        ViewerTab.Texture -> createTextureWidget()
+                    }
+                }))
+                addChild(SelectionWidget(
+                    ctrl.animations,
+                    ctrl.currentAnimation,
+                    { animation -> scope.launch { ctrl.setCurrentAnimation(animation) } },
+                    { it.name },
+                    borderLeft = true,
+                ))
             }
         }
 
@@ -38,11 +56,16 @@ class ViewerWidget(
                     display: flex;
                     flex-direction: column;
                 }
-                .pw-viewer-viewer-container {
+                
+                .pw-viewer-viewer-content {
                     flex-grow: 1;
                     display: flex;
                     flex-direction: row;
                     overflow: hidden;
+                }
+                
+                .pw-viewer-viewer-content > .pw-tab-container {
+                    flex-grow: 1;
                 }
             """.trimIndent())
         }

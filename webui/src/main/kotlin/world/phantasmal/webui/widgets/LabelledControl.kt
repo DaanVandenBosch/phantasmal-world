@@ -1,7 +1,6 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 
 enum class LabelPosition {
     Before,
@@ -9,32 +8,20 @@ enum class LabelPosition {
 }
 
 abstract class LabelledControl(
-    scope: CoroutineScope,
-    visible: Val<Boolean>,
-    enabled: Val<Boolean>,
-    tooltip: Val<String?>,
+    visible: Cell<Boolean>,
+    enabled: Cell<Boolean>,
+    tooltip: Cell<String?>,
     label: String?,
-    labelVal: Val<String>?,
+    labelCell: Cell<String>?,
     val preferredLabelPosition: LabelPosition,
-) : Control(scope, visible, enabled, tooltip) {
+) : Control(visible, enabled, tooltip) {
+    protected val labelId: String = uniqueId()
+
     val label: Label? by lazy {
-        if (label == null && labelVal == null) {
+        if (label == null && labelCell == null) {
             null
         } else {
-            var id = element.id
-
-            if (id.isBlank()) {
-                id = uniqueId()
-                element.id = id
-            }
-
-            Label(scope, visible, enabled, label, labelVal, htmlFor = id)
+            Label(visible, enabled, label, labelCell, htmlFor = labelId)
         }
-    }
-
-    companion object {
-        private var id = 0
-
-        private fun uniqueId() = "pw-labelled-control-id-${id++}"
     }
 }

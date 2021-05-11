@@ -5,23 +5,28 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.datetime.Clock
 import mu.KotlinLoggingConfiguration
 import mu.KotlinLoggingLevel
+import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.PopStateEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.application.Application
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
-import world.phantasmal.web.externals.babylon.Engine
+import world.phantasmal.web.externals.three.WebGLRenderer
+import world.phantasmal.web.shared.JSON_FORMAT
+import world.phantasmal.web.shared.logging.LogAppender
+import world.phantasmal.web.shared.logging.LogFormatter
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.root
+import world.phantasmal.webui.obj
 
 fun main() {
     if (document.body != null) {
@@ -33,6 +38,7 @@ fun main() {
 
 private fun init(): Disposable {
     KotlinLoggingConfiguration.FORMATTER = LogFormatter()
+    KotlinLoggingConfiguration.APPENDER = LogAppender()
 
     if (window.location.hostname == "localhost") {
         KotlinLoggingConfiguration.LOG_LEVEL = KotlinLoggingLevel.TRACE
@@ -44,40 +50,55 @@ private fun init(): Disposable {
 
     val httpClient = HttpClient {
         install(JsonFeature) {
-            serializer = KotlinxSerializer(kotlinx.serialization.json.Json {
-                ignoreUnknownKeys = true
-            })
+            serializer = KotlinxSerializer(JSON_FORMAT)
         }
     }
     disposer.add(disposable { httpClient.cancel() })
 
-    val scope = CoroutineScope(SupervisorJob())
-    disposer.add(disposable { scope.cancel() })
-
     disposer.add(
         Application(
-            scope,
             rootElement,
             AssetLoader(httpClient),
             disposer.add(HistoryApplicationUrl()),
-            createEngine = { Engine(it) }
+            ::createThreeRenderer,
+            Clock.System,
         )
     )
 
     return disposer
 }
 
-class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
+private fun createThreeRenderer(canvas: HTMLCanvasElement): DisposableThreeRenderer =
+    object : TrackedDisposable(), DisposableThreeRenderer {
+        override val renderer = WebGLRenderer(obj {
+            this.canvas = canvas
+            antialias = true
+            alpha = true
+        })
+
+        init {
+            renderer.debug.checkShaderErrors = false
+            renderer.setPixelRatio(window.devicePixelRatio)
+        }
+
+        override fun dispose() {
+            renderer.dispose()
+            super.dispose()
+        }
+    }
+
+private class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
     private val path: String get() = window.location.pathname
 
-    override val url = mutableVal(window.location.hash.substring(1))
+    override val url = mutableCell(window.location.hash.substring(1))
 
-    private val popStateListener = disposableListener<PopStateEvent>(window, "popstate", {
+    private val popStateListener = window.disposableListener<PopStateEvent>("popstate", {
         url.value = window.location.hash.substring(1)
     })
 
-    override fun internalDispose() {
+    override fun dispose() {
         popStateListener.dispose()
+        super.dispose()
     }
 
     override fun pushUrl(url: String) {

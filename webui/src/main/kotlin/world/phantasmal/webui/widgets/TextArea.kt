@@ -1,35 +1,32 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.Node
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.emptyStringCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.textarea
 
 class TextArea(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    private val value: Val<String> = value(""),
+    private val value: Cell<String> = emptyStringCell(),
     private val onChange: ((String) -> Unit)? = null,
     private val maxLength: Int? = null,
     private val fontFamily: String? = null,
     private val rows: Int? = null,
     private val cols: Int? = null,
 ) : LabelledControl(
-    scope,
     visible,
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
 ) {
     override fun Node.createElement() =
@@ -37,6 +34,7 @@ class TextArea(
             className = "pw-text-area"
 
             textarea {
+                id = labelId
                 className = "pw-text-area-inner"
 
                 observe(this@TextArea.enabled) { disabled = !it }
@@ -74,7 +72,7 @@ class TextArea(
                     background-color: var(--pw-input-bg-color);
                     color: var(--pw-input-text-color);
                     outline: none;
-                    font-size: 13px;
+                    font-size: 12px;
                 }
 
                 .pw-text-area:hover {

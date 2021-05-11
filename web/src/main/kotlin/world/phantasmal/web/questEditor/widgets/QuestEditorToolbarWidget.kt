@@ -1,41 +1,54 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.lib.fileFormats.quest.Episode
+import org.w3c.dom.events.KeyboardEvent
+import world.phantasmal.lib.Episode
+import world.phantasmal.lib.fileFormats.quest.Version
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.list.listCell
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.*
 
-class QuestEditorToolbarWidget(
-    scope: CoroutineScope,
-    private val ctrl: QuestEditorToolbarController,
-) : Widget(scope) {
+class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-toolbar"
 
             addChild(Toolbar(
-                scope,
                 children = listOf(
-                    Button(
-                        scope,
+                    Dropdown(
                         text = "New quest",
                         iconLeft = Icon.NewFile,
-                        onClick = { scope.launch { ctrl.createNewQuest(Episode.I) } },
+                        items = listCell(Episode.I),
+                        itemToString = { "Episode $it" },
+                        onSelect = { scope.launch { ctrl.createNewQuest(it) } },
                     ),
                     FileButton(
-                        scope,
                         text = "Open file...",
+                        tooltip = cell("Open a quest file (Ctrl-O)"),
                         iconLeft = Icon.File,
-                        accept = ".bin, .dat, .qst",
+                        types = ctrl.supportedFileTypes,
                         multiple = true,
                         filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
                     ),
                     Button(
-                        scope,
+                        text = "Save",
+                        iconLeft = Icon.Save,
+                        enabled = ctrl.saveEnabled,
+                        tooltip = ctrl.saveTooltip,
+                        onClick = { scope.launch { ctrl.save() } },
+                    ),
+                    Button(
+                        text = "Save as...",
+                        iconLeft = Icon.Save,
+                        enabled = ctrl.saveAsEnabled,
+                        tooltip = cell("Save this quest to a new file (Ctrl-Shift-S)"),
+                        onClick = { ctrl.saveAs() },
+                    ),
+                    Button(
                         text = "Undo",
                         iconLeft = Icon.Undo,
                         enabled = ctrl.undoEnabled,
@@ -43,7 +56,6 @@ class QuestEditorToolbarWidget(
                         onClick = { ctrl.undo() },
                     ),
                     Button(
-                        scope,
                         text = "Redo",
                         iconLeft = Icon.Redo,
                         enabled = ctrl.redoEnabled,
@@ -51,14 +63,101 @@ class QuestEditorToolbarWidget(
                         onClick = { ctrl.redo() },
                     ),
                     Select(
-                        scope,
                         enabled = ctrl.areaSelectEnabled,
-                        itemsVal = ctrl.areas,
+                        items = ctrl.areas,
                         itemToString = { it.label },
-                        selectedVal = ctrl.currentArea,
+                        selected = ctrl.currentArea,
                         onSelect = ctrl::setCurrentArea,
+                    ),
+                    Checkbox(
+                        label = "Simple view",
+                        tooltip = cell(
+                            "Whether the collision or the render geometry should be shown",
+                        ),
+                        checked = ctrl.showCollisionGeometry,
+                        onChange = ctrl::setShowCollisionGeometry,
                     )
                 )
             ))
+
+            val saveAsDialog = addDisposable(Dialog(
+                visible = ctrl.saveAsDialogVisible,
+                title = cell("Save As"),
+                content = {
+                    div {
+                        className = "pw-quest-editor-toolbar-save-as"
+
+                        if (ctrl.showSaveAsDialogNameField) {
+                            val filenameInput = TextInput(
+                                label = "File name:",
+                                value = ctrl.filename,
+                                onChange = ctrl::setFilename,
+                            )
+                            addWidget(filenameInput.label!!)
+                            addWidget(filenameInput)
+                        }
+
+                        val versionSelect = Select(
+                            label = "Version:",
+                            items = listCell(Version.GC, Version.BB),
+                            selected = ctrl.version,
+                            itemToString = {
+                                when (it) {
+                                    Version.DC -> "Dreamcast"
+                                    Version.GC -> "GameCube"
+                                    Version.PC -> "PC"
+                                    Version.BB -> "BlueBurst"
+                                }
+                            },
+                            onSelect = ctrl::setVersion,
+                        )
+                        addWidget(versionSelect.label!!)
+                        addWidget(versionSelect)
+                    }
+                },
+                footer = {
+                    addWidget(Button(
+                        text = "Save",
+                        onClick = { scope.launch { ctrl.saveAsDialogSave() } },
+                    ))
+                    addWidget(Button(
+                        text = "Cancel",
+                        onClick = { ctrl.dismissSaveAsDialog() },
+                    ))
+                },
+                onDismiss = ctrl::dismissSaveAsDialog,
+            ))
+
+            saveAsDialog.dialogElement.addEventListener("keydown", { e ->
+                if ((e as KeyboardEvent).key == "Enter") {
+                    scope.launch { ctrl.saveAsDialogSave() }
+                }
+            })
+
+            addDisposable(ResultDialog(
+                visible = ctrl.resultDialogVisible,
+                result = ctrl.result,
+                onDismiss = ctrl::dismissResultDialog,
+            ))
         }
+
+    companion object {
+        init {
+            @Suppress("CssUnusedSymbol")
+            // language=css
+            style("""
+                .pw-quest-editor-toolbar-save-as {
+                    display: grid;
+                    grid-template-columns: 100px max-content;
+                    grid-column-gap: 4px;
+                    grid-row-gap: 4px;
+                    align-items: center;
+                }
+
+                .pw-quest-editor-toolbar-save-as .pw-input {
+                    margin: 1px;
+                }
+            """.trimIndent())
+        }
+    }
 }

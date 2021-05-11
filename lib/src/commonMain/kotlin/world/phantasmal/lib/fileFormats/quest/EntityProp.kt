@@ -1,8 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
 /**
- * Represents a configurable property for accessing parts of entity data of which the use is not
- * fully understood or ambiguous.
+ * Represents an entity type-specific property for accessing ambiguous parts of the entity data.
  */
 class EntityProp(
     val name: String,
@@ -11,11 +10,6 @@ class EntityProp(
 )
 
 enum class EntityPropType {
-    U8,
-    U16,
-    U32,
-    I8,
-    I16,
     I32,
     F32,
 

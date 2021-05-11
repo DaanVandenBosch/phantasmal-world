@@ -46,14 +46,15 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 
 - Area geometry
     - Collision geometry (c.rel)
-    - ***Rendering geometry (n.rel)***
-        - ***Textures***
+    - Rendering geometry (n.rel)
+        - Textures
+        - ***Hide roofs and walls***
 - NPC/object geometry
     - Textures
 - Transparency
     - ***Order independent transparency***
 - ***Mini-map***
-- ***Top-down view (orthogonal view might suffice?)***
+- ***Top-down, simplified view (orthogonal view might suffice?)***
 - ***Add "shadow" to entities to more easily see where floating entities are positioned***
     - ***MVP: a single line***
 - ***Show positions and radii from the relevant script instructions***
@@ -80,15 +81,15 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - Add events
 - Delete event
     - ***Delete coupled NPCs if requested***
-- ***Add parent-child relationship***
-- ***Remove parent-child relationship***
+- ***Easy navigations to parent and child events***
 - Edit event delay
+- ***Go to related event via entity view***
 
 ### Event Actions
 
 - Add/Delete
 - Lock/unlock doors
-- ***Spawn NPCs***
+- Spawn NPCs
 - ***Reorder actions***
 
 ## Script Byte Code
@@ -103,6 +104,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - Strings
 - Labels
 - Interpret code called from NPCs and objects as code
+- Interpret segments of unknown type as code if possible
 
 ## Script Assembly Editor
 
@@ -137,6 +139,7 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 - ***Show reserved register usage on hover over***
 - ***When saving, ask user whether to really save when asm contains errors***
 - ***Theme selection***
+- ***Easily switch between segment types***
 
 ## Debugger
 
@@ -156,9 +159,11 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 
 ## Bugs
 
-- [Script Assembly Editor](#script-assembly-editor): Go to definition doesn't work in RT (#231), PW2
-(#234) and Magnitude of Metal (#1, can jump to label 207 from line 433, but not from line 465)
 - When a modal dialog is open, global keybindings should be disabled
+- Improve the default camera target for Crater Interior
+- Creating a new quest discards changes to previously open quest without asking user
+- Opening a new file discards changes to previously open quest without asking user
+- Toggling "Inline args" clears the undo stack
 - Entities with rendering issues:
     - Caves 4 Button door
     - Pofuilly Slime
@@ -169,10 +174,9 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - 21st Century
     - Light rays - used in forest and CCA
     - Big CCA Door Switch
-    - Laser Detect - used in CCA
-    - Wide Glass Wall (breakable) - used in Seabed
-    - item box cca
-    - Desert Fixed Type Box (Breakable Crystals)
-    - Merissa A
-    - Merissa AA
-- [Event Actions](#Event Actions): Editing event actions can't be undone
+        - Laser Detect - used in CCA
+        - Wide Glass Wall (breakable) - used in Seabed
+        - item box cca
+        - Desert Fixed Type Box (Breakable Crystals)
+        - Merissa A
+        - Merissa AA

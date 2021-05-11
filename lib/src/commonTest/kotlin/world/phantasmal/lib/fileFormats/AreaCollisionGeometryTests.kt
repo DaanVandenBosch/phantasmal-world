@@ -6,9 +6,9 @@ import world.phantasmal.testUtils.assertCloseTo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class AreaCollisionGeometryTests : LibTestSuite() {
+class AreaCollisionGeometryTests : LibTestSuite {
     @Test
-    fun parse_forest_1() = asyncTest {
+    fun parse_forest_1() = testAsync {
         val obj = parseAreaCollisionGeometry(readFile("/map_forest01c.rel"))
 
         assertEquals(69, obj.meshes.size)

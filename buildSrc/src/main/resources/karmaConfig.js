@@ -6,12 +6,12 @@ function ResourceLoaderMiddleware() {
 
     return function (request, response, next) {
         try {
-            const content = fs.readFileSync(PROJECT_PATH + '/build/processedResources/js/test' + request.originalUrl);
+            const content = fs.readFileSync(PROJECT_PATH + '/build/processedResources/js/test' + decodeURI(request.originalUrl));
             response.writeHead(200);
             response.end(content);
         } catch (ignored) {
             try {
-                const content = fs.readFileSync(PROJECT_PATH + '/build/processedResources/js/main' + request.originalUrl);
+                const content = fs.readFileSync(PROJECT_PATH + '/build/processedResources/js/main' + decodeURI(request.originalUrl));
                 response.writeHead(200);
                 response.end(content);
             } catch (ignored) {

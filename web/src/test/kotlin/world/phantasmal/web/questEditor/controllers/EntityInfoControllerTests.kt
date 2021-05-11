@@ -1,12 +1,11 @@
 package world.phantasmal.web.questEditor.controllers
 
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.Vec3
-import world.phantasmal.lib.fileFormats.quest.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
 import world.phantasmal.testUtils.assertCloseTo
 import world.phantasmal.web.questEditor.models.QuestNpcModel
-import world.phantasmal.web.questEditor.models.WaveModel
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
@@ -16,10 +15,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class EntityInfoControllerTests : WebTestSuite() {
+class EntityInfoControllerTests : WebTestSuite {
     @Test
-    fun test_unavailable_and_enabled() = asyncTest {
-        val ctrl = EntityInfoController(components.questEditorStore)
+    fun test_unavailable_and_enabled() = testAsync {
+        val ctrl =
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
         assertTrue(ctrl.unavailable.value)
         assertFalse(ctrl.enabled.value)
@@ -37,21 +37,22 @@ class EntityInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun can_read_regular_properties() = asyncTest {
-        val ctrl = EntityInfoController(components.questEditorStore)
+    fun can_read_regular_properties() = testAsync {
+        val ctrl =
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
         val questNpc = QuestNpc(NpcType.Booma, Episode.I, areaId = 10, wave = 5)
         questNpc.sectionId = 7
         questNpc.position = Vec3(8f, 16f, 32f)
         questNpc.rotation = Vec3(PI.toFloat() / 4, PI.toFloat() / 2, PI.toFloat())
-        val npc = QuestNpcModel(questNpc, WaveModel(5, 10, 7))
+        val npc = QuestNpcModel(questNpc, 5)
         components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
         components.questEditorStore.setSelectedEntity(npc)
 
         assertEquals("NPC", ctrl.type.value)
         assertEquals("Booma", ctrl.name.value)
-        assertEquals("7", ctrl.sectionId.value)
-        assertEquals("5", ctrl.wave.value)
+        assertEquals(7, ctrl.sectionId.value)
+        assertEquals(5, ctrl.waveId.value)
         assertFalse(ctrl.waveHidden.value)
         assertEquals(8.0, ctrl.posX.value)
         assertEquals(16.0, ctrl.posY.value)
@@ -62,8 +63,9 @@ class EntityInfoControllerTests : WebTestSuite() {
     }
 
     @Test
-    fun can_set_regular_properties_undo_and_redo() = asyncTest {
-        val ctrl = EntityInfoController(components.questEditorStore)
+    fun can_set_regular_properties_undo_and_redo() = testAsync {
+        val ctrl =
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
 
         val npc = createQuestNpcModel(NpcType.Principal, Episode.I)
         components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
@@ -115,5 +117,25 @@ class EntityInfoControllerTests : WebTestSuite() {
         assertCloseTo(50.0, ctrl.rotX.value)
         assertCloseTo(25.4, ctrl.rotY.value)
         assertCloseTo(12.5, ctrl.rotZ.value)
+    }
+
+    @Test
+    fun when_focused_main_undo_becomes_current_undo() = testAsync {
+        val store = components.questEditorStore
+        val ctrl = disposer.add(EntityInfoController(components.areaStore, store))
+
+        // Put something on the undo stack.
+        val npc = createQuestNpcModel(NpcType.Principal, Episode.I)
+        store.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
+        store.setSelectedEntity(npc)
+
+        ctrl.setWaveId(99)
+
+        components.undoManager.makeNopCurrent()
+
+        // After focusing, the main undo stack becomes the current undo and we can undo.
+        ctrl.focused()
+
+        assertTrue(store.canUndo.value)
     }
 }

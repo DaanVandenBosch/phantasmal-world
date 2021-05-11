@@ -1,41 +1,39 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.coroutines.CoroutineScope
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.nullVal
-import world.phantasmal.observable.value.trueVal
-import world.phantasmal.observable.value.value
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.emptyStringCell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 
 class TextInput(
-    scope: CoroutineScope,
-    visible: Val<Boolean> = trueVal(),
-    enabled: Val<Boolean> = trueVal(),
-    tooltip: Val<String?> = nullVal(),
+    visible: Cell<Boolean> = trueCell(),
+    enabled: Cell<Boolean> = trueCell(),
+    tooltip: Cell<String?> = nullCell(),
     label: String? = null,
-    labelVal: Val<String>? = null,
+    labelCell: Cell<String>? = null,
     preferredLabelPosition: LabelPosition = LabelPosition.Before,
-    value: Val<String> = value(""),
+    value: Cell<String> = emptyStringCell(),
     onChange: (String) -> Unit = {},
-    maxLength: Int? = null,
+    private val maxLength: Int? = null,
 ) : Input<String>(
-    scope,
     visible,
     enabled,
     tooltip,
     label,
-    labelVal,
+    labelCell,
     preferredLabelPosition,
     className = "pw-text-input",
-    inputClassName = "pw-number-text-inner",
-    inputType = "text",
     value,
     onChange,
-    maxLength,
-    min = null,
-    max = null,
-    step = null
 ) {
+    override fun interceptInputElement(input: HTMLInputElement) {
+        super.interceptInputElement(input)
+
+        input.type = "text"
+        maxLength?.let { input.maxLength = it }
+    }
+
     override fun getInputValue(input: HTMLInputElement): String = input.value
 
     override fun setInputValue(input: HTMLInputElement, value: String) {

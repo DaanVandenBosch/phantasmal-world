@@ -1,7 +1,7 @@
 package world.phantasmal.lib.fileFormats.quest
 
-fun objectTypeFromId(id: Int): ObjectType =
-    when (id) {
+fun objectTypeFromId(id: Short): ObjectType =
+    when (id.toInt()) {
         0 -> ObjectType.PlayerSet
         1 -> ObjectType.Particle
         2 -> ObjectType.Teleporter

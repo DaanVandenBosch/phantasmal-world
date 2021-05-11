@@ -5,14 +5,14 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.Observer
-import world.phantasmal.observable.value.Val
+import world.phantasmal.observable.cell.Cell
 
 abstract class DisposableContainer : TrackedDisposable() {
     private val disposer = Disposer()
 
-    override fun internalDispose() {
+    override fun dispose() {
         disposer.dispose()
-        super.internalDispose()
+        super.dispose()
     }
 
     protected fun <T : Disposable> addDisposable(disposable: T): T =
@@ -22,9 +22,16 @@ abstract class DisposableContainer : TrackedDisposable() {
         disposer.addAll(*disposables)
     }
 
+    /**
+     * Removes and by default disposes the given [disposable].
+     */
+    protected fun removeDisposable(disposable: Disposable, dispose: Boolean = true) {
+        disposer.remove(disposable, dispose)
+    }
+
     protected fun <V1> observe(observable: Observable<V1>, operation: (V1) -> Unit) {
         addDisposable(
-            if (observable is Val<V1>) {
+            if (observable is Cell<V1>) {
                 observable.observe(callNow = true) { operation(it.value) }
             } else {
                 observable.observe { operation(it.value) }
@@ -33,8 +40,8 @@ abstract class DisposableContainer : TrackedDisposable() {
     }
 
     protected fun <V1, V2> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
+        v1: Cell<V1>,
+        v2: Cell<V2>,
         operation: (V1, V2) -> Unit,
     ) {
         val observer: Observer<*> = {
@@ -48,9 +55,9 @@ abstract class DisposableContainer : TrackedDisposable() {
     }
 
     protected fun <V1, V2, V3> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
-        v3: Val<V3>,
+        v1: Cell<V1>,
+        v2: Cell<V2>,
+        v3: Cell<V3>,
         operation: (V1, V2, V3) -> Unit,
     ) {
         val observer: Observer<*> = {
@@ -65,10 +72,10 @@ abstract class DisposableContainer : TrackedDisposable() {
     }
 
     protected fun <V1, V2, V3, V4> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
-        v3: Val<V3>,
-        v4: Val<V4>,
+        v1: Cell<V1>,
+        v2: Cell<V2>,
+        v3: Cell<V3>,
+        v4: Cell<V4>,
         operation: (V1, V2, V3, V4) -> Unit,
     ) {
         val observer: Observer<*> = {
@@ -84,11 +91,11 @@ abstract class DisposableContainer : TrackedDisposable() {
     }
 
     protected fun <V1, V2, V3, V4, V5> observe(
-        v1: Val<V1>,
-        v2: Val<V2>,
-        v3: Val<V3>,
-        v4: Val<V4>,
-        v5: Val<V5>,
+        v1: Cell<V1>,
+        v2: Cell<V2>,
+        v3: Cell<V3>,
+        v4: Cell<V4>,
+        v5: Cell<V5>,
         operation: (V1, V2, V3, V4, V5) -> Unit,
     ) {
         val observer: Observer<*> = {

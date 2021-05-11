@@ -1,5 +1,8 @@
 package world.phantasmal.core.disposable
 
+/**
+ * Container for disposables that disposes the contained disposables when it is disposed.
+ */
 class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
     private val disposables = mutableListOf(*disposables)
 
@@ -12,6 +15,13 @@ class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
         require(!disposed) { "Disposer already disposed." }
 
         disposables.add(disposable)
+        return disposable
+    }
+
+    fun <T : Disposable> add(index: Int, disposable: T): T {
+        require(!disposed) { "Disposer already disposed." }
+
+        disposables.add(index, disposable)
         return disposable
     }
 
@@ -36,19 +46,20 @@ class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
     fun isEmpty(): Boolean = disposables.isEmpty()
 
     /**
-     * Removes and disposes the given [disposable].
+     * Removes and by default disposes the given [disposable].
      */
-    fun remove(disposable: Disposable) {
+    fun remove(disposable: Disposable, dispose: Boolean = true) {
         disposables.remove(disposable)
-        disposable.dispose()
+        if (dispose) disposable.dispose()
     }
 
     /**
      * Removes and disposes [amount] disposables at the given [index].
      */
-    fun removeAt(index: Int, amount: Int = 1) {
+    fun removeAt(index: Int, amount: Int = 1, dispose: Boolean = true) {
         repeat(amount) {
-            disposables.removeAt(index).dispose()
+            val disposable = disposables.removeAt(index)
+            if (dispose) disposable.dispose()
         }
     }
 
@@ -60,7 +71,8 @@ class Disposer(vararg disposables: Disposable) : TrackedDisposable() {
         disposables.clear()
     }
 
-    override fun internalDispose() {
+    override fun dispose() {
         disposeAll()
+        super.dispose()
     }
 }

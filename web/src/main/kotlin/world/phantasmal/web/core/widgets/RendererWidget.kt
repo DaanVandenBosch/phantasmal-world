@@ -1,23 +1,16 @@
 package world.phantasmal.web.core.widgets
 
-import kotlinx.coroutines.CoroutineScope
-import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Node
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
-import kotlin.math.floor
 
 class RendererWidget(
-    scope: CoroutineScope,
-    private val canvas: HTMLCanvasElement,
     private val renderer: Renderer,
-) : Widget(scope) {
-
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-core-renderer"
-            tabIndex = -1
 
             observe(selfOrAncestorVisible) { visible ->
                 if (visible) {
@@ -28,11 +21,10 @@ class RendererWidget(
             }
 
             addDisposable(size.observe { (size) ->
-                canvas.width = floor(size.width).toInt()
-                canvas.height = floor(size.height).toInt()
+                renderer.setSize(size.width.toInt(), size.height.toInt())
             })
 
-            append(canvas)
+            append(renderer.canvas)
         }
 
     companion object {
@@ -44,6 +36,7 @@ class RendererWidget(
                     width: 100%;
                     height: 100%;
                     outline: none;
+                    background-color: #181818;
                 }
             """.trimIndent())
         }

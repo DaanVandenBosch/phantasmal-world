@@ -2,7 +2,7 @@ package world.phantasmal.lib.fileFormats
 
 import world.phantasmal.lib.cursor.Cursor
 
-class CollisionObject(
+class CollisionGeometry(
     val meshes: List<CollisionMesh>,
 )
 
@@ -19,7 +19,7 @@ class CollisionTriangle(
     val normal: Vec3,
 )
 
-fun parseAreaCollisionGeometry(cursor: Cursor): CollisionObject {
+fun parseAreaCollisionGeometry(cursor: Cursor): CollisionGeometry {
     val dataOffset = parseRel(cursor, parseIndex = false).dataOffset
     cursor.seekStart(dataOffset)
     val mainOffsetTableOffset = cursor.int()
@@ -74,5 +74,5 @@ fun parseAreaCollisionGeometry(cursor: Cursor): CollisionObject {
         cursor.seekStart(startPos + 24)
     }
 
-    return CollisionObject(meshes)
+    return CollisionGeometry(meshes)
 }

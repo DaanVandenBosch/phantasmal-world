@@ -1,40 +1,45 @@
 package world.phantasmal.web.huntOptimizer.stores
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import world.phantasmal.lib.fileFormats.quest.Episode
+import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.mutableListVal
-import world.phantasmal.web.core.IoDispatcher
-import world.phantasmal.web.core.UiDispatcher
+import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.huntOptimizer.dto.QuestDto
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
+import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
+import world.phantasmal.web.shared.dto.QuestDto
 import world.phantasmal.webui.stores.Store
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
+import kotlin.time.Duration
 import kotlin.time.minutes
 
 class HuntMethodStore(
-    scope: CoroutineScope,
-    uiStore: UiStore,
+    private val uiStore: UiStore,
     private val assetLoader: AssetLoader,
-) : Store(scope) {
-    private val _methods = mutableListVal<HuntMethodModel>()
+    private val huntMethodPersister: HuntMethodPersister,
+) : Store() {
+    private val _methods = mutableListCell<HuntMethodModel> { arrayOf(it.time) }
 
-    val methods: ListVal<HuntMethodModel> by lazy {
+    val methods: ListCell<HuntMethodModel> by lazy {
         observe(uiStore.server) { loadMethods(it) }
         _methods
     }
 
+    suspend fun setMethodTime(method: HuntMethodModel, time: Duration) {
+        method.setUserTime(time)
+        huntMethodPersister.persistMethodUserTimes(methods.value, uiStore.server.value)
+    }
+
     private fun loadMethods(server: Server) {
-        launch(IoDispatcher) {
+        scope.launch(Dispatchers.Default) {
             val quests = assetLoader.load<List<QuestDto>>("/quests.${server.slug}.json")
 
             val methods = quests
@@ -93,8 +98,11 @@ class HuntMethodStore(
                         duration
                     )
                 }
+                .toList()
 
-            withContext(UiDispatcher) {
+            huntMethodPersister.loadMethodUserTimes(methods, server)
+
+            withContext(Dispatchers.Main) {
                 _methods.replaceAll(methods)
             }
         }

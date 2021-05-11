@@ -2,34 +2,39 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
-import org.w3c.dom.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.w3c.dom.Element
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLStyleElement
+import org.w3c.dom.Node
+import org.w3c.dom.pointerevents.PointerEvent
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.DisposableSupervisedScope
+import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.value.*
-import world.phantasmal.observable.value.list.ListVal
-import world.phantasmal.observable.value.list.ListValChangeEvent
+import world.phantasmal.observable.cell.*
 import world.phantasmal.webui.DisposableContainer
-import world.phantasmal.webui.dom.HTMLElementSizeVal
-import world.phantasmal.webui.dom.Size
+import world.phantasmal.webui.dom.*
 
 abstract class Widget(
-    protected val scope: CoroutineScope,
     /**
      * By default determines the hidden attribute of its [element].
      */
-    val visible: Val<Boolean> = trueVal(),
+    val visible: Cell<Boolean> = trueCell(),
     /**
      * By default determines the disabled attribute of its [element] and whether or not the
      * "pw-disabled" class is added.
      */
-    val enabled: Val<Boolean> = trueVal(),
-    val tooltip: Val<String?> = nullVal(),
+    val enabled: Cell<Boolean> = trueCell(),
+    val tooltip: Cell<String?> = nullCell(),
 ) : DisposableContainer() {
-    private val _ancestorVisible = mutableVal(true)
+    private val _ancestorVisible = mutableCell(true)
     private val _children = mutableListOf<Widget>()
-    private val _size = HTMLElementSizeVal()
+    private val _size = HTMLElementSizeCell()
 
     private val elementDelegate = lazy {
-        val el = document.createDocumentFragment().createElement()
+        val el = documentFragment().createElement()
 
         observe(visible) { visible ->
             el.hidden = !visible
@@ -60,6 +65,10 @@ abstract class Widget(
         el
     }
 
+    protected val scope by lazy {
+        addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
+    }
+
     /**
      * This widget's outermost DOM element.
      */
@@ -68,14 +77,14 @@ abstract class Widget(
     /**
      * True if this widget's ancestors are [visible], false otherwise.
      */
-    val ancestorVisible: Val<Boolean> = _ancestorVisible
+    val ancestorVisible: Cell<Boolean> = _ancestorVisible
 
     /**
      * True if this widget and all of its ancestors are [visible], false otherwise.
      */
-    val selfOrAncestorVisible: Val<Boolean> = visible and ancestorVisible
+    val selfOrAncestorVisible: Cell<Boolean> = visible and ancestorVisible
 
-    val size: Val<Size> = _size
+    val size: Cell<Size> = _size
 
     val children: List<Widget> = _children
 
@@ -93,13 +102,13 @@ abstract class Widget(
      */
     protected open fun interceptElement(element: HTMLElement) {}
 
-    override fun internalDispose() {
+    override fun dispose() {
         if (elementDelegate.isInitialized()) {
             element.remove()
         }
 
         _children.clear()
-        super.internalDispose()
+        super.dispose()
     }
 
     protected fun Node.text(observable: Observable<String>) {
@@ -110,11 +119,21 @@ abstract class Widget(
         observe(observable) { hidden = it }
     }
 
+    protected fun HTMLElement.toggleClass(className: String, observable: Observable<Boolean>) {
+        observe(observable) {
+            if (it) classList.add(className)
+            else classList.remove(className)
+        }
+    }
+
     /**
      * Appends a widget's element to the receiving node.
      */
-    protected fun <T : Widget> Node.addWidget(widget: T): T {
-        addDisposable(widget)
+    protected fun <T : Widget> Node.addWidget(widget: T, addToDisposer: Boolean = true): T {
+        if (addToDisposer) {
+            addDisposable(widget)
+        }
+
         appendChild(widget.element)
         return widget
     }
@@ -122,71 +141,72 @@ abstract class Widget(
     /**
      * Adds a child widget to [children] and appends its element to the receiving node.
      */
-    protected fun <T : Widget> Node.addChild(child: T): T {
-        addDisposable(child)
+    protected fun <T : Widget> Node.addChild(child: T, addToDisposer: Boolean = true): T {
+        if (addToDisposer) {
+            addDisposable(child)
+        }
+
         _children.add(child)
         setAncestorVisible(child, selfOrAncestorVisible.value)
         appendChild(child.element)
         return child
     }
 
-    protected fun <T> Element.bindChildrenTo(
-        list: Val<List<T>>,
-        createChild: Node.(T, Int) -> Node,
-    ) {
-        if (list is ListVal) {
-            bindChildrenTo(list, createChild)
-        } else {
-            observe(list) { items ->
-                innerHTML = ""
-
-                val frag = document.createDocumentFragment()
-
-                items.forEachIndexed { i, item ->
-                    frag.createChild(item, i)
-                }
-
-                appendChild(frag)
-            }
-        }
+    /**
+     * Removes a child widget from [children] and disposes it.
+     */
+    protected fun removeChild(child: Widget, dispose: Boolean = true) {
+        removeDisposable(child, dispose)
+        _children.remove(child)
     }
 
     protected fun <T> Element.bindChildrenTo(
-        list: ListVal<T>,
-        createChild: Node.(T, Int) -> Node,
+        list: Cell<List<T>>,
+        createChild: Node.(T, index: Int) -> Node,
     ) {
-        fun spliceChildren(index: Int, removedCount: Int, inserted: List<T>) {
-            for (i in 1..removedCount) {
-                removeChild(childNodes[index].unsafeCast<Node>())
-            }
+        addDisposable(bindChildrenTo(this, list, createChild))
+    }
 
-            val frag = document.createDocumentFragment()
+    protected fun <T> Element.bindDisposableChildrenTo(
+        list: Cell<List<T>>,
+        createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
+    ) {
+        addDisposable(bindDisposableChildrenTo(this, list, createChild))
+    }
 
-            inserted.forEachIndexed { i, value ->
-                frag.createChild(value, index + i)
-            }
+    /**
+     * Creates a widget for every element in [list] and adds it as a child.
+     */
+    protected fun <T> Element.bindChildWidgetsTo(
+        list: Cell<List<T>>,
+        createChild: (T, index: Int) -> Widget,
+    ) {
+        val create: Node.(T, Int) -> Pair<Node, Disposable> = { value: T, index: Int ->
+            val widget = createChild(value, index)
+            addChild(widget, addToDisposer = false)
 
-            if (index >= childNodes.length) {
-                appendChild(frag)
-            } else {
-                insertBefore(frag, childNodes[index])
-            }
+            Pair<Node, Disposable>(
+                widget.element,
+                disposable {
+                    removeChild(widget, dispose = false)
+                    widget.dispose()
+                }
+            )
         }
 
-        addDisposable(
-            list.observeList { change: ListValChangeEvent<T> ->
-                when (change) {
-                    is ListValChangeEvent.Change -> {
-                        spliceChildren(change.index, change.removed.size, change.inserted)
-                    }
-                    is ListValChangeEvent.ElementChange -> {
-                        // TODO: Update children.
-                    }
-                }
-            }
-        )
+        addDisposable(bindDisposableChildrenTo(this, list, create))
+    }
 
-        spliceChildren(0, 0, list.value)
+    fun Element.onDrag(
+        onPointerDown: (e: PointerEvent) -> Boolean,
+        onPointerMove: (movedX: Int, movedY: Int, e: PointerEvent) -> Boolean,
+        onPointerUp: (e: PointerEvent) -> Unit = {},
+    ) {
+        addDisposable(disposablePointerDrag(onPointerDown, onPointerMove, onPointerUp))
+    }
+
+    protected fun launch(block: suspend CoroutineScope.() -> Unit) {
+        scope.launch(block = block)
     }
 
     companion object {

@@ -10,50 +10,56 @@ import world.phantasmal.lib.fileFormats.vec3Float
 
 private const val NJCM: Int = 0x4D434A4E
 
-fun parseNj(cursor: Cursor): PwResult<List<NinjaObject<NjModel>>> =
-    parseNinja(cursor, ::parseNjModel, mutableMapOf())
+fun parseNj(cursor: Cursor): PwResult<List<NjObject>> =
+    parseNinja(cursor, ::parseNjModel, ::NjObject, mutableMapOf())
 
-fun parseXj(cursor: Cursor): PwResult<List<NinjaObject<XjModel>>> =
-    parseNinja(cursor, { c, _ -> parseXjModel(c) }, Unit)
+fun parseXj(cursor: Cursor): PwResult<List<XjObject>> =
+    parseNinja(cursor, { c, _ -> parseXjModel(c) }, ::XjObject, Unit)
 
-fun parseXjObject(cursor: Cursor): List<NinjaObject<XjModel>> =
-    parseSiblingObjects(cursor, { c, _ -> parseXjModel(c) }, Unit)
+fun parseXjObject(cursor: Cursor): List<XjObject> =
+    parseSiblingObjects(cursor, { c, _ -> parseXjModel(c) }, ::XjObject, Unit)
 
-private fun <Model : NinjaModel, Context> parseNinja(
+private typealias CreateObject<Model, Obj> = (
+    offset: Int,
+    evaluationFlags: NinjaEvaluationFlags,
+    model: Model?,
+    position: Vec3,
+    rotation: Vec3,
+    scale: Vec3,
+    children: MutableList<Obj>,
+) -> Obj
+
+private fun <Model : NinjaModel, Obj : NinjaObject<Model, Obj>, Context> parseNinja(
     cursor: Cursor,
     parseModel: (cursor: Cursor, context: Context) -> Model,
+    createObject: CreateObject<Model, Obj>,
     context: Context,
-): PwResult<List<NinjaObject<Model>>> =
+): PwResult<List<Obj>> =
     when (val parseIffResult = parseIff(cursor)) {
         is Failure -> parseIffResult
         is Success -> {
             // POF0 and other chunks types are ignored.
             val njcmChunks = parseIffResult.value.filter { chunk -> chunk.type == NJCM }
-            val objects: MutableList<NinjaObject<Model>> = mutableListOf()
+            val objects: MutableList<Obj> = mutableListOf()
 
             for (chunk in njcmChunks) {
-                objects.addAll(parseSiblingObjects(chunk.data, parseModel, context))
+                objects.addAll(parseSiblingObjects(chunk.data, parseModel, createObject, context))
             }
 
             Success(objects, parseIffResult.problems)
         }
     }
 
-// TODO: cache model and object offsets so we don't reparse the same data.
-private fun <Model : NinjaModel, Context> parseSiblingObjects(
+// We don't need to cache references to other objects or models because in practice the graph is
+// a tree, i.e. no two objects point to the same object or model.
+private fun <Model : NinjaModel, Obj : NinjaObject<Model, Obj>, Context> parseSiblingObjects(
     cursor: Cursor,
     parseModel: (cursor: Cursor, context: Context) -> Model,
+    createObject: CreateObject<Model, Obj>,
     context: Context,
-): MutableList<NinjaObject<Model>> {
-    val evalFlags = cursor.uInt()
-    val noTranslate = (evalFlags and 0b1u) != 0u
-    val noRotate = (evalFlags and 0b10u) != 0u
-    val noScale = (evalFlags and 0b100u) != 0u
-    val hidden = (evalFlags and 0b1000u) != 0u
-    val breakChildTrace = (evalFlags and 0b10000u) != 0u
-    val zxyRotationOrder = (evalFlags and 0b100000u) != 0u
-    val skip = (evalFlags and 0b1000000u) != 0u
-    val shapeSkip = (evalFlags and 0b10000000u) != 0u
+): MutableList<Obj> {
+    val offset = cursor.position
+    val evalFlags = cursor.int()
 
     val modelOffset = cursor.int()
     val pos = cursor.vec3Float()
@@ -77,27 +83,19 @@ private fun <Model : NinjaModel, Context> parseSiblingObjects(
         mutableListOf()
     } else {
         cursor.seekStart(childOffset)
-        parseSiblingObjects(cursor, parseModel, context)
+        parseSiblingObjects(cursor, parseModel, createObject, context)
     }
 
     val siblings = if (siblingOffset == 0) {
         mutableListOf()
     } else {
         cursor.seekStart(siblingOffset)
-        parseSiblingObjects(cursor, parseModel, context)
+        parseSiblingObjects(cursor, parseModel, createObject, context)
     }
 
-    val obj = NinjaObject(
-        NinjaEvaluationFlags(
-            noTranslate,
-            noRotate,
-            noScale,
-            hidden,
-            breakChildTrace,
-            zxyRotationOrder,
-            skip,
-            shapeSkip,
-        ),
+    val obj = createObject(
+        offset,
+        NinjaEvaluationFlags(evalFlags),
         model,
         pos,
         rotation,

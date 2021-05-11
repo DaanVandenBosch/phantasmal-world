@@ -4,14 +4,17 @@ import io.ktor.client.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import kotlinx.coroutines.cancel
+import kotlinx.datetime.Clock
+import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestContext
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
-import world.phantasmal.web.externals.babylon.NullEngine
-import world.phantasmal.web.externals.babylon.Scene
+import world.phantasmal.web.core.undo.UndoManager
+import world.phantasmal.web.externals.three.WebGLRenderer
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
@@ -35,41 +38,45 @@ class TestComponents(private val ctx: TestContext) {
         }
     }
 
+    var clock: Clock by default { StubClock() }
+
     var applicationUrl: ApplicationUrl by default { TestApplicationUrl("") }
-
-    // Babylon.js
-
-    var scene: Scene by default { Scene(NullEngine()) }
 
     // Asset Loaders
 
     var assetLoader: AssetLoader by default { AssetLoader(httpClient, basePath = "/assets") }
 
     var areaAssetLoader: AreaAssetLoader by default {
-        AreaAssetLoader(ctx.scope, assetLoader, scene)
+        AreaAssetLoader(assetLoader)
     }
 
-    var questLoader: QuestLoader by default { QuestLoader(ctx.scope, assetLoader) }
+    var questLoader: QuestLoader by default { QuestLoader(assetLoader) }
+
+    // Undo
+
+    var undoManager: UndoManager by default { UndoManager() }
 
     // Stores
 
-    var uiStore: UiStore by default { UiStore(ctx.scope, applicationUrl) }
+    var uiStore: UiStore by default { UiStore(applicationUrl) }
 
-    var areaStore: AreaStore by default { AreaStore(ctx.scope, areaAssetLoader) }
+    var areaStore: AreaStore by default { AreaStore(areaAssetLoader) }
 
     var questEditorStore: QuestEditorStore by default {
-        QuestEditorStore(ctx.scope, uiStore, areaStore)
+        QuestEditorStore(questLoader, uiStore, areaStore, undoManager)
     }
 
-    private fun <T> default(defaultValue: () -> T) = LazyDefault {
-        val value = defaultValue()
-
-        if (value is Disposable) {
-            ctx.disposer.add(value)
+    // Rendering
+    var createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer by default {
+        {
+            object : DisposableThreeRenderer {
+                override val renderer = NopRenderer().unsafeCast<WebGLRenderer>()
+                override fun dispose() {}
+            }
         }
-
-        value
     }
+
+    private fun <T> default(defaultValue: () -> T) = LazyDefault(defaultValue)
 
     private inner class LazyDefault<T>(private val defaultValue: () -> T) {
         private var initialized = false
@@ -91,7 +98,7 @@ class TestComponents(private val ctx: TestContext) {
         }
 
         operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
-            require(initialized) {
+            require(!initialized) {
                 "Property ${prop.name} is already initialized."
             }
 

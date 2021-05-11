@@ -5,6 +5,7 @@ import java.io.PrintWriter
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization")
     id("world.phantasmal.gradle.js")
 }
 
@@ -15,8 +16,14 @@ buildscript {
 }
 
 val coroutinesVersion: String by project.extra
+val junitVersion: String by project.extra
 val kotlinLoggingVersion: String by project.extra
+val serializationVersion: String by project.extra
 val slf4jVersion: String by project.extra
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
 
 kotlin {
     js(IR) {
@@ -33,7 +40,9 @@ kotlin {
 
     sourceSets {
         all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
             languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
+            languageSettings.useExperimentalAnnotation("kotlin.time.ExperimentalTime")
         }
 
         commonMain {
@@ -42,6 +51,7 @@ kotlin {
                 api(project(":core"))
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
                 api("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
             }
         }
 
@@ -61,8 +71,9 @@ kotlin {
 
         getByName("jvmTest") {
             dependencies {
-                implementation(kotlin("test-junit"))
+                implementation(kotlin("test-junit5"))
                 implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
             }
         }
     }
@@ -71,8 +82,8 @@ kotlin {
 val generateOpcodes = tasks.register("generateOpcodes") {
     group = "code generation"
 
-    val packageName = "world.phantasmal.lib.assembly"
-    val opcodesFile = file("assetsGeneration/assembly/opcodes.yml")
+    val packageName = "world.phantasmal.lib.asm"
+    val opcodesFile = file("srcGeneration/asm/opcodes.yml")
     val outputFile = file(
         "build/generated-src/commonMain/kotlin/${packageName.replace('.', '/')}/Opcodes.kt"
     )
@@ -87,6 +98,8 @@ val generateOpcodes = tasks.register("generateOpcodes") {
 
         outputFile.printWriter()
             .use { writer ->
+                writer.println("@file:Suppress(\"unused\")")
+                writer.println()
                 writer.println("package $packageName")
                 writer.println()
                 writer.println("val OPCODES: Array<Opcode?> = Array(256) { null }")
@@ -103,8 +116,10 @@ val generateOpcodes = tasks.register("generateOpcodes") {
 fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     val code = (opcode["code"] as String).drop(2).toInt(16)
     val codeStr = code.toString(16).toUpperCase().padStart(2, '0')
-    val mnemonic = opcode["mnemonic"] as String? ?: "unknown_$codeStr"
-    val description = opcode["description"] as String?
+    val mnemonic = opcode["mnemonic"] as String? ?: "unknown_${codeStr.toLowerCase()}"
+    val doc = (opcode["doc"] as String?)?.let {
+        "\"${it.replace("\n", "\\n")}\""
+    }
     val stack = opcode["stack"] as String?
 
     val valName = "OP_" + mnemonic
@@ -121,10 +136,20 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    val params = paramsToCode(opcode["params"] as List<Map<String, Any>>, 4)
+    val params = opcode["params"] as List<Map<String, Any>>
+    val paramsStr = paramsToCode(params, 4)
+
+    val lastParam = params.lastOrNull()
+    val varargs = lastParam != null && when (lastParam["type"]) {
+        null -> error("No type for last parameter of $mnemonic opcode.")
+        "ilabel_var", "reg_var" -> true
+        else -> false
+    }
+
+    val known = "mnemonic" in opcode
 
     val array = when (code) {
-        in 0..0xFF -> "OPCODES"
+        in 0x00..0xFF -> "OPCODES"
         in 0xF800..0xF8FF -> "OPCODES_F8"
         in 0xF900..0xF9FF -> "OPCODES_F9"
         else -> error("Invalid opcode $codeStr ($mnemonic).")
@@ -133,12 +158,15 @@ fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
 
     writer.println(
         """
+        |
         |val $valName = Opcode(
-        |    0x$codeStr,
-        |    "$mnemonic",
-        |    ${description?.let { "\"$it\"" }},
-        |    $params,
-        |    $stackInteraction,
+        |    code = 0x$codeStr,
+        |    mnemonic = "$mnemonic",
+        |    doc = $doc,
+        |    params = $paramsStr,
+        |    stack = $stackInteraction,
+        |    varargs = $varargs,
+        |    known = $known,
         |).also { ${array}[0x$indexStr] = it }""".trimMargin()
     )
 }
@@ -151,36 +179,33 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
     return params.joinToString(",\n", "listOf(\n", ",\n${i})") { param ->
         @Suppress("UNCHECKED_CAST")
         val type = when (param["type"]) {
-            "any" -> "AnyType()"
+            "any" -> "AnyType.Instance"
             "byte" -> "ByteType"
             "short" -> "ShortType"
             "int" -> "IntType"
             "float" -> "FloatType"
-            "label" -> "LabelType()"
-            "instruction_label" -> "ILabelType"
-            "data_label" -> "DLabelType"
-            "string_label" -> "SLabelType"
+            "label" -> "LabelType.Instance"
+            "ilabel" -> "ILabelType"
+            "dlabel" -> "DLabelType"
+            "slabel" -> "SLabelType"
             "string" -> "StringType"
-            "instruction_label_var" -> "ILabelVarType"
-            "reg_ref" -> "RegRefType"
-            "reg_tup_ref" -> """RegTupRefType(${
-                paramsToCode(param["reg_tup"] as List<Map<String, Any>>, indent + 4)
+            "ilabel_var" -> "ILabelVarType"
+            "reg" -> """RegType(${
+                (param["registers"] as List<Map<String, Any>>?)?.let {
+                    paramsToCode(it, indent + 4)
+                } ?: "null"
             })"""
-            "reg_ref_var" -> "RegRefVarType"
+            "reg_var" -> "RegVarType"
             "pointer" -> "PointerType"
             else -> error("Type ${param["type"]} not implemented.")
         }
 
+        val name = (param["name"] as String?)?.let { "\"$it\"" } ?: "null"
         val doc = (param["doc"] as String?)?.let { "\"$it\"" } ?: "null"
+        val read = param["read"] as Boolean? == true
+        val write = param["write"] as Boolean? == true
 
-        val access = when (param["access"]) {
-            "read" -> "ParamAccess.Read"
-            "write" -> "ParamAccess.Write"
-            "read_write" -> "ParamAccess.ReadWrite"
-            else -> "null"
-        }
-
-        "$i    Param(${type}, ${doc}, ${access})"
+        "$i    Param(${type}, ${name}, ${doc}, ${read}, ${write})"
     }
 }
 

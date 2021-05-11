@@ -1,7 +1,5 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.coroutines.CoroutineScope
-import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.Node
 import world.phantasmal.web.core.widgets.RendererWidget
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
@@ -9,16 +7,13 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.Widget
 
 abstract class QuestRendererWidget(
-    scope: CoroutineScope,
-    private val canvas: HTMLCanvasElement,
     private val renderer: QuestRenderer,
-) : Widget(scope) {
+) : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-quest-renderer"
-            tabIndex = -1
 
-            addChild(RendererWidget(scope, canvas, renderer))
+            addChild(RendererWidget(renderer))
         }
 
     companion object {

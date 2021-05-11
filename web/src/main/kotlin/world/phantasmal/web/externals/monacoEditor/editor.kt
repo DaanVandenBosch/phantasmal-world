@@ -5,8 +5,10 @@
 
 package world.phantasmal.web.externals.monacoEditor
 
+import org.w3c.dom.Element
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Range
+import kotlin.js.Promise
 
 external fun create(
     domElement: HTMLElement,
@@ -20,6 +22,11 @@ external fun createModel(
 ): ITextModel
 
 external fun defineTheme(themeName: String, themeData: IStandaloneThemeData)
+
+/**
+ * Set the markers for a model.
+ */
+external fun setModelMarkers(model: ITextModel, owner: String, markers: Array<IMarkerData>)
 
 external interface IStandaloneThemeData {
     var base: String /* 'vs' | 'vs-dark' | 'hc-black' */
@@ -122,9 +129,40 @@ external interface IEditor {
         scrollType: ScrollType = definedExternally,
     )
 
-    fun trigger(source: String?, handlerId: String, payload: Any)
+    fun trigger(source: String?, handlerId: String, payload: dynamic)
     fun getModel(): dynamic /* ITextModel? | IDiffEditorModel? */
     fun setModel(model: ITextModel?)
+}
+
+external enum class MouseTargetType {
+    UNKNOWN /* = 0 */,
+    TEXTAREA /* = 1 */,
+    GUTTER_GLYPH_MARGIN /* = 2 */,
+    GUTTER_LINE_NUMBERS /* = 3 */,
+    GUTTER_LINE_DECORATIONS /* = 4 */,
+    GUTTER_VIEW_ZONE /* = 5 */,
+    CONTENT_TEXT /* = 6 */,
+    CONTENT_EMPTY /* = 7 */,
+    CONTENT_VIEW_ZONE /* = 8 */,
+    CONTENT_WIDGET /* = 9 */,
+    OVERVIEW_RULER /* = 10 */,
+    SCROLLBAR /* = 11 */,
+    OVERLAY_WIDGET /* = 12 */,
+    OUTSIDE_EDITOR /* = 13 */,
+}
+
+external interface IMouseTarget {
+    val element: Element?
+    val type: MouseTargetType
+    val position: Position?
+    val mouseColumn: Int
+    val range: Range?
+    val detail: dynamic
+}
+
+external interface IEditorMouseEvent {
+    val event: IMouseEvent
+    val target: IMouseTarget
 }
 
 external interface ICodeEditor : IEditor {
@@ -134,6 +172,7 @@ external interface ICodeEditor : IEditor {
     fun onDidChangeModelOptions(listener: (e: IModelOptionsChangedEvent) -> Unit): IDisposable
     fun onDidChangeCursorPosition(listener: (e: ICursorPositionChangedEvent) -> Unit): IDisposable
     fun onDidChangeCursorSelection(listener: (e: ICursorSelectionChangedEvent) -> Unit): IDisposable
+    fun onDidChangeModel(listener: () -> Unit): IDisposable
     fun onDidChangeModelDecorations(listener: (e: IModelDecorationsChangedEvent) -> Unit): IDisposable
     fun onDidFocusEditorText(listener: () -> Unit): IDisposable
     fun onDidBlurEditorText(listener: () -> Unit): IDisposable
@@ -142,6 +181,7 @@ external interface ICodeEditor : IEditor {
     fun onDidCompositionStart(listener: () -> Unit): IDisposable
     fun onDidCompositionEnd(listener: () -> Unit): IDisposable
     fun onDidAttemptReadOnlyEdit(listener: () -> Unit): IDisposable
+    fun onMouseUp(listener: (e: IEditorMouseEvent) -> Unit): IDisposable
     fun hasWidgetFocus(): Boolean
     override fun getModel(): ITextModel?
     override fun setModel(model: ITextModel?)
@@ -180,6 +220,26 @@ external interface ICodeEditor : IEditor {
     fun getOffsetForColumn(lineNumber: Number, column: Number): Number
     fun render(forceRedraw: Boolean = definedExternally)
     fun applyFontInfo(target: HTMLElement)
+    fun getSupportedActions(): Array<IEditorAction>
+    fun getAction(id: String): IEditorAction
+    fun addAction(descriptor: IActionDescriptor): IDisposable
+}
+
+external interface IActionDescriptor {
+    var id: String
+    var label: String
+    var keybindings: Array<Int>
+
+    fun run(editor: ICodeEditor, vararg args: dynamic): dynamic
+}
+
+external interface IEditorAction {
+    val id: String
+    val label: String
+    val alias: String
+
+    fun isSupported(): Boolean
+    fun run(): Promise<Unit>
 }
 
 external interface IStandaloneCodeEditor : ICodeEditor {
@@ -540,8 +600,8 @@ external interface ITextModel {
     var uri: Uri
     var id: String
     fun getOptions(): TextModelResolvedOptions
-    fun getVersionId(): Number
-    fun getAlternativeVersionId(): Number
+    fun getVersionId(): Int
+    fun getAlternativeVersionId(): Int
     fun setValue(newValue: String)
     fun getValue(
         eol: EndOfLinePreference = definedExternally,

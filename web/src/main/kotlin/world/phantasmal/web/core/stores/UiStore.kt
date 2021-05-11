@@ -1,40 +1,41 @@
 package world.phantasmal.web.core.stores
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.w3c.dom.events.KeyboardEvent
-import world.phantasmal.observable.value.MutableVal
-import world.phantasmal.observable.value.Val
-import world.phantasmal.observable.value.eq
-import world.phantasmal.observable.value.mutableVal
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.Disposer
+import world.phantasmal.core.disposable.disposable
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.MutableCell
+import world.phantasmal.observable.cell.eq
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.stores.Store
 
 interface ApplicationUrl {
-    val url: Val<String>
+    val url: Cell<String>
 
     fun pushUrl(url: String)
 
     fun replaceUrl(url: String)
 }
 
-class UiStore(
-    scope: CoroutineScope,
-    private val applicationUrl: ApplicationUrl,
-) : Store(scope) {
-    private val _currentTool: MutableVal<PwToolType>
+class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
+    private val _currentTool: MutableCell<PwToolType>
 
-    private val _path = mutableVal("")
-    private val _server = mutableVal(Server.Ephinea)
+    private val _path = mutableCell("")
+    private val _server = mutableCell(Server.Ephinea)
 
     /**
      * Maps full paths to maps of parameters and their values. In other words we keep track of
      * parameter values per [applicationUrl].
      */
-    private val parameters: MutableMap<String, Map<String, String>> = mutableMapOf()
-    private val globalKeydownHandlers: MutableMap<String, (e: KeyboardEvent) -> Unit> =
+    private val parameters: MutableMap<String, MutableMap<String, MutableCell<String?>>> =
+        mutableMapOf()
+    private val globalKeyDownHandlers: MutableMap<String, suspend (e: KeyboardEvent) -> Unit> =
         mutableMapOf()
 
     /**
@@ -44,7 +45,7 @@ class UiStore(
      */
     private val features: MutableSet<String> = mutableSetOf()
 
-    val tools: List<PwToolType> = PwToolType.values().toList()
+    private val tools: List<PwToolType> = PwToolType.values().toList()
 
     /**
      * The default tool that is loaded.
@@ -54,35 +55,31 @@ class UiStore(
     /**
      * The tool that is currently visible.
      */
-    val currentTool: Val<PwToolType>
+    val currentTool: Cell<PwToolType>
 
     /**
-     * Map of tools to a boolean Val that says whether they are the current tool or not.
+     * Map of tools to a boolean cell that says whether they are the current tool or not.
      */
-    val toolToActive: Map<PwToolType, Val<Boolean>>
+    val toolToActive: Map<PwToolType, Cell<Boolean>>
 
     /**
      * Application URL without the tool path prefix.
      */
-    val path: Val<String> = _path
+    val path: Cell<String> = _path
 
     /**
      * The private server we're currently showing data and tools for.
      */
-    val server: Val<Server> = _server
+    val server: Cell<Server> = _server
 
     init {
-        _currentTool = mutableVal(defaultTool)
+        _currentTool = mutableCell(defaultTool)
         currentTool = _currentTool
 
-        toolToActive = tools
-            .map { tool ->
-                tool to (currentTool eq tool)
-            }
-            .toMap()
+        toolToActive = tools.associateWith { tool -> currentTool eq tool }
 
         addDisposables(
-            disposableListener(window, "keydown", ::dispatchGlobalKeydown),
+            window.disposableListener("keydown", ::dispatchGlobalKeyDown),
         )
 
         observe(applicationUrl.url) { setDataFromUrl(it) }
@@ -105,6 +102,68 @@ class UiStore(
         }
     }
 
+    fun registerParameter(
+        tool: PwToolType,
+        path: String,
+        parameter: String,
+        setInitialValue: (String?) -> Unit,
+        value: Cell<String?>,
+        onChange: (String?) -> Unit,
+    ): Disposable {
+        require(parameter !== FEATURES_PARAM) {
+            "$FEATURES_PARAM can't be set because it is a global parameter."
+        }
+
+        val pathParams = parameters.getOrPut("/${tool.slug}$path", ::mutableMapOf)
+        val param = pathParams.getOrPut(parameter) { mutableCell(null) }
+
+        setInitialValue(param.value)
+
+        value.value.let { v ->
+            if (v != param.value) {
+                setParameter(tool, path, param, v, replaceUrl = true)
+            }
+        }
+
+        return Disposer(
+            value.observe {
+                if (it.value != param.value) {
+                    setParameter(tool, path, param, it.value, replaceUrl = false)
+                }
+            },
+            param.observe { onChange(it.value) },
+        )
+    }
+
+    private fun setParameter(
+        tool: PwToolType,
+        path: String,
+        parameter: MutableCell<String?>,
+        value: String?,
+        replaceUrl: Boolean,
+    ) {
+        parameter.value = value
+
+        if (this.currentTool.value == tool && this.path.value == path) {
+            updateApplicationUrl(tool, path, replaceUrl)
+        }
+    }
+
+    fun onGlobalKeyDown(
+        tool: PwToolType,
+        binding: String,
+        handler: suspend (KeyboardEvent) -> Unit,
+    ): Disposable {
+        val key = handlerKey(tool, binding)
+        require(key !in globalKeyDownHandlers) {
+            """Binding "$binding" already exists for tool $tool."""
+        }
+
+        globalKeyDownHandlers[key] = handler
+
+        return disposable { globalKeyDownHandlers.remove(key) }
+    }
+
     /**
      * Sets [currentTool], [path], [parameters] and [features].
      */
@@ -121,21 +180,19 @@ class UiStore(
         val path = if (secondSlashIdx == -1) "" else fullPath.substring(secondSlashIdx)
 
         if (paramsStr != null) {
-            val params = mutableMapOf<String, String>()
+            val params = parameters.getOrPut(fullPath, ::mutableMapOf)
 
             for (p in paramsStr.split("&")) {
                 val (param, value) = p.split("=", limit = 2)
 
-                if (param == "features") {
+                if (param == FEATURES_PARAM) {
                     for (feature in value.split(",")) {
                         features.add(feature)
                     }
                 } else {
-                    params[param] = value
+                    params.getOrPut(param) { mutableCell(value) }.value = value
                 }
             }
-
-            parameters[fullPath] = params
         }
 
         val actualTool = tool ?: defaultTool
@@ -153,11 +210,14 @@ class UiStore(
 
     private fun updateApplicationUrl(tool: PwToolType, path: String, replace: Boolean) {
         val fullPath = "/${tool.slug}${path}"
-        val params: MutableMap<String, String> =
-            parameters[fullPath]?.let { HashMap(it) } ?: mutableMapOf()
+        val params = mutableMapOf<String, String>()
+
+        parameters[fullPath]?.forEach { (k, v) ->
+            v.value?.let { params[k] = it }
+        }
 
         if (features.isNotEmpty()) {
-            params["features"] = features.joinToString(",")
+            params[FEATURES_PARAM] = features.joinToString(",")
         }
 
         val paramStr =
@@ -173,21 +233,21 @@ class UiStore(
         }
     }
 
-    private fun dispatchGlobalKeydown(e: KeyboardEvent) {
+    private fun dispatchGlobalKeyDown(e: KeyboardEvent) {
         val bindingParts = mutableListOf<String>()
 
         if (e.ctrlKey) bindingParts.add("Ctrl")
-        if (e.shiftKey) bindingParts.add("Shift")
         if (e.altKey) bindingParts.add("Alt")
+        if (e.shiftKey) bindingParts.add("Shift")
         bindingParts.add(e.key.toUpperCase())
 
         val binding = bindingParts.joinToString("-")
 
-        val handler = globalKeydownHandlers[handlerKey(currentTool.value, binding)]
+        val handler = globalKeyDownHandlers[handlerKey(currentTool.value, binding)]
 
         if (handler != null) {
             e.preventDefault()
-            handler(e)
+            scope.launch { handler(e) }
         }
     }
 
@@ -196,7 +256,8 @@ class UiStore(
     }
 
     companion object {
+        private const val FEATURES_PARAM = "features"
         private val SLUG_TO_PW_TOOL: Map<String, PwToolType> =
-            PwToolType.values().map { it.slug to it }.toMap()
+            PwToolType.values().associateBy { it.slug }
     }
 }

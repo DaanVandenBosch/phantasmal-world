@@ -2,9 +2,9 @@ package world.phantasmal.lib.fileFormats
 
 import world.phantasmal.lib.cursor.Cursor
 
-class Vec2(val x: Float, val y: Float)
+data class Vec2(val x: Float, val y: Float)
 
-class Vec3(val x: Float, val y: Float, val z: Float)
+data class Vec3(val x: Float, val y: Float, val z: Float)
 
 fun Cursor.vec2Float(): Vec2 = Vec2(float(), float())
 
