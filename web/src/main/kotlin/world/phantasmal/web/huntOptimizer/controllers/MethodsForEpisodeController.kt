@@ -57,14 +57,10 @@ class MethodsForEpisodeController(
         }.toTypedArray()
     )
 
-    init {
-        observe(huntMethodStore.methods) { allMethods ->
-            methods.value = allMethods.filter { it.episode == episode }
-        }
-    }
+    private var sortColumns: List<SortColumn<HuntMethodModel>> = emptyList()
 
-    override fun sort(sortColumns: List<SortColumn<HuntMethodModel>>) {
-        methods.sortWith { a, b ->
+    private val comparator: Comparator<HuntMethodModel> =
+        Comparator { a, b ->
             for (sortColumn in sortColumns) {
                 val cmp = when (sortColumn.column.key) {
                     METHOD_COL_KEY ->
@@ -79,12 +75,27 @@ class MethodsForEpisodeController(
                 }
 
                 if (cmp != 0) {
-                    return@sortWith if (sortColumn.direction == SortDirection.Asc) cmp else -cmp
+                    return@Comparator if (sortColumn.direction == SortDirection.Asc) cmp else -cmp
                 }
             }
 
             0
         }
+
+    init {
+        // TODO: Use ListCell.sortedWith when this is available.
+        observe(huntMethodStore.methods) { allMethods ->
+            methods.value = allMethods
+                .asSequence()
+                .filter { it.episode == episode }
+                .sortedWith(comparator)
+                .toList()
+        }
+    }
+
+    override fun sort(sortColumns: List<SortColumn<HuntMethodModel>>) {
+        this.sortColumns = sortColumns
+        methods.sortWith(comparator)
     }
 
     suspend fun setMethodTime(method: HuntMethodModel, time: Duration) {
