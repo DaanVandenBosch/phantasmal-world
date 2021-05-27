@@ -1,13 +1,12 @@
 package world.phantasmal.observable.cell.list
 
 import world.phantasmal.observable.cell.SimpleCell
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.*
 
 class FilteredListCellTests : ListCellTests {
-    override fun createProvider() = object : ListCellTests.Provider {
-        private val dependency = SimpleListCell<Int>(mutableListOf())
+    override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
+        private val dependency =
+            SimpleListCell(if (empty) mutableListOf(5) else mutableListOf(5, 10))
 
         override val observable = FilteredListCell(dependency, predicate = { it % 2 == 0 })
 
@@ -82,37 +81,49 @@ class FilteredListCellTests : ListCellTests {
 
         dep.replaceAll(listOf(1, 2, 3, 4, 5))
 
-        (event as ListChangeEvent.Change).let { e ->
-            assertEquals(0, e.index)
-            assertEquals(0, e.removed.size)
-            assertEquals(2, e.inserted.size)
-            assertEquals(2, e.inserted[0])
-            assertEquals(4, e.inserted[1])
+        run {
+            val e = event
+            assertNotNull(e)
+            assertEquals(1, e.changes.size)
+
+            val c = e.changes.first()
+            assertTrue(c is ListChange.Structural)
+            assertEquals(0, c.index)
+            assertEquals(0, c.removed.size)
+            assertEquals(2, c.inserted.size)
+            assertEquals(2, c.inserted[0])
+            assertEquals(4, c.inserted[1])
         }
 
         event = null
 
         dep.splice(2, 2, 10)
 
-        (event as ListChangeEvent.Change).let { e ->
-            assertEquals(1, e.index)
-            assertEquals(1, e.removed.size)
-            assertEquals(4, e.removed[0])
-            assertEquals(1, e.inserted.size)
-            assertEquals(10, e.inserted[0])
+        run {
+            val e = event
+            assertNotNull(e)
+            assertEquals(1, e.changes.size)
+
+            val c = e.changes.first()
+            assertTrue(c is ListChange.Structural)
+            assertEquals(1, c.index)
+            assertEquals(1, c.removed.size)
+            assertEquals(4, c.removed[0])
+            assertEquals(1, c.inserted.size)
+            assertEquals(10, c.inserted[0])
         }
     }
 
     /**
-     * When the dependency of a [FilteredListCell] emits ElementChange events, the
-     * [FilteredListCell] should emit either Change events or ElementChange events, depending on
-     * whether the predicate result has changed.
+     * When the dependency of a [FilteredListCell] emits [ListChange.Element] changes, the
+     * [FilteredListCell] should emit either [ListChange.Structural] or [ListChange.Element]
+     * changes, depending on whether the predicate result has changed.
      */
     @Test
-    fun emits_correct_events_when_dependency_emits_ElementChange_events() = test {
+    fun emits_correct_events_when_dependency_emits_element_changes() = test {
         val dep = SimpleListCell(
             mutableListOf(SimpleCell(1), SimpleCell(2), SimpleCell(3), SimpleCell(4)),
-            extractObservables = { arrayOf(it) },
+            extractDependencies = { arrayOf(it) },
         )
         val list = FilteredListCell(dep, predicate = { it.value % 2 == 0 })
         var event: ListChangeEvent<SimpleCell<Int>>? = null
@@ -125,20 +136,25 @@ class FilteredListCellTests : ListCellTests {
         for (i in 0 until dep.size.value) {
             event = null
 
-            // Make an even number odd or an odd number even. List should emit a Change event.
+            // Make an even number odd or an odd number even. List should emit a structural change.
             val newValue = dep[i].value + 1
             dep[i].value = newValue
 
-            (event as ListChangeEvent.Change).let { e ->
-                if (newValue % 2 == 0) {
-                    assertEquals(0, e.removed.size)
-                    assertEquals(1, e.inserted.size)
-                    assertEquals(newValue, e.inserted[0].value)
-                } else {
-                    assertEquals(1, e.removed.size)
-                    assertEquals(0, e.inserted.size)
-                    assertEquals(newValue, e.removed[0].value)
-                }
+            val e = event
+            assertNotNull(e)
+            assertEquals(1, e.changes.size)
+
+            val c = e.changes.first()
+            assertTrue(c is ListChange.Structural)
+
+            if (newValue % 2 == 0) {
+                assertEquals(0, c.removed.size)
+                assertEquals(1, c.inserted.size)
+                assertEquals(newValue, c.inserted[0].value)
+            } else {
+                assertEquals(1, c.removed.size)
+                assertEquals(0, c.inserted.size)
+                assertEquals(newValue, c.removed[0].value)
             }
         }
 
@@ -150,7 +166,14 @@ class FilteredListCellTests : ListCellTests {
             val newValue = dep[i].value + 2
             dep[i].value = newValue
 
-            assertEquals(newValue, (event as ListChangeEvent.ElementChange).updated.value)
+            val e = event
+            assertNotNull(e)
+            assertEquals(1, e.changes.size)
+
+            val c = e.changes.first()
+            assertTrue(c is ListChange.Element)
+
+            assertEquals(newValue, c.updated.value)
         }
     }
 }

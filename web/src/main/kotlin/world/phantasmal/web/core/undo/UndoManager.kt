@@ -5,7 +5,7 @@ import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.core.actions.Action
 
 class UndoManager {
-    private val undos = mutableListCell<Undo>(NopUndo) { arrayOf(it.atSavePoint) }
+    private val undos = mutableListCell<Undo>(NopUndo)
     private val _current = mutableCell<Undo>(NopUndo)
 
     val current: Cell<Undo> = _current
@@ -19,7 +19,9 @@ class UndoManager {
      * True if all undos are at the most recent save point. I.e., true if there are no changes to
      * save.
      */
-    val allAtSavePoint: Cell<Boolean> = undos.all { it.atSavePoint.value }
+    // TODO: Optimize this once ListCell supports more performant method for this use-case.
+    val allAtSavePoint: Cell<Boolean> =
+        undos.fold(trueCell()) { acc, undo -> acc and undo.atSavePoint }.flatten()
 
     fun addUndo(undo: Undo) {
         undos.add(undo)

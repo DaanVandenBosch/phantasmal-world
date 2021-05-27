@@ -1,20 +1,18 @@
 package world.phantasmal.observable
 
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.disposable
 
-class SimpleEmitter<T> : Emitter<T> {
-    private val observers = mutableListOf<Observer<T>>()
+class SimpleEmitter<T> : AbstractDependency(), Emitter<T> {
+    override fun emit(event: ChangeEvent<T>) {
+        for (dependent in dependents) {
+            dependent.dependencyMightChange()
+        }
 
-    override fun observe(observer: Observer<T>): Disposable {
-        observers.add(observer)
-
-        return disposable {
-            observers.remove(observer)
+        for (dependent in dependents) {
+            dependent.dependencyChanged(this, event)
         }
     }
 
-    override fun emit(event: ChangeEvent<T>) {
-        observers.forEach { it(event) }
-    }
+    override fun observe(observer: Observer<T>): Disposable =
+        CallbackObserver(this, observer)
 }

@@ -12,7 +12,7 @@ interface ObservableTests : ObservableTestSuite {
     fun createProvider(): Provider
 
     @Test
-    fun observable_calls_observers_when_events_are_emitted() = test {
+    fun calls_observers_when_events_are_emitted() = test {
         val p = createProvider()
         var changes = 0
 
@@ -34,7 +34,7 @@ interface ObservableTests : ObservableTestSuite {
     }
 
     @Test
-    fun observable_does_not_call_observers_after_they_are_disposed() = test {
+    fun does_not_call_observers_after_they_are_disposed() = test {
         val p = createProvider()
         var changes = 0
 

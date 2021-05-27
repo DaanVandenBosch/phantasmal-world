@@ -1,14 +1,14 @@
 package world.phantasmal.core.unsafe
 
 /**
- * Asserts that receiver is of type T. No runtime check happens in KJS. Should only be used when
- * absolutely certain that receiver is indeed a T.
+ * Asserts that [value] is of type T. No runtime check happens in KJS. Should only be used when it's
+ * absolutely certain that [value] is indeed a T.
  */
-expect inline fun <T> Any?.unsafeCast(): T
+expect inline fun <T> unsafeCast(value: Any?): T
 
 /**
- * Asserts that T is not null. No runtime check happens in KJS. Should only be used when absolutely
- * certain that T is indeed not null.
+ * Asserts that [value] is not null. No runtime check happens in KJS. Should only be used when it's
+ * absolutely certain that [value] is indeed not null.
  */
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T> T?.unsafeAssertNotNull(): T = unsafeCast()
+inline fun <T> unsafeAssertNotNull(value: T?): T = unsafeCast(value)

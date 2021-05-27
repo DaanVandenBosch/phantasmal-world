@@ -16,7 +16,7 @@ interface Cell<out T> : Observable<T> {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T = value
 
     /**
-     * @param callNow Call [observer] immediately with the current [mutableCell].
+     * @param callNow Call [observer] immediately with the current [value].
      */
     fun observe(callNow: Boolean = false, observer: Observer<T>): Disposable
 

@@ -59,3 +59,6 @@ fun Cell<String>.isBlank(): Cell<Boolean> =
 
 fun Cell<String>.isNotBlank(): Cell<Boolean> =
     map { it.isNotBlank() }
+
+fun <T> Cell<Cell<T>>.flatten(): Cell<T> =
+    FlatteningDependentCell(this) { this.value }

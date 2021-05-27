@@ -32,8 +32,6 @@ interface RegularCellTests : CellTests {
 
             // Value should not change when emit hasn't been called since the last access.
             assertEquals(new, p.observable.value)
-
-            old = new
         }
     }
 

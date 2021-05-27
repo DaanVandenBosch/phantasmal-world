@@ -12,6 +12,27 @@ interface CellTests : ObservableTests {
     override fun createProvider(): Provider
 
     @Test
+    fun value_is_accessible_without_observers() = test {
+        val p = createProvider()
+
+        assertNotNull(p.observable.value)
+    }
+
+    @Test
+    fun value_is_accessible_with_observers() = test {
+        val p = createProvider()
+
+        var observedValue: Any? = null
+
+        disposer.add(p.observable.observe(callNow = true) {
+            observedValue = it.value
+        })
+
+        assertNotNull(observedValue)
+        assertNotNull(p.observable.value)
+    }
+
+    @Test
     fun propagates_changes_to_mapped_cell() = test {
         val p = createProvider()
         val mapped = p.observable.map { it.hashCode() }

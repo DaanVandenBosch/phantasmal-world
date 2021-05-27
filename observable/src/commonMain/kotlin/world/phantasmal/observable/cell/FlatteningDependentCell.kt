@@ -1,56 +1,90 @@
 package world.phantasmal.observable.cell
 
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.unsafe.unsafeAssertNotNull
-import world.phantasmal.observable.Observer
+import world.phantasmal.core.unsafe.unsafeCast
+import world.phantasmal.observable.ChangeEvent
+import world.phantasmal.observable.Dependency
+import world.phantasmal.observable.Dependent
 
 /**
  * Similar to [DependentCell], except that this cell's [compute] returns a cell.
  */
 class FlatteningDependentCell<T>(
-    vararg dependencies: Cell<*>,
-    private val compute: () -> Cell<T>,
-) : AbstractDependentCell<T>(*dependencies) {
-    private var computedCell: Cell<T>? = null
-    private var computedCellObserver: Disposable? = null
+    private vararg val dependencies: Dependency,
+    private val compute: () -> Cell<T>
+) : AbstractDependentCell<T>() {
 
+    private var computedCell: Cell<T>? = null
+    private var computedInDeps = false
+    private var shouldRecompute = false
+
+    private var _value: T? = null
     override val value: T
         get() {
-            return if (hasObservers) {
-                computedCell.unsafeAssertNotNull().value
-            } else {
-                super.value
+            if (dependents.isEmpty()) {
+                _value = compute().value
+            }
+
+            return unsafeCast(_value)
+        }
+
+    override fun addDependent(dependent: Dependent) {
+        if (dependents.isEmpty()) {
+            for (dependency in dependencies) {
+                dependency.addDependent(this)
+            }
+
+            computedCell = compute().also { computedCell ->
+                computedCell.addDependent(this)
+                computedInDeps = dependencies.any { it === computedCell }
+                _value = computedCell.value
             }
         }
 
-    override fun observe(callNow: Boolean, observer: Observer<T>): Disposable {
-        val superDisposable = super.observe(callNow, observer)
+        super.addDependent(dependent)
+    }
 
-        return disposable {
-            superDisposable.dispose()
+    override fun removeDependent(dependent: Dependent) {
+        super.removeDependent(dependent)
 
-            if (!hasObservers) {
-                computedCellObserver?.dispose()
-                computedCellObserver = null
-                computedCell = null
+        if (dependents.isEmpty()) {
+            computedCell?.removeDependent(this)
+            computedCell = null
+            computedInDeps = false
+
+            for (dependency in dependencies) {
+                dependency.removeDependent(this)
             }
         }
     }
 
-    override fun computeValue(): T {
-        val computedCell = compute()
-        this.computedCell = computedCell
-
-        computedCellObserver?.dispose()
-
-        if (hasObservers) {
-            computedCellObserver = computedCell.observe { (value) ->
-                _value = value
-                emit()
-            }
+    override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
+        if ((dependency !== computedCell || computedInDeps) && event != null) {
+            shouldRecompute = true
         }
 
-        return computedCell.value
+        super.dependencyChanged(dependency, event)
+    }
+
+    override fun dependenciesChanged() {
+        if (shouldRecompute) {
+            computedCell?.removeDependent(this)
+
+            computedCell = compute().also { computedCell ->
+                computedCell.addDependent(this)
+                computedInDeps = dependencies.any { it === computedCell }
+            }
+
+            shouldRecompute = false
+        }
+
+        val newValue = unsafeAssertNotNull(computedCell).value
+
+        if (newValue != _value) {
+            _value = newValue
+            emitChanged(ChangeEvent(newValue))
+        } else {
+            emitChanged(null)
+        }
     }
 }

@@ -1,28 +1,16 @@
 package world.phantasmal.observable.cell.list
 
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.Observer
-import world.phantasmal.observable.cell.AbstractCell
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.ChangeEvent
+import world.phantasmal.observable.Dependency
+import world.phantasmal.observable.Dependent
 
-// TODO: This class shares 95% of its code with AbstractDependentListCell.
 class FilteredListCell<E>(
     private val dependency: ListCell<E>,
     private val predicate: (E) -> Boolean,
-) : AbstractListCell<E>(extractObservables = null) {
-    private val _size = SizeCell()
-
-    /**
-     * Set to true right before actual observers are added.
-     */
-    private var hasObservers = false
-
-    private var dependencyObserver: Disposable? = null
-
+) : AbstractListCell<E>(), Dependent {
     /**
      * Maps the dependency's indices to this list's indices. When an element of the dependency list
-     * doesn't pass the predicate, it's index in this mapping is set to -1.
+     * doesn't pass the predicate, its index in this mapping is set to -1.
      */
     private val indexMap = mutableListOf<Int>()
 
@@ -30,66 +18,52 @@ class FilteredListCell<E>(
 
     override val value: List<E>
         get() {
-            if (!hasObservers) {
+            if (dependents.isEmpty()) {
                 recompute()
             }
 
             return elements
         }
 
-    override val size: Cell<Int> = _size
+    override fun addDependent(dependent: Dependent) {
+        if (dependents.isEmpty()) {
+            dependency.addDependent(this)
+            recompute()
+        }
 
-    override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable {
-        initDependencyObservers()
+        super.addDependent(dependent)
+    }
 
-        val superDisposable = super.observe(callNow, observer)
+    override fun removeDependent(dependent: Dependent) {
+        super.removeDependent(dependent)
 
-        return disposable {
-            superDisposable.dispose()
-            disposeDependencyObservers()
+        if (dependents.isEmpty()) {
+            dependency.removeDependent(this)
         }
     }
 
-    override fun observeList(callNow: Boolean, observer: ListObserver<E>): Disposable {
-        initDependencyObservers()
-
-        val superDisposable = super.observeList(callNow, observer)
-
-        return disposable {
-            superDisposable.dispose()
-            disposeDependencyObservers()
-        }
+    override fun dependencyMightChange() {
+        emitMightChange()
     }
 
-    private fun recompute() {
-        elements = ListWrapper(mutableListOf())
-        indexMap.clear()
+    override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
+        if (event is ListChangeEvent<*>) {
+            val filteredChanges = mutableListOf<ListChange<E>>()
 
-        dependency.value.forEach { element ->
-            if (predicate(element)) {
-                elements.mutate { add(element) }
-                indexMap.add(elements.lastIndex)
-            } else {
-                indexMap.add(-1)
-            }
-        }
-    }
-
-    private fun initDependencyObservers() {
-        if (dependencyObserver == null) {
-            hasObservers = true
-
-            dependencyObserver = dependency.observeList { event ->
-                when (event) {
-                    is ListChangeEvent.Change -> {
+            for (change in event.changes) {
+                when (change) {
+                    is ListChange.Structural -> {
                         // Figure out which elements should be removed from this list, then simply
                         // recompute the entire filtered list and finally figure out which elements
-                        // have been added. Emit a Change event if something actually changed.
+                        // have been added. Emit a change event if something actually changed.
+                        @Suppress("UNCHECKED_CAST")
+                        change as ListChange.Structural<E>
+
                         val removed = mutableListOf<E>()
                         var eventIndex = -1
 
-                        event.removed.forEachIndexed { i, element ->
-                            val index = indexMap[event.index + i]
+                        change.removed.forEachIndexed { i, element ->
+                            val index = indexMap[change.index + i]
 
                             if (index != -1) {
                                 removed.add(element)
@@ -104,8 +78,8 @@ class FilteredListCell<E>(
 
                         val inserted = mutableListOf<E>()
 
-                        event.inserted.forEachIndexed { i, element ->
-                            val index = indexMap[event.index + i]
+                        change.inserted.forEachIndexed { i, element ->
+                            val index = indexMap[change.index + i]
 
                             if (index != -1) {
                                 inserted.add(element)
@@ -118,23 +92,31 @@ class FilteredListCell<E>(
 
                         if (removed.isNotEmpty() || inserted.isNotEmpty()) {
                             check(eventIndex != -1)
-                            finalizeUpdate(ListChangeEvent.Change(eventIndex, removed, inserted))
+                            filteredChanges.add(
+                                ListChange.Structural(
+                                    eventIndex,
+                                    removed,
+                                    inserted
+                                )
+                            )
                         }
                     }
-
-                    is ListChangeEvent.ElementChange -> {
-                        // Emit a Change or ElementChange event based on whether the updated element
+                    is ListChange.Element -> {
+                        // Emit a structural or element change based on whether the updated element
                         // passes the predicate test and whether it was already in the elements list
                         // (i.e. whether it passed the predicate test before the update).
-                        val index = indexMap[event.index]
+                        @Suppress("UNCHECKED_CAST")
+                        change as ListChange.Element<E>
 
-                        if (predicate(event.updated)) {
+                        val index = indexMap[change.index]
+
+                        if (predicate(change.updated)) {
                             if (index == -1) {
                                 // If the element now passed the test and previously didn't pass,
                                 // insert it and emit a Change event.
                                 var insertIndex = elements.size
 
-                                for (depIdx in (event.index + 1)..indexMap.lastIndex) {
+                                for (depIdx in (change.index + 1)..indexMap.lastIndex) {
                                     val thisIdx = indexMap[depIdx]
 
                                     if (thisIdx != -1) {
@@ -143,10 +125,10 @@ class FilteredListCell<E>(
                                     }
                                 }
 
-                                elements = elements.mutate { add(insertIndex, event.updated) }
-                                indexMap[event.index] = insertIndex
+                                elements = elements.mutate { add(insertIndex, change.updated) }
+                                indexMap[change.index] = insertIndex
 
-                                for (depIdx in (event.index + 1)..indexMap.lastIndex) {
+                                for (depIdx in (change.index + 1)..indexMap.lastIndex) {
                                     val thisIdx = indexMap[depIdx]
 
                                     if (thisIdx != -1) {
@@ -154,25 +136,25 @@ class FilteredListCell<E>(
                                     }
                                 }
 
-                                finalizeUpdate(ListChangeEvent.Change(
-                                    insertIndex,
-                                    emptyList(),
-                                    listOf(event.updated),
-                                ))
-                            } else {
-                                // Otherwise just propagate the ElementChange event.
-                                finalizeUpdate(
-                                    ListChangeEvent.ElementChange(index, event.updated)
+                                filteredChanges.add(
+                                    ListChange.Structural(
+                                        insertIndex,
+                                        removed = emptyList(),
+                                        inserted = listOf(change.updated),
+                                    )
                                 )
+                            } else {
+                                // Otherwise just propagate the element change.
+                                filteredChanges.add(ListChange.Element(index, change.updated))
                             }
                         } else {
                             if (index != -1) {
                                 // If the element now doesn't pass the test and it previously did
-                                // pass, remove it and emit a Change event.
+                                // pass, remove it and emit a structural change.
                                 elements = elements.mutate { removeAt(index) }
-                                indexMap[event.index] = -1
+                                indexMap[change.index] = -1
 
-                                for (depIdx in (event.index + 1)..indexMap.lastIndex) {
+                                for (depIdx in (change.index + 1)..indexMap.lastIndex) {
                                     val thisIdx = indexMap[depIdx]
 
                                     if (thisIdx != -1) {
@@ -180,67 +162,45 @@ class FilteredListCell<E>(
                                     }
                                 }
 
-                                finalizeUpdate(ListChangeEvent.Change(
-                                    index,
-                                    listOf(event.updated),
-                                    emptyList(),
-                                ))
-                            } else {
-                                // Otherwise just propagate the ElementChange event.
-                                finalizeUpdate(
-                                    ListChangeEvent.ElementChange(index, event.updated)
+                                filteredChanges.add(
+                                    ListChange.Structural(
+                                        index,
+                                        removed = listOf(change.updated),
+                                        inserted = emptyList(),
+                                    )
                                 )
+                            } else {
+                                // Otherwise just propagate the element change.
+                                filteredChanges.add(ListChange.Element(index, change.updated))
                             }
                         }
                     }
                 }
             }
 
-            recompute()
-        }
-    }
-
-    private fun disposeDependencyObservers() {
-        if (observers.isEmpty() && listObservers.isEmpty() && _size.publicObservers.isEmpty()) {
-            hasObservers = false
-            dependencyObserver?.dispose()
-            dependencyObserver = null
-        }
-    }
-
-    override fun finalizeUpdate(event: ListChangeEvent<E>) {
-        if (event is ListChangeEvent.Change && event.removed.size != event.inserted.size) {
-            _size.publicEmit()
-        }
-
-        super.finalizeUpdate(event)
-    }
-
-    private inner class SizeCell : AbstractCell<Int>() {
-        override val value: Int
-            get() {
-                if (!hasObservers) {
-                    recompute()
-                }
-
-                return elements.size
+            if (filteredChanges.isEmpty()) {
+                emitChanged(null)
+            } else {
+                emitChanged(ListChangeEvent(elements, filteredChanges))
             }
+        } else {
+            emitChanged(null)
+        }
+    }
 
-        val publicObservers = super.observers
+    private fun recompute() {
+        val newElements = mutableListOf<E>()
+        indexMap.clear()
 
-        override fun observe(callNow: Boolean, observer: Observer<Int>): Disposable {
-            initDependencyObservers()
-
-            val superDisposable = super.observe(callNow, observer)
-
-            return disposable {
-                superDisposable.dispose()
-                disposeDependencyObservers()
+        dependency.value.forEach { element ->
+            if (predicate(element)) {
+                newElements.add(element)
+                indexMap.add(newElements.lastIndex)
+            } else {
+                indexMap.add(-1)
             }
         }
 
-        fun publicEmit() {
-            super.emit()
-        }
+        elements = ListWrapper(newElements)
     }
 }

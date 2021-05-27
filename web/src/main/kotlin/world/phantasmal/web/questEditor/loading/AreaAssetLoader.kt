@@ -53,8 +53,6 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
 
                 addSectionsToCollisionGeometry(collisionObj3d, renderObj3d)
 
-//                cullRenderGeometry(collisionObj3d, renderObj3d)
-
                 Geom(sections, renderObj3d, collisionObj3d)
             },
             { geom ->

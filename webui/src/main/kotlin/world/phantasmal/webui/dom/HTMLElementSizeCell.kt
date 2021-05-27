@@ -1,10 +1,9 @@
 package world.phantasmal.webui.dom
 
 import org.w3c.dom.HTMLElement
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.unsafe.unsafeAssertNotNull
-import world.phantasmal.observable.Observer
+import world.phantasmal.observable.ChangeEvent
+import world.phantasmal.observable.Dependent
 import world.phantasmal.observable.cell.AbstractCell
 
 data class Size(val width: Double, val height: Double)
@@ -12,14 +11,9 @@ data class Size(val width: Double, val height: Double)
 class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
     private var resizeObserver: dynamic = null
 
-    /**
-     * Set to true right before actual observers are added.
-     */
-    private var hasObservers = false
-
     private var _value: Size? = null
 
-    var element: HTMLElement? = null
+    var element: HTMLElement? = element
         set(element) {
             if (resizeObserver != null) {
                 if (field != null) {
@@ -34,24 +28,17 @@ class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
             field = element
         }
 
-    init {
-        // Ensure we call the setter with element.
-        this.element = element
-    }
-
     override val value: Size
         get() {
-            if (!hasObservers) {
+            if (dependents.isEmpty()) {
                 _value = getSize()
             }
 
-            return _value.unsafeAssertNotNull()
+            return unsafeAssertNotNull(_value)
         }
 
-    override fun observe(callNow: Boolean, observer: Observer<Size>): Disposable {
-        if (!hasObservers) {
-            hasObservers = true
-
+    override fun addDependent(dependent: Dependent) {
+        if (dependents.isEmpty()) {
             if (resizeObserver == null) {
                 @Suppress("UNUSED_VARIABLE")
                 val resize = ::resizeCallback
@@ -65,15 +52,14 @@ class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
             _value = getSize()
         }
 
-        val superDisposable = super.observe(callNow, observer)
+        super.addDependent(dependent)
+    }
 
-        return disposable {
-            superDisposable.dispose()
+    override fun removeDependent(dependent: Dependent) {
+        super.removeDependent(dependent)
 
-            if (observers.isEmpty()) {
-                hasObservers = false
-                resizeObserver.disconnect()
-            }
+        if (dependents.isEmpty()) {
+            resizeObserver.disconnect()
         }
     }
 
@@ -83,12 +69,16 @@ class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
             ?: Size(0.0, 0.0)
 
     private fun resizeCallback(entries: Array<dynamic>) {
-        entries.forEach { entry ->
-            _value = Size(
-                entry.contentRect.width.unsafeCast<Double>(),
-                entry.contentRect.height.unsafeCast<Double>()
-            )
-            emit()
+        val entry = entries.first()
+        val newValue = Size(
+            entry.contentRect.width.unsafeCast<Double>(),
+            entry.contentRect.height.unsafeCast<Double>(),
+        )
+
+        if (newValue != _value) {
+            emitMightChange()
+            _value = newValue
+            emitChanged(ChangeEvent(newValue))
         }
     }
 }

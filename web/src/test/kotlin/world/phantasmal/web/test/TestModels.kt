@@ -4,18 +4,21 @@ import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.fileFormats.quest.NpcType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
+import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
 
-fun createQuestModel(
+fun WebTestContext.createQuestModel(
     id: Int = 1,
     name: String = "Test",
     shortDescription: String = name,
     longDescription: String = name,
     episode: Episode = Episode.I,
+    mapDesignations: Map<Int, Int> = emptyMap(),
     npcs: List<QuestNpcModel> = emptyList(),
     objects: List<QuestObjectModel> = emptyList(),
+    events: List<QuestEventModel> = emptyList(),
     bytecodeIr: BytecodeIr = BytecodeIr(emptyList()),
 ): QuestModel =
     QuestModel(
@@ -25,14 +28,15 @@ fun createQuestModel(
         shortDescription,
         longDescription,
         episode,
-        emptyMap(),
+        mapDesignations,
         npcs.toMutableList(),
         objects.toMutableList(),
-        events = mutableListOf(),
+        events.toMutableList(),
         datUnknowns = emptyList(),
         bytecodeIr,
         UIntArray(0),
-    ) { _, _, _ -> null }
+        components.areaStore::getVariant,
+    )
 
 fun createQuestNpcModel(type: NpcType, episode: Episode): QuestNpcModel =
     QuestNpcModel(

@@ -7,6 +7,7 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.lib.Episode
 import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.ListChange
 import world.phantasmal.observable.cell.list.ListChangeEvent
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
@@ -68,17 +69,21 @@ abstract class QuestMeshManager protected constructor(
         }
     }
 
-    private fun npcsChanged(change: ListChangeEvent<QuestNpcModel>) {
-        if (change is ListChangeEvent.Change) {
-            change.removed.forEach(npcMeshManager::remove)
-            change.inserted.forEach(npcMeshManager::add)
+    private fun npcsChanged(event: ListChangeEvent<QuestNpcModel>) {
+        for (change in event.changes) {
+            if (change is ListChange.Structural) {
+                change.removed.forEach(npcMeshManager::remove)
+                change.inserted.forEach(npcMeshManager::add)
+            }
         }
     }
 
-    private fun objectsChanged(change: ListChangeEvent<QuestObjectModel>) {
-        if (change is ListChangeEvent.Change) {
-            change.removed.forEach(objectMeshManager::remove)
-            change.inserted.forEach(objectMeshManager::add)
+    private fun objectsChanged(event: ListChangeEvent<QuestObjectModel>) {
+        for (change in event.changes) {
+            if (change is ListChange.Structural) {
+                change.removed.forEach(objectMeshManager::remove)
+                change.inserted.forEach(objectMeshManager::add)
+            }
         }
     }
 }

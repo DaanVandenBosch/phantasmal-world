@@ -138,7 +138,7 @@ class Instruction(
             }
         }
 
-        return paramToArgs.unsafeAssertNotNull()[paramIndex]
+        return unsafeAssertNotNull(paramToArgs)[paramIndex]
     }
 
     /**

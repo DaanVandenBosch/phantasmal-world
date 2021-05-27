@@ -2,6 +2,7 @@ package world.phantasmal.observable.cell.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.DependentCell
 
 interface ListCell<out E> : Cell<List<E>> {
     /**
@@ -16,23 +17,24 @@ interface ListCell<out E> : Cell<List<E>> {
 
     val notEmpty: Cell<Boolean>
 
-    operator fun get(index: Int): E
+    operator fun get(index: Int): E = value[index]
 
     fun observeList(callNow: Boolean = false, observer: ListObserver<E>): Disposable
 
     fun <R> fold(initialValue: R, operation: (R, E) -> R): Cell<R> =
-        FoldedCell(this, initialValue, operation)
+        DependentCell(this) { value.fold(initialValue, operation) }
 
     fun all(predicate: (E) -> Boolean): Cell<Boolean> =
-        fold(true) { acc, el -> acc && predicate(el) }
+        DependentCell(this) { value.all(predicate) }
 
-    fun sumBy(selector: (E) -> Int): Cell<Int> =
-        fold(0) { acc, el -> acc + selector(el) }
+    fun sumOf(selector: (E) -> Int): Cell<Int> =
+        DependentCell(this) { value.sumOf(selector) }
 
     fun filtered(predicate: (E) -> Boolean): ListCell<E> =
         FilteredListCell(this, predicate)
 
-    fun firstOrNull(): Cell<E?>
+    fun firstOrNull(): Cell<E?> =
+        DependentCell(this) { value.firstOrNull() }
 
     operator fun contains(element: @UnsafeVariance E): Boolean = element in value
 }

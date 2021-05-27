@@ -2,7 +2,7 @@ package world.phantasmal.observable.cell
 
 class DelegatingCellTests : RegularCellTests, MutableCellTests<Int> {
     override fun createProvider() = object : MutableCellTests.Provider<Int> {
-        private var v = 0
+        private var v = 17
 
         override val observable = DelegatingCell({ v }, { v = it })
 

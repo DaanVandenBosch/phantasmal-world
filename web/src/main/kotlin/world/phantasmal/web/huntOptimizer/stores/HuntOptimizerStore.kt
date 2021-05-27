@@ -100,7 +100,7 @@ class HuntOptimizerStore(
             val wantedItems = wantedItemPersister.loadWantedItems(server)
 
             withContext(Dispatchers.Main) {
-                _wantedItems.value = wantedItems
+                _wantedItems.replaceAll(wantedItems)
             }
         }
     }

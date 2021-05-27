@@ -2,12 +2,14 @@ package world.phantasmal.observable.cell.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.nopDisposable
+import world.phantasmal.core.unsafe.unsafeAssertNotNull
+import world.phantasmal.observable.AbstractDependency
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.cell.*
 
-class StaticListCell<E>(private val elements: List<E>) : ListCell<E> {
-    private val firstOrNull = StaticCell(elements.firstOrNull())
+class StaticListCell<E>(private val elements: List<E>) : AbstractDependency(), ListCell<E> {
+    private var firstOrNull: Cell<E?>? = null
 
     override val size: Cell<Int> = cell(elements.size)
     override val empty: Cell<Boolean> = if (elements.isEmpty()) trueCell() else falseCell()
@@ -30,11 +32,17 @@ class StaticListCell<E>(private val elements: List<E>) : ListCell<E> {
 
     override fun observeList(callNow: Boolean, observer: ListObserver<E>): Disposable {
         if (callNow) {
-            observer(ListChangeEvent.Change(0, emptyList(), value))
+            observer(ListChangeEvent(value, listOf(ListChange.Structural(0, emptyList(), value))))
         }
 
         return nopDisposable()
     }
 
-    override fun firstOrNull(): Cell<E?> = firstOrNull
+    override fun firstOrNull(): Cell<E?> {
+        if (firstOrNull == null) {
+            firstOrNull = StaticCell(elements.firstOrNull())
+        }
+
+        return unsafeAssertNotNull(firstOrNull)
+    }
 }

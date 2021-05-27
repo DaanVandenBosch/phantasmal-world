@@ -10,8 +10,9 @@ fun <E> emptyListCell(): ListCell<E> = EMPTY_LIST_CELL
 
 fun <E> mutableListCell(
     vararg elements: E,
-    extractObservables: ObservablesExtractor<E>? = null,
-): MutableListCell<E> = SimpleListCell(mutableListOf(*elements), extractObservables)
+    extractDependencies: DependenciesExtractor<E>? = null,
+): MutableListCell<E> =
+    SimpleListCell(mutableListOf(*elements), extractDependencies)
 
 fun <T1, T2, R> flatMapToList(
     c1: Cell<T1>,

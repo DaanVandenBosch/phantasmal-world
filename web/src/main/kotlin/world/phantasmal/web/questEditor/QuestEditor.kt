@@ -45,21 +45,26 @@ class QuestEditor(
 
         // Stores
         val areaStore = addDisposable(AreaStore(areaAssetLoader))
-        val questEditorStore = addDisposable(QuestEditorStore(
-            questLoader,
-            uiStore,
-            areaStore,
-            undoManager,
-        ))
+        val questEditorStore = addDisposable(
+            QuestEditorStore(
+                questLoader,
+                uiStore,
+                areaStore,
+                undoManager,
+                initializeNewQuest = true,
+            )
+        )
         val asmStore = addDisposable(AsmStore(questEditorStore, undoManager))
 
         // Controllers
         val questEditorController = addDisposable(QuestEditorController(questEditorUiPersister))
-        val toolbarController = addDisposable(QuestEditorToolbarController(
-            uiStore,
-            areaStore,
-            questEditorStore,
-        ))
+        val toolbarController = addDisposable(
+            QuestEditorToolbarController(
+                uiStore,
+                areaStore,
+                questEditorStore,
+            )
+        )
         val questInfoController = addDisposable(QuestInfoController(questEditorStore))
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
         val entityInfoController = addDisposable(EntityInfoController(areaStore, questEditorStore))
@@ -70,12 +75,14 @@ class QuestEditor(
         val eventsController = addDisposable(EventsController(questEditorStore))
 
         // Rendering
-        val renderer = addDisposable(QuestRenderer(
-            areaAssetLoader,
-            entityAssetLoader,
-            questEditorStore,
-            createThreeRenderer,
-        ))
+        val renderer = addDisposable(
+            QuestRenderer(
+                areaAssetLoader,
+                entityAssetLoader,
+                questEditorStore,
+                createThreeRenderer,
+            )
+        )
         val entityImageRenderer =
             addDisposable(EntityImageRenderer(entityAssetLoader, createThreeRenderer))
 

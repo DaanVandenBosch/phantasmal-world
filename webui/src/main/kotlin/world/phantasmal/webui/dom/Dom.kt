@@ -12,6 +12,7 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.ListChange
 import world.phantasmal.observable.cell.list.ListChangeEvent
 
 fun <E : Event> EventTarget.disposableListener(
@@ -255,26 +256,28 @@ private fun <T> bindChildrenTo(
     childrenRemoved: (index: Int, count: Int) -> Unit,
     after: (ListChangeEvent<T>) -> Unit,
 ): Disposable =
-    list.observeList(callNow = true) { change: ListChangeEvent<T> ->
-        if (change is ListChangeEvent.Change) {
-            repeat(change.removed.size) {
-                parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
-            }
+    list.observeList(callNow = true) { event: ListChangeEvent<T> ->
+        for (change in event.changes) {
+            if (change is ListChange.Structural) {
+                repeat(change.removed.size) {
+                    parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
+                }
 
-            childrenRemoved(change.index, change.removed.size)
+                childrenRemoved(change.index, change.removed.size)
 
-            val frag = document.createDocumentFragment()
+                val frag = document.createDocumentFragment()
 
-            change.inserted.forEachIndexed { i, value ->
-                frag.appendChild(frag.createChild(value, change.index + i))
-            }
+                change.inserted.forEachIndexed { i, value ->
+                    frag.appendChild(frag.createChild(value, change.index + i))
+                }
 
-            if (change.index >= parent.childNodes.length) {
-                parent.appendChild(frag)
-            } else {
-                parent.insertBefore(frag, parent.childNodes[change.index])
+                if (change.index >= parent.childNodes.length) {
+                    parent.appendChild(frag)
+                } else {
+                    parent.insertBefore(frag, parent.childNodes[change.index])
+                }
             }
         }
 
-        after(change)
+        after(event)
     }

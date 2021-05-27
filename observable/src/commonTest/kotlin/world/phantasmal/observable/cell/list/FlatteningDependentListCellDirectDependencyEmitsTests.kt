@@ -6,9 +6,9 @@ import world.phantasmal.observable.cell.SimpleCell
  * In these tests the direct dependency of the [FlatteningDependentListCell] changes.
  */
 class FlatteningDependentListCellDirectDependencyEmitsTests : ListCellTests {
-    override fun createProvider() = object : ListCellTests.Provider {
+    override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
         // The transitive dependency can't change.
-        private val transitiveDependency = StaticListCell<Int>(emptyList())
+        private val transitiveDependency = StaticListCell(if (empty) emptyList() else listOf(7))
 
         // The direct dependency of the list under test can change.
         private val dependency = SimpleCell<ListCell<Int>>(transitiveDependency)

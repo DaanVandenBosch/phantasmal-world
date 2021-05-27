@@ -17,7 +17,7 @@ interface MutableListCell<E> : ListCell<E>, MutableCell<List<E>> {
 
     fun replaceAll(elements: Sequence<E>)
 
-    fun splice(from: Int, removeCount: Int, newElement: E)
+    fun splice(fromIndex: Int, removeCount: Int, newElement: E)
 
     fun clear()
 

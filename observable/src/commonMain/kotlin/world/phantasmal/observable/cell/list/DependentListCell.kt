@@ -1,20 +1,42 @@
 package world.phantasmal.observable.cell.list
 
-import world.phantasmal.core.unsafe.unsafeAssertNotNull
+import world.phantasmal.observable.Dependent
 import world.phantasmal.observable.cell.Cell
 
 /**
  * ListCell of which the value depends on 0 or more other cells.
  */
 class DependentListCell<E>(
-    vararg dependencies: Cell<*>,
+    private vararg val dependencies: Cell<*>,
     private val computeElements: () -> List<E>,
-) : AbstractDependentListCell<E>(*dependencies) {
-    private var _elements: List<E>? = null
+) : AbstractDependentListCell<E>() {
 
-    override val elements: List<E> get() = _elements.unsafeAssertNotNull()
+    override var elements: List<E> = emptyList()
+        private set
+
+    override fun addDependent(dependent: Dependent) {
+        if (dependents.isEmpty()) {
+            computeElements()
+
+            for (dependency in dependencies) {
+                dependency.addDependent(this)
+            }
+        }
+
+        super.addDependent(dependent)
+    }
+
+    override fun removeDependent(dependent: Dependent) {
+        super.removeDependent(dependent)
+
+        if (dependents.isEmpty()) {
+            for (dependency in dependencies) {
+                dependency.removeDependent(this)
+            }
+        }
+    }
 
     override fun computeElements() {
-        _elements = computeElements.invoke()
+        elements = computeElements.invoke()
     }
 }

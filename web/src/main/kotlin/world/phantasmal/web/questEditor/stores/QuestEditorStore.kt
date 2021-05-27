@@ -22,6 +22,7 @@ class QuestEditorStore(
     uiStore: UiStore,
     private val areaStore: AreaStore,
     private val undoManager: UndoManager,
+    initializeNewQuest: Boolean,
 ) : Store() {
     private val _devMode = mutableCell(false)
     private val _currentQuest = mutableCell<QuestModel?>(null)
@@ -102,7 +103,9 @@ class QuestEditorStore(
             }
         }
 
-        scope.launch { setCurrentQuest(getDefaultQuest(Episode.I)) }
+        if (initializeNewQuest) {
+            scope.launch { setCurrentQuest(getDefaultQuest(Episode.I)) }
+        }
     }
 
     override fun dispose() {

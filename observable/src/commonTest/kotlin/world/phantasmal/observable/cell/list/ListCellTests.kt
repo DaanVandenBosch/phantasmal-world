@@ -8,7 +8,30 @@ import kotlin.test.*
  * [ListCell] implementation.
  */
 interface ListCellTests : CellTests {
-    override fun createProvider(): Provider
+    override fun createProvider(): Provider = createListProvider(empty = true)
+
+    fun createListProvider(empty: Boolean): Provider
+
+    @Test
+    fun list_value_is_accessible_without_observers() = test {
+        val p = createListProvider(empty = false)
+
+        assertTrue(p.observable.value.isNotEmpty())
+    }
+
+    @Test
+    fun list_value_is_accessible_with_observers() = test {
+        val p = createListProvider(empty = false)
+
+        var observedValue: List<*>? = null
+
+        disposer.add(p.observable.observe(callNow = true) {
+            observedValue = it.value
+        })
+
+        assertTrue(observedValue!!.isNotEmpty())
+        assertTrue(p.observable.value.isNotEmpty())
+    }
 
     @Test
     fun calls_list_observers_when_changed() = test {
@@ -28,7 +51,7 @@ interface ListCellTests : CellTests {
 
             p.addElement()
 
-            assertTrue(event is ListChangeEvent.Change<*>)
+            assertNotNull(event)
         }
     }
 
@@ -100,7 +123,7 @@ interface ListCellTests : CellTests {
     fun sumBy() = test {
         val p = createProvider()
 
-        val sum = p.observable.sumBy { 1 }
+        val sum = p.observable.sumOf { 1 }
 
         var observedValue: Int? = null
 

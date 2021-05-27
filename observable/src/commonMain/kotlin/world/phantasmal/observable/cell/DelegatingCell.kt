@@ -1,5 +1,7 @@
 package world.phantasmal.observable.cell
 
+import world.phantasmal.observable.ChangeEvent
+
 class DelegatingCell<T>(
     private val getter: () -> T,
     private val setter: (T) -> Unit,
@@ -10,8 +12,11 @@ class DelegatingCell<T>(
             val oldValue = getter()
 
             if (value != oldValue) {
+                emitMightChange()
+
                 setter(value)
-                emit()
+
+                emitChanged(ChangeEvent(value))
             }
         }
 }
