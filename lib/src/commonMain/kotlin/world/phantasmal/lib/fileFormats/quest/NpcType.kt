@@ -510,6 +510,9 @@ enum class NpcType(
         typeId = 130,
         skin = 0,
         special = false,
+        properties = listOf(
+            EntityProp(name = "Invisible", offset = 44, type = EntityPropType.F32)
+        ),
     ),
     SinowGold(
         uniqueName = "Sinow Gold",
@@ -520,6 +523,9 @@ enum class NpcType(
         typeId = 130,
         skin = 0,
         special = true,
+        properties = listOf(
+            EntityProp(name = "Invisible", offset = 44, type = EntityPropType.F32)
+        ),
     ),
     Canadine(
         uniqueName = "Canadine",
