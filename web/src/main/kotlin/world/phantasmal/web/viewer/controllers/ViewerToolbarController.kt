@@ -15,6 +15,7 @@ import world.phantasmal.lib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.lib.fileFormats.parseAreaRenderGeometry
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore
@@ -75,11 +76,11 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
         val result = PwResult.build<Unit>(logger)
         var success = false
 
-        try {
-            var ninjaGeometry: NinjaGeometry? = null
-            var textures: List<XvrTexture>? = null
-            var ninjaMotion: NjMotion? = null
+        var ninjaGeometry: NinjaGeometry? = null
+        var textures: List<XvrTexture>? = null
+        var ninjaMotion: NjMotion? = null
 
+        try {
             for (file in files) {
                 val extension = file.extension()?.toLowerCase()
 
@@ -92,7 +93,8 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                         fileResult = njResult
 
                         if (njResult is Success) {
-                            ninjaGeometry = njResult.value.firstOrNull()?.let(NinjaGeometry::Object)
+                            ninjaGeometry =
+                                njResult.value.firstOrNull()?.let(NinjaGeometry::Object)
                         }
                     }
 
@@ -101,7 +103,8 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                         fileResult = xjResult
 
                         if (xjResult is Success) {
-                            ninjaGeometry = xjResult.value.firstOrNull()?.let(NinjaGeometry::Object)
+                            ninjaGeometry =
+                                xjResult.value.firstOrNull()?.let(NinjaGeometry::Object)
                         }
                     }
 
@@ -157,15 +160,17 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
                     success = true
                 }
             }
-
-            ninjaGeometry?.let(store::setCurrentNinjaGeometry)
-            textures?.let(store::setCurrentTextures)
-            ninjaMotion?.let(store::setCurrentNinjaMotion)
         } catch (e: Exception) {
             result.addProblem(Severity.Error, "Couldn't parse files.", cause = e)
         }
 
-        setResult(if (success) result.success(Unit) else result.failure())
+        change {
+            ninjaGeometry?.let(store::setCurrentNinjaGeometry)
+            textures?.let(store::setCurrentTextures)
+            ninjaMotion?.let(store::setCurrentNinjaMotion)
+
+            setResult(if (success) result.success(Unit) else result.failure())
+        }
     }
 
     fun dismissResultDialog() {

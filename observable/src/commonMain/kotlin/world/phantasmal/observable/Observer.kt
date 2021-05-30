@@ -1,6 +1,11 @@
 package world.phantasmal.observable
 
-open class ChangeEvent<out T>(val value: T) {
+open class ChangeEvent<out T>(
+    /**
+     * The observable's new value
+     */
+    val value: T,
+) {
     operator fun component1() = value
 }
 

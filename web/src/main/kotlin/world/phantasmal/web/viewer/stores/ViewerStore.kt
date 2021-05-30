@@ -14,6 +14,7 @@ import world.phantasmal.observable.cell.and
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.rendering.conversion.PSO_FRAME_RATE
 import world.phantasmal.web.core.stores.UiStore
@@ -163,14 +164,16 @@ class ViewerStore(
     }
 
     fun setCurrentNinjaGeometry(geometry: NinjaGeometry?) {
-        if (_currentCharacterClass.value != null) {
-            _currentCharacterClass.value = null
-            _currentTextures.clear()
-        }
+        change {
+            if (_currentCharacterClass.value != null) {
+                _currentCharacterClass.value = null
+                _currentTextures.clear()
+            }
 
-        _currentAnimation.value = null
-        _currentNinjaMotion.value = null
-        _currentNinjaGeometry.value = geometry
+            _currentAnimation.value = null
+            _currentNinjaMotion.value = null
+            _currentNinjaGeometry.value = geometry
+        }
     }
 
     fun setCurrentTextures(textures: List<XvrTexture>) {
@@ -200,8 +203,10 @@ class ViewerStore(
     }
 
     fun setCurrentNinjaMotion(njm: NjMotion) {
-        _currentNinjaMotion.value = njm
-        _animationPlaying.value = true
+        change {
+            _currentNinjaMotion.value = njm
+            _animationPlaying.value = true
+        }
     }
 
     suspend fun setCurrentAnimation(animation: AnimationModel?) {
@@ -244,34 +249,41 @@ class ViewerStore(
         val char = currentCharacterClass.value
             ?: return
 
-        val sectionId = currentSectionId.value
-        val body = currentBody.value
-
         try {
+            val sectionId = currentSectionId.value
+            val body = currentBody.value
             val ninjaObject = characterClassAssetLoader.loadNinjaObject(char)
             val textures = characterClassAssetLoader.loadXvrTextures(char, sectionId, body)
 
-            if (clearAnimation) {
-                _currentAnimation.value = null
-                _currentNinjaMotion.value = null
-            }
+            change {
+                if (clearAnimation) {
+                    _currentAnimation.value = null
+                    _currentNinjaMotion.value = null
+                }
 
-            _currentNinjaGeometry.value = NinjaGeometry.Object(ninjaObject)
-            _currentTextures.replaceAll(textures)
+                _currentNinjaGeometry.value = NinjaGeometry.Object(ninjaObject)
+                _currentTextures.replaceAll(textures)
+            }
         } catch (e: Exception) {
             logger.error(e) { "Couldn't load Ninja model for $char." }
 
-            _currentAnimation.value = null
-            _currentNinjaMotion.value = null
-            _currentNinjaGeometry.value = null
-            _currentTextures.clear()
+            change {
+                _currentAnimation.value = null
+                _currentNinjaMotion.value = null
+                _currentNinjaGeometry.value = null
+                _currentTextures.clear()
+            }
         }
     }
 
     private suspend fun loadAnimation(animation: AnimationModel) {
         try {
-            _currentNinjaMotion.value = animationAssetLoader.loadAnimation(animation.filePath)
-            _animationPlaying.value = true
+            val ninjaMotion = animationAssetLoader.loadAnimation(animation.filePath)
+
+            change {
+                _currentNinjaMotion.value = ninjaMotion
+                _animationPlaying.value = true
+            }
         } catch (e: Exception) {
             logger.error(e) {
                 "Couldn't load Ninja motion for ${animation.name} (path: ${animation.filePath})."

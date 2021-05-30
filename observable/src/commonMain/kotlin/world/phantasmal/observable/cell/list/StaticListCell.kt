@@ -45,4 +45,8 @@ class StaticListCell<E>(private val elements: List<E>) : AbstractDependency(), L
 
         return unsafeAssertNotNull(firstOrNull)
     }
+
+    override fun emitDependencyChanged() {
+        error("StaticListCell can't change.")
+    }
 }

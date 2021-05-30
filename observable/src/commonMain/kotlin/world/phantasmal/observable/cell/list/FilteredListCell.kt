@@ -179,13 +179,19 @@ class FilteredListCell<E>(
             }
 
             if (filteredChanges.isEmpty()) {
-                emitChanged(null)
+                emitDependencyChanged(null)
             } else {
-                emitChanged(ListChangeEvent(elements, filteredChanges))
+                emitDependencyChanged(ListChangeEvent(elements, filteredChanges))
             }
         } else {
-            emitChanged(null)
+            emitDependencyChanged(null)
         }
+    }
+
+    override fun emitDependencyChanged() {
+        // Nothing to do because FilteredListCell emits dependencyChanged immediately. We don't
+        // defer this operation because FilteredListCell only changes when there is no transaction
+        // or the current transaction is being committed.
     }
 
     private fun recompute() {

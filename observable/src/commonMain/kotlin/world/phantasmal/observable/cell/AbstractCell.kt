@@ -32,11 +32,13 @@ abstract class AbstractCell<T> : AbstractDependency(), Cell<T> {
         }
     }
 
-    protected fun emitChanged(event: ChangeEvent<T>?) {
-        mightChangeEmitted = false
+    protected fun emitDependencyChanged(event: ChangeEvent<*>?) {
+        if (mightChangeEmitted) {
+            mightChangeEmitted = false
 
-        for (dependent in dependents) {
-            dependent.dependencyChanged(this, event)
+            for (dependent in dependents) {
+                dependent.dependencyChanged(this, event)
+            }
         }
     }
 }

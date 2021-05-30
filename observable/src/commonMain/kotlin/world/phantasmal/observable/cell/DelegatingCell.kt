@@ -1,6 +1,7 @@
 package world.phantasmal.observable.cell
 
 import world.phantasmal.observable.ChangeEvent
+import world.phantasmal.observable.ChangeManager
 
 class DelegatingCell<T>(
     private val getter: () -> T,
@@ -16,7 +17,11 @@ class DelegatingCell<T>(
 
                 setter(value)
 
-                emitChanged(ChangeEvent(value))
+                ChangeManager.changed(this)
             }
         }
+
+    override fun emitDependencyChanged() {
+        emitDependencyChanged(ChangeEvent(value))
+    }
 }

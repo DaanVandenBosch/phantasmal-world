@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.actions
 
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.models.QuestModel
@@ -13,12 +14,16 @@ class CreateEventAction(
     override val description: String = "Add event ${event.id.value}"
 
     override fun execute() {
-        quest.addEvent(index, event)
-        setSelectedEvent(event)
+        change {
+            quest.addEvent(index, event)
+            setSelectedEvent(event)
+        }
     }
 
     override fun undo() {
-        setSelectedEvent(null)
-        quest.removeEvent(event)
+        change {
+            setSelectedEvent(null)
+            quest.removeEvent(event)
+        }
     }
 }

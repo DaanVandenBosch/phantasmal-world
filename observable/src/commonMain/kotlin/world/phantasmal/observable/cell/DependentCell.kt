@@ -50,9 +50,9 @@ class DependentCell<T>(
 
         if (newValue != _value) {
             _value = newValue
-            emitChanged(ChangeEvent(newValue))
+            emitDependencyChanged(ChangeEvent(newValue))
         } else {
-            emitChanged(null)
+            emitDependencyChanged(null)
         }
     }
 }

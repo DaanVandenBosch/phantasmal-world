@@ -7,6 +7,7 @@ import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.listCell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.minus
 import world.phantasmal.web.core.rendering.conversion.vec3ToEuler
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree
@@ -60,11 +61,13 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     })
 
     open fun setSectionId(sectionId: Int) {
-        entity.sectionId = sectionId.toShort()
-        _sectionId.value = sectionId
+        change {
+            entity.sectionId = sectionId.toShort()
+            _sectionId.value = sectionId
 
-        if (sectionId != _section.value?.id) {
-            _section.value = null
+            if (sectionId != _section.value?.id) {
+                _section.value = null
+            }
         }
     }
 
@@ -81,87 +84,97 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
             "Quest entities can't be moved across areas."
         }
 
-        entity.sectionId = section.id.toShort()
-        _sectionId.value = section.id
+        change {
+            entity.sectionId = section.id.toShort()
+            _sectionId.value = section.id
 
-        _section.value = section
+            _section.value = section
 
-        if (keepRelativeTransform) {
-            // Update world position and rotation by calling setPosition and setRotation with the
-            // current position and rotation.
-            setPosition(position.value)
-            setRotation(rotation.value)
-        } else {
-            // Update relative position and rotation by calling setWorldPosition and
-            // setWorldRotation with the current world position and rotation.
-            setWorldPosition(worldPosition.value)
-            setWorldRotation(worldRotation.value)
+            if (keepRelativeTransform) {
+                // Update world position and rotation by calling setPosition and setRotation with the
+                // current position and rotation.
+                setPosition(position.value)
+                setRotation(rotation.value)
+            } else {
+                // Update relative position and rotation by calling setWorldPosition and
+                // setWorldRotation with the current world position and rotation.
+                setWorldPosition(worldPosition.value)
+                setWorldRotation(worldRotation.value)
+            }
+
+            setSectionInitialized()
         }
-
-        setSectionInitialized()
     }
 
     fun setPosition(pos: Vector3) {
-        entity.setPosition(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
+        change {
+            entity.setPosition(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
 
-        _position.value = pos
+            _position.value = pos
 
-        val section = section.value
+            val section = section.value
 
-        _worldPosition.value =
-            if (section == null) pos
-            else pos.clone().applyEuler(section.rotation).add(section.position)
+            _worldPosition.value =
+                if (section == null) pos
+                else pos.clone().applyEuler(section.rotation).add(section.position)
+        }
     }
 
     fun setWorldPosition(pos: Vector3) {
-        val section = section.value
+        change {
+            val section = section.value
 
-        val relPos =
-            if (section == null) pos
-            else (pos - section.position).applyEuler(section.inverseRotation)
+            val relPos =
+                if (section == null) pos
+                else (pos - section.position).applyEuler(section.inverseRotation)
 
-        entity.setPosition(relPos.x.toFloat(), relPos.y.toFloat(), relPos.z.toFloat())
+            entity.setPosition(relPos.x.toFloat(), relPos.y.toFloat(), relPos.z.toFloat())
 
-        _worldPosition.value = pos
-        _position.value = relPos
+            _worldPosition.value = pos
+            _position.value = relPos
+        }
     }
 
     fun setRotation(rot: Euler) {
-        floorModEuler(rot)
+        change {
+            floorModEuler(rot)
 
-        entity.setRotation(rot.x.toFloat(), rot.y.toFloat(), rot.z.toFloat())
-        _rotation.value = rot
+            entity.setRotation(rot.x.toFloat(), rot.y.toFloat(), rot.z.toFloat())
+            _rotation.value = rot
 
-        val section = section.value
+            val section = section.value
 
-        if (section == null) {
-            _worldRotation.value = rot
-        } else {
-            q1.setFromEuler(rot)
-            q2.setFromEuler(section.rotation)
-            q1 *= q2
-            _worldRotation.value = floorModEuler(q1.toEuler())
+            if (section == null) {
+                _worldRotation.value = rot
+            } else {
+                q1.setFromEuler(rot)
+                q2.setFromEuler(section.rotation)
+                q1 *= q2
+                _worldRotation.value = floorModEuler(q1.toEuler())
+            }
         }
     }
 
     fun setWorldRotation(rot: Euler) {
-        floorModEuler(rot)
+        change {
+            floorModEuler(rot)
 
-        val section = section.value
+            val section = section.value
 
-        val relRot = if (section == null) {
-            rot
-        } else {
-            q1.setFromEuler(rot)
-            q2.setFromEuler(section.rotation)
-            q2.invert()
-            q1 *= q2
-            floorModEuler(q1.toEuler())
+            val relRot = if (section == null) {
+                rot
+            } else {
+                q1.setFromEuler(rot)
+                q2.setFromEuler(section.rotation)
+                q2.invert()
+                q1 *= q2
+                floorModEuler(q1.toEuler())
+            }
+
+            entity.setRotation(relRot.x.toFloat(), relRot.y.toFloat(), relRot.z.toFloat())
+            _worldRotation.value = rot
+            _rotation.value = relRot
         }
-
-        entity.setRotation(relRot.x.toFloat(), relRot.y.toFloat(), relRot.z.toFloat())
-        _worldRotation.value = rot
-        _rotation.value = relRot
     }
 
     companion object {

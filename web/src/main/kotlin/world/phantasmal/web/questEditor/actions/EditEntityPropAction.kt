@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.actions
 
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestEntityPropModel
@@ -14,12 +15,16 @@ class EditEntityPropAction(
     override val description: String = "Edit ${entity.type.simpleName} ${prop.name}"
 
     override fun execute() {
-        setSelectedEntity(entity)
-        prop.setValue(newValue)
+        change {
+            setSelectedEntity(entity)
+            prop.setValue(newValue)
+        }
     }
 
     override fun undo() {
-        setSelectedEntity(entity)
-        prop.setValue(oldValue)
+        change {
+            setSelectedEntity(entity)
+            prop.setValue(oldValue)
+        }
     }
 }

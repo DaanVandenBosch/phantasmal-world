@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.actions
 
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
@@ -17,12 +18,16 @@ class DeleteEventActionAction(
         "Remove ${action.shortName} action from event ${event.id.value}"
 
     override fun execute() {
-        setSelectedEvent(event)
-        event.removeAction(action)
+        change {
+            setSelectedEvent(event)
+            event.removeAction(action)
+        }
     }
 
     override fun undo() {
-        setSelectedEvent(event)
-        event.addAction(index, action)
+        change {
+            setSelectedEvent(event)
+            event.addAction(index, action)
+        }
     }
 }

@@ -5,6 +5,7 @@ import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.Dependent
+import world.phantasmal.observable.ChangeManager
 
 typealias DependenciesExtractor<E> = (element: E) -> Array<Dependency>
 
@@ -27,7 +28,7 @@ class SimpleListCell<E>(
      */
     private val elementDependents = mutableListOf<ElementDependent>()
     private var changingElements = 0
-    private var elementListChanges = mutableListOf<ListChange.Element<E>>()
+    private var changes = mutableListOf<ListChange<E>>()
 
     override var value: List<E>
         get() = elements
@@ -50,12 +51,8 @@ class SimpleListCell<E>(
             elementDependents[index] = ElementDependent(index, element)
         }
 
-        emitChanged(
-            ListChangeEvent(
-                elements,
-                listOf(ListChange.Structural(index, listOf(removed), listOf(element))),
-            ),
-        )
+        changes.add(ListChange.Structural(index, listOf(removed), listOf(element)))
+        ChangeManager.changed(this)
 
         return removed
     }
@@ -180,6 +177,14 @@ class SimpleListCell<E>(
         }
     }
 
+    override fun emitDependencyChanged() {
+        try {
+            emitDependencyChanged(ListChangeEvent(elements, changes))
+        } finally {
+            changes = mutableListOf()
+        }
+    }
+
     private fun checkIndex(index: Int, maxIndex: Int) {
         if (index !in 0..maxIndex) {
             throw IndexOutOfBoundsException(
@@ -206,12 +211,8 @@ class SimpleListCell<E>(
             }
         }
 
-        emitChanged(
-            ListChangeEvent(
-                elements,
-                listOf(ListChange.Structural(index, removed, inserted)),
-            ),
-        )
+        changes.add(ListChange.Structural(index, removed, inserted))
+        ChangeManager.changed(this)
     }
 
     private inner class ElementDependent(
@@ -249,19 +250,11 @@ class SimpleListCell<E>(
             if (--changingDependencies == 0) {
                 if (dependenciesActuallyChanged) {
                     dependenciesActuallyChanged = false
-                    elementListChanges.add(ListChange.Element(index, element))
+                    changes.add(ListChange.Element(index, element))
                 }
 
                 if (--changingElements == 0) {
-                    try {
-                        if (elementListChanges.isNotEmpty()) {
-                            emitChanged(ListChangeEvent(value, elementListChanges))
-                        } else {
-                            emitChanged(null)
-                        }
-                    } finally {
-                        elementListChanges = mutableListOf()
-                    }
+                    ChangeManager.changed(this@SimpleListCell)
                 }
             }
         }

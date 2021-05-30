@@ -63,6 +63,10 @@ class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
         }
     }
 
+    override fun emitDependencyChanged() {
+        error("HTMLElementSizeCell emits dependencyChanged immediately.")
+    }
+
     private fun getSize(): Size =
         element
             ?.let { Size(it.offsetWidth.toDouble(), it.offsetHeight.toDouble()) }
@@ -78,7 +82,7 @@ class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
         if (newValue != _value) {
             emitMightChange()
             _value = newValue
-            emitChanged(ChangeEvent(newValue))
+            emitDependencyChanged(ChangeEvent(newValue))
         }
     }
 }

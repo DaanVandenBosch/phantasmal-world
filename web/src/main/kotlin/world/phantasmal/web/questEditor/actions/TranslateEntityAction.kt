@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.actions
 
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.models.QuestEntityModel
@@ -16,18 +17,22 @@ class TranslateEntityAction(
     override val description: String = "Move ${entity.type.simpleName}"
 
     override fun execute() {
-        setSelectedEntity(entity)
+        change {
+            setSelectedEntity(entity)
 
-        newSection?.let(setEntitySection)
+            newSection?.let(setEntitySection)
 
-        entity.setPosition(newPosition)
+            entity.setPosition(newPosition)
+        }
     }
 
     override fun undo() {
-        setSelectedEntity(entity)
+        change {
+            setSelectedEntity(entity)
 
-        oldSection?.let(setEntitySection)
+            oldSection?.let(setEntitySection)
 
-        entity.setPosition(oldPosition)
+            entity.setPosition(oldPosition)
+        }
     }
 }

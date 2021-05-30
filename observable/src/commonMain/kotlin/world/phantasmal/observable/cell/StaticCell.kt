@@ -16,4 +16,8 @@ class StaticCell<T>(override val value: T) : AbstractDependency(), Cell<T> {
     }
 
     override fun observe(observer: Observer<T>): Disposable = nopDisposable()
+
+    override fun emitDependencyChanged() {
+        error("StaticCell can't change.")
+    }
 }

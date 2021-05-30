@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.actions
 
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.questEditor.models.QuestEntityModel
@@ -14,22 +15,26 @@ class RotateEntityAction(
     override val description: String = "Rotate ${entity.type.simpleName}"
 
     override fun execute() {
-        setSelectedEntity(entity)
+        change {
+            setSelectedEntity(entity)
 
-        if (world) {
-            entity.setWorldRotation(newRotation)
-        } else {
-            entity.setRotation(newRotation)
+            if (world) {
+                entity.setWorldRotation(newRotation)
+            } else {
+                entity.setRotation(newRotation)
+            }
         }
     }
 
     override fun undo() {
-        setSelectedEntity(entity)
+        change {
+            setSelectedEntity(entity)
 
-        if (world) {
-            entity.setWorldRotation(oldRotation)
-        } else {
-            entity.setRotation(oldRotation)
+            if (world) {
+                entity.setWorldRotation(oldRotation)
+            } else {
+                entity.setRotation(oldRotation)
+            }
         }
     }
 }

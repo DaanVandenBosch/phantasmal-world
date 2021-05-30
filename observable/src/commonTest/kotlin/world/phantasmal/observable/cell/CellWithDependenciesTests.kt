@@ -36,6 +36,11 @@ interface CellWithDependenciesTests : CellTests {
             val publicDependents: List<Dependent> = dependents
 
             override val value: Int = 5
+
+            override fun emitDependencyChanged() {
+                // Not going to change.
+                throw NotImplementedError()
+            }
         }
 
         val cell = p.createWithDependencies(dependency)

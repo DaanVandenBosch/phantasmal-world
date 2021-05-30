@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.actions
 
+import world.phantasmal.observable.change
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestModel
@@ -12,8 +13,10 @@ class CreateEntityAction(
     override val description: String = "Add ${entity.type.name}"
 
     override fun execute() {
-        quest.addEntity(entity)
-        setSelectedEntity(entity)
+        change {
+            quest.addEntity(entity)
+            setSelectedEntity(entity)
+        }
     }
 
     override fun undo() {

@@ -57,7 +57,7 @@ abstract class AbstractDependentListCell<E> :
 
         computeElements()
 
-        emitChanged(
+        emitDependencyChanged(
             ListChangeEvent(elements, listOf(ListChange.Structural(0, oldElements, elements)))
         )
     }

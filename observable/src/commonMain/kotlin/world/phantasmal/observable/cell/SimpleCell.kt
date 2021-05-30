@@ -1,6 +1,7 @@
 package world.phantasmal.observable.cell
 
 import world.phantasmal.observable.ChangeEvent
+import world.phantasmal.observable.ChangeManager
 
 class SimpleCell<T>(value: T) : AbstractCell<T>(), MutableCell<T> {
     override var value: T = value
@@ -10,7 +11,11 @@ class SimpleCell<T>(value: T) : AbstractCell<T>(), MutableCell<T> {
 
                 field = value
 
-                emitChanged(ChangeEvent(value))
+                ChangeManager.changed(this)
             }
         }
+
+    override fun emitDependencyChanged() {
+        emitDependencyChanged(ChangeEvent(value))
+    }
 }
