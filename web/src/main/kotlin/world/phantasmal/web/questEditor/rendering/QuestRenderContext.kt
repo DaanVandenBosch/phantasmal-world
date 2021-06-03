@@ -10,8 +10,19 @@ class QuestRenderContext(
     canvas: HTMLCanvasElement,
     camera: Camera,
 ) : RenderContext(canvas, camera) {
+    /**
+     * Things that can be directly manipulated such as NPCs, objects, warp destinations,...
+     */
     val entities: Object3D = Group().apply {
         name = "Entities"
+        scene.add(this)
+    }
+
+    /**
+     * Helper objects that can't be directly manipulated such as warp lines.
+     */
+    val helpers: Object3D = Group().apply {
+        name = "Helpers"
         scene.add(this)
     }
 

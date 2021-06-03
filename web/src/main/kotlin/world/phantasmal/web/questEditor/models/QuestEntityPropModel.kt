@@ -4,53 +4,43 @@ import world.phantasmal.lib.fileFormats.ninja.angleToRad
 import world.phantasmal.lib.fileFormats.ninja.radToAngle
 import world.phantasmal.lib.fileFormats.quest.EntityProp
 import world.phantasmal.lib.fileFormats.quest.EntityPropType
-import world.phantasmal.lib.fileFormats.quest.ObjectType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.MutableCell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.web.externals.three.Vector3
 
 class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: EntityProp) {
-    private val _value: MutableCell<Any> = mutableCell(when (prop.type) {
-        EntityPropType.I32 -> entity.entity.data.getInt(prop.offset)
-        EntityPropType.F32 -> entity.entity.data.getFloat(prop.offset)
-        EntityPropType.Angle -> angleToRad(entity.entity.data.getInt(prop.offset))
-    })
-    private val affectsModel: Boolean =
-        when (entity.type) {
-            ObjectType.Probe ->
-                prop.offset == 40
-
-            ObjectType.Saw,
-            ObjectType.LaserDetect,
-            -> prop.offset == 48
-
-            ObjectType.Sonic,
-            ObjectType.LittleCryotube,
-            ObjectType.Cactus,
-            ObjectType.BigBrownRock,
-            ObjectType.BigBlackRocks,
-            ObjectType.BeeHive,
-            -> prop.offset == 52
-
-            ObjectType.ForestConsole ->
-                prop.offset == 56
-
-            ObjectType.PrincipalWarp,
-            ObjectType.LaserFence,
-            ObjectType.LaserSquareFence,
-            ObjectType.LaserFenceEx,
-            ObjectType.LaserSquareFenceEx,
-            -> prop.offset == 60
-
-            else -> false
+    private val _value: MutableCell<Any> = mutableCell(
+        when (prop.type) {
+            EntityPropType.I32 -> entity.entity.data.getInt(prop.offset)
+            EntityPropType.F32 -> entity.entity.data.getFloat(prop.offset)
+            EntityPropType.Angle -> angleToRad(entity.entity.data.getInt(prop.offset))
         }
+    )
+    private val affectsModel: Boolean
+    private val affectsDestinationPosition: Boolean
+    private val affectsDestinationRotationY: Boolean
 
     val name: String = prop.name
     val offset = prop.offset
     val type: EntityPropType = prop.type
     val value: Cell<Any> = _value
 
-    fun setValue(value: Any, propagateToEntity: Boolean = true) {
+    init {
+        affectsModel = entity is QuestObjectModel &&
+                entity.entity.modelOffset != -1 &&
+                overlaps(entity.entity.modelOffset, 4)
+
+        affectsDestinationPosition = entity is QuestObjectModel &&
+                entity.entity.destinationPositionOffset != -1 &&
+                overlaps(entity.entity.destinationPositionOffset, 12)
+
+        affectsDestinationRotationY = entity is QuestObjectModel &&
+                entity.entity.destinationRotationYOffset != -1 &&
+                overlaps(entity.entity.destinationRotationYOffset, 4)
+    }
+
+    fun setValue(value: Any) {
         when (type) {
             EntityPropType.I32 -> {
                 require(value is Int)
@@ -68,11 +58,40 @@ class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: Ent
 
         _value.value = value
 
-        if (propagateToEntity && affectsModel) {
+        if (affectsModel) {
             (entity as QuestObjectModel).setModel(
-                entity.entity.data.getInt(offset),
+                entity.entity.model,
+                propagateToProps = false,
+            )
+        }
+
+        if (affectsDestinationPosition) {
+            (entity as QuestObjectModel).setDestinationPosition(
+                Vector3(
+                    entity.entity.destinationPositionX.toDouble(),
+                    entity.entity.destinationPositionY.toDouble(),
+                    entity.entity.destinationPositionZ.toDouble(),
+                ),
+                propagateToProps = false,
+            )
+        }
+
+        if (affectsDestinationRotationY) {
+            (entity as QuestObjectModel).setDestinationRotationY(
+                entity.entity.destinationRotationY.toDouble(),
                 propagateToProps = false,
             )
         }
     }
+
+    fun updateValue() {
+        _value.value = when (type) {
+            EntityPropType.I32 -> entity.entity.data.getInt(offset)
+            EntityPropType.F32 -> entity.entity.data.getFloat(offset)
+            EntityPropType.Angle -> angleToRad(entity.entity.data.getInt(offset))
+        }
+    }
+
+    fun overlaps(offset: Int, size: Int): Boolean =
+        this.offset < offset + size && this.offset + 4 > offset
 }

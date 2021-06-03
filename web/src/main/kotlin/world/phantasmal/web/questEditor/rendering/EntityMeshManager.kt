@@ -2,16 +2,19 @@ package world.phantasmal.web.questEditor.rendering
 
 import kotlinx.coroutines.*
 import mu.KotlinLogging
+import org.khronos.webgl.Float32Array
 import world.phantasmal.core.disposable.DisposableSupervisedScope
+import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.lib.fileFormats.quest.EntityType
-import world.phantasmal.web.externals.three.BoxHelper
-import world.phantasmal.web.externals.three.Color
+import world.phantasmal.web.core.rendering.disposeObject3DResources
+import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.loading.LoadingCache
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.DisposableContainer
+import world.phantasmal.webui.obj
 
 private val logger = KotlinLogging.logger {}
 
@@ -23,22 +26,46 @@ class EntityMeshManager(
     private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
 
     /**
-     * Contains one [EntityInstancedMesh] per [EntityType] and model.
+     * Contains one [EntityInstanceContainer] per [EntityType] and model.
      */
     private val entityMeshCache = addDisposable(
-        LoadingCache<TypeAndModel, EntityInstancedMesh>(
+        LoadingCache<TypeAndModel, EntityInstanceContainer>(
             { (type, model) ->
                 val mesh = entityAssetLoader.loadInstancedMesh(type, model)
                 renderContext.entities.add(mesh)
-                EntityInstancedMesh(mesh, modelChanged = { entity ->
+                EntityInstanceContainer(mesh, modelChanged = { entity ->
                     // When an entity's model changes, add it again. At this point it has already
                     // been removed from its previous EntityInstancedMesh.
                     add(entity)
                 })
             },
-            EntityInstancedMesh::dispose,
+            EntityInstanceContainer::dispose,
         )
     )
+
+    /**
+     * Warp destinations.
+     */
+    private val destinationInstanceContainer = addDisposable(
+        DestinationInstanceContainer().also {
+            renderContext.entities.add(it.mesh)
+        }
+    )
+
+    // Lines between warps and their destination.
+    private val warpLineBufferAttribute = Float32BufferAttribute(Float32Array(6), 3)
+    private val warpLines =
+        LineSegments(
+            BufferGeometry().setAttribute("position", warpLineBufferAttribute),
+            LineBasicMaterial(obj {
+                color = DestinationInstanceContainer.COLOR
+            })
+        ).also {
+            it.visible = false
+            it.frustumCulled = false
+            renderContext.helpers.add(it)
+        }
+    private var warpLineDisposer = addDisposable(Disposer())
 
     /**
      * Entity meshes that are currently being loaded.
@@ -81,6 +108,7 @@ class EntityMeshManager(
     override fun dispose() {
         removeAll()
         renderContext.entities.clear()
+        disposeObject3DResources(warpLines)
         super.dispose()
     }
 
@@ -88,10 +116,12 @@ class EntityMeshManager(
         loadingEntities.getOrPut(entity) {
             scope.launch {
                 try {
-                    val entityInstancedMesh = entityMeshCache.get(TypeAndModel(
-                        type = entity.type,
-                        model = (entity as? QuestObjectModel)?.model?.value
-                    ))
+                    val entityInstancedMesh = entityMeshCache.get(
+                        TypeAndModel(
+                            type = entity.type,
+                            model = (entity as? QuestObjectModel)?.model?.value
+                        )
+                    )
 
                     val instance = entityInstancedMesh.addInstance(entity)
 
@@ -99,6 +129,10 @@ class EntityMeshManager(
                         markSelected(instance)
                     } else if (entity == questEditorStore.highlightedEntity.value) {
                         markHighlighted(instance)
+                    }
+
+                    if (entity is QuestObjectModel && entity.hasDestination) {
+                        destinationInstanceContainer.addInstance(entity)
                     }
                 } catch (e: CancellationException) {
                     // Do nothing.
@@ -122,6 +156,10 @@ class EntityMeshManager(
                 (entity as? QuestObjectModel)?.model?.value
             )
         )?.removeInstance(entity)
+
+        if (entity is QuestObjectModel && entity.hasDestination) {
+            destinationInstanceContainer.removeInstance(entity)
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -134,6 +172,8 @@ class EntityMeshManager(
                 meshContainerDeferred.getCompleted().clearInstances()
             }
         }
+
+        destinationInstanceContainer.clearInstances()
     }
 
     private fun markHighlighted(instance: EntityInstance?) {
@@ -158,6 +198,7 @@ class EntityMeshManager(
         }
 
         attachBoxHelper(selectedBox, selectedEntityInstance, instance)
+        attachWarpLine(instance)
         selectedEntityInstance = instance
     }
 
@@ -176,6 +217,26 @@ class EntityMeshManager(
             box.setFromObject(newInstance.mesh)
             newInstance.follower = box
             box.visible = true
+        }
+    }
+
+    private fun attachWarpLine(newInstance: EntityInstance?) {
+        warpLineDisposer.disposeAll()
+        warpLines.visible = false
+
+        if (newInstance != null &&
+            newInstance.entity is QuestObjectModel &&
+            newInstance.entity.hasDestination
+        ) {
+            warpLineDisposer.add(newInstance.entity.worldPosition.observe(callNow = true) {
+                warpLineBufferAttribute.setXYZ(0, it.value.x, it.value.y, it.value.z)
+                warpLineBufferAttribute.needsUpdate = true
+            })
+            warpLineDisposer.add(newInstance.entity.destinationPosition.observe(callNow = true) {
+                warpLineBufferAttribute.setXYZ(1, it.value.x, it.value.y, it.value.z)
+                warpLineBufferAttribute.needsUpdate = true
+            })
+            warpLines.visible = true
         }
     }
 

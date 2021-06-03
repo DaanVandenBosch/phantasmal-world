@@ -283,6 +283,8 @@ open external class Object3D {
      */
     val scale: Vector3
 
+    var frustumCulled: Boolean
+
     /**
      * Local transform.
      */
@@ -382,11 +384,17 @@ external class Skeleton(bones: Array<Bone>, boneInverses: Array<Matrix4> = defin
 
 external class SkeletonHelper(`object`: Object3D) : LineSegments
 
-open external class Line : Object3D {
+open external class Line(
+    geometry: BufferGeometry = definedExternally,
+    material: Material = definedExternally,
+) : Object3D {
     var material: dynamic /* Material | Material[] */
 }
 
-open external class LineSegments : Line
+open external class LineSegments(
+    geometry: BufferGeometry = definedExternally,
+    material: Material = definedExternally,
+) : Line
 
 open external class BoxHelper(
     `object`: Object3D = definedExternally,
@@ -517,6 +525,12 @@ open external class BufferGeometry : EventDispatcher {
 
     fun translate(x: Double, y: Double, z: Double): BufferGeometry
 
+    fun rotateX(radians: Double): BufferGeometry
+    fun rotateY(radians: Double): BufferGeometry
+    fun rotateZ(radians: Double): BufferGeometry
+
+    fun scale(x: Double, y: Double, z: Double): BufferGeometry
+
     fun computeBoundingBox()
     fun computeBoundingSphere()
 
@@ -530,7 +544,17 @@ external class PlaneGeometry(
     heightSegments: Double = definedExternally,
 ) : BufferGeometry
 
-external class CylinderBufferGeometry(
+external class ConeGeometry(
+    radius: Double = definedExternally,
+    height: Double = definedExternally,
+    radialSegments: Int = definedExternally,
+    heightSegments: Int = definedExternally,
+    openEnded: Boolean = definedExternally,
+    thetaStart: Double = definedExternally,
+    thetaLength: Double = definedExternally,
+) : BufferGeometry
+
+external class CylinderGeometry(
     radiusTop: Double = definedExternally,
     radiusBottom: Double = definedExternally,
     height: Double = definedExternally,
@@ -541,10 +565,22 @@ external class CylinderBufferGeometry(
     thetaLength: Double = definedExternally,
 ) : BufferGeometry
 
+external class SphereGeometry(
+    radius: Double = definedExternally,
+    widthSegments: Int = definedExternally,
+    heightSegments: Int = definedExternally,
+    phiStart: Double = definedExternally,
+    phiLength: Double = definedExternally,
+    thetaStart: Double = definedExternally,
+    thetaLength: Double = definedExternally,
+) : BufferGeometry
+
 open external class BufferAttribute {
     var needsUpdate: Boolean
 
     fun copyAt(index1: Int, bufferAttribute: BufferAttribute, index2: Int): BufferAttribute
+
+    fun setXYZ(index: Int, x: Double, y: Double, z: Double): BufferAttribute
 }
 
 external class Int32BufferAttribute(
@@ -622,8 +658,15 @@ external class MeshLambertMaterial(
     parameters: MeshLambertMaterialParameters = definedExternally,
 ) : Material
 
-external class LineBasicMaterial : Material {
-    var linewidth: Int
+external interface LineBasicMaterialParameters : MaterialParameters {
+    var color: Color
+    var linewidth: Double
+}
+
+external class LineBasicMaterial(
+    parameters: LineBasicMaterialParameters = definedExternally,
+) : Material {
+    var linewidth: Double
 }
 
 open external class Texture : EventDispatcher {

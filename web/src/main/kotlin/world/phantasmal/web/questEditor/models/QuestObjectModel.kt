@@ -4,50 +4,52 @@ import world.phantasmal.lib.fileFormats.quest.ObjectType
 import world.phantasmal.lib.fileFormats.quest.QuestObject
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.web.core.rendering.conversion.vec3ToThree
+import world.phantasmal.web.externals.three.Vector3
 
 class QuestObjectModel(obj: QuestObject) : QuestEntityModel<ObjectType, QuestObject>(obj) {
-    private val _model = mutableCell(obj.model)
+    val hasDestination = obj.destinationPositionOffset != -1
 
+    private val _model = mutableCell(if (obj.modelOffset == -1) null else obj.model)
     val model: Cell<Int?> = _model
 
+    private val _destinationPosition = mutableCell(vec3ToThree(obj.destinationPosition))
+    val destinationPosition: Cell<Vector3> = _destinationPosition
+
+    private val _destinationRotationY = mutableCell(obj.destinationRotationY.toDouble())
+    val destinationRotationY: Cell<Double> = _destinationRotationY
+
     fun setModel(model: Int, propagateToProps: Boolean = true) {
+        entity.model = model
         _model.value = model
 
         if (propagateToProps) {
-            val props = when (type) {
-                ObjectType.Probe ->
-                    properties.value.filter { it.offset == 40 }
+            propagateChangeToProperties(entity.modelOffset, 4)
+        }
+    }
 
-                ObjectType.Saw,
-                ObjectType.LaserDetect,
-                ->
-                    properties.value.filter { it.offset == 48 }
+    fun setDestinationPosition(pos: Vector3, propagateToProps: Boolean = true) {
+        entity.setDestinationPosition(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
+        _destinationPosition.value = pos
 
-                ObjectType.Sonic,
-                ObjectType.LittleCryotube,
-                ObjectType.Cactus,
-                ObjectType.BigBrownRock,
-                ObjectType.BigBlackRocks,
-                ObjectType.BeeHive,
-                ->
-                    properties.value.filter { it.offset == 52 }
+        if (propagateToProps) {
+            propagateChangeToProperties(entity.destinationPositionOffset, 12)
+        }
+    }
 
-                ObjectType.ForestConsole ->
-                    properties.value.filter { it.offset == 56 }
+    fun setDestinationRotationY(rotY: Double, propagateToProps: Boolean = true) {
+        entity.destinationRotationY = rotY.toFloat()
+        _destinationRotationY.value = rotY
 
-                ObjectType.PrincipalWarp,
-                ObjectType.LaserFence,
-                ObjectType.LaserSquareFence,
-                ObjectType.LaserFenceEx,
-                ObjectType.LaserSquareFenceEx,
-                ->
-                    properties.value.filter { it.offset == 60 }
+        if (propagateToProps) {
+            propagateChangeToProperties(entity.destinationRotationYOffset, 4)
+        }
+    }
 
-                else -> return
-            }
-
-            for (prop in props) {
-                prop.setValue(model, propagateToEntity = false)
+    private fun propagateChangeToProperties(offset: Int, size: Int) {
+        for (prop in properties.value) {
+            if (prop.overlaps(offset, size)) {
+                prop.updateValue()
             }
         }
     }

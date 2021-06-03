@@ -74,7 +74,40 @@ class QuestObject(override var areaId: Int, override val data: Buffer) : QuestEn
     val scriptLabel2: Int?
         get() = if (type == ObjectType.RicoMessagePod) data.getInt(60) else null
 
-    val model: Int?
+    /**
+     * The offset of the model property or -1 if this object doesn't have a model property.
+     */
+    val modelOffset: Int
+        get() = when (type) {
+            ObjectType.Probe,
+            -> 40
+
+            ObjectType.Saw,
+            ObjectType.LaserDetect,
+            -> 48
+
+            ObjectType.Sonic,
+            ObjectType.LittleCryotube,
+            ObjectType.Cactus,
+            ObjectType.BigBrownRock,
+            ObjectType.BigBlackRocks,
+            ObjectType.BeeHive,
+            -> 52
+
+            ObjectType.ForestConsole,
+            -> 56
+
+            ObjectType.PrincipalWarp,
+            ObjectType.LaserFence,
+            ObjectType.LaserSquareFence,
+            ObjectType.LaserFenceEx,
+            ObjectType.LaserSquareFenceEx,
+            -> 60
+
+            else -> -1
+        }
+
+    var model: Int
         get() = when (type) {
             ObjectType.Probe,
             -> data.getFloat(40).roundToInt()
@@ -101,7 +134,103 @@ class QuestObject(override var areaId: Int, override val data: Buffer) : QuestEn
             ObjectType.LaserSquareFenceEx,
             -> data.getInt(60)
 
-            else -> null
+            else -> throw IllegalArgumentException("$type doesn't have a model property.")
+        }
+        set(value) {
+            when (type) {
+                ObjectType.Probe,
+                -> data.setFloat(40, value.toFloat())
+
+                ObjectType.Saw,
+                ObjectType.LaserDetect,
+                -> data.setFloat(48, value.toFloat())
+
+                ObjectType.Sonic,
+                ObjectType.LittleCryotube,
+                ObjectType.Cactus,
+                ObjectType.BigBrownRock,
+                ObjectType.BigBlackRocks,
+                ObjectType.BeeHive,
+                -> data.setInt(52, value)
+
+                ObjectType.ForestConsole,
+                -> data.setInt(56, value)
+
+                ObjectType.PrincipalWarp,
+                ObjectType.LaserFence,
+                ObjectType.LaserSquareFence,
+                ObjectType.LaserFenceEx,
+                ObjectType.LaserSquareFenceEx,
+                -> data.setInt(60, value)
+
+                else -> throw IllegalArgumentException("$type doesn't have a model property.")
+            }
+        }
+
+    val destinationPositionOffset: Int
+        get() = when (type) {
+            ObjectType.Warp, ObjectType.PrincipalWarp, ObjectType.RuinsWarpSiteToSite -> 40
+            else -> -1
+        }
+
+    /**
+     * Only valid for [ObjectType.Warp], [ObjectType.PrincipalWarp] and
+     * [ObjectType.RuinsWarpSiteToSite].
+     */
+    var destinationPosition: Vec3
+        get() = Vec3(
+            data.getFloat(40),
+            data.getFloat(44),
+            data.getFloat(48),
+        )
+        set(value) {
+            setDestinationPosition(value.x, value.y, value.z)
+        }
+
+    /**
+     * Only valid for [ObjectType.Warp], [ObjectType.PrincipalWarp] and
+     * [ObjectType.RuinsWarpSiteToSite].
+     */
+    var destinationPositionX: Float
+        get() = data.getFloat(40)
+        set(value) {
+            data.setFloat(40, value)
+        }
+
+    /**
+     * Only valid for [ObjectType.Warp], [ObjectType.PrincipalWarp] and
+     * [ObjectType.RuinsWarpSiteToSite].
+     */
+    var destinationPositionY: Float
+        get() = data.getFloat(44)
+        set(value) {
+            data.setFloat(44, value)
+        }
+
+    /**
+     * Only valid for [ObjectType.Warp], [ObjectType.PrincipalWarp] and
+     * [ObjectType.RuinsWarpSiteToSite].
+     */
+    var destinationPositionZ: Float
+        get() = data.getFloat(48)
+        set(value) {
+            data.setFloat(48, value)
+        }
+
+    val destinationRotationYOffset: Int
+        get() = when (type) {
+            ObjectType.Warp, ObjectType.PrincipalWarp, ObjectType.RuinsWarpSiteToSite -> 52
+            else -> -1
+        }
+
+    /**
+     * Only valid for [ObjectType.Warp], [ObjectType.PrincipalWarp] and
+     * [ObjectType.RuinsWarpSiteToSite].
+     */
+    var destinationRotationY: Float
+        get() = angleToRad(data.getInt(52))
+        set(value) {
+            data.setInt(52, radToAngle(value))
         }
 
     init {
@@ -120,5 +249,11 @@ class QuestObject(override var areaId: Int, override val data: Buffer) : QuestEn
         data.setInt(28, radToAngle(x))
         data.setInt(32, radToAngle(y))
         data.setInt(36, radToAngle(z))
+    }
+
+    fun setDestinationPosition(x: Float, y: Float, z: Float) {
+        data.setFloat(40, x)
+        data.setFloat(44, y)
+        data.setFloat(48, z)
     }
 }

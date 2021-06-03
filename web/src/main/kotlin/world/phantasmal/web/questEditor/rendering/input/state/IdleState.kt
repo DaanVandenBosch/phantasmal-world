@@ -5,7 +5,7 @@ import world.phantasmal.web.externals.three.Mesh
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.models.QuestEntityModel
-import world.phantasmal.web.questEditor.rendering.EntityInstancedMesh
+import world.phantasmal.web.questEditor.rendering.EntityInstanceContainer
 import world.phantasmal.web.questEditor.rendering.input.*
 
 class IdleState(
@@ -166,7 +166,7 @@ class IdleState(
         val entityInstancedMesh = intersection.`object`.userData
         val instanceIndex = intersection.instanceId
 
-        if (instanceIndex == null || entityInstancedMesh !is EntityInstancedMesh) {
+        if (instanceIndex == null || entityInstancedMesh !is EntityInstanceContainer) {
             return null
         }
 

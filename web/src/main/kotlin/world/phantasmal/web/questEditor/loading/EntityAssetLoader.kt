@@ -133,7 +133,7 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
 
         private fun createCylinder(color: Color) =
             InstancedMesh(
-                CylinderBufferGeometry(
+                CylinderGeometry(
                     radiusTop = 2.5,
                     radiusBottom = 2.5,
                     height = 18.0,

@@ -6,21 +6,16 @@ import world.phantasmal.web.externals.three.InstancedMesh
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 
 /**
- * Represents a specific entity type and model combination. Contains a single [InstancedMesh] and
- * manages its instances.
+ * Contains instances of an InstancedMesh related to a quest entity.
  */
-class EntityInstancedMesh(
-    private val mesh: InstancedMesh,
-    /**
-     * Called whenever an entity's model changes. At this point the entity's instance has already
-     * been removed from this [EntityInstancedMesh]. The entity should then be added to the correct
-     * [EntityInstancedMesh].
-     */
-    private val modelChanged: (QuestEntityModel<*, *>) -> Unit,
+abstract class InstanceContainer<Entity : QuestEntityModel<*, *>, Inst : Instance<Entity>>(
+    val mesh: InstancedMesh,
 ) : TrackedDisposable() {
-    private val instances: MutableList<EntityInstance> = mutableListOf()
+
+    private val instances: MutableList<Inst> = mutableListOf()
 
     init {
+        @Suppress("LeakingThis")
         mesh.userData = this
     }
 
@@ -29,26 +24,22 @@ class EntityInstancedMesh(
         super.dispose()
     }
 
-    fun getInstance(entity: QuestEntityModel<*, *>): EntityInstance? =
+    fun getInstance(entity: Entity): Inst? =
         instances.find { it.entity == entity }
 
-    fun getInstanceAt(instanceIndex: Int): EntityInstance =
+    fun getInstanceAt(instanceIndex: Int): Inst =
         instances[instanceIndex]
 
-    fun addInstance(entity: QuestEntityModel<*, *>): EntityInstance {
+    fun addInstance(entity: Entity): Inst {
         val instanceIndex = mesh.count
         mesh.count++
 
-        val instance = EntityInstance(entity, mesh, instanceIndex) { index ->
-            removeAt(index)
-            modelChanged(entity)
-        }
-
+        val instance = createInstance(entity, instanceIndex)
         instances.add(instance)
         return instance
     }
 
-    fun removeInstance(entity: QuestEntityModel<*, *>) {
+    fun removeInstance(entity: Entity) {
         val index = instances.indexOfFirst { it.entity == entity }
 
         if (index != -1) {
@@ -56,7 +47,7 @@ class EntityInstancedMesh(
         }
     }
 
-    private fun removeAt(index: Int) {
+    protected fun removeAt(index: Int) {
         val instance = instances.removeAt(index)
         mesh.count--
 
@@ -74,4 +65,6 @@ class EntityInstancedMesh(
         instances.clear()
         mesh.count = 0
     }
+
+    protected abstract fun createInstance(entity: Entity, index: Int): Inst
 }

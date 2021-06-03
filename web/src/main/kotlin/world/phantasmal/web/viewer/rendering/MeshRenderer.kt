@@ -158,7 +158,7 @@ class MeshRenderer(
                     // Add skeleton.
                     val skeletonHelper = SkeletonHelper(obj3d)
                     skeletonHelper.visible = viewerStore.showSkeleton.value
-                    skeletonHelper.material.unsafeCast<LineBasicMaterial>().linewidth = 3
+                    skeletonHelper.material.unsafeCast<LineBasicMaterial>().linewidth = 3.0
 
                     context.scene.add(skeletonHelper)
                     this.skeletonHelper = skeletonHelper
