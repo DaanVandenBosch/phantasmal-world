@@ -1,6 +1,5 @@
 package world.phantasmal.observable
 
-import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -8,8 +7,8 @@ import kotlin.test.assertEquals
  * Test suite for all [Observable] implementations. There is a subclass of this suite for every
  * [Observable] implementation.
  */
-interface ObservableTests : ObservableTestSuite {
-    fun createProvider(): Provider
+interface ObservableTests : DependencyTests {
+    override fun createProvider(): Provider
 
     @Test
     fun calls_observers_when_events_are_emitted() = test {
@@ -55,9 +54,9 @@ interface ObservableTests : ObservableTestSuite {
         assertEquals(1, changes)
     }
 
-    interface Provider {
+    interface Provider : DependencyTests.Provider {
         val observable: Observable<*>
 
-        fun emit()
+        override val dependency: Dependency get() = observable
     }
 }

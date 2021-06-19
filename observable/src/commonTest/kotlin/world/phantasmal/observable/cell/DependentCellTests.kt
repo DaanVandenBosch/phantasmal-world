@@ -9,12 +9,12 @@ class DependentCellTests : RegularCellTests, CellWithDependenciesTests {
     }
 
     class Provider : CellTests.Provider, CellWithDependenciesTests.Provider {
-        private val dependency = SimpleCell(1)
+        private val dependencyCell = SimpleCell(1)
 
-        override val observable = DependentCell(dependency) { 2 * dependency.value }
+        override val observable = DependentCell(dependencyCell) { 2 * dependencyCell.value }
 
         override fun emit() {
-            dependency.value += 2
+            dependencyCell.value += 2
         }
 
         override fun createWithDependencies(vararg dependencies: Cell<Int>) =

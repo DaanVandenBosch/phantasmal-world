@@ -5,13 +5,13 @@ import kotlin.test.*
 
 class FilteredListCellTests : ListCellTests {
     override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
-        private val dependency =
+        private val dependencyCell =
             SimpleListCell(if (empty) mutableListOf(5) else mutableListOf(5, 10))
 
-        override val observable = FilteredListCell(dependency, predicate = { it % 2 == 0 })
+        override val observable = FilteredListCell(dependencyCell, predicate = { it % 2 == 0 })
 
         override fun addElement() {
-            dependency.add(4)
+            dependencyCell.add(4)
         }
     }
 

@@ -14,6 +14,11 @@ fun <E> mutableListCell(
 ): MutableListCell<E> =
     SimpleListCell(mutableListOf(*elements), extractDependencies)
 
+fun <T, R> Cell<T>.flatMapToList(
+    transform: (T) -> ListCell<R>,
+): ListCell<R> =
+    FlatteningDependentListCell(this) { transform(value) }
+
 fun <T1, T2, R> flatMapToList(
     c1: Cell<T1>,
     c2: Cell<T2>,

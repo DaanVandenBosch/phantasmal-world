@@ -14,7 +14,7 @@ class FilteredListCell<E>(
      */
     private val indexMap = mutableListOf<Int>()
 
-    private var elements: ListWrapper<E> = ListWrapper(mutableListOf())
+    private val elements = mutableListOf<E>()
 
     override val value: List<E>
         get() {
@@ -125,7 +125,7 @@ class FilteredListCell<E>(
                                     }
                                 }
 
-                                elements = elements.mutate { add(insertIndex, change.updated) }
+                                elements.add(insertIndex, change.updated)
                                 indexMap[change.index] = insertIndex
 
                                 for (depIdx in (change.index + 1)..indexMap.lastIndex) {
@@ -151,7 +151,7 @@ class FilteredListCell<E>(
                             if (index != -1) {
                                 // If the element now doesn't pass the test and it previously did
                                 // pass, remove it and emit a structural change.
-                                elements = elements.mutate { removeAt(index) }
+                                elements.removeAt(index)
                                 indexMap[change.index] = -1
 
                                 for (depIdx in (change.index + 1)..indexMap.lastIndex) {
@@ -195,18 +195,16 @@ class FilteredListCell<E>(
     }
 
     private fun recompute() {
-        val newElements = mutableListOf<E>()
+        elements.clear()
         indexMap.clear()
 
         dependency.value.forEach { element ->
             if (predicate(element)) {
-                newElements.add(element)
-                indexMap.add(newElements.lastIndex)
+                elements.add(element)
+                indexMap.add(elements.lastIndex)
             } else {
                 indexMap.add(-1)
             }
         }
-
-        elements = ListWrapper(newElements)
     }
 }

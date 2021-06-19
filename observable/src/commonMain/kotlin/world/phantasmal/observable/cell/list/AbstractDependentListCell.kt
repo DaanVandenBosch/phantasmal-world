@@ -1,13 +1,13 @@
 package world.phantasmal.observable.cell.list
 
 import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.observable.CallbackObserver
 import world.phantasmal.observable.Dependent
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.cell.AbstractDependentCell
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.DependentCell
-import world.phantasmal.observable.cell.not
 
 abstract class AbstractDependentListCell<E> :
     AbstractDependentCell<List<E>>(),
@@ -25,12 +25,35 @@ abstract class AbstractDependentListCell<E> :
             return elements
         }
 
-    @Suppress("LeakingThis")
-    final override val size: Cell<Int> = DependentCell(this) { elements.size }
+    private var _size: Cell<Int>? = null
+    final override val size: Cell<Int>
+        get() {
+            if (_size == null) {
+                _size = DependentCell(this) { value.size }
+            }
 
-    final override val empty: Cell<Boolean> = size.map { it == 0 }
+            return unsafeAssertNotNull(_size)
+        }
 
-    final override val notEmpty: Cell<Boolean> = !empty
+    private var _empty: Cell<Boolean>? = null
+    final override val empty: Cell<Boolean>
+        get() {
+            if (_empty == null) {
+                _empty = DependentCell(this) { value.isEmpty() }
+            }
+
+            return unsafeAssertNotNull(_empty)
+        }
+
+    private var _notEmpty: Cell<Boolean>? = null
+    final override val notEmpty: Cell<Boolean>
+        get() {
+            if (_notEmpty == null) {
+                _notEmpty = DependentCell(this) { value.isNotEmpty() }
+            }
+
+            return unsafeAssertNotNull(_notEmpty)
+        }
 
     final override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable =
         observeList(callNow, observer as ListObserver<E>)

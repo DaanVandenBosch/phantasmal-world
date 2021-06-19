@@ -21,10 +21,10 @@ class FlatteningDependentListCellTransitiveDependencyEmitsTests :
             SimpleListCell(if (empty) mutableListOf() else mutableListOf(7))
 
         // The direct dependency of the list under test can't change.
-        private val dependency = StaticCell<ListCell<Int>>(transitiveDependency)
+        private val directDependency = StaticCell<ListCell<Int>>(transitiveDependency)
 
         override val observable =
-            FlatteningDependentListCell(dependency) { dependency.value }
+            FlatteningDependentListCell(directDependency) { directDependency.value }
 
         override fun addElement() {
             // Update the transitive dependency.

@@ -157,6 +157,16 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 
 - ***Support different sets of instructions (older versions had no stack)***
 
+## Verification/Warnings
+
+- ***Entities with nonexistent event section***
+- ***Entities with wave that's never triggered***
+- ***Duplicate event IDs***
+- ***Events with nonexistent event section***
+- ***Event waves with no enemies***
+- ***Events that trigger nonexistent events***
+- ***Events that lock/unlock nonexistent doors***
+
 ## Bugs
 
 - When a modal dialog is open, global keybindings should be disabled
