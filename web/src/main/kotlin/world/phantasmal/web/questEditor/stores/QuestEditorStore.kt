@@ -4,7 +4,9 @@ import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.lib.Episode
 import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.list.flatMapToList
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.actions.Action
 import world.phantasmal.web.core.stores.UiStore
@@ -46,6 +48,16 @@ class QuestEditorStore(
                 null
             }
         }
+
+    val currentAreaEvents: ListCell<QuestEventModel> =
+        flatMapToList(currentQuest, currentArea) { quest, area ->
+            if (quest != null && area != null) {
+                quest.events.filtered { it.areaId == area.id }
+            } else {
+                emptyListCell()
+            }
+        }
+
     val selectedEvent: Cell<QuestEventModel?> = _selectedEvent
 
     /**
@@ -246,6 +258,20 @@ class QuestEditorStore(
 
     fun questSaved() {
         undoManager.savePoint()
+    }
+
+    /**
+     * True if the event exists in the current area and quest editing is enabled.
+     */
+    fun canGoToEvent(eventId: Cell<Int>): Cell<Boolean> =
+        map(questEditingEnabled, currentAreaEvents, eventId) { en, evts, id ->
+            en && evts.any { it.id.value == id }
+        }
+
+    fun goToEvent(eventId: Int) {
+        currentAreaEvents.value.find { it.id.value == eventId }?.let { event ->
+            setSelectedEvent(event)
+        }
     }
 
     private suspend fun updateQuestEntitySections(quest: QuestModel) {

@@ -2,9 +2,12 @@ package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
+import world.phantasmal.lib.fileFormats.quest.EntityPropType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.list.flatMapToList
 import world.phantasmal.observable.cell.zeroIntCell
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
@@ -16,6 +19,66 @@ import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
+
+sealed class EntityInfoPropModel(
+    protected val store: QuestEditorStore,
+    protected val prop: QuestEntityPropModel,
+) {
+    val label = prop.name + ":"
+
+    protected fun setPropValue(prop: QuestEntityPropModel, value: Any) {
+        store.selectedEntity.value?.let { entity ->
+            store.executeAction(
+                EditEntityPropAction(
+                    setSelectedEntity = store::setSelectedEntity,
+                    entity,
+                    prop,
+                    value,
+                    prop.value.value,
+                )
+            )
+        }
+    }
+
+    class I32(store: QuestEditorStore, prop: QuestEntityPropModel) :
+        EntityInfoPropModel(store, prop) {
+
+        @Suppress("UNCHECKED_CAST")
+        val value: Cell<Int> = prop.value as Cell<Int>
+
+        val showGoToEvent: Boolean = prop.name == "Event ID"
+
+        val canGoToEvent: Cell<Boolean> = store.canGoToEvent(value)
+
+        fun setValue(value: Int) {
+            setPropValue(prop, value)
+        }
+
+        fun goToEvent() {
+            store.goToEvent(value.value)
+        }
+    }
+
+    class F32(store: QuestEditorStore, prop: QuestEntityPropModel) :
+        EntityInfoPropModel(store, prop) {
+
+        val value: Cell<Double> = prop.value.map { (it as Float).toDouble() }
+
+        fun setValue(value: Double) {
+            setPropValue(prop, value.toFloat())
+        }
+    }
+
+    class Angle(store: QuestEditorStore, prop: QuestEntityPropModel) :
+        EntityInfoPropModel(store, prop) {
+
+        val value: Cell<Double> = prop.value.map { radToDeg((it as Float).toDouble()) }
+
+        fun setValue(value: Double) {
+            setPropValue(prop, degToRad(value).toFloat())
+        }
+    }
+}
 
 class EntityInfoController(
     private val areaStore: AreaStore,
@@ -56,8 +119,16 @@ class EntityInfoController(
     val rotY: Cell<Double> = rot.map { radToDeg(it.y) }
     val rotZ: Cell<Double> = rot.map { radToDeg(it.z) }
 
-    val props: Cell<List<QuestEntityPropModel>> =
-        questEditorStore.selectedEntity.flatMap { it?.properties ?: emptyListCell() }
+    val props: ListCell<EntityInfoPropModel> =
+        questEditorStore.selectedEntity.flatMapToList { entity ->
+            entity?.properties?.listMap { prop ->
+                when (prop.type) {
+                    EntityPropType.I32 -> EntityInfoPropModel.I32(questEditorStore, prop)
+                    EntityPropType.F32 -> EntityInfoPropModel.F32(questEditorStore, prop)
+                    EntityPropType.Angle -> EntityInfoPropModel.Angle(questEditorStore, prop)
+                }
+            } ?: emptyListCell()
+        }
 
     fun focused() {
         questEditorStore.makeMainUndoCurrent()
@@ -121,15 +192,17 @@ class EntityInfoController(
     private fun setPos(entity: QuestEntityModel<*, *>, x: Double, y: Double, z: Double) {
         if (!enabled.value) return
 
-        questEditorStore.executeAction(TranslateEntityAction(
-            setSelectedEntity = questEditorStore::setSelectedEntity,
-            setEntitySection = { /* Won't be called. */ },
-            entity,
-            newSection = null,
-            oldSection = null,
-            newPosition = Vector3(x, y, z),
-            oldPosition = entity.position.value,
-        ))
+        questEditorStore.executeAction(
+            TranslateEntityAction(
+                setSelectedEntity = questEditorStore::setSelectedEntity,
+                setEntitySection = { /* Won't be called. */ },
+                entity,
+                newSection = null,
+                oldSection = null,
+                newPosition = Vector3(x, y, z),
+                oldPosition = entity.position.value,
+            )
+        )
     }
 
     fun setRotX(x: Double) {
@@ -156,25 +229,15 @@ class EntityInfoController(
     private fun setRot(entity: QuestEntityModel<*, *>, x: Double, y: Double, z: Double) {
         if (!enabled.value) return
 
-        questEditorStore.executeAction(RotateEntityAction(
-            setSelectedEntity = questEditorStore::setSelectedEntity,
-            entity,
-            euler(x, y, z),
-            entity.rotation.value,
-            false,
-        ))
-    }
-
-    fun setPropValue(prop: QuestEntityPropModel, value: Any) {
-        questEditorStore.selectedEntity.value?.let { entity ->
-            questEditorStore.executeAction(EditEntityPropAction(
+        questEditorStore.executeAction(
+            RotateEntityAction(
                 setSelectedEntity = questEditorStore::setSelectedEntity,
                 entity,
-                prop,
-                value,
-                prop.value.value,
-            ))
-        }
+                euler(x, y, z),
+                entity.rotation.value,
+                false,
+            )
+        )
     }
 
     companion object {

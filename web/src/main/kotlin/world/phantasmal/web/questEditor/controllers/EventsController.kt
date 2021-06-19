@@ -4,10 +4,7 @@ import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.and
 import world.phantasmal.observable.cell.eq
 import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.emptyListCell
-import world.phantasmal.observable.cell.list.flatMapToList
 import world.phantasmal.observable.cell.list.listCell
-import world.phantasmal.observable.cell.map
 import world.phantasmal.web.questEditor.actions.*
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
@@ -18,15 +15,7 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
     val unavailable: Cell<Boolean> = store.currentQuest.isNull()
     val enabled: Cell<Boolean> = store.questEditingEnabled
     val removeEventEnabled: Cell<Boolean> = enabled and store.selectedEvent.isNotNull()
-
-    val events: ListCell<QuestEventModel> =
-        flatMapToList(store.currentQuest, store.currentArea) { quest, area ->
-            if (quest != null && area != null) {
-                quest.events.filtered { it.areaId == area.id }
-            } else {
-                emptyListCell()
-            }
-        }
+    val events: ListCell<QuestEventModel> = store.currentAreaEvents
 
     val eventActionTypes: ListCell<String> = listCell(
         QuestEventActionModel.SpawnNpcs.SHORT_NAME,
@@ -166,15 +155,10 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
         store.executeAction(DeleteEventActionAction(::selectEvent, event, index, action))
     }
 
-    fun canGoToEvent(eventId: Cell<Int>): Cell<Boolean> =
-        map(enabled, events, eventId) { en, evts, id ->
-            en && evts.any { it.id.value == id }
-        }
+    fun canGoToEvent(eventId: Cell<Int>): Cell<Boolean> = store.canGoToEvent(eventId)
 
     fun goToEvent(eventId: Int) {
-        events.value.find { it.id.value == eventId }?.let { event ->
-            store.setSelectedEvent(event)
-        }
+        store.goToEvent(eventId)
     }
 
     fun setActionSectionId(

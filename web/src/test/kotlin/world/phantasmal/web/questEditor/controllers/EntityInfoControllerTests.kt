@@ -3,17 +3,17 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.fileFormats.Vec3
 import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.lib.fileFormats.quest.ObjectType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
 import world.phantasmal.testUtils.assertCloseTo
+import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
 import world.phantasmal.web.test.createQuestNpcModel
+import world.phantasmal.web.test.createQuestObjectModel
 import kotlin.math.PI
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class EntityInfoControllerTests : WebTestSuite {
     @Test
@@ -137,5 +137,34 @@ class EntityInfoControllerTests : WebTestSuite {
         ctrl.focused()
 
         assertTrue(store.canUndo.value)
+    }
+
+    @Test
+    fun go_to_event() = testAsync {
+        val store = components.questEditorStore
+        val ctrl = disposer.add(EntityInfoController(components.areaStore, store))
+
+        val obj = createQuestObjectModel(ObjectType.EventCollision)
+        val event = QuestEventModel(id = 100, 0, 0, 0, 0, 0, mutableListOf())
+        store.setCurrentQuest(createQuestModel(objects = listOf(obj), events = listOf(event)))
+        store.setSelectedEntity(obj)
+
+        // The EventCollision object has an "Event ID" property.
+        val eventProp = ctrl.props.value
+            .filterIsInstance<EntityInfoPropModel.I32>()
+            .find { it.showGoToEvent }
+
+        assertNotNull(eventProp)
+
+        // Since the default value is 0 and there's no event 0, "Go to event" should be disabled.
+        assertFalse(eventProp.canGoToEvent.value)
+        eventProp.goToEvent()
+        assertNull(store.selectedEvent.value)
+
+        // Set the value to 100 to enable.
+        eventProp.setValue(100)
+        assertTrue(eventProp.canGoToEvent.value)
+        eventProp.goToEvent()
+        assertEquals(event, store.selectedEvent.value)
     }
 }

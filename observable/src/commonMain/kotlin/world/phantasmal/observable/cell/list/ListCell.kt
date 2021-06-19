@@ -21,6 +21,10 @@ interface ListCell<out E> : Cell<List<E>> {
 
     fun observeList(callNow: Boolean = false, observer: ListObserver<E>): Disposable
 
+    // TODO: Optimize this.
+    fun <R> listMap(transform: (E) -> R): ListCell<R> =
+        DependentListCell(this) { value.map(transform) }
+
     fun <R> fold(initialValue: R, operation: (R, E) -> R): Cell<R> =
         DependentCell(this) { value.fold(initialValue, operation) }
 

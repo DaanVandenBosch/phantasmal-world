@@ -3,7 +3,9 @@ package world.phantasmal.web.test
 import world.phantasmal.lib.Episode
 import world.phantasmal.lib.asm.BytecodeIr
 import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.lib.fileFormats.quest.ObjectType
 import world.phantasmal.lib.fileFormats.quest.QuestNpc
+import world.phantasmal.lib.fileFormats.quest.QuestObject
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
@@ -43,3 +45,6 @@ fun createQuestNpcModel(type: NpcType, episode: Episode): QuestNpcModel =
         QuestNpc(type, episode, areaId = 0, wave = 0),
         waveId = 0,
     )
+
+fun createQuestObjectModel(type: ObjectType): QuestObjectModel =
+    QuestObjectModel(QuestObject(type, areaId = 0))

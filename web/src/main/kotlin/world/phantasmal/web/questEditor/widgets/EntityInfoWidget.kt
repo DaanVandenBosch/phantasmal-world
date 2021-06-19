@@ -5,15 +5,14 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.core.math.degToRad
-import world.phantasmal.core.math.radToDeg
-import world.phantasmal.lib.fileFormats.quest.EntityPropType
 import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.cell
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
-import world.phantasmal.web.questEditor.models.QuestEntityPropModel
+import world.phantasmal.web.questEditor.controllers.EntityInfoPropModel
 import world.phantasmal.webui.dom.*
+import world.phantasmal.webui.widgets.Button
 import world.phantasmal.webui.widgets.DoubleInput
 import world.phantasmal.webui.widgets.IntInput
 import world.phantasmal.webui.widgets.Widget
@@ -82,10 +81,12 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
 
                 bindDisposableChildrenTo(ctrl.props) { prop, _ -> createPropRow(prop) }
             }
-            addChild(UnavailableWidget(
-                visible = ctrl.unavailable,
-                message = "No entity selected.",
-            ))
+            addChild(
+                UnavailableWidget(
+                    visible = ctrl.unavailable,
+                    message = "No entity selected.",
+                )
+            )
         }
 
     private fun Node.createCoordRow(
@@ -124,34 +125,36 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
         }
     }
 
-    private fun Node.createPropRow(prop: QuestEntityPropModel): Pair<Node, Disposable> {
+    private fun Node.createPropRow(prop: EntityInfoPropModel): Pair<Node, Disposable> {
         val disposer = Disposer()
 
-        val input = disposer.add(when (prop.type) {
-            EntityPropType.I32 -> IntInput(
-                enabled = ctrl.enabled,
-                label = prop.name + ":",
-                min = Int.MIN_VALUE,
-                max = Int.MAX_VALUE,
-                step = 1,
-                value = prop.value.map { it as Int },
-                onChange = { ctrl.setPropValue(prop, it) },
-            )
-            EntityPropType.F32 -> DoubleInput(
-                enabled = ctrl.enabled,
-                label = prop.name + ":",
-                roundTo = 3,
-                value = prop.value.map { (it as Float).toDouble() },
-                onChange = { ctrl.setPropValue(prop, it.toFloat()) },
-            )
-            EntityPropType.Angle -> DoubleInput(
-                enabled = ctrl.enabled,
-                label = prop.name + ":",
-                roundTo = 1,
-                value = prop.value.map { radToDeg((it as Float).toDouble()) },
-                onChange = { ctrl.setPropValue(prop, degToRad(it).toFloat()) },
-            )
-        })
+        val input = disposer.add(
+            when (prop) {
+                is EntityInfoPropModel.I32 -> IntInput(
+                    enabled = ctrl.enabled,
+                    label = prop.label,
+                    min = Int.MIN_VALUE,
+                    max = Int.MAX_VALUE,
+                    step = 1,
+                    value = prop.value,
+                    onChange = prop::setValue,
+                )
+                is EntityInfoPropModel.F32 -> DoubleInput(
+                    enabled = ctrl.enabled,
+                    label = prop.label,
+                    roundTo = 3,
+                    value = prop.value,
+                    onChange = prop::setValue,
+                )
+                is EntityInfoPropModel.Angle -> DoubleInput(
+                    enabled = ctrl.enabled,
+                    label = prop.label,
+                    roundTo = 1,
+                    value = prop.value,
+                    onChange = prop::setValue,
+                )
+            }
+        )
 
         val node = tr {
             th {
@@ -159,6 +162,23 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
             }
             td {
                 addWidget(input, addToDisposer = false)
+            }
+
+            if (prop is EntityInfoPropModel.I32 && prop.showGoToEvent) {
+                td {
+                    addWidget(
+                        disposer.add(Button(
+                            enabled = prop.canGoToEvent,
+                            tooltip = cell("Go to event"),
+                            iconLeft = Icon.ArrowRight,
+                            onClick = { e ->
+                                e.stopPropagation()
+                                prop.goToEvent()
+                            }
+                        )),
+                        addToDisposer = false,
+                    )
+                }
             }
         }
 
@@ -172,7 +192,8 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
         init {
             @Suppress("CssUnusedSymbol")
             // language=css
-            style("""
+            style(
+                """
                 .pw-quest-editor-entity-info {
                     outline: none;
                     box-sizing: border-box;
@@ -181,13 +202,13 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 }
 
                 .pw-quest-editor-entity-info table {
-                    table-layout: fixed;
                     width: 100%;
                     margin: 0 auto;
                 }
 
                 .pw-quest-editor-entity-info th {
                     text-align: left;
+                    width: 50%;
                 }
 
                 .pw-quest-editor-entity-info .$COORD_CLASS th {
@@ -206,7 +227,8 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 .pw-quest-editor-entity-info-specific-props .pw-number-input {
                     width: 100%;
                 }
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 }
