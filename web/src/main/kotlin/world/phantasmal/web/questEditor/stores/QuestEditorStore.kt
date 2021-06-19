@@ -192,6 +192,12 @@ class QuestEditorStore(
                     setSelectedEntity(null)
                 }
             }
+
+            val quest = currentQuest.value
+
+            if (quest != null && _currentArea.value?.id != event.areaId) {
+                _currentArea.value = areaStore.getArea(quest.episode, event.areaId)
+            }
         }
 
         _selectedEvent.value = event

@@ -11,7 +11,7 @@ class CreateEventAction(
     private val index: Int,
     private val event: QuestEventModel,
 ) : Action {
-    override val description: String = "Add event ${event.id.value}"
+    override val description: String = "Add event"
 
     override fun execute() {
         change {

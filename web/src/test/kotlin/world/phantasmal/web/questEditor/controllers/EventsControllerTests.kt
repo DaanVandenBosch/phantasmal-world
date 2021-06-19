@@ -38,6 +38,8 @@ class EventsControllerTests : WebTestSuite {
         store.redo()
 
         assertEquals(1, quest.events.value.size)
+        assertTrue(store.canUndo.value)
+        assertFalse(store.canRedo.value)
     }
 
     @Test
