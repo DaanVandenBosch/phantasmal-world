@@ -3,7 +3,6 @@ package world.phantasmal.web.shared.logging
 import mu.Formatter
 import mu.KotlinLoggingLevel
 import mu.Marker
-import kotlin.js.Date
 
 class LogFormatter : Formatter {
     override fun formatMessage(
@@ -11,7 +10,7 @@ class LogFormatter : Formatter {
         loggerName: String,
         msg: () -> Any?,
     ): String =
-        "${time()} ${level.str()} $loggerName - ${msg.toStringSafe()}"
+        "${level.str()} $loggerName - ${msg.toStringSafe()}"
 
     override fun formatMessage(
         level: KotlinLoggingLevel,
@@ -27,7 +26,7 @@ class LogFormatter : Formatter {
         marker: Marker?,
         msg: () -> Any?,
     ): String =
-        "${time()} ${level.str()} $loggerName [${marker?.getName()}] - ${msg.toStringSafe()}"
+        "${level.str()} $loggerName [${marker?.getName()}] - ${msg.toStringSafe()}"
 
     override fun formatMessage(
         level: KotlinLoggingLevel,
@@ -50,17 +49,7 @@ class LogFormatter : Formatter {
     private fun KotlinLoggingLevel.str(): String =
         name.padEnd(MIN_LEVEL_LEN)
 
-    private fun time(): String {
-        val date = Date()
-        val h = date.getHours().toString().padStart(2, '0')
-        val m = date.getMinutes().toString().padStart(2, '0')
-        val s = date.getSeconds().toString().padStart(2, '0')
-        val ms = date.getMilliseconds().toString().padStart(3, '0')
-        return "$h:$m:$s.$ms"
-    }
-
     companion object {
-        private val MIN_LEVEL_LEN: Int =
-            KotlinLoggingLevel.values().map { it.name.length }.maxOrNull()!!
+        private val MIN_LEVEL_LEN: Int = KotlinLoggingLevel.values().maxOf { it.name.length }
     }
 }
