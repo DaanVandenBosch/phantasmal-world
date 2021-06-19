@@ -100,6 +100,7 @@ fun getRoot(): HTMLElement = document.getElementById("pw-root") as HTMLElement
 
 enum class Icon {
     ArrowDown,
+    ArrowRight,
     Eye,
     File,
     GitHub,
@@ -122,6 +123,7 @@ enum class Icon {
 fun Node.icon(icon: Icon): HTMLElement {
     val iconStr = when (icon) {
         Icon.ArrowDown -> "fas fa-arrow-down"
+        Icon.ArrowRight -> "fas fa-arrow-right"
         Icon.Eye -> "far fa-eye"
         Icon.File -> "fas fa-file"
         Icon.GitHub -> "fab fa-github"

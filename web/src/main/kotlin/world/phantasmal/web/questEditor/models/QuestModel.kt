@@ -38,7 +38,7 @@ class QuestModel(
     private val _mapDesignations = mutableCell(mapDesignations)
     private val _npcs = SimpleListCell(npcs) { arrayOf(it.sectionInitialized, it.wave) }
     private val _objects = SimpleListCell(objects) { arrayOf(it.sectionInitialized) }
-    private val _events = SimpleListCell(events)
+    private val _events = SimpleListCell(events) { arrayOf(it.id) }
 
     val id: Cell<Int> = _id
     val language: Cell<Int> = _language

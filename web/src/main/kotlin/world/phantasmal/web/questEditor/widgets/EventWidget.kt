@@ -1,15 +1,10 @@
 package world.phantasmal.web.questEditor.widgets
 
 import org.w3c.dom.*
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.observable.cell.cell
 import world.phantasmal.web.questEditor.controllers.EventsController
-import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.webui.dom.*
 import world.phantasmal.webui.obj
-import world.phantasmal.webui.widgets.Button
 import world.phantasmal.webui.widgets.Dropdown
 import world.phantasmal.webui.widgets.IntInput
 import world.phantasmal.webui.widgets.Widget
@@ -118,8 +113,8 @@ class EventWidget(
                         }
                     }
                     tbody {
-                        bindDisposableChildrenTo(event.actions) { action, _ ->
-                            createActionElement(action)
+                        bindChildWidgetsTo(event.actions) { action, _ ->
+                            EventActionWidget(ctrl, event, action)
                         }
                     }
                     tfoot {
@@ -139,91 +134,12 @@ class EventWidget(
             }
         }
 
-    private fun Node.createActionElement(action: QuestEventActionModel): Pair<Node, Disposable> {
-        val disposer = Disposer()
-
-        val node = tr {
-            th { textContent = "${action.shortName}:" }
-
-            when (action) {
-                is QuestEventActionModel.SpawnNpcs -> {
-                    td {
-                        addWidget(
-                            disposer.add(IntInput(
-                                enabled = ctrl.enabled,
-                                tooltip = cell("Section"),
-                                value = action.sectionId,
-                                onChange = { ctrl.setActionSectionId(event, action, it) },
-                                min = 0,
-                                step = 1,
-                            )),
-                            addToDisposer = false,
-                        )
-                        addWidget(
-                            disposer.add(IntInput(
-                                enabled = ctrl.enabled,
-                                tooltip = cell("Appear flag"),
-                                value = action.appearFlag,
-                                onChange = { ctrl.setActionAppearFlag(event, action, it) },
-                                min = 0,
-                                step = 1,
-                            )),
-                            addToDisposer = false,
-                        )
-                    }
-                }
-                is QuestEventActionModel.Door -> {
-                    td {
-                        addWidget(
-                            disposer.add(IntInput(
-                                enabled = ctrl.enabled,
-                                tooltip = cell("Door"),
-                                value = action.doorId,
-                                onChange = { ctrl.setActionDoorId(event, action, it) },
-                                min = 0,
-                                step = 1,
-                            )),
-                            addToDisposer = false,
-                        )
-                    }
-                }
-                is QuestEventActionModel.TriggerEvent -> {
-                    td {
-                        addWidget(
-                            disposer.add(IntInput(
-                                enabled = ctrl.enabled,
-                                value = action.eventId,
-                                onChange = { ctrl.setActionEventId(event, action, it) },
-                                min = 0,
-                                step = 1,
-                            )),
-                            addToDisposer = false,
-                        )
-                    }
-                }
-            }
-
-            td {
-                addWidget(
-                    disposer.add(Button(
-                        enabled = ctrl.enabled,
-                        tooltip = cell("Remove this action from the event"),
-                        iconLeft = Icon.Remove,
-                        onClick = { ctrl.removeAction(event, action) }
-                    )),
-                    addToDisposer = false,
-                )
-            }
-        }
-
-        return Pair(node, disposer)
-    }
-
     companion object {
         init {
             @Suppress("CssUnusedSymbol", "CssUnresolvedCustomProperty")
             // language=css
-            style("""
+            style(
+                """
                 .pw-quest-editor-event {
                     display: flex;
                     flex-wrap: wrap;
@@ -250,11 +166,11 @@ class EventWidget(
                 }
                 
                 .pw-quest-editor-event-props {
-                    width: 120px;
+                    width: 115px;
                 }
                 
                 .pw-quest-editor-event-actions {
-                    width: 150px;
+                    width: 165px;
                 }
                 
                 .pw-quest-editor-event > div > table {
@@ -265,7 +181,8 @@ class EventWidget(
                 .pw-quest-editor-event th {
                     text-align: left;
                 }
-            """.trimIndent())
+                """.trimIndent()
+            )
         }
     }
 }

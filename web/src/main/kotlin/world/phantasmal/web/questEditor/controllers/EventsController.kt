@@ -7,6 +7,7 @@ import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.observable.cell.list.flatMapToList
 import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.observable.cell.map
 import world.phantasmal.web.questEditor.actions.*
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
@@ -163,6 +164,17 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
     fun removeAction(event: QuestEventModel, action: QuestEventActionModel) {
         val index = event.actions.value.indexOf(action)
         store.executeAction(DeleteEventActionAction(::selectEvent, event, index, action))
+    }
+
+    fun canGoToEvent(eventId: Cell<Int>): Cell<Boolean> =
+        map(enabled, events, eventId) { en, evts, id ->
+            en && evts.any { it.id.value == id }
+        }
+
+    fun goToEvent(eventId: Int) {
+        events.value.find { it.id.value == eventId }?.let { event ->
+            store.setSelectedEvent(event)
+        }
     }
 
     fun setActionSectionId(
