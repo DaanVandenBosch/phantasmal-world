@@ -31,8 +31,8 @@ abstract class AbstractDependentCell<T> : AbstractCell<T>(), Dependent {
 
     override fun emitDependencyChanged() {
         // Nothing to do because dependent cells emit dependencyChanged immediately. They don't
-        // defer this operation because they only change when there is no transaction or the current
-        // transaction is being committed.
+        // defer this operation because they only change when there is no change set or the current
+        // change set is being completed.
     }
 
     protected abstract fun dependenciesChanged()
