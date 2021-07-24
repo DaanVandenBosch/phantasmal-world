@@ -3,7 +3,7 @@ package world.phantasmal
 // This task generates a Karma configuration in karma.config.d that ensures Karma serves files from
 // the resources directories.
 // This is a workaround for https://youtrack.jetbrains.com/issue/KT-42923.
-val karmaResourcesTask = tasks.register("karmaResources") {
+val karmaResourcesTask: TaskProvider<Task> = tasks.register("karmaResources") {
     doLast {
         val karmaConfigDir = file("karma.config.d")
         karmaConfigDir.mkdir()

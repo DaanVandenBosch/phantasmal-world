@@ -105,7 +105,7 @@ fun parseQst(cursor: Cursor): PwResult<QstContent> {
     val parseFilesResult: PwResult<List<QstContainedFile>> = parseFiles(
         cursor,
         version,
-        headers.map { it.filename to it }.toMap()
+        headers.associateBy { it.filename },
     )
     result.addResult(parseFilesResult)
 
@@ -113,11 +113,13 @@ fun parseQst(cursor: Cursor): PwResult<QstContent> {
         return result.failure()
     }
 
-    return result.success(QstContent(
-        version,
-        online,
-        parseFilesResult.value
-    ))
+    return result.success(
+        QstContent(
+            version,
+            online,
+            parseFilesResult.value,
+        )
+    )
 }
 
 private class QstHeader(
@@ -238,14 +240,16 @@ private fun parseHeaders(cursor: Cursor): List<QstHeader> {
         prevQuestId = questId
         prevFilename = filename
 
-        headers.add(QstHeader(
-            version,
-            online,
-            questId,
-            name,
-            filename,
-            size,
-        ))
+        headers.add(
+            QstHeader(
+                version,
+                online,
+                questId,
+                name,
+                filename,
+                size,
+            )
+        )
     }
 
     return headers

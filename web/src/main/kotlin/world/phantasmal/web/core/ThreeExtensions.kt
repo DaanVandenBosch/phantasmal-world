@@ -30,9 +30,6 @@ operator fun Vector3.timesAssign(scalar: Double) {
 infix fun Vector3.dot(other: Vector3): Double =
     dot(other)
 
-infix fun Vector3.cross(other: Vector3): Vector3 =
-    cross(other)
-
 operator fun Quaternion.timesAssign(other: Quaternion) {
     multiply(other)
 }

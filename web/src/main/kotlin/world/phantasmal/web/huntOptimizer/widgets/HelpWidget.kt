@@ -5,7 +5,7 @@ import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.p
 import world.phantasmal.webui.widgets.Widget
 
-class HelpWidget() : Widget() {
+class HelpWidget : Widget() {
     override fun Node.createElement() =
         div {
             className = "pw-hunt-optimizer-help"
@@ -31,7 +31,8 @@ class HelpWidget() : Widget() {
         init {
             @Suppress("CssUnusedSymbol")
             // language=css
-            style("""
+            style(
+                """
                 .pw-hunt-optimizer-help {
                     cursor: initial;
                     user-select: text;
@@ -41,7 +42,8 @@ class HelpWidget() : Widget() {
                     margin: 1em;
                     max-width: 600px;
                 }
-            """.trimIndent())
+                """.trimIndent()
+            )
         }
     }
 }
