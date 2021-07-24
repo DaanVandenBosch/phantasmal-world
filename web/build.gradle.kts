@@ -31,7 +31,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.1")
     implementation(npm("golden-layout", "^1.5.9"))
     // Can't upgrade monaco-editor until https://github.com/microsoft/monaco-editor/issues/2466 is
     // fixed.
