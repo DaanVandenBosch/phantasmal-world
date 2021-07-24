@@ -4,9 +4,8 @@ import org.snakeyaml.engine.v2.api.LoadSettings
 import java.io.PrintWriter
 
 plugins {
-    kotlin("multiplatform")
+    id("world.phantasmal.multiplatform")
     kotlin("plugin.serialization")
-    id("world.phantasmal.gradle.js")
 }
 
 buildscript {
@@ -15,65 +14,21 @@ buildscript {
     }
 }
 
-val coroutinesVersion: String by project.extra
-val junitVersion: String by project.extra
-val kotlinLoggingVersion: String by project.extra
 val serializationVersion: String by project.extra
-val slf4jVersion: String by project.extra
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
 
 kotlin {
-    js {
-        browser {
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                }
-            }
-        }
-    }
-
-    jvm()
-
     sourceSets {
-        all {
-            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
-            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalUnsignedTypes")
-            languageSettings.useExperimentalAnnotation("kotlin.time.ExperimentalTime")
-        }
-
         commonMain {
             kotlin.setSrcDirs(kotlin.srcDirs + file("build/generated-src/commonMain/kotlin"))
             dependencies {
                 api(project(":core"))
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-                api("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
                 api("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
             }
         }
 
         commonTest {
             dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
                 implementation(project(":test-utils"))
-            }
-        }
-
-        getByName("jsTest") {
-            dependencies {
-                implementation(kotlin("test-js"))
-            }
-        }
-
-        getByName("jvmTest") {
-            dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation("org.slf4j:slf4j-simple:$slf4jVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
             }
         }
     }
@@ -209,6 +164,8 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
     }
 }
 
-tasks.withType<AbstractKotlinCompile<*>> {
+// The following line results in warning "The AbstractCompile.destinationDir property has been
+// deprecated.".
+tasks.withType<AbstractKotlinCompile<*>>().configureEach {
     dependsOn(generateOpcodes)
 }

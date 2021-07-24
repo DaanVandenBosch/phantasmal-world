@@ -9,5 +9,5 @@ include(
     ":web:assembly-worker",
     ":web:assets-generation",
     ":web:shared",
-    ":webui"
+    ":webui",
 )

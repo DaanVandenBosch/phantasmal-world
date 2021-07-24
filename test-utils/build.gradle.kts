@@ -1,23 +1,14 @@
 plugins {
-    kotlin("multiplatform")
+    id("world.phantasmal.multiplatform")
 }
 
-val coroutinesVersion: String by project.ext
-
 kotlin {
-    js {
-        browser {}
-    }
-
-    jvm()
-
     sourceSets {
         commonMain {
             dependencies {
                 api(project(":core"))
                 api(kotlin("test-common"))
                 api(kotlin("test-annotations-common"))
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
             }
         }
 

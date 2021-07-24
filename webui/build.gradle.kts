@@ -1,11 +1,5 @@
 plugins {
-    kotlin("js")
-}
-
-kotlin {
-    js {
-        browser {}
-    }
+    id("world.phantasmal.js")
 }
 
 dependencies {
@@ -13,6 +7,5 @@ dependencies {
     api(project(":observable"))
     implementation(npm("@fortawesome/fontawesome-free", "^5.13.1"))
 
-    testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))
 }

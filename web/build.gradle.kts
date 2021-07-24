@@ -1,7 +1,6 @@
 plugins {
-    kotlin("js")
+    id("world.phantasmal.js")
     kotlin("plugin.serialization")
-    id("world.phantasmal.gradle.js")
 }
 
 kotlin {
@@ -13,20 +12,14 @@ kotlin {
             runTask {
                 devServer = devServer!!.copy(
                     open = false,
-                    port = 1623
+                    port = 1623,
                 )
-            }
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                }
             }
         }
         binaries.executable()
     }
 }
 
-val kotlinLoggingVersion: String by project.extra
 val ktorVersion: String by project.extra
 val serializationVersion: String by project.extra
 
@@ -35,13 +28,13 @@ dependencies {
     implementation(project(":webui"))
     implementation(project(":web:shared"))
 
-    implementation("io.github.microutils:kotlin-logging-js:$kotlinLoggingVersion")
     implementation("io.ktor:ktor-client-core-js:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization-js:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
     implementation(npm("golden-layout", "^1.5.9"))
-    // Can't upgrade monaco-editor until https://github.com/microsoft/monaco-editor/issues/2466 is fixed.
+    // Can't upgrade monaco-editor until https://github.com/microsoft/monaco-editor/issues/2466 is
+    // fixed.
     implementation(npm("monaco-editor", "0.20.0"))
     implementation(npm("three", "^0.128.0"))
     implementation(npm("javascript-lp-solver", "0.4.17"))
@@ -50,7 +43,6 @@ dependencies {
     // Can't upgrade monaco-editor-webpack-plugin until monaco-editor is upgraded.
     implementation(devNpm("monaco-editor-webpack-plugin", "1.9.1"))
 
-    testImplementation(kotlin("test-js"))
     testImplementation(project(":test-utils"))
 }
 

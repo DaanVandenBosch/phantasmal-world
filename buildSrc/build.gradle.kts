@@ -1,17 +1,12 @@
 plugins {
-    kotlin("jvm") version "1.5.21"
-    `java-gradle-plugin`
+    `kotlin-dsl`
 }
 
 repositories {
-    mavenCentral()
+    gradlePluginPortal()
 }
 
-gradlePlugin {
-    plugins {
-        create("pwPlugins") {
-            id = "world.phantasmal.gradle.js"
-            implementationClass = "world.phantasmal.gradle.PwJsPlugin"
-        }
-    }
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
+    implementation("org.jetbrains.kotlin:kotlin-serialization:1.5.21")
 }

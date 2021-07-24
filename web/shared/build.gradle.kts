@@ -1,18 +1,11 @@
 plugins {
-    kotlin("multiplatform")
+    id("world.phantasmal.multiplatform")
     kotlin("plugin.serialization")
 }
 
 val serializationVersion: String by project.extra
 
 kotlin {
-    js {
-        browser {
-        }
-    }
-
-    jvm()
-
     sourceSets {
         commonMain {
             dependencies {
