@@ -26,7 +26,7 @@ class AsmCompletionItemProvider(private val analyser: AsmAnalyser) :
                     val completion = completions[i]
 
                     obj {
-                        label = obj { name = completion.label }
+                        label = obj { label = completion.label }
                         kind = when (completion.type) {
                             CompletionItemType.Keyword -> CompletionItemKind.Keyword
                             CompletionItemType.Opcode -> CompletionItemKind.Function

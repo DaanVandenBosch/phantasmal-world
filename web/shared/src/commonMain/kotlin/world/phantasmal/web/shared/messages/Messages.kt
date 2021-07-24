@@ -196,5 +196,5 @@ class AssemblyProblem(
 @Serializable
 class Label(
     val name: Int,
-    val range: AsmRange?,
+    val range: AsmRange,
 )

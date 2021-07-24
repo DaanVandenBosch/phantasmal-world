@@ -261,31 +261,9 @@ external interface IMonarchLanguageBracket {
 }
 
 external interface CompletionItemLabel {
-    /**
-     * The function or variable. Rendered leftmost.
-     */
-    var name: String
-
-    /**
-     * The signature without the return type. Render after `name`.
-     */
-    var signature: String?
-        get() = definedExternally
-        set(value) = definedExternally
-
-    /**
-     * The fully qualified name, like package name or file path. Rendered after `signature`.
-     */
-    var qualifier: String?
-        get() = definedExternally
-        set(value) = definedExternally
-
-    /**
-     * The return-type of a function or type of a property/variable. Rendered rightmost.
-     */
-    var type: String?
-        get() = definedExternally
-        set(value) = definedExternally
+    var label: String
+    var detail: String?
+    var description: String?
 }
 
 external interface CompletionItemRanges {
@@ -448,7 +426,7 @@ external interface CompletionItem {
 
 external interface CompletionList {
     var suggestions: Array<CompletionItem>
-    var incomplete: Boolean
+    var incomplete: Boolean?
 
     fun dispose()
 }

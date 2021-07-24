@@ -290,7 +290,7 @@ class AsmAnalyser {
         val result = bytecodeIr.segments.asSequence()
             .flatMap { segment ->
                 segment.labels.mapIndexed { labelIdx, label ->
-                    val range = segment.srcLoc.labels.getOrNull(labelIdx)?.toAsmRange()
+                    val range = segment.srcLoc.labels[labelIdx].toAsmRange()
                     Label(name = label, range)
                 }
             }
