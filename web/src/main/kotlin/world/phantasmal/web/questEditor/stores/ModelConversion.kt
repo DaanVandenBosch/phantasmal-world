@@ -1,9 +1,9 @@
 package world.phantasmal.web.questEditor.stores
 
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.DatEvent
-import world.phantasmal.lib.fileFormats.quest.DatEventAction
-import world.phantasmal.lib.fileFormats.quest.Quest
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.DatEvent
+import world.phantasmal.psolib.fileFormats.quest.DatEventAction
+import world.phantasmal.psolib.fileFormats.quest.Quest
 import world.phantasmal.web.questEditor.models.*
 
 fun convertQuestToModel(

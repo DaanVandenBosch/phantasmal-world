@@ -4,7 +4,7 @@ import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.w3c.dom.HTMLCanvasElement
-import world.phantasmal.lib.fileFormats.ninja.XvrTexture
+import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.core.rendering.*
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.web.core.rendering.conversion.xvrTextureToThree

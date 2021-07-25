@@ -6,7 +6,7 @@ import org.khronos.webgl.set
 import world.phantasmal.core.asArray
 import world.phantasmal.core.jsArrayOf
 import world.phantasmal.core.unsafe.UnsafeMap
-import world.phantasmal.lib.fileFormats.ninja.XvrTexture
+import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
 

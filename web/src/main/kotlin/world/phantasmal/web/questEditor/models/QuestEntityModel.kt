@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.lib.fileFormats.quest.EntityType
-import world.phantasmal.lib.fileFormats.quest.QuestEntity
+import world.phantasmal.psolib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.QuestEntity
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.listCell

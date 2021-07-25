@@ -4,8 +4,8 @@ import org.khronos.webgl.Uint16Array
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
-import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.ninja.XvrTexture
+import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
 import kotlin.math.roundToInt

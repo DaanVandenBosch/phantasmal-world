@@ -3,9 +3,9 @@ package world.phantasmal.web.questEditor.controllers
 import kotlinx.coroutines.await
 import mu.KotlinLogging
 import world.phantasmal.core.*
-import world.phantasmal.lib.Endianness
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.*
+import world.phantasmal.psolib.Endianness
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.*
 import world.phantasmal.observable.cell.*
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.files.cursor

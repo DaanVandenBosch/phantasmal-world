@@ -1,9 +1,9 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.lib.fileFormats.ninja.angleToRad
-import world.phantasmal.lib.fileFormats.ninja.radToAngle
-import world.phantasmal.lib.fileFormats.quest.EntityProp
-import world.phantasmal.lib.fileFormats.quest.EntityPropType
+import world.phantasmal.psolib.fileFormats.ninja.angleToRad
+import world.phantasmal.psolib.fileFormats.ninja.radToAngle
+import world.phantasmal.psolib.fileFormats.quest.EntityProp
+import world.phantasmal.psolib.fileFormats.quest.EntityPropType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.MutableCell
 import world.phantasmal.observable.cell.mutableCell

@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.lib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.web.questEditor.controllers.EntityListController
 import world.phantasmal.web.questEditor.rendering.EntityImageRenderer
 import world.phantasmal.webui.dom.div

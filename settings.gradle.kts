@@ -2,7 +2,7 @@ rootProject.name = "phantasmal-world"
 
 include(
     ":core",
-    ":lib",
+    ":psolib",
     ":observable",
     ":test-utils",
     ":web",

@@ -2,10 +2,10 @@ package world.phantasmal.web.core.rendering.conversion
 
 import world.phantasmal.core.asArray
 import world.phantasmal.core.jsArrayOf
-import world.phantasmal.lib.fileFormats.ninja.NinjaObject
-import world.phantasmal.lib.fileFormats.ninja.NjInterpolation
-import world.phantasmal.lib.fileFormats.ninja.NjKeyframeTrack
-import world.phantasmal.lib.fileFormats.ninja.NjMotion
+import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
+import world.phantasmal.psolib.fileFormats.ninja.NjInterpolation
+import world.phantasmal.psolib.fileFormats.ninja.NjKeyframeTrack
+import world.phantasmal.psolib.fileFormats.ninja.NjMotion
 import world.phantasmal.web.externals.three.*
 
 const val PSO_FRAME_RATE: Int = 30

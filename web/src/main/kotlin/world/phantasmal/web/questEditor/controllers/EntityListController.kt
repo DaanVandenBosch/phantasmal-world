@@ -1,9 +1,9 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.EntityType
-import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.lib.fileFormats.quest.ObjectType
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.ObjectType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.map
 import world.phantasmal.web.questEditor.stores.QuestEditorStore

@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.web.questEditor.models.QuestNpcModel

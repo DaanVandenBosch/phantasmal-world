@@ -1,16 +1,16 @@
 package world.phantasmal.web.assemblyWorker
 
 import world.phantasmal.core.*
-import world.phantasmal.lib.asm.*
-import world.phantasmal.lib.asm.dataFlowAnalysis.ControlFlowGraph
-import world.phantasmal.lib.asm.dataFlowAnalysis.ValueSet
-import world.phantasmal.lib.asm.dataFlowAnalysis.getMapDesignations
-import world.phantasmal.lib.asm.dataFlowAnalysis.getStackValue
+import world.phantasmal.psolib.asm.*
+import world.phantasmal.psolib.asm.dataFlowAnalysis.ControlFlowGraph
+import world.phantasmal.psolib.asm.dataFlowAnalysis.ValueSet
+import world.phantasmal.psolib.asm.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.psolib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.web.shared.messages.*
 import world.phantasmal.web.shared.messages.AssemblyProblem
 import kotlin.math.max
 import kotlin.math.min
-import world.phantasmal.lib.asm.AssemblyProblem as LibAssemblyProblem
+import world.phantasmal.psolib.asm.AssemblyProblem as LibAssemblyProblem
 
 class AsmAnalyser {
     // User input.

@@ -1,11 +1,11 @@
 package world.phantasmal.web.test
 
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.asm.BytecodeIr
-import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.lib.fileFormats.quest.ObjectType
-import world.phantasmal.lib.fileFormats.quest.QuestNpc
-import world.phantasmal.lib.fileFormats.quest.QuestObject
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.asm.BytecodeIr
+import world.phantasmal.psolib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.ObjectType
+import world.phantasmal.psolib.fileFormats.quest.QuestNpc
+import world.phantasmal.psolib.fileFormats.quest.QuestObject
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel

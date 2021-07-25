@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer.models
 
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.observable.cell.orElse

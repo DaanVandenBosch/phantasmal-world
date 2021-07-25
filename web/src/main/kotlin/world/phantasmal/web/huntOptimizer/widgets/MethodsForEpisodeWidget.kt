@@ -2,7 +2,7 @@ package world.phantasmal.web.huntOptimizer.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController
 import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController.Companion.METHOD_COL_KEY
 import world.phantasmal.web.huntOptimizer.controllers.MethodsForEpisodeController.Companion.TIME_COL_KEY

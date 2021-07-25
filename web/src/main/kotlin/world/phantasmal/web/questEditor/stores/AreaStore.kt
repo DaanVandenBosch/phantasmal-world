@@ -1,12 +1,12 @@
 package world.phantasmal.web.questEditor.stores
 
-import world.phantasmal.lib.Episode
+import world.phantasmal.psolib.Episode
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.webui.stores.Store
-import world.phantasmal.lib.fileFormats.quest.getAreasForEpisode as getAreasForEpisodeLib
+import world.phantasmal.psolib.fileFormats.quest.getAreasForEpisode as getAreasForEpisodeLib
 
 class AreaStore(private val areaAssetLoader: AreaAssetLoader) : Store() {
     private val areas: Map<Episode, List<AreaModel>> =

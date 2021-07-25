@@ -1,6 +1,6 @@
 package world.phantasmal.web.questEditor.rendering.input
 
-import world.phantasmal.lib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.questEditor.widgets.EntityDragEvent
 

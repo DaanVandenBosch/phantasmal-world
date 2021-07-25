@@ -8,8 +8,8 @@ import world.phantasmal.core.asArray
 import world.phantasmal.core.isBitSet
 import world.phantasmal.core.jsArrayOf
 import world.phantasmal.core.unsafe.UnsafeMap
-import world.phantasmal.lib.fileFormats.*
-import world.phantasmal.lib.fileFormats.ninja.*
+import world.phantasmal.psolib.fileFormats.*
+import world.phantasmal.psolib.fileFormats.ninja.*
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.toQuaternion
 import world.phantasmal.web.externals.three.*

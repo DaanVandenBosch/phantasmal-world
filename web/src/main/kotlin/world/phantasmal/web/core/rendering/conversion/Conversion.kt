@@ -1,7 +1,7 @@
 package world.phantasmal.web.core.rendering.conversion
 
-import world.phantasmal.lib.fileFormats.Vec2
-import world.phantasmal.lib.fileFormats.Vec3
+import world.phantasmal.psolib.fileFormats.Vec2
+import world.phantasmal.psolib.fileFormats.Vec3
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector2

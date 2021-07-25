@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.rendering.input.state
 
 import mu.KotlinLogging
 import world.phantasmal.core.asJsArray
-import world.phantasmal.lib.fileFormats.ninja.XjObject
+import world.phantasmal.psolib.fileFormats.ninja.XjObject
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.minusAssign

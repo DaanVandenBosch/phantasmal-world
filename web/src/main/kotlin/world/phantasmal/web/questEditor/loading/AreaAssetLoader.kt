@@ -2,13 +2,13 @@ package world.phantasmal.web.questEditor.loading
 
 import org.khronos.webgl.ArrayBuffer
 import world.phantasmal.core.*
-import world.phantasmal.lib.Endianness
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.*
-import world.phantasmal.lib.fileFormats.ninja.XjObject
-import world.phantasmal.lib.fileFormats.ninja.XvrTexture
-import world.phantasmal.lib.fileFormats.ninja.parseXvm
+import world.phantasmal.psolib.Endianness
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psolib.fileFormats.*
+import world.phantasmal.psolib.fileFormats.ninja.XjObject
+import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
+import world.phantasmal.psolib.fileFormats.ninja.parseXvm
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.conversion.*

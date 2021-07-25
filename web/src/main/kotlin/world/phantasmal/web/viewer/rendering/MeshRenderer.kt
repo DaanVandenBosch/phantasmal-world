@@ -3,9 +3,9 @@ package world.phantasmal.web.viewer.rendering
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.math.degToRad
-import world.phantasmal.lib.fileFormats.ninja.NinjaObject
-import world.phantasmal.lib.fileFormats.ninja.NjMotion
-import world.phantasmal.lib.fileFormats.ninja.NjObject
+import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
+import world.phantasmal.psolib.fileFormats.ninja.NjMotion
+import world.phantasmal.psolib.fileFormats.ninja.NjObject
 import world.phantasmal.web.core.boundingSphere
 import world.phantasmal.web.core.isSkinnedMesh
 import world.phantasmal.web.core.rendering.*

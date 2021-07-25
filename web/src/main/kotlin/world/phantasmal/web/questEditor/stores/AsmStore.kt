@@ -5,8 +5,8 @@ import kotlinx.coroutines.launch
 import world.phantasmal.core.Severity
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.lib.asm.assemble
-import world.phantasmal.lib.asm.disassemble
+import world.phantasmal.psolib.asm.assemble
+import world.phantasmal.psolib.asm.disassemble
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell

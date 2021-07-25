@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":lib"))
+    implementation(project(":psolib"))
     implementation(project(":web:shared"))
     implementation("org.jsoup:jsoup:1.13.1")
 }

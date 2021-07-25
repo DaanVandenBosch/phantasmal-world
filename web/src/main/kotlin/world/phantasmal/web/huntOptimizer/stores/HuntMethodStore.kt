@@ -3,8 +3,8 @@ package world.phantasmal.web.huntOptimizer.stores
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.core.loading.AssetLoader

@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import world.phantasmal.core.*
 import world.phantasmal.core.unsafe.UnsafeMap
-import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.mutableListCell

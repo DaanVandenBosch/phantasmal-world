@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.stores
 
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import world.phantasmal.lib.Episode
+import world.phantasmal.psolib.Episode
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell

@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
-import world.phantasmal.lib.fileFormats.quest.EntityPropType
+import world.phantasmal.psolib.fileFormats.quest.EntityPropType
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.cell
 import world.phantasmal.observable.cell.list.ListCell

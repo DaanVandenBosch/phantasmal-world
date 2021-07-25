@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.lib.Episode
+import world.phantasmal.psolib.Episode
 import world.phantasmal.web.huntOptimizer.controllers.MethodsController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.widgets.TabContainer

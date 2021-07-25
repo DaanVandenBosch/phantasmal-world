@@ -9,7 +9,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(project(":lib"))
+                api(project(":psolib"))
 
                 api("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
             }

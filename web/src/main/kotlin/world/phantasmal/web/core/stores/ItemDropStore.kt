@@ -1,7 +1,7 @@
 package world.phantasmal.web.core.stores
 
 import world.phantasmal.core.unsafe.UnsafeMap
-import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.questEditor.loading.LoadingCache

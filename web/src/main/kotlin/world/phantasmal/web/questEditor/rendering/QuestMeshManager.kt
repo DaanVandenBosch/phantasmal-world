@@ -5,7 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
-import world.phantasmal.lib.Episode
+import world.phantasmal.psolib.Episode
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.ListChange
 import world.phantasmal.observable.cell.list.ListChangeEvent

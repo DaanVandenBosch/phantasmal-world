@@ -8,7 +8,7 @@ import org.w3c.dom.Image
 import org.w3c.dom.events.Event
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.TrackedDisposable
-import world.phantasmal.lib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.getRoot

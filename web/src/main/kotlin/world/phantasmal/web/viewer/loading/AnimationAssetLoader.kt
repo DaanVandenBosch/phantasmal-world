@@ -1,9 +1,9 @@
 package world.phantasmal.web.viewer.loading
 
-import world.phantasmal.lib.Endianness
-import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.ninja.NjMotion
-import world.phantasmal.lib.fileFormats.ninja.parseNjm
+import world.phantasmal.psolib.Endianness
+import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psolib.fileFormats.ninja.NjMotion
+import world.phantasmal.psolib.fileFormats.ninja.parseNjm
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.questEditor.loading.LoadingCache
 import world.phantasmal.webui.DisposableContainer

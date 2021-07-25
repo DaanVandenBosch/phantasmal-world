@@ -4,7 +4,7 @@ import kotlinx.browser.document
 import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.url.URL
 import world.phantasmal.core.math.degToRad
-import world.phantasmal.lib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.core.timesAssign

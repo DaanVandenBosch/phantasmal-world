@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.rendering
 
 import kotlinx.coroutines.CancellationException
 import mu.KotlinLogging
-import world.phantasmal.lib.Episode
+import world.phantasmal.psolib.Episode
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 

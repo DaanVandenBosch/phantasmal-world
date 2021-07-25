@@ -1,8 +1,8 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.asm.BytecodeIr
-import world.phantasmal.lib.fileFormats.quest.DatUnknown
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.asm.BytecodeIr
+import world.phantasmal.psolib.fileFormats.quest.DatUnknown
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.SimpleListCell

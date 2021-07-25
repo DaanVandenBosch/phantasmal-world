@@ -1,10 +1,10 @@
 package world.phantasmal.web.viewer.loading
 
 import world.phantasmal.core.Success
-import world.phantasmal.lib.Endianness
-import world.phantasmal.lib.cursor.cursor
-import world.phantasmal.lib.fileFormats.ninja.*
-import world.phantasmal.lib.fileFormats.parseAfs
+import world.phantasmal.psolib.Endianness
+import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psolib.fileFormats.ninja.*
+import world.phantasmal.psolib.fileFormats.parseAfs
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.questEditor.loading.LoadingCache
 import world.phantasmal.web.shared.dto.SectionId

@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.test.WebTestSuite

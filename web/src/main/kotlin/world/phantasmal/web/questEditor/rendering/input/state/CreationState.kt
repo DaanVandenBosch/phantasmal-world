@@ -1,9 +1,9 @@
 package world.phantasmal.web.questEditor.rendering.input.state
 
-import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.lib.fileFormats.quest.ObjectType
-import world.phantasmal.lib.fileFormats.quest.QuestNpc
-import world.phantasmal.lib.fileFormats.quest.QuestObject
+import world.phantasmal.psolib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.ObjectType
+import world.phantasmal.psolib.fileFormats.quest.QuestNpc
+import world.phantasmal.psolib.fileFormats.quest.QuestObject
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.models.*

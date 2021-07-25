@@ -3,9 +3,9 @@ package world.phantasmal.web.assetsGeneration.ephinea
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.jsoup.Jsoup
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.lib.fileFormats.quest.fromNameAndEpisode
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.fromNameAndEpisode
 import world.phantasmal.web.shared.JSON_FORMAT_PRETTY
 import world.phantasmal.web.shared.dto.*
 import java.io.File

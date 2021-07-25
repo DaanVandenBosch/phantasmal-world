@@ -24,7 +24,7 @@ val ktorVersion: String by project.extra
 val serializationVersion: String by project.extra
 
 dependencies {
-    implementation(project(":lib"))
+    implementation(project(":psolib"))
     implementation(project(":webui"))
     implementation(project(":web:shared"))
 

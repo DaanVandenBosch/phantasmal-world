@@ -1,10 +1,10 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.lib.Episode
-import world.phantasmal.lib.fileFormats.Vec3
-import world.phantasmal.lib.fileFormats.quest.NpcType
-import world.phantasmal.lib.fileFormats.quest.ObjectType
-import world.phantasmal.lib.fileFormats.quest.QuestNpc
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.Vec3
+import world.phantasmal.psolib.fileFormats.quest.NpcType
+import world.phantasmal.psolib.fileFormats.quest.ObjectType
+import world.phantasmal.psolib.fileFormats.quest.QuestNpc
 import world.phantasmal.testUtils.assertCloseTo
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
