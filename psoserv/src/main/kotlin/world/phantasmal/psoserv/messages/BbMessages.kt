@@ -62,13 +62,15 @@ class GuildCard(
     val entries: List<GuildCardEntry>
 )
 
-sealed class BbMessage(override val buffer: Buffer) : Message(BB_HEADER_SIZE) {
+sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_SIZE) {
     override val code: Int get() = buffer.getUShort(BB_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(BB_MSG_SIZE_POS).toInt()
 
-    class InitEncryption(buffer: Buffer) : BbMessage(buffer) {
-        val serverKey: ByteArray get() = byteArray(INIT_MSG_SIZE, size = KEY_SIZE)
-        val clientKey: ByteArray get() = byteArray(INIT_MSG_SIZE + KEY_SIZE, size = KEY_SIZE)
+    class InitEncryption(buffer: Buffer) : BbMessage(buffer), InitEncryptionMessage {
+        override val serverKey: ByteArray
+            get() = byteArray(INIT_MSG_SIZE, size = KEY_SIZE)
+        override val clientKey: ByteArray
+            get() = byteArray(INIT_MSG_SIZE + KEY_SIZE, size = KEY_SIZE)
 
         constructor(message: String, serverKey: ByteArray, clientKey: ByteArray) : this(
             buf(0x0003, INIT_MSG_SIZE + 2 * KEY_SIZE) {
@@ -87,14 +89,14 @@ sealed class BbMessage(override val buffer: Buffer) : Message(BB_HEADER_SIZE) {
         constructor() : this(buf(0x0005))
     }
 
-    class Redirect(buffer: Buffer) : BbMessage(buffer) {
-        var ipAddress: ByteArray
+    class Redirect(buffer: Buffer) : BbMessage(buffer), RedirectMessage {
+        override var ipAddress: ByteArray
             get() = byteArray(0, size = 4)
             set(value) {
                 require(value.size == 4)
                 setByteArray(0, value)
             }
-        var port: Int
+        override var port: Int
             get() = uShort(4).toInt()
             set(value) {
                 require(value in 0..65535)

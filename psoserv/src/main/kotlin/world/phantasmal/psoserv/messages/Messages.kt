@@ -24,12 +24,25 @@ fun messageString(
 
 data class Header(val code: Int, val size: Int)
 
-abstract class Message(val headerSize: Int) {
-    abstract val buffer: Buffer
-    abstract val code: Int
-    abstract val size: Int
+interface Message {
+    val buffer: Buffer
+    val code: Int
+    val size: Int
+    val headerSize: Int
     val bodySize: Int get() = size - headerSize
+}
 
+interface InitEncryptionMessage : Message {
+    val serverKey: ByteArray
+    val clientKey: ByteArray
+}
+
+interface RedirectMessage : Message {
+    var ipAddress: ByteArray
+    var port: Int
+}
+
+abstract class AbstractMessage(override val headerSize: Int) : Message {
     override fun toString(): String = messageString()
 
     protected fun uByte(offset: Int) = buffer.getUByte(headerSize + offset)
@@ -58,5 +71,4 @@ abstract class Message(val headerSize: Int) {
 
     protected fun messageString(vararg props: Pair<String, Any>): String =
         messageString(code, size, this::class.simpleName, *props)
-
 }

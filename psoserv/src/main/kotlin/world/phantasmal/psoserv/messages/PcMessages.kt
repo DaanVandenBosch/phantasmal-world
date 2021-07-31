@@ -13,13 +13,15 @@ const val PC_HEADER_SIZE: Int = 4
 const val PC_MSG_SIZE_POS: Int = 0
 const val PC_MSG_CODE_POS: Int = 2
 
-sealed class PcMessage(override val buffer: Buffer) : Message(PC_HEADER_SIZE) {
+sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_SIZE) {
     override val code: Int get() = buffer.getUByte(PC_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(PC_MSG_SIZE_POS).toInt()
 
-    class InitEncryption(buffer: Buffer) : PcMessage(buffer) {
-        val serverKey: ByteArray get() = byteArray(INIT_MSG_SIZE, size = KEY_SIZE)
-        val clientKey: ByteArray get() = byteArray(INIT_MSG_SIZE + KEY_SIZE, size = KEY_SIZE)
+    class InitEncryption(buffer: Buffer) : PcMessage(buffer), InitEncryptionMessage {
+        override val serverKey: ByteArray
+            get() = byteArray(INIT_MSG_SIZE, size = KEY_SIZE)
+        override val clientKey: ByteArray
+            get() = byteArray(INIT_MSG_SIZE + KEY_SIZE, size = KEY_SIZE)
 
         constructor(message: String, serverKey: ByteArray, clientKey: ByteArray) : this(
             buf(0x02, INIT_MSG_SIZE + 2 * KEY_SIZE) {
@@ -60,14 +62,14 @@ sealed class PcMessage(override val buffer: Buffer) : Message(PC_HEADER_SIZE) {
         )
     }
 
-    class Redirect(buffer: Buffer) : PcMessage(buffer) {
-        var ipAddress: ByteArray
+    class Redirect(buffer: Buffer) : PcMessage(buffer), RedirectMessage {
+        override var ipAddress: ByteArray
             get() = byteArray(0, size = 4)
             set(value) {
                 require(value.size == 4)
                 setByteArray(0, value)
             }
-        var port: Int
+        override var port: Int
             get() {
                 buffer.endianness = Endianness.Big
                 val p = uShort(4).toInt()

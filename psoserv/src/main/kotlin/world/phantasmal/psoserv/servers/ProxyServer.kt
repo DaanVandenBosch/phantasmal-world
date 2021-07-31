@@ -4,10 +4,7 @@ import mu.KotlinLogging
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psoserv.encryption.Cipher
-import world.phantasmal.psoserv.messages.BbMessage
-import world.phantasmal.psoserv.messages.Header
-import world.phantasmal.psoserv.messages.Message
-import world.phantasmal.psoserv.messages.PcMessage
+import world.phantasmal.psoserv.messages.*
 import java.net.*
 
 class ProxyServer(
@@ -119,7 +116,7 @@ class ProxyServer(
 
         override fun processMessage(message: Message): ProcessResult {
             when (message) {
-                is PcMessage.InitEncryption -> if (decryptCipher == null) {
+                is InitEncryptionMessage -> if (decryptCipher == null) {
                     decryptCipher = createCipher(message.serverKey)
                     encryptCipher = createCipher(message.serverKey)
 
@@ -135,7 +132,7 @@ class ProxyServer(
                         clientSocket,
                         this,
                         clientDecryptCipher,
-                        clientEncryptCipher
+                        clientEncryptCipher,
                     )
                     this.clientHandler = clientListener
                     val thread = Thread(clientListener::listen)
@@ -143,46 +140,7 @@ class ProxyServer(
                     thread.start()
                 }
 
-                is BbMessage.InitEncryption -> if (decryptCipher == null) {
-                    decryptCipher = createCipher(message.serverKey)
-                    encryptCipher = createCipher(message.serverKey)
-
-                    val clientDecryptCipher = createCipher(message.clientKey)
-                    val clientEncryptCipher = createCipher(message.clientKey)
-
-                    logger.info {
-                        "Encryption initialized, start listening to client."
-                    }
-
-                    // Start listening to client on another thread.
-                    val clientListener = ClientHandler(
-                        clientSocket,
-                        this,
-                        clientDecryptCipher,
-                        clientEncryptCipher
-                    )
-                    this.clientHandler = clientListener
-                    val thread = Thread(clientListener::listen)
-                    thread.name = "${ProxyServer::class.simpleName} client"
-                    thread.start()
-                }
-
-                is PcMessage.Redirect -> {
-                    val oldAddress = InetAddress.getByAddress(message.ipAddress)
-
-                    redirectMap[Pair(oldAddress, message.port)]?.let { (newAddress, newPort) ->
-                        logger.debug {
-                            "Rewriting redirect from $oldAddress:${message.port} to $newAddress:$newPort."
-                        }
-
-                        message.ipAddress = newAddress.address
-                        message.port = newPort
-
-                        return ProcessResult.Changed
-                    }
-                }
-
-                is BbMessage.Redirect -> {
+                is RedirectMessage -> {
                     val oldAddress = InetAddress.getByAddress(message.ipAddress)
 
                     redirectMap[Pair(oldAddress, message.port)]?.let { (newAddress, newPort) ->
