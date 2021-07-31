@@ -51,6 +51,11 @@ expect class Buffer {
     fun getFloat(offset: Int): Float
 
     /**
+     * Reads a ASCII-encoded string at the given offset.
+     */
+    fun getStringAscii(offset: Int, maxByteLength: Int, nullTerminated: Boolean): String
+
+    /**
      * Reads a UTF-16-encoded string at the given offset.
      */
     fun getStringUtf16(offset: Int, maxByteLength: Int, nullTerminated: Boolean): String
@@ -108,9 +113,17 @@ expect class Buffer {
     fun toBase64(): String
 
     /**
-     * Returns a copy of this buffer of the same size. The copy's capacity will equal its size.
+     * Returns a copy of this buffer. The copy's capacity will equal its size. If [size] is greater
+     * than this buffer's size, the remaining bytes will be zeroed out.
      */
-    fun copy(): Buffer
+    fun copy(offset: Int = 0, size: Int = this.size): Buffer
+
+    fun copyInto(
+        destination: Buffer,
+        destinationOffset: Int = 0,
+        offset: Int = 0,
+        size: Int = this.size,
+    )
 
     companion object {
         /**

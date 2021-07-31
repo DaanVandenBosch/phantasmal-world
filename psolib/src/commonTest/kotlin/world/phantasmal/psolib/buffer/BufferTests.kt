@@ -101,4 +101,16 @@ class BufferTests : LibTestSuite {
         assertEquals(-9, buf2.getByte(2))
         assertEquals(base2, buf2.toBase64())
     }
+
+    @Test
+    fun copy() {
+        val buf = Buffer.fromByteArray(byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9))
+        val copy = buf.copy(offset = 3, size = 4)
+
+        assertEquals(4, copy.size)
+        assertEquals(3, copy.getByte(0))
+        assertEquals(4, copy.getByte(1))
+        assertEquals(5, copy.getByte(2))
+        assertEquals(6, copy.getByte(3))
+    }
 }

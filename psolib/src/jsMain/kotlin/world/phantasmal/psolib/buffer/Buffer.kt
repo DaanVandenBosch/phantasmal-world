@@ -70,6 +70,23 @@ actual class Buffer private constructor(
         return dataView.getFloat32(offset, littleEndian)
     }
 
+    actual fun getStringAscii(
+        offset: Int,
+        maxByteLength: Int,
+        nullTerminated: Boolean,
+    ): String =
+        buildString {
+            for (i in 0 until maxByteLength) {
+                val codePoint = (getByte(offset + i).toInt() and 0xFF).toChar()
+
+                if (nullTerminated && codePoint == '\u0000') {
+                    break
+                }
+
+                append(codePoint)
+            }
+        }
+
     actual fun getStringUtf16(
         offset: Int,
         maxByteLength: Int,
@@ -157,8 +174,30 @@ actual class Buffer private constructor(
         return self.btoa(str)
     }
 
-    actual fun copy(): Buffer =
-        Buffer(arrayBuffer.slice(0, size), size, endianness)
+    actual fun copy(offset: Int, size: Int): Buffer {
+        val newBuffer = withSize(size, endianness)
+        copyInto(newBuffer, destinationOffset = 0, offset, size.coerceAtMost(this.size - offset))
+        return newBuffer
+    }
+
+    actual fun copyInto(destination: Buffer, destinationOffset: Int, offset: Int, size: Int) {
+        require(offset >= 0 && offset <= this.size) {
+            "Offset $offset is out of bounds."
+        }
+        require(destinationOffset >= 0 && destinationOffset <= this.size) {
+            "Destination offset $destinationOffset is out of bounds."
+        }
+        require(
+            size >= 0 &&
+                    destinationOffset + size <= destination.size &&
+                    offset + size <= this.size
+        ) {
+            "Size $size is out of bounds."
+        }
+
+        Uint8Array(destination.arrayBuffer, destinationOffset)
+            .set(Uint8Array(arrayBuffer, offset, size))
+    }
 
     /**
      * Checks whether we can read [size] bytes at [offset].

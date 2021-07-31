@@ -27,6 +27,11 @@ actual class Buffer private constructor(
     actual val capacity: Int
         get() = buf.capacity()
 
+    /**
+     * The backing byte array. Changes to this array will be reflected by the buffer.
+     */
+    val byteArray: ByteArray get() = buf.array()
+
     init {
         this.endianness = endianness
     }
@@ -65,6 +70,23 @@ actual class Buffer private constructor(
         checkOffset(offset, 4)
         return buf.getFloat(offset)
     }
+
+    actual fun getStringAscii(
+        offset: Int,
+        maxByteLength: Int,
+        nullTerminated: Boolean,
+    ): String =
+        buildString {
+            for (i in 0 until maxByteLength) {
+                val codePoint = (buf.get(offset + i).toInt() and 0xFF).toChar()
+
+                if (nullTerminated && codePoint == '\u0000') {
+                    break
+                }
+
+                append(codePoint)
+            }
+        }
 
     actual fun getStringUtf16(
         offset: Int,
@@ -154,8 +176,34 @@ actual class Buffer private constructor(
         return str
     }
 
-    actual fun copy(): Buffer =
-        fromByteArray(buf.array().copyOf(), endianness)
+    actual fun copy(offset: Int, size: Int): Buffer {
+        val newBuffer = withSize(size, endianness)
+        copyInto(newBuffer, destinationOffset = 0, offset, size.coerceAtMost(this.size - offset))
+        return newBuffer
+    }
+
+    actual fun copyInto(destination: Buffer, destinationOffset: Int, offset: Int, size: Int) {
+        require(offset >= 0 && offset <= this.size) {
+            "Offset $offset is out of bounds."
+        }
+        require(destinationOffset >= 0 && destinationOffset <= destination.size) {
+            "Destination offset $destinationOffset is out of bounds."
+        }
+        require(
+            size >= 0 &&
+                    destinationOffset + size <= destination.size &&
+                    offset + size <= this.size
+        ) {
+            "Size $size is out of bounds."
+        }
+
+        byteArray.copyInto(
+            destination.byteArray,
+            destinationOffset,
+            startIndex = offset,
+            endIndex = offset + size,
+        )
+    }
 
     /**
      * Checks whether we can read [size] bytes at [offset].
