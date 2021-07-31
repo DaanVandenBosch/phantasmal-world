@@ -4,6 +4,7 @@ include(
     ":core",
     ":psolib",
     ":observable",
+    ":psoserv",
     ":test-utils",
     ":web",
     ":web:assembly-worker",
