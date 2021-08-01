@@ -1,4 +1,4 @@
-package world.phantasmal.psoserv.servers.login
+package world.phantasmal.psoserv.servers.auth
 
 import mu.KLogger
 import world.phantasmal.psoserv.messages.BbAuthenticationStatus
@@ -8,16 +8,18 @@ import world.phantasmal.psoserv.servers.ServerState
 import world.phantasmal.psoserv.servers.ServerStateContext
 import world.phantasmal.psoserv.servers.SocketSender
 
-class LoginContext(
+class AuthContext(
     logger: KLogger,
     socketSender: SocketSender<BbMessage>,
-    val characterServerAddress: ByteArray,
-    val characterServerPort: Int,
+    val accountServerAddress: ByteArray,
+    val accountServerPort: Int,
 ) : ServerStateContext<BbMessage>(logger, socketSender)
 
-sealed class LoginState(ctx: LoginContext) : ServerState<BbMessage, LoginContext, LoginState>(ctx) {
-    class Authentication(ctx: LoginContext) : LoginState(ctx) {
-        override fun process(message: BbMessage): LoginState =
+sealed class AuthState(ctx: AuthContext) :
+    ServerState<BbMessage, AuthContext, AuthState>(ctx) {
+
+    class Authentication(ctx: AuthContext) : AuthState(ctx) {
+        override fun process(message: BbMessage): AuthState =
             if (message is BbMessage.Authenticate) {
                 // TODO: Actual authentication.
                 ctx.send(
@@ -29,8 +31,8 @@ sealed class LoginState(ctx: LoginContext) : ServerState<BbMessage, LoginContext
                 )
                 ctx.send(
                     BbMessage.Redirect(
-                        ctx.characterServerAddress,
-                        ctx.characterServerPort,
+                        ctx.accountServerAddress,
+                        ctx.accountServerPort,
                     )
                 )
 
@@ -40,8 +42,8 @@ sealed class LoginState(ctx: LoginContext) : ServerState<BbMessage, LoginContext
             }
     }
 
-    class Final(ctx: LoginContext) : LoginState(ctx), FinalServerState {
-        override fun process(message: BbMessage): LoginState =
+    class Final(ctx: AuthContext) : AuthState(ctx), FinalServerState {
+        override fun process(message: BbMessage): AuthState =
             unexpectedMessage(message)
     }
 }

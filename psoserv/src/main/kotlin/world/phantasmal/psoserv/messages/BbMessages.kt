@@ -223,8 +223,8 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
                 // 2092 Bytes of team data.
                 repeat(523) { writeInt(0) }
                 // Enable all team rewards.
-                writeUInt(UInt.MAX_VALUE)
-                writeUInt(UInt.MAX_VALUE)
+                writeUInt(0xFFFFFFFFu)
+                writeUInt(0xFFFFFFFFu)
             }
         )
     }

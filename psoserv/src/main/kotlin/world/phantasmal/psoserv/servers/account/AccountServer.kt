@@ -1,25 +1,22 @@
-package world.phantasmal.psoserv.servers.login
+package world.phantasmal.psoserv.servers.account
 
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.BbMessage
 import world.phantasmal.psoserv.servers.BbServer
 import world.phantasmal.psoserv.servers.Inet4Pair
 import world.phantasmal.psoserv.servers.SocketSender
-import java.net.Inet4Address
 
-class LoginServer(
+class AccountServer(
     name: String,
     bindPair: Inet4Pair,
-    private val dataServerAddress: Inet4Address,
-    private val dataServerPort: Int,
-) : BbServer<LoginState>(name, bindPair) {
+) : BbServer<AccountState>(name, bindPair) {
 
     override fun initializeState(
         sender: SocketSender<BbMessage>,
         serverCipher: Cipher,
         clientCipher: Cipher,
-    ): LoginState {
-        val ctx = LoginContext(logger, sender, dataServerAddress.address, dataServerPort)
+    ): AccountState {
+        val ctx = AccountContext(logger, sender)
 
         ctx.send(
             BbMessage.InitEncryption(
@@ -30,6 +27,6 @@ class LoginServer(
             encrypt = false,
         )
 
-        return LoginState.Authentication(ctx)
+        return AccountState.Authentication(ctx)
     }
 }

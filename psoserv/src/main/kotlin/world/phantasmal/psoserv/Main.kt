@@ -11,8 +11,8 @@ import world.phantasmal.psoserv.messages.Message
 import world.phantasmal.psoserv.messages.MessageDescriptor
 import world.phantasmal.psoserv.messages.PcMessageDescriptor
 import world.phantasmal.psoserv.servers.*
-import world.phantasmal.psoserv.servers.character.DataServer
-import world.phantasmal.psoserv.servers.login.LoginServer
+import world.phantasmal.psoserv.servers.account.AccountServer
+import world.phantasmal.psoserv.servers.auth.AuthServer
 import world.phantasmal.psoserv.servers.patch.PatchServer
 import java.io.File
 import java.net.Inet4Address
@@ -87,8 +87,8 @@ private class PhantasmalServer(
 private fun initialize(config: Config): PhantasmalServer {
     val defaultAddress = config.address?.let(::inet4Address) ?: DEFAULT_ADDRESS
 
-    val dataAddress = config.data?.address?.let(::inet4Address) ?: defaultAddress
-    val dataPort = config.data?.port ?: DEFAULT_DATA_PORT
+    val dataAddress = config.account?.address?.let(::inet4Address) ?: defaultAddress
+    val dataPort = config.account?.port ?: DEFAULT_DATA_PORT
 
     val servers = mutableListOf<Server>()
 
@@ -112,17 +112,17 @@ private fun initialize(config: Config): PhantasmalServer {
         )
     }
 
-    if (config.login == null && run || config.login?.run == true) {
+    if (config.auth == null && run || config.auth?.run == true) {
         val bindPair = Inet4Pair(
-            config.login?.address?.let(::inet4Address) ?: defaultAddress,
-            config.login?.port ?: DEFAULT_LOGIN_PORT,
+            config.auth?.address?.let(::inet4Address) ?: defaultAddress,
+            config.auth?.port ?: DEFAULT_LOGIN_PORT,
         )
 
-        LOGGER.info { "Configuring login server to bind to $bindPair." }
+        LOGGER.info { "Configuring auth server to bind to $bindPair." }
 
         servers.add(
-            LoginServer(
-                name = "login",
+            AuthServer(
+                name = "auth",
                 bindPair,
                 dataServerAddress = dataAddress,
                 dataServerPort = dataPort,
@@ -130,17 +130,17 @@ private fun initialize(config: Config): PhantasmalServer {
         )
     }
 
-    if (config.data == null && run || config.data?.run == true) {
+    if (config.account == null && run || config.account?.run == true) {
         val bindPair = Inet4Pair(
-            config.data?.address?.let(::inet4Address) ?: defaultAddress,
-            config.data?.port ?: DEFAULT_DATA_PORT,
+            config.account?.address?.let(::inet4Address) ?: defaultAddress,
+            config.account?.port ?: DEFAULT_DATA_PORT,
         )
 
-        LOGGER.info { "Configuring data server to bind to $bindPair." }
+        LOGGER.info { "Configuring account server to bind to $bindPair." }
 
         servers.add(
-            DataServer(
-                name = "data",
+            AccountServer(
+                name = "account",
                 bindPair,
             )
         )

@@ -6,7 +6,6 @@ import java.net.InetSocketAddress
 
 class Inet4Pair(addr: Inet4Address, port: Int) : InetSocketAddress(addr, port) {
     constructor(addr: ByteArray, port: Int) : this(inet4Address(addr), port)
-    constructor(addr: String, port: Int) : this(inet4Address(addr), port)
 
     val address: Inet4Address get() = super.getAddress() as Inet4Address
 }

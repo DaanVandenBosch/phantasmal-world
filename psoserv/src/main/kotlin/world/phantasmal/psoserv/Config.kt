@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 class Config(
     val address: String? = null,
     val patch: PatchServerConfig? = null,
-    val login: ServerConfig? = null,
-    val data: ServerConfig? = null,
+    val auth: ServerConfig? = null,
+    val account: ServerConfig? = null,
     val proxy: ProxyConfig? = null,
 )
 

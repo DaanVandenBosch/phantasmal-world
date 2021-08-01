@@ -1,4 +1,4 @@
-package world.phantasmal.psoserv.servers.character
+package world.phantasmal.psoserv.servers.account
 
 import mu.KLogger
 import world.phantasmal.core.math.clamp
@@ -13,14 +13,16 @@ import world.phantasmal.psoserv.servers.ServerStateContext
 import world.phantasmal.psoserv.servers.SocketSender
 import kotlin.math.min
 
-class DataContext(
+class AccountContext(
     logger: KLogger,
     socketSender: SocketSender<BbMessage>,
 ) : ServerStateContext<BbMessage>(logger, socketSender)
 
-sealed class DataState(ctx: DataContext) : ServerState<BbMessage, DataContext, DataState>(ctx) {
-    class Authentication(ctx: DataContext) : DataState(ctx) {
-        override fun process(message: BbMessage): DataState =
+sealed class AccountState(ctx: AccountContext) :
+    ServerState<BbMessage, AccountContext, AccountState>(ctx) {
+
+    class Authentication(ctx: AccountContext) : AccountState(ctx) {
+        override fun process(message: BbMessage): AccountState =
             if (message is BbMessage.Authenticate) {
                 // TODO: Actual authentication.
                 ctx.send(
@@ -31,26 +33,26 @@ sealed class DataState(ctx: DataContext) : ServerState<BbMessage, DataContext, D
                     )
                 )
 
-                Account(ctx)
+                GetAccount(ctx)
             } else {
                 unexpectedMessage(message)
             }
     }
 
-    class Account(ctx: DataContext) : DataState(ctx) {
-        override fun process(message: BbMessage): DataState =
+    class GetAccount(ctx: AccountContext) : AccountState(ctx) {
+        override fun process(message: BbMessage): AccountState =
             if (message is BbMessage.GetAccount) {
                 // TODO: Send correct guild card number and team ID.
                 ctx.send(BbMessage.Account(0, 0))
 
-                CharacterSelect(ctx)
+                GetCharacters(ctx)
             } else {
                 unexpectedMessage(message)
             }
     }
 
-    class CharacterSelect(ctx: DataContext) : DataState(ctx) {
-        override fun process(message: BbMessage): DataState =
+    class GetCharacters(ctx: AccountContext) : AccountState(ctx) {
+        override fun process(message: BbMessage): AccountState =
             when (message) {
                 is BbMessage.CharacterSelect -> {
                     // TODO: Look up character data.
@@ -89,19 +91,17 @@ sealed class DataState(ctx: DataContext) : ServerState<BbMessage, DataContext, D
                     // TODO: Checksum checking.
                     ctx.send(BbMessage.ChecksumResponse(true))
 
-                    DataDownload(ctx)
+                    GetGuildCardData(ctx)
                 }
 
                 else -> unexpectedMessage(message)
             }
     }
 
-    class DataDownload(ctx: DataContext) : DataState(ctx) {
+    class GetGuildCardData(ctx: AccountContext) : AccountState(ctx) {
         private val guildCardBuffer = Buffer.withSize(54672)
-        private val fileBuffer = Buffer.withSize(0)
-        private var fileChunkNo = 0
 
-        override fun process(message: BbMessage): DataState =
+        override fun process(message: BbMessage): AccountState =
             when (message) {
                 is BbMessage.GetGuildCardHeader -> {
                     ctx.send(
@@ -126,28 +126,11 @@ sealed class DataState(ctx: DataContext) : ServerState<BbMessage, DataContext, D
                                 guildCardBuffer.cursor(offset, size),
                             )
                         )
+
+                        this
+                    } else {
+                        GetFiles(ctx)
                     }
-
-                    this
-                }
-
-                is BbMessage.GetFileList -> {
-                    ctx.send(BbMessage.FileList())
-
-                    this
-                }
-
-                is BbMessage.GetFileChunk -> {
-                    val offset = min(fileChunkNo * MAX_CHUNK_SIZE, fileBuffer.size)
-                    val size = min(fileBuffer.size - offset, MAX_CHUNK_SIZE)
-
-                    ctx.send(BbMessage.FileChunk(fileChunkNo, fileBuffer.cursor(offset, size)))
-
-                    if (offset + size < fileBuffer.size) {
-                        fileChunkNo++
-                    }
-
-                    this
                 }
 
                 else -> unexpectedMessage(message)
@@ -177,8 +160,41 @@ sealed class DataState(ctx: DataContext) : ServerState<BbMessage, DataContext, D
         }
     }
 
-    class Final(ctx: DataContext) : DataState(ctx), FinalServerState {
-        override fun process(message: BbMessage): DataState =
+    class GetFiles(ctx: AccountContext) : AccountState(ctx) {
+        private val fileBuffer = Buffer.withSize(0)
+        private var fileChunkNo = 0
+
+        override fun process(message: BbMessage): AccountState =
+            when (message) {
+                is BbMessage.GetFileList -> {
+                    ctx.send(BbMessage.FileList())
+
+                    this
+                }
+
+                is BbMessage.GetFileChunk -> {
+                    val offset = min(fileChunkNo * MAX_CHUNK_SIZE, fileBuffer.size)
+                    val size = min(fileBuffer.size - offset, MAX_CHUNK_SIZE)
+
+                    ctx.send(BbMessage.FileChunk(fileChunkNo, fileBuffer.cursor(offset, size)))
+
+                    if (offset + size < fileBuffer.size) {
+                        fileChunkNo++
+                    }
+
+                    this
+                }
+
+                else -> unexpectedMessage(message)
+            }
+
+        companion object {
+            private const val MAX_CHUNK_SIZE: Int = 0x6800
+        }
+    }
+
+    class Final(ctx: AccountContext) : AccountState(ctx), FinalServerState {
+        override fun process(message: BbMessage): AccountState =
             unexpectedMessage(message)
     }
 }
