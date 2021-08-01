@@ -5,10 +5,7 @@ import world.phantasmal.core.math.clamp
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.cursor
-import world.phantasmal.psoserv.messages.BbAuthenticationStatus
-import world.phantasmal.psoserv.messages.BbMessage
-import world.phantasmal.psoserv.messages.FileListEntry
-import world.phantasmal.psoserv.messages.PsoCharacter
+import world.phantasmal.psoserv.messages.*
 import world.phantasmal.psoserv.servers.FinalServerState
 import world.phantasmal.psoserv.servers.ServerState
 import world.phantasmal.psoserv.servers.ServerStateContext
@@ -18,6 +15,10 @@ import world.phantasmal.psoserv.utils.crc32Checksum
 class AccountContext(
     logger: KLogger,
     socketSender: SocketSender<BbMessage>,
+    var guildCard: Int = -1,
+    var teamId: Int = -1,
+    var slot: Int = 0,
+    var charSelected: Boolean = false,
 ) : ServerStateContext<BbMessage>(logger, socketSender)
 
 sealed class AccountState(ctx: AccountContext) :
@@ -27,80 +28,105 @@ sealed class AccountState(ctx: AccountContext) :
         override fun process(message: BbMessage): AccountState =
             if (message is BbMessage.Authenticate) {
                 // TODO: Actual authentication.
+                ctx.guildCard = message.guildCard
+                ctx.teamId = message.teamId
                 ctx.send(
-                    BbMessage.AuthenticationResponse(
-                        BbAuthenticationStatus.Success,
-                        message.guildCard,
-                        message.teamId,
+                    BbMessage.AuthData(
+                        BbAuthStatus.Success,
+                        ctx.guildCard,
+                        ctx.teamId,
+                        ctx.slot,
+                        ctx.charSelected,
                     )
                 )
 
-                GetAccount(ctx)
+                Account(ctx)
             } else {
                 unexpectedMessage(message)
             }
     }
 
-    class GetAccount(ctx: AccountContext) : AccountState(ctx) {
-        override fun process(message: BbMessage): AccountState =
-            if (message is BbMessage.GetAccount) {
-                // TODO: Send correct guild card number and team ID.
-                ctx.send(BbMessage.Account(0, 0))
-
-                GetCharacters(ctx)
-            } else {
-                unexpectedMessage(message)
-            }
-    }
-
-    class GetCharacters(ctx: AccountContext) : AccountState(ctx) {
+    class Account(ctx: AccountContext) : AccountState(ctx) {
         override fun process(message: BbMessage): AccountState =
             when (message) {
-                is BbMessage.CharacterSelect -> {
-                    // TODO: Look up character data.
-                    ctx.send(
-                        BbMessage.CharacterSelectResponse(
-                            PsoCharacter(
-                                slot = message.slot,
-                                exp = 0,
-                                level = 0,
-                                guildCardString = "",
-                                nameColor = 0,
-                                model = 0,
-                                nameColorChecksum = 0,
-                                sectionId = message.slot,
-                                characterClass = message.slot,
-                                costume = 0,
-                                skin = 0,
-                                face = 0,
-                                head = 0,
-                                hair = 0,
-                                hairRed = 0,
-                                hairGreen = 0,
-                                hairBlue = 0,
-                                propX = 0.5,
-                                propY = 0.5,
-                                name = "Phantasmal ${message.slot}",
-                                playTime = 0,
+                is BbMessage.GetAccount -> {
+                    // TODO: Send correct guild card number and team ID.
+                    ctx.send(BbMessage.Account(0, 0))
+
+                    this
+                }
+
+                is BbMessage.CharSelect -> {
+                    if (message.select) {
+                        // TODO: Verify slot.
+                        if (ctx.slot in 0..3) {
+                            ctx.slot = message.slot
+                            ctx.charSelected = true
+                            ctx.send(
+                                BbMessage.AuthData(
+                                    BbAuthStatus.Success,
+                                    ctx.guildCard,
+                                    ctx.teamId,
+                                    ctx.slot,
+                                    ctx.charSelected,
+                                )
+                            )
+                            ctx.send(
+                                BbMessage.CharSelectAck(ctx.slot, BbCharSelectStatus.Select)
+                            )
+                        } else {
+                            ctx.send(
+                                BbMessage.CharSelectAck(ctx.slot, BbCharSelectStatus.Nonexistent)
+                            )
+                        }
+                    } else {
+                        // TODO: Look up character data.
+                        ctx.send(
+                            BbMessage.CharData(
+                                PsoCharacter(
+                                    slot = message.slot,
+                                    exp = 0,
+                                    level = 0,
+                                    guildCardString = "",
+                                    nameColor = 0,
+                                    model = 0,
+                                    nameColorChecksum = 0,
+                                    sectionId = message.slot,
+                                    characterClass = message.slot,
+                                    costume = 0,
+                                    skin = 0,
+                                    face = 0,
+                                    head = 0,
+                                    hair = 0,
+                                    hairRed = 0,
+                                    hairGreen = 0,
+                                    hairBlue = 0,
+                                    propX = 0.5,
+                                    propY = 0.5,
+                                    name = "Phantasmal ${message.slot}",
+                                    playTime = 0,
+                                )
                             )
                         )
-                    )
+                    }
 
                     this
                 }
 
                 is BbMessage.Checksum -> {
                     // TODO: Checksum checking.
-                    ctx.send(BbMessage.ChecksumResponse(true))
+                    ctx.send(BbMessage.ChecksumAck(true))
 
-                    GetGuildCardData(ctx)
+                    GuildCardData(ctx)
                 }
+
+                is BbMessage.Disconnect -> Final(ctx)
 
                 else -> unexpectedMessage(message)
             }
     }
 
-    class GetGuildCardData(ctx: AccountContext) : AccountState(ctx) {
+    class GuildCardData(ctx: AccountContext) : AccountState(ctx) {
         private val guildCardBuffer = Buffer.withSize(54672)
 
         override fun process(message: BbMessage): AccountState =
@@ -134,7 +160,7 @@ sealed class AccountState(ctx: AccountContext) :
 
                         this
                     } else {
-                        GetFiles(ctx)
+                        DownloadFiles(ctx)
                     }
                 }
 
@@ -146,7 +172,7 @@ sealed class AccountState(ctx: AccountContext) :
         }
     }
 
-    class GetFiles(ctx: AccountContext) : AccountState(ctx) {
+    class DownloadFiles(ctx: AccountContext) : AccountState(ctx) {
         private var fileChunkNo = 0
 
         override fun process(message: BbMessage): AccountState =

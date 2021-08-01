@@ -1,7 +1,7 @@
 package world.phantasmal.psoserv.servers.auth
 
 import mu.KLogger
-import world.phantasmal.psoserv.messages.BbAuthenticationStatus
+import world.phantasmal.psoserv.messages.BbAuthStatus
 import world.phantasmal.psoserv.messages.BbMessage
 import world.phantasmal.psoserv.servers.FinalServerState
 import world.phantasmal.psoserv.servers.ServerState
@@ -23,10 +23,12 @@ sealed class AuthState(ctx: AuthContext) :
             if (message is BbMessage.Authenticate) {
                 // TODO: Actual authentication.
                 ctx.send(
-                    BbMessage.AuthenticationResponse(
-                        BbAuthenticationStatus.Success,
+                    BbMessage.AuthData(
+                        BbAuthStatus.Success,
                         message.guildCard,
                         message.teamId,
+                        slot = 0,
+                        selected = false,
                     )
                 )
                 ctx.send(

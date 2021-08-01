@@ -130,7 +130,7 @@ sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_
     class Unknown(buffer: Buffer) : PcMessage(buffer)
 
     companion object {
-        protected fun buf(
+        private fun buf(
             code: Int,
             bodySize: Int = 0,
             writeBody: WritableCursor.() -> Unit = {},

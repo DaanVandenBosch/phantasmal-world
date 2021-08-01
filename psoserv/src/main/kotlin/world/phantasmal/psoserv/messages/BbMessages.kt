@@ -12,69 +12,6 @@ const val BB_HEADER_SIZE: Int = 8
 const val BB_MSG_SIZE_POS: Int = 0
 const val BB_MSG_CODE_POS: Int = 2
 
-enum class BbAuthenticationStatus {
-    Success, Error, UnknownUser
-}
-
-class PsoCharacter(
-    val slot: Int,
-    val exp: Int,
-    val level: Int,
-    val guildCardString: String,
-    val nameColor: Int,
-    val model: Int,
-    val nameColorChecksum: Int,
-    val sectionId: Int,
-    val characterClass: Int,
-    val costume: Int,
-    val skin: Int,
-    val face: Int,
-    val head: Int,
-    val hair: Int,
-    val hairRed: Int,
-    val hairGreen: Int,
-    val hairBlue: Int,
-    val propX: Double,
-    val propY: Double,
-    val name: String,
-    val playTime: Int,
-) {
-    init {
-        require(slot in 0..3)
-        require(exp >= 0)
-        require(level in 0..199)
-        require(guildCardString.length <= 16)
-        require(name.length <= 16)
-        require(playTime >= 0)
-    }
-}
-
-class GuildCardEntry(
-    val playerTag: Int,
-    val serialNumber: Int,
-    val name: String,
-    val description: String,
-    val sectionId: Int,
-    val characterClass: Int,
-)
-
-class GuildCard(
-    val entries: List<GuildCardEntry>
-)
-
-class FileListEntry(
-    val size: Int,
-    val checksum: Int,
-    val offset: Int,
-    val filename: String,
-) {
-    init {
-        require(size > 0)
-        require(offset >= 0)
-        require(filename.length <= 64)
-    }
-}
-
 object BbMessageDescriptor : MessageDescriptor<BbMessage> {
     override val headerSize: Int = BB_HEADER_SIZE
 
@@ -97,11 +34,12 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             0x03DC -> BbMessage.GetGuildCardChunk(buffer)
             0x00E0 -> BbMessage.GetAccount(buffer)
             0x00E2 -> BbMessage.Account(buffer)
-            0x00E3 -> BbMessage.CharacterSelect(buffer)
-            0x00E5 -> BbMessage.CharacterSelectResponse(buffer)
-            0x00E6 -> BbMessage.AuthenticationResponse(buffer)
+            0x00E3 -> BbMessage.CharSelect(buffer)
+            0x00E4 -> BbMessage.CharSelectAck(buffer)
+            0x00E5 -> BbMessage.CharData(buffer)
+            0x00E6 -> BbMessage.AuthData(buffer)
             0x01E8 -> BbMessage.Checksum(buffer)
-            0x02E8 -> BbMessage.ChecksumResponse(buffer)
+            0x02E8 -> BbMessage.ChecksumAck(buffer)
             0x03E8 -> BbMessage.GetGuildCardHeader(buffer)
             0x01EB -> BbMessage.FileList(buffer)
             0x02EB -> BbMessage.FileChunk(buffer)
@@ -243,12 +181,30 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     }
 
     // 0x00E3
-    class CharacterSelect(buffer: Buffer) : BbMessage(buffer) {
+    class CharSelect(buffer: Buffer) : BbMessage(buffer) {
         val slot: Int get() = uByte(0).toInt()
         val select: Boolean get() = byte(4).toInt() != 0
+
+        override fun toString(): String =
+            messageString("slot" to slot, "select" to select)
     }
 
-    class CharacterSelectResponse(buffer: Buffer) : BbMessage(buffer) {
+    class CharSelectAck(buffer: Buffer) : BbMessage(buffer) {
+        constructor(slot: Int, status: BbCharSelectStatus) : this(
+            buf(0x00E4, 8) {
+                writeInt(slot)
+                writeInt(
+                    when (status) {
+                        BbCharSelectStatus.Update -> 0
+                        BbCharSelectStatus.Select -> 1
+                        BbCharSelectStatus.Nonexistent -> 2
+                    }
+                )
+            }
+        )
+    }
+
+    class CharData(buffer: Buffer) : BbMessage(buffer) {
         constructor(char: PsoCharacter) : this(
             buf(0x00E5, 128) {
                 writeInt(char.slot)
@@ -281,24 +237,33 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
-    class AuthenticationResponse(buffer: Buffer) : BbMessage(buffer) {
-        constructor(status: BbAuthenticationStatus, guildCard: Int, teamId: Int) : this(
+    class AuthData(buffer: Buffer) : BbMessage(buffer) {
+        constructor(
+            status: BbAuthStatus,
+            guildCard: Int,
+            teamId: Int,
+            slot: Int,
+            selected: Boolean,
+        ) : this(
             buf(0x00E6, 60) {
                 writeInt(
                     when (status) {
-                        BbAuthenticationStatus.Success -> 0
-                        BbAuthenticationStatus.Error -> 1
-                        BbAuthenticationStatus.UnknownUser -> 8
+                        BbAuthStatus.Success -> 0
+                        BbAuthStatus.Error -> 1
+                        BbAuthStatus.Nonexistent -> 8
                     }
                 )
                 writeInt(0x10000)
                 writeInt(guildCard)
                 writeInt(teamId)
                 writeInt(
-                    if (status == BbAuthenticationStatus.Success) (0xDEADBEEF).toInt() else 0
+                    if (status == BbAuthStatus.Success) (0xDEADBEEF).toInt() else 0
                 )
-                // 36 Bytes of unknown data.
-                repeat(9) { writeInt(0) }
+                writeByte(slot.toByte())
+                writeByte(if (selected) 1 else 0)
+                // 34 Bytes of unknown data.
+                writeShort(0)
+                repeat(8) { writeInt(0) }
                 writeInt(0x102)
             }
         )
@@ -315,7 +280,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         val checksum: Int get() = int(0)
     }
 
-    class ChecksumResponse(buffer: Buffer) : BbMessage(buffer) {
+    class ChecksumAck(buffer: Buffer) : BbMessage(buffer) {
         constructor(success: Boolean) : this(
             buf(0x02E8, 4) {
                 writeInt(if (success) 1 else 0)
@@ -360,7 +325,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     class Unknown(buffer: Buffer) : BbMessage(buffer)
 
     companion object {
-        protected fun buf(
+        private fun buf(
             code: Int,
             bodySize: Int = 0,
             flags: Int = 0,
@@ -384,4 +349,56 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             return buffer
         }
     }
+}
+
+enum class BbAuthStatus {
+    Success, Error, Nonexistent
+}
+
+class PsoCharacter(
+    val slot: Int,
+    val exp: Int,
+    val level: Int,
+    val guildCardString: String,
+    val nameColor: Int,
+    val model: Int,
+    val nameColorChecksum: Int,
+    val sectionId: Int,
+    val characterClass: Int,
+    val costume: Int,
+    val skin: Int,
+    val face: Int,
+    val head: Int,
+    val hair: Int,
+    val hairRed: Int,
+    val hairGreen: Int,
+    val hairBlue: Int,
+    val propX: Double,
+    val propY: Double,
+    val name: String,
+    val playTime: Int,
+)
+
+class GuildCardEntry(
+    val playerTag: Int,
+    val serialNumber: Int,
+    val name: String,
+    val description: String,
+    val sectionId: Int,
+    val characterClass: Int,
+)
+
+class GuildCard(
+    val entries: List<GuildCardEntry>
+)
+
+class FileListEntry(
+    val size: Int,
+    val checksum: Int,
+    val offset: Int,
+    val filename: String,
+)
+
+enum class BbCharSelectStatus {
+    Update, Select, Nonexistent
 }
