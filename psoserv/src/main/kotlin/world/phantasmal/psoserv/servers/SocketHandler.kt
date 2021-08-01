@@ -15,7 +15,7 @@ import kotlin.math.min
 abstract class SocketHandler<MessageType : Message>(
     protected val logger: KLogger,
     private val socket: Socket,
-) : SocketSender<MessageType> {
+) {
     private val sockName: String = "${socket.remoteSocketAddress}"
     private val headerSize: Int get() = messageDescriptor.headerSize
 
@@ -223,7 +223,7 @@ abstract class SocketHandler<MessageType : Message>(
         socket.close()
     }
 
-    override fun sendMessage(message: MessageType, encrypt: Boolean) {
+    fun sendMessage(message: MessageType, encrypt: Boolean) {
         logger.trace {
             "Sending $message${if (encrypt) "" else " (unencrypted)"}."
         }

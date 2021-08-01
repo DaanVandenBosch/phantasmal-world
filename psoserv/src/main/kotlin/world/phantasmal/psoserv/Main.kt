@@ -11,9 +11,6 @@ import world.phantasmal.psoserv.messages.Message
 import world.phantasmal.psoserv.messages.MessageDescriptor
 import world.phantasmal.psoserv.messages.PcMessageDescriptor
 import world.phantasmal.psoserv.servers.*
-import world.phantasmal.psoserv.servers.account.AccountServer
-import world.phantasmal.psoserv.servers.auth.AuthServer
-import world.phantasmal.psoserv.servers.patch.PatchServer
 import java.io.File
 import java.net.Inet4Address
 
@@ -21,7 +18,7 @@ import java.net.Inet4Address
 private val DEFAULT_ADDRESS: Inet4Address = inet4Loopback()
 private const val DEFAULT_PATCH_PORT: Int = 11_000
 private const val DEFAULT_LOGIN_PORT: Int = 12_000
-private const val DEFAULT_DATA_PORT: Int = 12_001
+private const val DEFAULT_ACCOUNT_PORT: Int = 12_001
 
 private val LOGGER = KotlinLogging.logger("main")
 
@@ -87,8 +84,8 @@ private class PhantasmalServer(
 private fun initialize(config: Config): PhantasmalServer {
     val defaultAddress = config.address?.let(::inet4Address) ?: DEFAULT_ADDRESS
 
-    val dataAddress = config.account?.address?.let(::inet4Address) ?: defaultAddress
-    val dataPort = config.account?.port ?: DEFAULT_DATA_PORT
+    val accountAddress = config.account?.address?.let(::inet4Address) ?: defaultAddress
+    val accountPort = config.account?.port ?: DEFAULT_ACCOUNT_PORT
 
     val servers = mutableListOf<Server>()
 
@@ -124,8 +121,8 @@ private fun initialize(config: Config): PhantasmalServer {
             AuthServer(
                 name = "auth",
                 bindPair,
-                dataServerAddress = dataAddress,
-                dataServerPort = dataPort,
+                accountServerAddress = accountAddress,
+                accountServerPort = accountPort,
             )
         )
     }
@@ -133,7 +130,7 @@ private fun initialize(config: Config): PhantasmalServer {
     if (config.account == null && run || config.account?.run == true) {
         val bindPair = Inet4Pair(
             config.account?.address?.let(::inet4Address) ?: defaultAddress,
-            config.account?.port ?: DEFAULT_DATA_PORT,
+            config.account?.port ?: DEFAULT_ACCOUNT_PORT,
         )
 
         LOGGER.info { "Configuring account server to bind to $bindPair." }
