@@ -42,7 +42,7 @@ class PsoCharacter(
     init {
         require(slot in 0..3)
         require(exp >= 0)
-        require(level in 1..200)
+        require(level in 0..199)
         require(guildCardString.length <= 16)
         require(name.length <= 16)
         require(playTime >= 0)
@@ -61,6 +61,19 @@ class GuildCardEntry(
 class GuildCard(
     val entries: List<GuildCardEntry>
 )
+
+class FileListEntry(
+    val size: Int,
+    val checksum: Int,
+    val offset: Int,
+    val filename: String,
+) {
+    init {
+        require(size > 0)
+        require(offset >= 0)
+        require(filename.length <= 64)
+    }
+}
 
 object BbMessageDescriptor : MessageDescriptor<BbMessage> {
     override val headerSize: Int = BB_HEADER_SIZE
@@ -315,7 +328,16 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     }
 
     class FileList(buffer: Buffer) : BbMessage(buffer) {
-        constructor() : this(buf(0x01EB))
+        constructor(entries: List<FileListEntry>) : this(
+            buf(0x01EB, entries.size * 76, flags = entries.size) {
+                for (entry in entries) {
+                    writeInt(entry.size)
+                    writeInt(entry.checksum)
+                    writeInt(entry.offset)
+                    writeStringAscii(entry.filename, byteLength = 64)
+                }
+            }
+        )
     }
 
     class FileChunk(buffer: Buffer) : BbMessage(buffer) {
@@ -341,6 +363,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         protected fun buf(
             code: Int,
             bodySize: Int = 0,
+            flags: Int = 0,
             writeBody: WritableCursor.() -> Unit = {},
         ): Buffer {
             val size = BB_HEADER_SIZE + bodySize
@@ -350,7 +373,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
                 // Write header.
                 .writeShort(size.toShort())
                 .writeShort(code.toShort())
-                .writeInt(0) // Flags.
+                .writeInt(flags)
 
             cursor.writeBody()
 
