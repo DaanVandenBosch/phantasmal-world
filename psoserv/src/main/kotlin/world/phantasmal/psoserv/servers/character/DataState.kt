@@ -1,5 +1,6 @@
 package world.phantasmal.psoserv.servers.character
 
+import mu.KLogger
 import world.phantasmal.core.math.clamp
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.cursor
@@ -7,20 +8,18 @@ import world.phantasmal.psoserv.messages.BbAuthenticationStatus
 import world.phantasmal.psoserv.messages.BbMessage
 import world.phantasmal.psoserv.messages.PsoCharacter
 import world.phantasmal.psoserv.servers.FinalServerState
-import world.phantasmal.psoserv.servers.Server
 import world.phantasmal.psoserv.servers.ServerState
+import world.phantasmal.psoserv.servers.ServerStateContext
+import world.phantasmal.psoserv.servers.SocketSender
 import kotlin.math.min
 
 class DataContext(
-    private val sender: Server.ClientSender,
-) {
-    fun send(message: BbMessage, encrypt: Boolean = true) {
-        sender.send(message, encrypt)
-    }
-}
+    logger: KLogger,
+    socketSender: SocketSender<BbMessage>,
+) : ServerStateContext<BbMessage>(logger, socketSender)
 
-sealed class DataState : ServerState<BbMessage, DataState>() {
-    class Authentication(private val ctx: DataContext) : DataState() {
+sealed class DataState(ctx: DataContext) : ServerState<BbMessage, DataContext, DataState>(ctx) {
+    class Authentication(ctx: DataContext) : DataState(ctx) {
         override fun process(message: BbMessage): DataState =
             if (message is BbMessage.Authenticate) {
                 // TODO: Actual authentication.
@@ -38,7 +37,7 @@ sealed class DataState : ServerState<BbMessage, DataState>() {
             }
     }
 
-    class Account(private val ctx: DataContext) : DataState() {
+    class Account(ctx: DataContext) : DataState(ctx) {
         override fun process(message: BbMessage): DataState =
             if (message is BbMessage.GetAccount) {
                 // TODO: Send correct guild card number and team ID.
@@ -50,7 +49,7 @@ sealed class DataState : ServerState<BbMessage, DataState>() {
             }
     }
 
-    class CharacterSelect(private val ctx: DataContext) : DataState() {
+    class CharacterSelect(ctx: DataContext) : DataState(ctx) {
         override fun process(message: BbMessage): DataState =
             when (message) {
                 is BbMessage.CharacterSelect -> {
@@ -97,7 +96,7 @@ sealed class DataState : ServerState<BbMessage, DataState>() {
             }
     }
 
-    class DataDownload(private val ctx: DataContext) : DataState() {
+    class DataDownload(ctx: DataContext) : DataState(ctx) {
         private val guildCardBuffer = Buffer.withSize(54672)
         private val fileBuffer = Buffer.withSize(0)
         private var fileChunkNo = 0
@@ -178,7 +177,7 @@ sealed class DataState : ServerState<BbMessage, DataState>() {
         }
     }
 
-    object Final : DataState(), FinalServerState {
+    class Final(ctx: DataContext) : DataState(ctx), FinalServerState {
         override fun process(message: BbMessage): DataState =
             unexpectedMessage(message)
     }

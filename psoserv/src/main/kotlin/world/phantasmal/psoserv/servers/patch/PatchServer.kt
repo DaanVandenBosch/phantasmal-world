@@ -1,37 +1,39 @@
 package world.phantasmal.psoserv.servers.patch
 
-import mu.KotlinLogging
-import world.phantasmal.psolib.buffer.Buffer
+import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.encryption.PcCipher
-import world.phantasmal.psoserv.messages.Header
 import world.phantasmal.psoserv.messages.PcMessage
 import world.phantasmal.psoserv.messages.PcMessageDescriptor
-import world.phantasmal.psoserv.servers.Server
-import java.net.InetAddress
+import world.phantasmal.psoserv.servers.GameServer
+import world.phantasmal.psoserv.servers.Inet4Pair
+import world.phantasmal.psoserv.servers.SocketSender
 
-class PatchServer(address: InetAddress, port: Int, private val welcomeMessage: String) :
-    Server<PcMessage, PatchState>(KotlinLogging.logger {}, address, port) {
+class PatchServer(
+    name: String,
+    bindPair: Inet4Pair,
+    private val welcomeMessage: String,
+) : GameServer<PcMessage, PatchState>(name, bindPair) {
+
+    override val messageDescriptor = PcMessageDescriptor
 
     override fun createCipher() = PcCipher()
 
-    override fun initializeState(sender: ClientSender): PatchState {
-        val ctx = PatchContext(sender, welcomeMessage)
+    override fun initializeState(
+        sender: SocketSender<PcMessage>,
+        serverCipher: Cipher,
+        clientCipher: Cipher,
+    ): PatchState {
+        val ctx = PatchContext(logger, sender, welcomeMessage)
 
         ctx.send(
             PcMessage.InitEncryption(
                 "Patch Server. Copyright SonicTeam, LTD. 2001",
-                sender.serverCipher.key,
-                sender.clientCipher.key,
+                serverCipher.key,
+                clientCipher.key,
             ),
             encrypt = false,
         )
 
         return PatchState.Welcome(ctx)
     }
-
-    override fun readHeader(buffer: Buffer): Header =
-        PcMessageDescriptor.readHeader(buffer)
-
-    override fun readMessage(buffer: Buffer): PcMessage =
-        PcMessageDescriptor.readMessage(buffer)
 }

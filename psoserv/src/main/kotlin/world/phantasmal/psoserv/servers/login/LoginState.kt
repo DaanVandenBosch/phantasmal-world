@@ -1,23 +1,22 @@
 package world.phantasmal.psoserv.servers.login
 
+import mu.KLogger
 import world.phantasmal.psoserv.messages.BbAuthenticationStatus
 import world.phantasmal.psoserv.messages.BbMessage
 import world.phantasmal.psoserv.servers.FinalServerState
-import world.phantasmal.psoserv.servers.Server
 import world.phantasmal.psoserv.servers.ServerState
+import world.phantasmal.psoserv.servers.ServerStateContext
+import world.phantasmal.psoserv.servers.SocketSender
 
 class LoginContext(
-    private val sender: Server.ClientSender,
+    logger: KLogger,
+    socketSender: SocketSender<BbMessage>,
     val characterServerAddress: ByteArray,
     val characterServerPort: Int,
-) {
-    fun send(message: BbMessage, encrypt: Boolean = true) {
-        sender.send(message, encrypt)
-    }
-}
+) : ServerStateContext<BbMessage>(logger, socketSender)
 
-sealed class LoginState : ServerState<BbMessage, LoginState>() {
-    class Authentication(private val ctx: LoginContext) : LoginState() {
+sealed class LoginState(ctx: LoginContext) : ServerState<BbMessage, LoginContext, LoginState>(ctx) {
+    class Authentication(ctx: LoginContext) : LoginState(ctx) {
         override fun process(message: BbMessage): LoginState =
             if (message is BbMessage.Authenticate) {
                 // TODO: Actual authentication.
@@ -35,13 +34,13 @@ sealed class LoginState : ServerState<BbMessage, LoginState>() {
                     )
                 )
 
-                Final
+                Final(ctx)
             } else {
                 unexpectedMessage(message)
             }
     }
 
-    object Final : LoginState(), FinalServerState {
+    class Final(ctx: LoginContext) : LoginState(ctx), FinalServerState {
         override fun process(message: BbMessage): LoginState =
             unexpectedMessage(message)
     }

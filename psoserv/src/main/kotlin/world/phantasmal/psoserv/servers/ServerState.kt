@@ -1,19 +1,31 @@
 package world.phantasmal.psoserv.servers
 
-import mu.KotlinLogging
+import mu.KLogger
 import world.phantasmal.psoserv.messages.Message
 
-abstract class ServerState<ClientMsgType : Message, Self : ServerState<ClientMsgType, Self>> {
-    private val logger = KotlinLogging.logger(this::class.qualifiedName!!)
+abstract class ServerStateContext<MessageType : Message>(
+    val logger: KLogger,
+    private val socketSender: SocketSender<MessageType>,
+) {
+    fun send(message: MessageType, encrypt: Boolean = true) {
+        socketSender.sendMessage(message, encrypt)
+    }
+}
+
+abstract class ServerState<MessageType, ContextType, Self>(
+    protected val ctx: ContextType,
+) where MessageType : Message,
+        ContextType : ServerStateContext<MessageType>,
+        Self : ServerState<MessageType, ContextType, Self> {
 
     init {
-        logger.trace { "Transitioning to ${this::class.simpleName}." }
+        ctx.logger.debug { "Transitioning to ${this::class.simpleName} state." }
     }
 
-    abstract fun process(message: ClientMsgType): Self
+    abstract fun process(message: MessageType): Self
 
-    protected fun unexpectedMessage(message: ClientMsgType): Self {
-        logger.debug { "Unexpected message: $message." }
+    protected fun unexpectedMessage(message: MessageType): Self {
+        ctx.logger.debug { "Unexpected message: $message." }
         @Suppress("UNCHECKED_CAST")
         return this as Self
     }

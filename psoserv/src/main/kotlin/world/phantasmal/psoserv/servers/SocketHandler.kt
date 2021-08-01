@@ -15,7 +15,7 @@ import kotlin.math.min
 abstract class SocketHandler<MessageType : Message>(
     protected val logger: KLogger,
     private val socket: Socket,
-) {
+) : SocketSender<MessageType> {
     private val sockName: String = "${socket.remoteSocketAddress}"
     private val headerSize: Int get() = messageDescriptor.headerSize
 
@@ -23,8 +23,14 @@ abstract class SocketHandler<MessageType : Message>(
     private var running = false
 
     protected abstract val messageDescriptor: MessageDescriptor<MessageType>
-    protected abstract val decryptCipher: Cipher?
-    protected abstract val encryptCipher: Cipher?
+    protected abstract val readDecryptCipher: Cipher?
+
+    /**
+     * Used by proxy servers to re-encrypt changed messages before sending them to the client.
+     */
+    protected abstract val readEncryptCipher: Cipher?
+
+    protected abstract val writeEncryptCipher: Cipher?
 
     fun listen() {
         logger.info { "Listening to $sockName." }
@@ -50,8 +56,8 @@ abstract class SocketHandler<MessageType : Message>(
                 bufferLoop@ while (offset + headerSize <= readBuffer.size) {
                     // Remember the current cipher in a local variable because processing a message
                     // might change it.
-                    val decryptCipher = decryptCipher
-                    val encryptCipher = encryptCipher
+                    val decryptCipher = readDecryptCipher
+                    val encryptCipher = readEncryptCipher
 
                     // Read header.
                     readBuffer.copyInto(headerBuffer, offset = offset, size = headerSize)
@@ -215,6 +221,35 @@ abstract class SocketHandler<MessageType : Message>(
     fun stop() {
         running = false
         socket.close()
+    }
+
+    override fun sendMessage(message: MessageType, encrypt: Boolean) {
+        logger.trace {
+            "Sending $message${if (encrypt) "" else " (unencrypted)"}."
+        }
+
+        if (message.buffer.size != message.size) {
+            logger.warn {
+                "Message size of $message is ${message.size}B, but wrote ${message.buffer.size} bytes."
+            }
+        }
+
+        val cipher = writeEncryptCipher
+        val buffer: Buffer
+
+        if (encrypt) {
+            checkNotNull(cipher)
+            // Pad buffer before encrypting.
+            val initialSize = message.buffer.size
+            buffer = message.buffer.copy(
+                size = roundToBlockSize(initialSize, cipher.blockSize)
+            )
+            cipher.encrypt(buffer)
+        } else {
+            buffer = message.buffer
+        }
+
+        socket.write(buffer, 0, buffer.size)
     }
 
     protected abstract fun processMessage(message: MessageType): ProcessResult

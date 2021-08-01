@@ -1,21 +1,20 @@
 package world.phantasmal.psoserv.servers.patch
 
+import mu.KLogger
 import world.phantasmal.psoserv.messages.PcMessage
 import world.phantasmal.psoserv.servers.FinalServerState
-import world.phantasmal.psoserv.servers.Server
 import world.phantasmal.psoserv.servers.ServerState
+import world.phantasmal.psoserv.servers.ServerStateContext
+import world.phantasmal.psoserv.servers.SocketSender
 
 class PatchContext(
-    private val sender: Server.ClientSender,
+    logger: KLogger,
+    socketSender: SocketSender<PcMessage>,
     val welcomeMessage: String,
-) {
-    fun send(message: PcMessage, encrypt: Boolean = true) {
-        sender.send(message, encrypt)
-    }
-}
+) : ServerStateContext<PcMessage>(logger, socketSender)
 
-sealed class PatchState : ServerState<PcMessage, PatchState>() {
-    class Welcome(private val ctx: PatchContext) : PatchState() {
+sealed class PatchState(ctx: PatchContext) : ServerState<PcMessage, PatchContext, PatchState>(ctx) {
+    class Welcome(ctx: PatchContext) : PatchState(ctx) {
         override fun process(message: PcMessage): PatchState =
             if (message is PcMessage.InitEncryption) {
                 ctx.send(PcMessage.Login())
@@ -26,7 +25,7 @@ sealed class PatchState : ServerState<PcMessage, PatchState>() {
             }
     }
 
-    class Login(private val ctx: PatchContext) : PatchState() {
+    class Login(ctx: PatchContext) : PatchState(ctx) {
         override fun process(message: PcMessage): PatchState =
             if (message is PcMessage.Login) {
                 ctx.send(PcMessage.WelcomeMessage(ctx.welcomeMessage))
@@ -39,18 +38,18 @@ sealed class PatchState : ServerState<PcMessage, PatchState>() {
             }
     }
 
-    class PatchListDone(private val ctx: PatchContext) : PatchState() {
+    class PatchListDone(ctx: PatchContext) : PatchState(ctx) {
         override fun process(message: PcMessage): PatchState =
             if (message is PcMessage.PatchListOk) {
                 ctx.send(PcMessage.PatchDone())
 
-                Final
+                Final(ctx)
             } else {
                 unexpectedMessage(message)
             }
     }
 
-    object Final : PatchState(), FinalServerState {
+    class Final(ctx: PatchContext) : PatchState(ctx), FinalServerState {
         override fun process(message: PcMessage): PatchState =
             unexpectedMessage(message)
     }
