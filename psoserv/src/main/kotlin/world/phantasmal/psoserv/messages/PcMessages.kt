@@ -13,6 +13,30 @@ const val PC_HEADER_SIZE: Int = 4
 const val PC_MSG_SIZE_POS: Int = 0
 const val PC_MSG_CODE_POS: Int = 2
 
+object PcMessageDescriptor : MessageDescriptor<PcMessage> {
+    override val headerSize: Int = PC_HEADER_SIZE
+
+    override fun readHeader(buffer: Buffer): Header {
+        val size = buffer.getUShort(PC_MSG_SIZE_POS).toInt()
+        val code = buffer.getUByte(PC_MSG_CODE_POS).toInt()
+        // Ignore flag byte at position 3.
+        return Header(code, size)
+    }
+
+    override fun readMessage(buffer: Buffer): PcMessage =
+        when (buffer.getUByte(PC_MSG_CODE_POS).toInt()) {
+            0x02 -> PcMessage.InitEncryption(buffer)
+            0x04 -> PcMessage.Login(buffer)
+            0x0B -> PcMessage.PatchListStart(buffer)
+            0x0D -> PcMessage.PatchListEnd(buffer)
+            0x10 -> PcMessage.PatchListOk(buffer)
+            0x12 -> PcMessage.PatchDone(buffer)
+            0x13 -> PcMessage.WelcomeMessage(buffer)
+            0x14 -> PcMessage.Redirect(buffer)
+            else -> PcMessage.Unknown(buffer)
+        }
+}
+
 sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_SIZE) {
     override val code: Int get() = buffer.getUByte(PC_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(PC_MSG_SIZE_POS).toInt()
@@ -106,26 +130,6 @@ sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_
     class Unknown(buffer: Buffer) : PcMessage(buffer)
 
     companion object {
-        fun readHeader(buffer: Buffer, offset: Int = 0): Header {
-            val size = buffer.getUShort(offset + PC_MSG_SIZE_POS).toInt()
-            val code = buffer.getUByte(offset + PC_MSG_CODE_POS).toInt()
-            // Ignore flag byte at position 3.
-            return Header(code, size)
-        }
-
-        fun fromBuffer(buffer: Buffer): PcMessage =
-            when (buffer.getUByte(PC_MSG_CODE_POS).toInt()) {
-                0x02 -> InitEncryption(buffer)
-                0x04 -> Login(buffer)
-                0x0B -> PatchListStart(buffer)
-                0x0D -> PatchListEnd(buffer)
-                0x10 -> PatchListOk(buffer)
-                0x12 -> PatchDone(buffer)
-                0x13 -> WelcomeMessage(buffer)
-                0x14 -> Redirect(buffer)
-                else -> Unknown(buffer)
-            }
-
         protected fun buf(
             code: Int,
             bodySize: Int = 0,

@@ -4,8 +4,8 @@ import mu.KLogger
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psoserv.encryption.Cipher
-import world.phantasmal.psoserv.messages.Header
 import world.phantasmal.psoserv.messages.Message
+import world.phantasmal.psoserv.messages.MessageDescriptor
 import world.phantasmal.psoserv.messages.messageString
 import world.phantasmal.psoserv.roundToBlockSize
 import java.net.Socket
@@ -15,13 +15,14 @@ import kotlin.math.min
 abstract class SocketHandler<MessageType : Message>(
     protected val logger: KLogger,
     private val socket: Socket,
-    private val headerSize: Int,
 ) {
-    private val sockName: String = "${socket.inetAddress}:${socket.port}"
+    private val sockName: String = "${socket.remoteSocketAddress}"
+    private val headerSize: Int get() = messageDescriptor.headerSize
 
     @Volatile
     private var running = false
 
+    protected abstract val messageDescriptor: MessageDescriptor<MessageType>
     protected abstract val decryptCipher: Cipher?
     protected abstract val encryptCipher: Cipher?
 
@@ -61,13 +62,13 @@ abstract class SocketHandler<MessageType : Message>(
                         decryptCipher.decrypt(headerBuffer)
                     }
 
-                    val (code, size) = readHeader(headerBuffer)
+                    val (code, size) = messageDescriptor.readHeader(headerBuffer)
                     val encryptedSize = roundToBlockSize(size, decryptCipher?.blockSize ?: 1)
                     // Bytes available for the next message.
                     val available = readBuffer.size - offset
 
                     when {
-                        // Don't parse message when it's too large.
+                        // Don't parse the message when it's too large.
                         encryptedSize > BUFFER_CAPACITY -> {
                             logger.warn {
                                 val message = messageString(code, size)
@@ -75,6 +76,10 @@ abstract class SocketHandler<MessageType : Message>(
                             }
 
                             bytesToSkip = encryptedSize - available
+
+                            decryptCipher?.advance(
+                                blocks = (encryptedSize - headerSize) / decryptCipher.blockSize,
+                            )
 
                             encryptCipher?.advance(
                                 blocks = encryptedSize / encryptCipher.blockSize,
@@ -99,7 +104,7 @@ abstract class SocketHandler<MessageType : Message>(
                             )
 
                             try {
-                                val message = readMessage(messageBuffer)
+                                val message = messageDescriptor.readMessage(messageBuffer)
                                 logger.trace { "Received $message." }
 
                                 when (processMessage(message)) {
@@ -192,7 +197,7 @@ abstract class SocketHandler<MessageType : Message>(
 
             try {
                 if (socket.isClosed) {
-                    logger.info { "$sockName was closed." }
+                    logger.info { "Connection to $sockName was closed." }
                 } else {
                     logger.info { "Closing connection to $sockName." }
                     socket.close()
@@ -211,10 +216,6 @@ abstract class SocketHandler<MessageType : Message>(
         running = false
         socket.close()
     }
-
-    protected abstract fun readHeader(buffer: Buffer): Header
-
-    protected abstract fun readMessage(buffer: Buffer): MessageType
 
     protected abstract fun processMessage(message: MessageType): ProcessResult
 

@@ -9,12 +9,12 @@ import java.net.InetAddress
 class LoginServer(
     address: InetAddress,
     port: Int,
-    private val characterServerAddress: Inet4Address,
-    private val characterServerPort: Int,
+    private val dataServerAddress: Inet4Address,
+    private val dataServerPort: Int,
 ) : BbServer<LoginState>(KotlinLogging.logger {}, address, port) {
 
     override fun initializeState(sender: ClientSender): LoginState {
-        val ctx = LoginContext(sender, characterServerAddress.address, characterServerPort)
+        val ctx = LoginContext(sender, dataServerAddress.address, dataServerPort)
 
         ctx.send(
             BbMessage.InitEncryption(

@@ -32,6 +32,14 @@ interface Message {
     val bodySize: Int get() = size - headerSize
 }
 
+interface MessageDescriptor<out MessageType : Message> {
+    val headerSize: Int
+
+    fun readHeader(buffer: Buffer): Header
+
+    fun readMessage(buffer: Buffer): MessageType
+}
+
 interface InitEncryptionMessage : Message {
     val serverKey: ByteArray
     val clientKey: ByteArray

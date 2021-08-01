@@ -1,7 +1,6 @@
 package world.phantasmal.psoserv.servers
 
 import mu.KLogger
-import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psoserv.encryption.Cipher
@@ -17,15 +16,15 @@ abstract class Server<MessageType : Message, StateType : ServerState<MessageType
     private val logger: KLogger,
     private val address: InetAddress,
     private val port: Int,
-) : TrackedDisposable() {
+) {
     private val serverSocket = ServerSocket(port, 50, address)
     private var connectionCounter = 0
 
     @Volatile
     private var running = true
 
-    init {
-        logger.info { "Initializing." }
+    fun start() {
+        logger.info { "Starting." }
 
         // Accept client connections on a dedicated thread.
         val thread = Thread(::acceptConnections)
@@ -33,7 +32,7 @@ abstract class Server<MessageType : Message, StateType : ServerState<MessageType
         thread.start()
     }
 
-    override fun dispose() {
+    fun stop() {
         logger.info { "Stopping." }
 
         // Signal to the connection thread that it should stop.
@@ -42,8 +41,6 @@ abstract class Server<MessageType : Message, StateType : ServerState<MessageType
         // Closing the server socket will generate a SocketException on the connection thread which
         // will then shut down.
         serverSocket.close()
-
-        super.dispose()
     }
 
     private fun acceptConnections() {

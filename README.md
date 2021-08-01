@@ -2,6 +2,10 @@
 
 [Phantasmal World](https://www.phantasmal.world/) is a suite of tools for Phantasy Star Online.
 
+## PSO Server
+
+Phantasmal world contains a [PSO server](psoserv/README.md).
+
 ## Developers
 
 Phantasmal World is written in [Kotlin](https://kotlinlang.org/) and uses
@@ -24,10 +28,11 @@ See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 1. Install Java 11+ (e.g. [AdoptOpenJDK](https://adoptopenjdk.net/)
    or [GraalVM](https://www.graalvm.org/downloads/))
-2. `cd` to the project directory
-3. Launch webpack server on [http://localhost:1623/](http://localhost:1623/)
+2. Ensure the JAVA_HOME environment variable is set to JDK's location
+3. `cd` to the project directory
+4. Launch webpack server on [http://localhost:1623/](http://localhost:1623/)
    with `./gradlew :web:run --continuous`
-4. [web/src/main/kotlin/world/phantasmal/web/Main.kt](web/src/main/kotlin/world/phantasmal/web/Main.kt)
+5. [web/src/main/kotlin/world/phantasmal/web/Main.kt](web/src/main/kotlin/world/phantasmal/web/Main.kt)
    is the application's entry point
 
 [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) is recommended for development. IntelliJ
@@ -50,9 +55,9 @@ The code base is divided up into the following gradle subprojects.
 
 Core contains the basic utilities that all other subprojects directly or indirectly depend on.
 
-#### lib
+#### psolib
 
-Lib contains PSO file format parsers, compression/decompression code, a PSO script
+Psolib contains PSO file format parsers, compression/decompression code, a PSO script
 assembler/disassembler and a work-in-progress script engine/VM. It also has a model of the PSO
 scripting bytecode and data flow analysis for it. This subproject can be used as a library in other
 projects.
@@ -72,6 +77,10 @@ The actual Phantasmal World web application.
 #### webgui
 
 Web GUI toolkit used by Phantasmal World.
+
+#### [psoserv](psoserv/README.md)
+
+Work-in-progress PSO server and fully functional PSO proxy server.
 
 ### Unit Tests
 

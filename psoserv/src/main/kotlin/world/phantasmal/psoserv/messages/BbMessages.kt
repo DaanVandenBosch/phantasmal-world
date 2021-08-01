@@ -62,6 +62,42 @@ class GuildCard(
     val entries: List<GuildCardEntry>
 )
 
+object BbMessageDescriptor : MessageDescriptor<BbMessage> {
+    override val headerSize: Int = BB_HEADER_SIZE
+
+    override fun readHeader(buffer: Buffer): Header {
+        val size = buffer.getUShort(BB_MSG_SIZE_POS).toInt()
+        val code = buffer.getUShort(BB_MSG_CODE_POS).toInt()
+        // Ignore 4 flag bytes.
+        return Header(code, size)
+    }
+
+    override fun readMessage(buffer: Buffer): BbMessage =
+        when (buffer.getUShort(BB_MSG_CODE_POS).toInt()) {
+            // Sorted by low-order byte, then high-order byte.
+            0x0003 -> BbMessage.InitEncryption(buffer)
+            0x0005 -> BbMessage.Disconnect(buffer)
+            0x0019 -> BbMessage.Redirect(buffer)
+            0x0093 -> BbMessage.Authenticate(buffer)
+            0x01DC -> BbMessage.GuildCardHeader(buffer)
+            0x02DC -> BbMessage.GuildCardChunk(buffer)
+            0x03DC -> BbMessage.GetGuildCardChunk(buffer)
+            0x00E0 -> BbMessage.GetAccount(buffer)
+            0x00E2 -> BbMessage.Account(buffer)
+            0x00E3 -> BbMessage.CharacterSelect(buffer)
+            0x00E5 -> BbMessage.CharacterSelectResponse(buffer)
+            0x00E6 -> BbMessage.AuthenticationResponse(buffer)
+            0x01E8 -> BbMessage.Checksum(buffer)
+            0x02E8 -> BbMessage.ChecksumResponse(buffer)
+            0x03E8 -> BbMessage.GetGuildCardHeader(buffer)
+            0x01EB -> BbMessage.FileList(buffer)
+            0x02EB -> BbMessage.FileChunk(buffer)
+            0x03EB -> BbMessage.GetFileChunk(buffer)
+            0x04EB -> BbMessage.GetFileList(buffer)
+            else -> BbMessage.Unknown(buffer)
+        }
+}
+
 sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_SIZE) {
     override val code: Int get() = buffer.getUShort(BB_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(BB_MSG_SIZE_POS).toInt()
@@ -302,38 +338,6 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     class Unknown(buffer: Buffer) : BbMessage(buffer)
 
     companion object {
-        fun readHeader(buffer: Buffer): Header {
-            val size = buffer.getUShort(BB_MSG_SIZE_POS).toInt()
-            val code = buffer.getUShort(BB_MSG_CODE_POS).toInt()
-            // Ignore 4 flag bytes.
-            return Header(code, size)
-        }
-
-        fun fromBuffer(buffer: Buffer): BbMessage =
-            when (buffer.getUShort(BB_MSG_CODE_POS).toInt()) {
-                // Sorted by low-order byte, then high-order byte.
-                0x0003 -> InitEncryption(buffer)
-                0x0005 -> Disconnect(buffer)
-                0x0019 -> Redirect(buffer)
-                0x0093 -> Authenticate(buffer)
-                0x01DC -> GuildCardHeader(buffer)
-                0x02DC -> GuildCardChunk(buffer)
-                0x03DC -> GetGuildCardChunk(buffer)
-                0x00E0 -> GetAccount(buffer)
-                0x00E2 -> Account(buffer)
-                0x00E3 -> CharacterSelect(buffer)
-                0x00E5 -> CharacterSelectResponse(buffer)
-                0x00E6 -> AuthenticationResponse(buffer)
-                0x01E8 -> Checksum(buffer)
-                0x02E8 -> ChecksumResponse(buffer)
-                0x03E8 -> GetGuildCardHeader(buffer)
-                0x01EB -> FileList(buffer)
-                0x02EB -> FileChunk(buffer)
-                0x03EB -> GetFileChunk(buffer)
-                0x04EB -> GetFileList(buffer)
-                else -> Unknown(buffer)
-            }
-
         protected fun buf(
             code: Int,
             bodySize: Int = 0,

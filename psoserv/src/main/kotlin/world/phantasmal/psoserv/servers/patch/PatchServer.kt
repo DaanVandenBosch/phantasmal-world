@@ -5,6 +5,7 @@ import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psoserv.encryption.PcCipher
 import world.phantasmal.psoserv.messages.Header
 import world.phantasmal.psoserv.messages.PcMessage
+import world.phantasmal.psoserv.messages.PcMessageDescriptor
 import world.phantasmal.psoserv.servers.Server
 import java.net.InetAddress
 
@@ -29,8 +30,8 @@ class PatchServer(address: InetAddress, port: Int, private val welcomeMessage: S
     }
 
     override fun readHeader(buffer: Buffer): Header =
-        PcMessage.readHeader(buffer)
+        PcMessageDescriptor.readHeader(buffer)
 
     override fun readMessage(buffer: Buffer): PcMessage =
-        PcMessage.fromBuffer(buffer)
+        PcMessageDescriptor.readMessage(buffer)
 }

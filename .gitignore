@@ -10,3 +10,6 @@ build
 .DS_Store
 *.log
 karma.config.generated.js
+
+# Config
+/psoserv/config.json
