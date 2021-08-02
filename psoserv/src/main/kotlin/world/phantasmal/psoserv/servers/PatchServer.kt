@@ -6,10 +6,9 @@ import world.phantasmal.psoserv.messages.PcMessage
 import world.phantasmal.psoserv.messages.PcMessageDescriptor
 
 class PatchServer(
-    name: String,
     bindPair: Inet4Pair,
     private val welcomeMessage: String,
-) : GameServer<PcMessage>(name, bindPair) {
+) : GameServer<PcMessage>("patch", bindPair) {
 
     override val messageDescriptor = PcMessageDescriptor
 

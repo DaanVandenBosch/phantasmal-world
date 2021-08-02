@@ -8,8 +8,8 @@ the `--config=/path/to/config.json` parameter to specify a configuration file.
 ## Proxy
 
 Phantasmal PSO server can proxy any other PSO server. Below is a sample configuration for proxying a
-locally running Tethealla patch and login server using the standard Tethealla client. Be sure to
-modify tethealla.ini and set server port to 22000.
+locally running Tethealla server using the standard Tethealla client. Be sure to modify
+tethealla.ini and set server port to 22000.
 
 ```json
 {
@@ -40,6 +40,24 @@ modify tethealla.ini and set server port to 22000.
                 "version": "BB",
                 "bindPort": 12001,
                 "remotePort": 22001
+            },
+            {
+                "name": "ship_proxy",
+                "version": "BB",
+                "bindPort": 13000,
+                "remotePort": 5278
+            },
+            {
+                "name": "block_1_proxy",
+                "version": "BB",
+                "bindPort": 13001,
+                "remotePort": 5279
+            },
+            {
+                "name": "block_2_proxy",
+                "version": "BB",
+                "bindPort": 13002,
+                "remotePort": 5280
             }
         ]
     }

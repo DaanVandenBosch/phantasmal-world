@@ -5,13 +5,12 @@ import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.AuthStatus
 import world.phantasmal.psoserv.messages.BbMessage
 import world.phantasmal.psoserv.messages.BbMessageDescriptor
-import java.net.Inet4Address
 
-class AuthServer(
+class ShipServer(
+    name: String,
     bindPair: Inet4Pair,
-    private val accountServerAddress: Inet4Address,
-    private val accountServerPort: Int,
-) : GameServer<BbMessage>("auth", bindPair) {
+    private val uiName: String,
+) : GameServer<BbMessage>(name, bindPair) {
 
     override val messageDescriptor = BbMessageDescriptor
 
@@ -41,16 +40,15 @@ class AuthServer(
                         AuthStatus.Success,
                         message.guildCard,
                         message.teamId,
-                        slot = 0,
-                        selected = false,
+                        message.charSlot,
+                        message.charSelected,
                     )
                 )
                 send(
-                    BbMessage.Redirect(accountServerAddress.address, accountServerPort)
+                    BbMessage.BlockList(uiName, listOf("BLOCK01"))
                 )
 
-                // Disconnect.
-                false
+                true
             }
 
             else -> unexpectedMessage(message)

@@ -2,6 +2,15 @@ package world.phantasmal.psoserv
 
 import kotlinx.serialization.Serializable
 
+val DEFAULT_CONFIG: Config = Config(
+    address = null,
+    patch = PatchServerConfig(),
+    auth = ServerConfig(),
+    account = ServerConfig(),
+    proxy = null,
+    ships = listOf(ShipServerConfig()),
+)
+
 @Serializable
 class Config(
     val address: String? = null,
@@ -9,11 +18,21 @@ class Config(
     val auth: ServerConfig? = null,
     val account: ServerConfig? = null,
     val proxy: ProxyConfig? = null,
+    val ships: List<ShipServerConfig> = emptyList(),
 )
 
 @Serializable
 class ServerConfig(
     val run: Boolean = true,
+    val address: String? = null,
+    val port: Int? = null,
+)
+
+@Serializable
+class ShipServerConfig(
+    val run: Boolean = true,
+    val name: String? = null,
+    val uiName: String? = null,
     val address: String? = null,
     val port: Int? = null,
 )
@@ -36,6 +55,7 @@ class ProxyConfig(
 
 @Serializable
 class ProxyServerConfig(
+    val run: Boolean = true,
     val name: String? = null,
     val version: GameVersionConfig,
     val bindAddress: String? = null,

@@ -27,8 +27,12 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             // Sorted by low-order byte, then high-order byte.
             0x0003 -> BbMessage.InitEncryption(buffer)
             0x0005 -> BbMessage.Disconnect(buffer)
+            0x0007 -> BbMessage.BlockList(buffer)
+            0x0010 -> BbMessage.MenuSelect(buffer)
             0x0019 -> BbMessage.Redirect(buffer)
+            0x0083 -> BbMessage.LobbyList(buffer)
             0x0093 -> BbMessage.Authenticate(buffer)
+            0x00A0 -> BbMessage.ShipList(buffer)
             0x01DC -> BbMessage.GuildCardHeader(buffer)
             0x02DC -> BbMessage.GuildCardChunk(buffer)
             0x03DC -> BbMessage.GetGuildCardChunk(buffer)
@@ -76,6 +80,40 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         constructor() : this(buf(0x0005))
     }
 
+    class BlockList(buffer: Buffer) : BbMessage(buffer) {
+        constructor(shipName: String, blocks: List<String>) : this(
+            buf(0x0007, (blocks.size + 1) * 44, flags = blocks.size) {
+                var index = 0
+                writeInt(0x00040000) // Menu type.
+                writeInt(index++)
+                writeShort(0) // Flags.
+                writeStringUtf16(shipName, byteLength = 34)
+
+                for (ship in blocks) {
+                    writeInt(MenuType.Block.toInt())
+                    writeInt(index++)
+                    writeShort(0) // Flags.
+                    writeStringUtf16(ship, byteLength = 34)
+                }
+            }
+        )
+    }
+
+    class MenuSelect(buffer: Buffer) : BbMessage(buffer) {
+        val menuType: MenuType get() = MenuType.fromInt(int(0))
+        val itemNo: Int get() = int(4)
+
+        constructor(menuType: MenuType, itemNo: Int) : this(
+            buf(0x0010, 8) {
+                writeInt(menuType.toInt())
+                writeInt(itemNo)
+            }
+        )
+
+        override fun toString(): String =
+            messageString("menuType" to menuType, "itemNo" to itemNo)
+    }
+
     class Redirect(buffer: Buffer) : BbMessage(buffer), RedirectMessage {
         override var ipAddress: ByteArray
             get() = byteArray(0, size = 4)
@@ -108,8 +146,23 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             )
     }
 
+    class LobbyList(buffer: Buffer) : BbMessage(buffer) {
+        constructor() : this(
+            buf(0x0083, 192) {
+                repeat(15) {
+                    writeInt(MenuType.Lobby.toInt())
+                    writeInt(it + 1) // Item no.
+                    writeInt(0) // Padding.
+                }
+                // 12 zero bytes of padding.
+                writeInt(0)
+                writeInt(0)
+                writeInt(0)
+            }
+        )
+    }
+
     // 0x0093
-    // Also contains ignored tag, hardware info and security data.
     class Authenticate(buffer: Buffer) : BbMessage(buffer) {
         val guildCard: Int get() = int(4)
         val version: Short get() = short(8)
@@ -118,6 +171,28 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             get() = stringAscii(offset = 20, maxByteLength = 16, nullTerminated = true)
         val password: String
             get() = stringAscii(offset = 68, maxByteLength = 16, nullTerminated = true)
+        val magic: Int get() = int(132) // Should be 0xDEADBEEF
+        val charSlot: Int get() = byte(136).toInt()
+        val charSelected: Boolean get() = byte(137).toInt() != 0
+    }
+
+    class ShipList(buffer: Buffer) : BbMessage(buffer) {
+        constructor(ships: List<String>) : this(
+            buf(0x00A0, (ships.size + 1) * 44, flags = ships.size) {
+                var index = 0
+                writeInt(MenuType.Ship.toInt())
+                writeInt(index++)
+                writeShort(4) // Flags
+                writeStringUtf16("SHIP/US", byteLength = 34)
+
+                for (ship in ships) {
+                    writeInt(MenuType.Ship.toInt())
+                    writeInt(index++)
+                    writeShort(0) // Flags
+                    writeStringUtf16(ship, byteLength = 34)
+                }
+            }
+        )
     }
 
     class GuildCardHeader(buffer: Buffer) : BbMessage(buffer) {
@@ -183,21 +258,21 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     // 0x00E3
     class CharSelect(buffer: Buffer) : BbMessage(buffer) {
         val slot: Int get() = uByte(0).toInt()
-        val select: Boolean get() = byte(4).toInt() != 0
+        val selected: Boolean get() = byte(4).toInt() != 0
 
         override fun toString(): String =
-            messageString("slot" to slot, "select" to select)
+            messageString("slot" to slot, "select" to selected)
     }
 
     class CharSelectAck(buffer: Buffer) : BbMessage(buffer) {
-        constructor(slot: Int, status: BbCharSelectStatus) : this(
+        constructor(slot: Int, status: CharSelectStatus) : this(
             buf(0x00E4, 8) {
                 writeInt(slot)
                 writeInt(
                     when (status) {
-                        BbCharSelectStatus.Update -> 0
-                        BbCharSelectStatus.Select -> 1
-                        BbCharSelectStatus.Nonexistent -> 2
+                        CharSelectStatus.Update -> 0
+                        CharSelectStatus.Select -> 1
+                        CharSelectStatus.Nonexistent -> 2
                     }
                 )
             }
@@ -239,7 +314,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
 
     class AuthData(buffer: Buffer) : BbMessage(buffer) {
         constructor(
-            status: BbAuthStatus,
+            status: AuthStatus,
             guildCard: Int,
             teamId: Int,
             slot: Int,
@@ -248,16 +323,16 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             buf(0x00E6, 60) {
                 writeInt(
                     when (status) {
-                        BbAuthStatus.Success -> 0
-                        BbAuthStatus.Error -> 1
-                        BbAuthStatus.Nonexistent -> 8
+                        AuthStatus.Success -> 0
+                        AuthStatus.Error -> 1
+                        AuthStatus.Nonexistent -> 8
                     }
                 )
                 writeInt(0x10000)
                 writeInt(guildCard)
                 writeInt(teamId)
                 writeInt(
-                    if (status == BbAuthStatus.Success) (0xDEADBEEF).toInt() else 0
+                    if (status == AuthStatus.Success) (0xDEADBEEF).toInt() else 0
                 )
                 writeByte(slot.toByte())
                 writeByte(if (selected) 1 else 0)
@@ -351,7 +426,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     }
 }
 
-enum class BbAuthStatus {
+enum class AuthStatus {
     Success, Error, Nonexistent
 }
 
@@ -399,6 +474,36 @@ class FileListEntry(
     val filename: String,
 )
 
-enum class BbCharSelectStatus {
+enum class CharSelectStatus {
     Update, Select, Nonexistent
+}
+
+enum class MenuType(private val type: Int) {
+    Lobby(-1),
+    InfoDesk(0),
+    Block(1),
+    Game(2),
+    QuestCategory(3),
+    Quest(4),
+    Ship(5),
+    GameType(6),
+    Gm(7),
+    Unknown(Int.MIN_VALUE);
+
+    fun toInt(): Int = type
+
+    companion object {
+        fun fromInt(type: Int): MenuType = when (type) {
+            -1 -> Lobby
+            0 -> InfoDesk
+            1 -> Block
+            2 -> Game
+            3 -> QuestCategory
+            4 -> Quest
+            5 -> Ship
+            6 -> GameType
+            7 -> Gm
+            else -> Unknown
+        }
+    }
 }

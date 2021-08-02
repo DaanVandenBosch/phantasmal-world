@@ -19,51 +19,61 @@ private val DEFAULT_ADDRESS: Inet4Address = inet4Loopback()
 private const val DEFAULT_PATCH_PORT: Int = 11_000
 private const val DEFAULT_LOGIN_PORT: Int = 12_000
 private const val DEFAULT_ACCOUNT_PORT: Int = 12_001
+private const val DEFAULT_FIRST_SHIP_PORT: Int = 12_010
 
 private val LOGGER = KotlinLogging.logger("main")
 
 fun main(args: Array<String>) {
-    LOGGER.info { "Initializing." }
+    try {
+        LOGGER.info { "Initializing." }
 
-    var configFile: File? = null
+        // Try to get config file location from arguments first.
+        var configFile: File? = null
 
-    for (arg in args) {
-        val split = arg.split('=')
+        // Parse arguments.
+        for (arg in args) {
+            val split = arg.split('=')
 
-        if (split.size == 2) {
-            val (param, value) = split
+            if (split.size == 2) {
+                val (param, value) = split
 
-            when (param) {
-                "--config" -> {
-                    configFile = File(value)
+                when (param) {
+                    "--config" -> {
+                        configFile = File(value)
+                    }
                 }
             }
         }
-    }
 
-    if (configFile == null) {
-        configFile = File("config.json").takeIf { it.isFile }
-    }
-
-    val config: Config
-
-    if (configFile != null) {
-        LOGGER.info { "Using configuration file $configFile." }
-
-        val json = Json {
-            ignoreUnknownKeys = true
+        // Try default config file location if no file specified with --config argument.
+        if (configFile == null) {
+            configFile = File("config.json").takeIf { it.isFile }
         }
 
-        config = json.decodeFromString(configFile.readText())
-    } else {
-        config = Config()
+        val config: Config
+
+        // Parse the config file if we found one, otherwise use default config.
+        if (configFile != null) {
+            LOGGER.info { "Using configuration file $configFile." }
+
+            val json = Json {
+                ignoreUnknownKeys = true
+            }
+
+            config = json.decodeFromString(configFile.readText())
+        } else {
+            config = DEFAULT_CONFIG
+        }
+
+        // Initialize and start the server.
+        val server = initialize(config)
+
+        LOGGER.info { "Starting up." }
+
+        server.start()
+    } catch (e: Throwable) {
+        LOGGER.error(e) { "Failed to start up." }
     }
-
-    val server = initialize(config)
-
-    LOGGER.info { "Starting up." }
-
-    server.start()
 }
 
 private class PhantasmalServer(
@@ -87,39 +97,53 @@ private fun initialize(config: Config): PhantasmalServer {
     val accountAddress = config.account?.address?.let(::inet4Address) ?: defaultAddress
     val accountPort = config.account?.port ?: DEFAULT_ACCOUNT_PORT
 
+    var shipI = 1
+    var shipPort = DEFAULT_FIRST_SHIP_PORT
+
+    val ships = config.ships.filter { it.run }.map { shipCfg ->
+        val ship = ShipInfo(
+            name = shipCfg.name ?: "ship_$shipI",
+            uiName = shipCfg.uiName ?: "Ship $shipI",
+            bindPair = Inet4Pair(
+                shipCfg.address?.let(::inet4Address) ?: defaultAddress,
+                shipCfg.port ?: shipPort++,
+            )
+        )
+        shipI++
+        ship
+    }
+
     val servers = mutableListOf<Server>()
 
-    // If no proxy config is specified, we run a regular PSO server by default.
-    val run = config.proxy == null || !config.proxy.run
-
-    if (config.patch == null && run || config.patch?.run == true) {
+    if (config.patch?.run == true) {
         val bindPair = Inet4Pair(
-            config.patch?.address?.let(::inet4Address) ?: defaultAddress,
-            config.patch?.port ?: DEFAULT_PATCH_PORT,
+            config.patch.address?.let(::inet4Address) ?: defaultAddress,
+            config.patch.port ?: DEFAULT_PATCH_PORT,
         )
 
         LOGGER.info { "Configuring patch server to bind to $bindPair." }
 
         servers.add(
             PatchServer(
-                name = "patch",
                 bindPair,
-                welcomeMessage = config.patch?.welcomeMessage ?: "Welcome to Phantasmal World.",
+                welcomeMessage = config.patch.welcomeMessage ?: "Welcome to Phantasmal World.",
             )
         )
     }
 
-    if (config.auth == null && run || config.auth?.run == true) {
+    if (config.auth?.run == true) {
         val bindPair = Inet4Pair(
-            config.auth?.address?.let(::inet4Address) ?: defaultAddress,
-            config.auth?.port ?: DEFAULT_LOGIN_PORT,
+            config.auth.address?.let(::inet4Address) ?: defaultAddress,
+            config.auth.port ?: DEFAULT_LOGIN_PORT,
         )
 
         LOGGER.info { "Configuring auth server to bind to $bindPair." }
+        LOGGER.info {
+            "Auth server will redirect to account server at $accountAddress:$accountPort."
+        }
 
         servers.add(
             AuthServer(
-                name = "auth",
                 bindPair,
                 accountServerAddress = accountAddress,
                 accountServerPort = accountPort,
@@ -127,18 +151,37 @@ private fun initialize(config: Config): PhantasmalServer {
         )
     }
 
-    if (config.account == null && run || config.account?.run == true) {
+    if (config.account?.run == true) {
         val bindPair = Inet4Pair(
-            config.account?.address?.let(::inet4Address) ?: defaultAddress,
-            config.account?.port ?: DEFAULT_ACCOUNT_PORT,
+            config.account.address?.let(::inet4Address) ?: defaultAddress,
+            config.account.port ?: DEFAULT_ACCOUNT_PORT,
         )
 
         LOGGER.info { "Configuring account server to bind to $bindPair." }
+        LOGGER.info {
+            "Account server will redirect to ${ships.size} ship servers: ${
+                ships.joinToString { """"${it.name}" (${it.bindPair})""" }
+            }."
+        }
 
         servers.add(
             AccountServer(
-                name = "account",
                 bindPair,
+                ships,
+            )
+        )
+    }
+
+    for (ship in ships) {
+        LOGGER.info {
+            """Configuring ship server ${ship.name} ("${ship.uiName}") to bind to ${ship.bindPair}."""
+        }
+
+        servers.add(
+            ShipServer(
+                ship.name,
+                ship.bindPair,
+                ship.uiName,
             )
         )
     }
@@ -160,6 +203,10 @@ private fun initializeProxy(config: ProxyConfig): List<ProxyServer> {
     var nameI = 1
 
     for (psc in config.servers) {
+        if (!psc.run) {
+            continue
+        }
+
         val name = psc.name ?: "proxy_${nameI++}"
         val bindPair = Inet4Pair(
             psc.bindAddress?.let(::inet4Address) ?: defaultBindAddress,

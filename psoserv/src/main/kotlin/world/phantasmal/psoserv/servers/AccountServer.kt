@@ -10,9 +10,9 @@ import world.phantasmal.psoserv.messages.*
 import world.phantasmal.psoserv.utils.crc32Checksum
 
 class AccountServer(
-    name: String,
     bindPair: Inet4Pair,
-) : GameServer<BbMessage>(name, bindPair) {
+    private val ships: List<ShipInfo>,
+) : GameServer<BbMessage>("account", bindPair) {
 
     override val messageDescriptor = BbMessageDescriptor
 
@@ -48,13 +48,19 @@ class AccountServer(
                 teamId = message.teamId
                 send(
                     BbMessage.AuthData(
-                        BbAuthStatus.Success,
+                        AuthStatus.Success,
                         guildCard,
                         teamId,
                         slot,
                         charSelected,
                     )
                 )
+
+                // When the player has selected a character, we send him the list of ships to choose
+                // from.
+                if (message.charSelected) {
+                    send(BbMessage.ShipList(ships.map { it.uiName }))
+                }
 
                 true
             }
@@ -67,7 +73,7 @@ class AccountServer(
             }
 
             is BbMessage.CharSelect -> {
-                if (message.select) {
+                if (message.selected) {
                     // Player has chosen a character.
                     // TODO: Verify slot.
                     if (slot in 0..3) {
@@ -75,7 +81,7 @@ class AccountServer(
                         charSelected = true
                         send(
                             BbMessage.AuthData(
-                                BbAuthStatus.Success,
+                                AuthStatus.Success,
                                 guildCard,
                                 teamId,
                                 slot,
@@ -83,11 +89,11 @@ class AccountServer(
                             )
                         )
                         send(
-                            BbMessage.CharSelectAck(slot, BbCharSelectStatus.Select)
+                            BbMessage.CharSelectAck(slot, CharSelectStatus.Select)
                         )
                     } else {
                         send(
-                            BbMessage.CharSelectAck(slot, BbCharSelectStatus.Nonexistent)
+                            BbMessage.CharSelectAck(slot, CharSelectStatus.Nonexistent)
                         )
                     }
                 } else {
@@ -186,6 +192,19 @@ class AccountServer(
                 }
 
                 true
+            }
+
+            is BbMessage.MenuSelect -> {
+                if (message.menuType == MenuType.Ship) {
+                    ships.getOrNull(message.itemNo - 1)?.let { ship ->
+                        send(BbMessage.Redirect(ship.bindPair.address.address, ship.bindPair.port))
+                    }
+
+                    // Disconnect.
+                    false
+                } else {
+                    true
+                }
             }
 
             is BbMessage.Disconnect -> false
