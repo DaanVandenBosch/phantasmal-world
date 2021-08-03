@@ -57,6 +57,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     override val code: Int get() = buffer.getUShort(BB_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(BB_MSG_SIZE_POS).toInt()
 
+    // 0x0003
     class InitEncryption(buffer: Buffer) : BbMessage(buffer), InitEncryptionMessage {
         override val serverKey: ByteArray
             get() = byteArray(INIT_MSG_SIZE, size = KEY_SIZE)
@@ -76,10 +77,12 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x0005
     class Disconnect(buffer: Buffer) : BbMessage(buffer) {
         constructor() : this(buf(0x0005))
     }
 
+    // 0x0007
     class BlockList(buffer: Buffer) : BbMessage(buffer) {
         constructor(shipName: String, blocks: List<String>) : this(
             buf(0x0007, (blocks.size + 1) * 44, flags = blocks.size) {
@@ -99,21 +102,23 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x0010
     class MenuSelect(buffer: Buffer) : BbMessage(buffer) {
         val menuType: MenuType get() = MenuType.fromInt(int(0))
-        val itemNo: Int get() = int(4)
+        val itemId: Int get() = int(4)
 
-        constructor(menuType: MenuType, itemNo: Int) : this(
+        constructor(menuType: MenuType, itemId: Int) : this(
             buf(0x0010, 8) {
                 writeInt(menuType.toInt())
-                writeInt(itemNo)
+                writeInt(itemId)
             }
         )
 
         override fun toString(): String =
-            messageString("menuType" to menuType, "itemNo" to itemNo)
+            messageString("menuType" to menuType, "itemId" to itemId)
     }
 
+    // 0x0019
     class Redirect(buffer: Buffer) : BbMessage(buffer), RedirectMessage {
         override var ipAddress: ByteArray
             get() = byteArray(0, size = 4)
@@ -146,15 +151,17 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             )
     }
 
+    // 0x0083
     class LobbyList(buffer: Buffer) : BbMessage(buffer) {
         constructor() : this(
             buf(0x0083, 192) {
                 repeat(15) {
                     writeInt(MenuType.Lobby.toInt())
-                    writeInt(it + 1) // Item no.
+                    writeInt(it + 1) // Item ID.
                     writeInt(0) // Padding.
                 }
                 // 12 zero bytes of padding.
+                // TODO: Is this necessary?
                 writeInt(0)
                 writeInt(0)
                 writeInt(0)
@@ -176,6 +183,12 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         val charSelected: Boolean get() = byte(137).toInt() != 0
     }
 
+    // 0x0095
+    class GetCharacterInfo(buffer: Buffer) : BbMessage(buffer) {
+        constructor() : this(buf(0x0095))
+    }
+
+    // 0x00A0
     class ShipList(buffer: Buffer) : BbMessage(buffer) {
         constructor(ships: List<String>) : this(
             buf(0x00A0, (ships.size + 1) * 44, flags = ships.size) {
@@ -195,6 +208,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x01DC
     class GuildCardHeader(buffer: Buffer) : BbMessage(buffer) {
         val guildCardSize: Int get() = int(4)
         val checksum: Int get() = int(8)
@@ -211,6 +225,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             messageString("guildCardSize" to guildCardSize, "checksum" to checksum)
     }
 
+    // 0x02DC
     class GuildCardChunk(buffer: Buffer) : BbMessage(buffer) {
         val chunkNo: Int get() = int(4)
 
@@ -238,6 +253,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     // 0x00E0
     class GetAccount(buffer: Buffer) : BbMessage(buffer)
 
+    // 0x00E2
     class Account(buffer: Buffer) : BbMessage(buffer) {
         constructor(guildCard: Int, teamId: Int) : this(
             buf(0x00E2, 2804) {
@@ -264,6 +280,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             messageString("slot" to slot, "select" to selected)
     }
 
+    // 0x00E4
     class CharSelectAck(buffer: Buffer) : BbMessage(buffer) {
         constructor(slot: Int, status: CharSelectStatus) : this(
             buf(0x00E4, 8) {
@@ -279,6 +296,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x00E5
     class CharData(buffer: Buffer) : BbMessage(buffer) {
         constructor(char: PsoCharacter) : this(
             buf(0x00E5, 128) {
@@ -312,6 +330,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x00E6
     class AuthData(buffer: Buffer) : BbMessage(buffer) {
         constructor(
             status: AuthStatus,
@@ -344,6 +363,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x01E8
     class Checksum(buffer: Buffer) : BbMessage(buffer) {
         constructor(checksum: Int) : this(
             buf(0x01E8, 8) {
@@ -355,6 +375,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         val checksum: Int get() = int(0)
     }
 
+    // 0x02E8
     class ChecksumAck(buffer: Buffer) : BbMessage(buffer) {
         constructor(success: Boolean) : this(
             buf(0x02E8, 4) {
@@ -363,10 +384,12 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x03E8
     class GetGuildCardHeader(buffer: Buffer) : BbMessage(buffer) {
         constructor() : this(buf(0x03E8))
     }
 
+    // 0x01EB
     class FileList(buffer: Buffer) : BbMessage(buffer) {
         constructor(entries: List<FileListEntry>) : this(
             buf(0x01EB, entries.size * 76, flags = entries.size) {
@@ -380,6 +403,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x02EB
     class FileChunk(buffer: Buffer) : BbMessage(buffer) {
         constructor(chunkNo: Int, chunk: Cursor) : this(
             buf(0x02EB, 4 + chunk.size) {
@@ -389,10 +413,12 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         )
     }
 
+    // 0x03EB
     class GetFileChunk(buffer: Buffer) : BbMessage(buffer) {
         constructor() : this(buf(0x03EB))
     }
 
+    // 0x04EB
     class GetFileList(buffer: Buffer) : BbMessage(buffer) {
         constructor() : this(buf(0x04EB))
     }

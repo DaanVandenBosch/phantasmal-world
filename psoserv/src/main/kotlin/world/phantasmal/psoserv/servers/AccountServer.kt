@@ -196,7 +196,7 @@ class AccountServer(
 
             is BbMessage.MenuSelect -> {
                 if (message.menuType == MenuType.Ship) {
-                    ships.getOrNull(message.itemNo - 1)?.let { ship ->
+                    ships.getOrNull(message.itemId - 1)?.let { ship ->
                         send(BbMessage.Redirect(ship.bindPair.address.address, ship.bindPair.port))
                     }
 

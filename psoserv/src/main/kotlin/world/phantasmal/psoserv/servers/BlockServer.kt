@@ -5,13 +5,11 @@ import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.AuthStatus
 import world.phantasmal.psoserv.messages.BbMessage
 import world.phantasmal.psoserv.messages.BbMessageDescriptor
-import world.phantasmal.psoserv.messages.MenuType
 
-class ShipServer(
+class BlockServer(
     name: String,
     bindPair: Inet4Pair,
     private val uiName: String,
-    private val blocks: List<BlockInfo>,
 ) : GameServer<BbMessage>(name, bindPair) {
 
     override val messageDescriptor = BbMessageDescriptor
@@ -46,26 +44,11 @@ class ShipServer(
                         message.charSelected,
                     )
                 )
-                send(
-                    BbMessage.BlockList(uiName, blocks.map { it.uiName })
-                )
+                send(BbMessage.LobbyList())
+                // TODO: Send 0x00E7
+                send(BbMessage.GetCharacterInfo())
 
                 true
-            }
-
-            is BbMessage.MenuSelect -> {
-                if (message.menuType == MenuType.Block) {
-                    blocks.getOrNull(message.itemId - 1)?.let { block ->
-                        send(
-                            BbMessage.Redirect(block.bindPair.address.address, block.bindPair.port)
-                        )
-                    }
-
-                    // Disconnect.
-                    false
-                } else {
-                    true
-                }
             }
 
             else -> unexpectedMessage(message)

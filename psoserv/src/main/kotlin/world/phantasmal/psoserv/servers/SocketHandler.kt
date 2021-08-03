@@ -7,7 +7,7 @@ import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.Message
 import world.phantasmal.psoserv.messages.MessageDescriptor
 import world.phantasmal.psoserv.messages.messageString
-import world.phantasmal.psoserv.roundToBlockSize
+import world.phantasmal.psoserv.alignToWidth
 import java.net.Socket
 import java.net.SocketException
 import kotlin.math.min
@@ -69,7 +69,7 @@ abstract class SocketHandler<MessageType : Message>(
                     }
 
                     val (code, size) = messageDescriptor.readHeader(headerBuffer)
-                    val encryptedSize = roundToBlockSize(size, decryptCipher?.blockSize ?: 1)
+                    val encryptedSize = alignToWidth(size, decryptCipher?.blockSize ?: 1)
                     // Bytes available for the next message.
                     val available = readBuffer.size - offset
 
@@ -242,7 +242,7 @@ abstract class SocketHandler<MessageType : Message>(
             // Pad buffer before encrypting.
             val initialSize = message.buffer.size
             buffer = message.buffer.copy(
-                size = roundToBlockSize(initialSize, cipher.blockSize)
+                size = alignToWidth(initialSize, cipher.blockSize)
             )
             cipher.encrypt(buffer)
         } else {

@@ -4,7 +4,7 @@ import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.WritableCursor
 import world.phantasmal.psolib.cursor.cursor
-import world.phantasmal.psoserv.roundToBlockSize
+import world.phantasmal.psoserv.alignToWidth
 
 private const val INIT_MSG_SIZE: Int = 64
 private const val KEY_SIZE: Int = 4
@@ -41,6 +41,7 @@ sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_
     override val code: Int get() = buffer.getUByte(PC_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(PC_MSG_SIZE_POS).toInt()
 
+    // 0x02
     class InitEncryption(buffer: Buffer) : PcMessage(buffer), InitEncryptionMessage {
         override val serverKey: ByteArray
             get() = byteArray(INIT_MSG_SIZE, size = KEY_SIZE)
@@ -60,32 +61,39 @@ sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_
         )
     }
 
+    // 0x04
     class Login(buffer: Buffer) : PcMessage(buffer) {
         constructor() : this(buf(0x04))
     }
 
+    // 0x0B
     class PatchListStart(buffer: Buffer) : PcMessage(buffer) {
         constructor() : this(buf(0x0B))
     }
 
+    // 0x0D
     class PatchListEnd(buffer: Buffer) : PcMessage(buffer) {
         constructor() : this(buf(0x0D))
     }
 
+    // 0x12
     class PatchDone(buffer: Buffer) : PcMessage(buffer) {
         constructor() : this(buf(0x12))
     }
 
+    // 0x10
     class PatchListOk(buffer: Buffer) : PcMessage(buffer)
 
+    // 0x13
     class WelcomeMessage(buffer: Buffer) : PcMessage(buffer) {
         constructor(message: String) : this(
-            buf(0x13, roundToBlockSize(2 * message.length, 4)) {
-                writeStringUtf16(message, roundToBlockSize(2 * message.length, 4))
+            buf(0x13, alignToWidth(2 * message.length, 4)) {
+                writeStringUtf16(message, alignToWidth(2 * message.length, 4))
             }
         )
     }
 
+    // 0x14
     class Redirect(buffer: Buffer) : PcMessage(buffer), RedirectMessage {
         override var ipAddress: ByteArray
             get() = byteArray(0, size = 4)

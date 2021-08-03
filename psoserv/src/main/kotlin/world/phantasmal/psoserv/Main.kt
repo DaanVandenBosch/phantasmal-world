@@ -97,20 +97,46 @@ private fun initialize(config: Config): PhantasmalServer {
     val accountAddress = config.account?.address?.let(::inet4Address) ?: defaultAddress
     val accountPort = config.account?.port ?: DEFAULT_ACCOUNT_PORT
 
-    var shipI = 1
-    var shipPort = DEFAULT_FIRST_SHIP_PORT
+    val shipsToRun = config.ships.filter { it.run }
 
-    val ships = config.ships.filter { it.run }.map { shipCfg ->
-        val ship = ShipInfo(
-            name = shipCfg.name ?: "ship_$shipI",
-            uiName = shipCfg.uiName ?: "Ship $shipI",
-            bindPair = Inet4Pair(
-                shipCfg.address?.let(::inet4Address) ?: defaultAddress,
-                shipCfg.port ?: shipPort++,
+    // Maps block name to block.
+    val blocks: Map<String, BlockInfo> = run {
+        var blockI = 1
+        var blockPort = DEFAULT_FIRST_SHIP_PORT + shipsToRun.size
+
+        config.blocks.filter { it.run }.associate { blockCfg ->
+            val block = BlockInfo(
+                name = blockCfg.name ?: "block_$blockI",
+                uiName = blockCfg.uiName ?: "BLOCK${blockI.toString(2).padStart(2, '0')}",
+                bindPair = Inet4Pair(
+                    blockCfg.address?.let(::inet4Address) ?: defaultAddress,
+                    blockCfg.port ?: blockPort++,
+                ),
             )
-        )
-        shipI++
-        ship
+            blockI++
+            Pair(block.name, block)
+        }
+    }
+
+    val ships: List<ShipInfo> = run {
+        var shipI = 1
+        var shipPort = DEFAULT_FIRST_SHIP_PORT
+
+        shipsToRun.map { shipCfg ->
+            val ship = ShipInfo(
+                name = shipCfg.name ?: "ship_$shipI",
+                uiName = shipCfg.uiName ?: "Ship $shipI",
+                bindPair = Inet4Pair(
+                    shipCfg.address?.let(::inet4Address) ?: defaultAddress,
+                    shipCfg.port ?: shipPort++,
+                ),
+                blocks = shipCfg.blocks.map {
+                    blocks[it] ?: error("""No block with name "$it".""")
+                },
+            )
+            shipI++
+            ship
+        }
     }
 
     val servers = mutableListOf<Server>()
@@ -182,6 +208,21 @@ private fun initialize(config: Config): PhantasmalServer {
                 ship.name,
                 ship.bindPair,
                 ship.uiName,
+                ship.blocks,
+            )
+        )
+    }
+
+    for (block in blocks.values) {
+        LOGGER.info {
+            """Configuring block server ${block.name} ("${block.uiName}") to bind to ${block.bindPair}."""
+        }
+
+        servers.add(
+            BlockServer(
+                block.name,
+                block.bindPair,
+                block.uiName,
             )
         )
     }
