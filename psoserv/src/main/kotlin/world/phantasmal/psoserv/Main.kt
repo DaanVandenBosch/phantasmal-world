@@ -1,7 +1,9 @@
 package world.phantasmal.psoserv
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
+import com.typesafe.config.ConfigFactory
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.hocon.Hocon
+import kotlinx.serialization.hocon.decodeFromConfig
 import mu.KotlinLogging
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
@@ -47,22 +49,25 @@ fun main(args: Array<String>) {
 
         // Try default config file location if no file specified with --config argument.
         if (configFile == null) {
-            configFile = File("config.json").takeIf { it.isFile }
+            configFile = File("psoserv.conf").takeIf { it.isFile }
         }
 
-        val config: Config
-
         // Parse the config file if we found one, otherwise use default config.
-        if (configFile != null) {
+        val config: Config = if (configFile != null) {
             LOGGER.info { "Using configuration file $configFile." }
 
-            val json = Json {
-                ignoreUnknownKeys = true
+            if (!configFile.exists()) {
+                error(""""$configFile" does not exist.""")
+            } else if (!configFile.isFile) {
+                error(""""$configFile" is not a file.""")
+            } else if (!configFile.canRead()) {
+                error("""Don't have permission to read "$configFile".""")
             }
 
-            config = json.decodeFromString(configFile.readText())
+            @OptIn(ExperimentalSerializationApi::class)
+            Hocon.decodeFromConfig(ConfigFactory.parseFile(configFile))
         } else {
-            config = DEFAULT_CONFIG
+            DEFAULT_CONFIG
         }
 
         // Initialize and start the server.
@@ -70,7 +75,9 @@ fun main(args: Array<String>) {
 
         LOGGER.info { "Starting up." }
 
-        server.start()
+        if (!server.start()) {
+            LOGGER.info { "Nothing to do, stopping." }
+        }
     } catch (e: Throwable) {
         LOGGER.error(e) { "Failed to start up." }
     }
@@ -80,9 +87,10 @@ private class PhantasmalServer(
     private val servers: List<Server>,
     private val proxyServers: List<ProxyServer>,
 ) {
-    fun start() {
+    fun start(): Boolean {
         servers.forEach(Server::start)
         proxyServers.forEach(ProxyServer::start)
+        return servers.isNotEmpty() || proxyServers.isNotEmpty()
     }
 
     fun stop() {
