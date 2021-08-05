@@ -24,8 +24,9 @@ abstract class GameServer<MessageType : Message>(
 
     override fun clientConnected(clientSocket: Socket) {
         // Handle each client connection in its own thread.
-        val thread = Thread { GameClientHandler(clientSocket).listen() }
-        thread.name = "${name}_client_${connectionCounter++}"
+        val client = "${name}_client_${connectionCounter++}"
+        val thread = Thread { GameClientHandler(client, clientSocket).listen() }
+        thread.name = client
         thread.start()
     }
 
@@ -42,8 +43,8 @@ abstract class GameServer<MessageType : Message>(
         return true
     }
 
-    private inner class GameClientHandler(socket: Socket) :
-        SocketHandler<MessageType>(logger, socket) {
+    private inner class GameClientHandler(client: String, socket: Socket) :
+        SocketHandler<MessageType>(client, socket) {
 
         private val serverCipher = createCipher()
         private val clientCipher = createCipher()

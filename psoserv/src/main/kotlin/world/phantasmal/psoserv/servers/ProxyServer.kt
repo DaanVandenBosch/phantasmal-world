@@ -2,10 +2,7 @@ package world.phantasmal.psoserv.servers
 
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psoserv.encryption.Cipher
-import world.phantasmal.psoserv.messages.InitEncryptionMessage
-import world.phantasmal.psoserv.messages.Message
-import world.phantasmal.psoserv.messages.MessageDescriptor
-import world.phantasmal.psoserv.messages.RedirectMessage
+import world.phantasmal.psoserv.messages.*
 import java.net.Socket
 
 class ProxyServer(
@@ -31,11 +28,9 @@ class ProxyServer(
     private inner class ServerHandler(
         serverSocket: Socket,
         private val clientSocket: Socket,
-    ) : SocketHandler<Message>(logger, serverSocket) {
+    ) : ProxySocketHandler("${name}_server", serverSocket) {
 
         private var clientHandler: ClientHandler? = null
-
-        override val messageDescriptor = this@ProxyServer.messageDescriptor
 
         // The first message sent by the server is always unencrypted and initializes the
         // encryption. We don't start listening to the client until the encryption is
@@ -66,7 +61,7 @@ class ProxyServer(
                     )
                     this.clientHandler = clientListener
                     val thread = Thread(clientListener::listen)
-                    thread.name = "$name client"
+                    thread.name = "${name}_client"
                     thread.start()
                 }
 
@@ -104,9 +99,8 @@ class ProxyServer(
         private val serverHandler: ServerHandler,
         override val readDecryptCipher: Cipher,
         override val readEncryptCipher: Cipher,
-    ) : SocketHandler<Message>(logger, clientSocket) {
+    ) : ProxySocketHandler("${name}_client", clientSocket) {
 
-        override val messageDescriptor = this@ProxyServer.messageDescriptor
         override val writeEncryptCipher: Cipher? = null
 
         override fun processMessage(message: Message): ProcessResult = ProcessResult.Ok
@@ -117,6 +111,23 @@ class ProxyServer(
 
         override fun socketClosed() {
             serverHandler.stop()
+        }
+    }
+
+    private abstract inner class ProxySocketHandler(name: String, socket: Socket) :
+        SocketHandler<Message>(name, socket) {
+
+        override val messageDescriptor = this@ProxyServer.messageDescriptor
+
+        override fun logMessageTooLarge(code: Int, size: Int) {
+            logger.warn {
+                val message = messageString(code, size)
+                "Sending $message with size ${size}B. Skipping because it's too large."
+            }
+        }
+
+        override fun logMessageReceived(message: Message) {
+            logger.trace { "Sent $message." }
         }
     }
 }

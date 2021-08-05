@@ -22,7 +22,8 @@ proxy: {
   # One server configuration per address/port pair that needs to be proxied.
   servers: [
     {
-      # Name used for e.g. the logs.
+      # Name used for e.g. the logs. Should contain only alpha-numeric characters, minus (-) or
+      # underscore (_).
       name: patch_proxy
       # PC or BB, determines the message format encryption cipher used.
       version: PC

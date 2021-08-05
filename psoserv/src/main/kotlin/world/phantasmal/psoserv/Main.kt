@@ -114,7 +114,7 @@ private fun initialize(config: Config): PhantasmalServer {
 
         config.blocks.filter { it.run }.associate { blockCfg ->
             val block = BlockInfo(
-                name = blockCfg.name ?: "block_$blockI",
+                name = validateName("Block", blockCfg.name) ?: "block_$blockI",
                 uiName = blockCfg.uiName ?: "BLOCK${blockI.toString(2).padStart(2, '0')}",
                 bindPair = Inet4Pair(
                     blockCfg.address?.let(::inet4Address) ?: defaultAddress,
@@ -132,7 +132,7 @@ private fun initialize(config: Config): PhantasmalServer {
 
         shipsToRun.map { shipCfg ->
             val ship = ShipInfo(
-                name = shipCfg.name ?: "ship_$shipI",
+                name = validateName("Ship", shipCfg.name) ?: "ship_$shipI",
                 uiName = shipCfg.uiName ?: "Ship $shipI",
                 bindPair = Inet4Pair(
                     shipCfg.address?.let(::inet4Address) ?: defaultAddress,
@@ -256,7 +256,7 @@ private fun initializeProxy(config: ProxyConfig): List<ProxyServer> {
             continue
         }
 
-        val name = psc.name ?: "proxy_${nameI++}"
+        val name = validateName("Proxy server", psc.name) ?: "proxy_${nameI++}"
         val bindPair = Inet4Pair(
             psc.bindAddress?.let(::inet4Address) ?: defaultBindAddress,
             psc.bindPort,
@@ -299,3 +299,13 @@ private fun initializeProxy(config: ProxyConfig): List<ProxyServer> {
 
     return proxyServers
 }
+
+private fun validateName(whichName: String, name: String?): String? =
+    if (name == null) {
+        null
+    } else {
+        check(Regex("[a-zA-Z0-9_-]+").matches(name)) {
+            """$whichName name "$name" should contain only alpha-numeric characters, minus (-) or underscore (_)."""
+        }
+        name
+    }
