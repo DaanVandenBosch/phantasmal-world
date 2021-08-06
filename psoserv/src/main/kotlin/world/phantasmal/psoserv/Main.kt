@@ -71,55 +71,37 @@ fun main(args: Array<String>) {
         }
 
         // Initialize and start the server.
-        val server = initialize(config)
+        val servers = initialize(config)
 
-        LOGGER.info { "Starting up." }
+        if (servers.isEmpty()) {
+            LOGGER.info { "No servers configured, stopping." }
+        } else {
+            LOGGER.info { "Starting up." }
 
-        if (!server.start()) {
-            LOGGER.info { "Nothing to do, stopping." }
+            servers.forEach(Server::start)
         }
     } catch (e: Throwable) {
         LOGGER.error(e) { "Failed to start up." }
     }
 }
 
-private class PhantasmalServer(
-    private val servers: List<Server>,
-    private val proxyServers: List<ProxyServer>,
-) {
-    fun start(): Boolean {
-        servers.forEach(Server::start)
-        proxyServers.forEach(ProxyServer::start)
-        return servers.isNotEmpty() || proxyServers.isNotEmpty()
-    }
+private fun initialize(config: Config): List<Server> {
+    val address = config.address?.let(::inet4Address) ?: DEFAULT_ADDRESS
 
-    fun stop() {
-        servers.forEach(Server::stop)
-        proxyServers.forEach(ProxyServer::stop)
-    }
-}
+    LOGGER.info { "Binding to $address." }
 
-private fun initialize(config: Config): PhantasmalServer {
-    val defaultAddress = config.address?.let(::inet4Address) ?: DEFAULT_ADDRESS
-
-    val accountAddress = config.account?.address?.let(::inet4Address) ?: defaultAddress
     val accountPort = config.account?.port ?: DEFAULT_ACCOUNT_PORT
-
-    val shipsToRun = config.ships.filter { it.run }
 
     // Maps block name to block.
     val blocks: Map<String, BlockInfo> = run {
         var blockI = 1
-        var blockPort = DEFAULT_FIRST_SHIP_PORT + shipsToRun.size
+        var blockPort = DEFAULT_FIRST_SHIP_PORT + config.ships.size
 
-        config.blocks.filter { it.run }.associate { blockCfg ->
+        config.blocks.associate { blockCfg ->
             val block = BlockInfo(
                 name = validateName("Block", blockCfg.name) ?: "block_$blockI",
                 uiName = blockCfg.uiName ?: "BLOCK${blockI.toString(2).padStart(2, '0')}",
-                bindPair = Inet4Pair(
-                    blockCfg.address?.let(::inet4Address) ?: defaultAddress,
-                    blockCfg.port ?: blockPort++,
-                ),
+                bindPair = Inet4Pair(address, blockCfg.port ?: blockPort++),
             )
             blockI++
             Pair(block.name, block)
@@ -130,14 +112,11 @@ private fun initialize(config: Config): PhantasmalServer {
         var shipI = 1
         var shipPort = DEFAULT_FIRST_SHIP_PORT
 
-        shipsToRun.map { shipCfg ->
+        config.ships.map { shipCfg ->
             val ship = ShipInfo(
                 name = validateName("Ship", shipCfg.name) ?: "ship_$shipI",
                 uiName = shipCfg.uiName ?: "Ship $shipI",
-                bindPair = Inet4Pair(
-                    shipCfg.address?.let(::inet4Address) ?: defaultAddress,
-                    shipCfg.port ?: shipPort++,
-                ),
+                bindPair = Inet4Pair(address, shipCfg.port ?: shipPort++),
                 blocks = shipCfg.blocks.map {
                     blocks[it] ?: error("""No block with name "$it".""")
                 },
@@ -149,13 +128,10 @@ private fun initialize(config: Config): PhantasmalServer {
 
     val servers = mutableListOf<Server>()
 
-    if (config.patch?.run == true) {
-        val bindPair = Inet4Pair(
-            config.patch.address?.let(::inet4Address) ?: defaultAddress,
-            config.patch.port ?: DEFAULT_PATCH_PORT,
-        )
+    if (config.patch != null) {
+        val bindPair = Inet4Pair(address, config.patch.port ?: DEFAULT_PATCH_PORT)
 
-        LOGGER.info { "Configuring patch server to bind to $bindPair." }
+        LOGGER.info { "Configuring patch server to bind to port ${bindPair.port}." }
 
         servers.add(
             PatchServer(
@@ -165,36 +141,30 @@ private fun initialize(config: Config): PhantasmalServer {
         )
     }
 
-    if (config.auth?.run == true) {
-        val bindPair = Inet4Pair(
-            config.auth.address?.let(::inet4Address) ?: defaultAddress,
-            config.auth.port ?: DEFAULT_LOGIN_PORT,
-        )
+    if (config.auth != null) {
+        val bindPair = Inet4Pair(address, config.auth.port ?: DEFAULT_LOGIN_PORT)
 
-        LOGGER.info { "Configuring auth server to bind to $bindPair." }
+        LOGGER.info { "Configuring auth server to bind to port ${bindPair.port}." }
         LOGGER.info {
-            "Auth server will redirect to account server at $accountAddress:$accountPort."
+            "Auth server will redirect to account server on port $accountPort."
         }
 
         servers.add(
             AuthServer(
                 bindPair,
-                accountServerAddress = accountAddress,
+                accountServerAddress = address,
                 accountServerPort = accountPort,
             )
         )
     }
 
-    if (config.account?.run == true) {
-        val bindPair = Inet4Pair(
-            config.account.address?.let(::inet4Address) ?: defaultAddress,
-            config.account.port ?: DEFAULT_ACCOUNT_PORT,
-        )
+    if (config.account != null) {
+        val bindPair = Inet4Pair(address, config.account.port ?: DEFAULT_ACCOUNT_PORT)
 
-        LOGGER.info { "Configuring account server to bind to $bindPair." }
+        LOGGER.info { "Configuring account server to bind to port ${bindPair.port}." }
         LOGGER.info {
             "Account server will redirect to ${ships.size} ship servers: ${
-                ships.joinToString { """"${it.name}" (${it.bindPair})""" }
+                ships.joinToString { """"${it.name}" (port ${it.bindPair.port})""" }
             }."
         }
 
@@ -208,7 +178,7 @@ private fun initialize(config: Config): PhantasmalServer {
 
     for (ship in ships) {
         LOGGER.info {
-            """Configuring ship server ${ship.name} ("${ship.uiName}") to bind to ${ship.bindPair}."""
+            """Configuring ship server ${ship.name} ("${ship.uiName}") to bind to port ${ship.bindPair.port}."""
         }
 
         servers.add(
@@ -223,7 +193,7 @@ private fun initialize(config: Config): PhantasmalServer {
 
     for ((index, block) in blocks.values.withIndex()) {
         LOGGER.info {
-            """Configuring block server ${block.name} ("${block.uiName}") to bind to ${block.bindPair}."""
+            """Configuring block server ${block.name} ("${block.uiName}") to bind to port ${block.bindPair.port}."""
         }
 
         servers.add(
@@ -235,32 +205,22 @@ private fun initialize(config: Config): PhantasmalServer {
         )
     }
 
-    val proxyServers = config.proxy?.let(::initializeProxy) ?: emptyList()
-
-    return PhantasmalServer(servers, proxyServers)
-}
-
-private fun initializeProxy(config: ProxyConfig): List<ProxyServer> {
-    if (!config.run) {
-        return emptyList()
+    config.proxy?.let { proxyConfig ->
+        servers.addAll(initializeProxy(proxyConfig, address))
     }
 
-    val defaultBindAddress = config.bindAddress?.let(::inet4Address) ?: DEFAULT_ADDRESS
+    return servers
+}
+
+private fun initializeProxy(config: ProxyConfig, address: Inet4Address): List<ProxyServer> {
     val defaultRemoteAddress = config.remoteAddress?.let(::inet4Address) ?: DEFAULT_ADDRESS
     val redirectMap = mutableMapOf<Inet4Pair, Inet4Pair>()
     val proxyServers = mutableListOf<ProxyServer>()
     var nameI = 1
 
     for (psc in config.servers) {
-        if (!psc.run) {
-            continue
-        }
-
         val name = validateName("Proxy server", psc.name) ?: "proxy_${nameI++}"
-        val bindPair = Inet4Pair(
-            psc.bindAddress?.let(::inet4Address) ?: defaultBindAddress,
-            psc.bindPort,
-        )
+        val bindPair = Inet4Pair(address, psc.bindPort)
         val remotePair = Inet4Pair(
             psc.remoteAddress?.let(::inet4Address) ?: defaultRemoteAddress,
             psc.remotePort,

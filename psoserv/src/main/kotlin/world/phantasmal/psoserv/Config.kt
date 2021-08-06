@@ -29,20 +29,11 @@ class Config(
 
 @Serializable
 class ServerConfig(
-    /**
-     * Run this server on startup or not.
-     */
-    val run: Boolean = true,
-    val address: String? = null,
     val port: Int? = null,
 )
 
 @Serializable
 class ShipServerConfig(
-    /**
-     * Run this server on startup or not.
-     */
-    val run: Boolean = true,
     /**
      * Name for internal use, e.g. logging.
      */
@@ -51,7 +42,6 @@ class ShipServerConfig(
      * Name shown to players.
      */
     val uiName: String? = null,
-    val address: String? = null,
     val port: Int? = null,
     /**
      * List of internal block names. This ship will redirect to only these blocks.
@@ -62,10 +52,6 @@ class ShipServerConfig(
 @Serializable
 class BlockServerConfig(
     /**
-     * Run this server on startup or not.
-     */
-    val run: Boolean = true,
-    /**
      * Name for internal use, e.g. logging.
      */
     val name: String? = null,
@@ -73,41 +59,26 @@ class BlockServerConfig(
      * Name shown to players.
      */
     val uiName: String? = null,
-    val address: String? = null,
     val port: Int? = null,
 )
 
 @Serializable
 class PatchServerConfig(
     /**
-     * Run this server on startup or not.
-     */
-    val run: Boolean = true,
-    /**
      * Sent to players when they connect to the patch server.
      */
     val welcomeMessage: String? = null,
-    val address: String? = null,
     val port: Int? = null,
 )
 
 @Serializable
 class ProxyConfig(
-    /**
-     * Run the proxy server on startup or not.
-     */
-    val run: Boolean = true,
-    val bindAddress: String? = null,
     val remoteAddress: String? = null,
     val servers: List<ProxyServerConfig> = emptyList(),
 )
 
 @Serializable
 class ProxyServerConfig(
-    /**
-     * Run this proxy server on startup or not.
-     */
-    val run: Boolean = true,
     /**
      * Name for internal use, e.g. logging.
      */
@@ -116,7 +87,6 @@ class ProxyServerConfig(
      * Determines how messages are interpreted and which encryption is used.
      */
     val version: GameVersionConfig,
-    val bindAddress: String? = null,
     val bindPort: Int,
     /**
      * The address of the server that's being proxied.
