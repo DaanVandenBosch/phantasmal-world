@@ -221,7 +221,7 @@ private fun initialize(config: Config): PhantasmalServer {
         )
     }
 
-    for (block in blocks.values) {
+    for ((index, block) in blocks.values.withIndex()) {
         LOGGER.info {
             """Configuring block server ${block.name} ("${block.uiName}") to bind to ${block.bindPair}."""
         }
@@ -230,7 +230,7 @@ private fun initialize(config: Config): PhantasmalServer {
             BlockServer(
                 block.name,
                 block.bindPair,
-                block.uiName,
+                blockNo = index + 1,
             )
         )
     }

@@ -51,7 +51,7 @@ expect class Buffer {
     fun getFloat(offset: Int): Float
 
     /**
-     * Reads a ASCII-encoded string at the given offset.
+     * Reads an ASCII-encoded string at the given offset.
      */
     fun getStringAscii(offset: Int, maxByteLength: Int, nullTerminated: Boolean): String
 
@@ -99,6 +99,18 @@ expect class Buffer {
      * Writes a 32-bit floating point number at the given offset.
      */
     fun setFloat(offset: Int, value: Float): Buffer
+
+    /**
+     * Writes an ASCII-encoded string at the given offset. If [str] is shorter than [byteLength],
+     * nul bytes will be inserted until [byteLength] bytes have been written.
+     */
+    fun setStringAscii(offset: Int, str: String, byteLength: Int): Buffer
+
+    /**
+     * Writes a UTF-16-encoded string at the given offset. If less than [byteLength] bytes can be
+     * written this way, nul bytes will be inserted until [byteLength] bytes have been written.
+     */
+    fun setStringUtf16(offset: Int, str: String, byteLength: Int): Buffer
 
     /**
      * Writes 0 bytes to the entire buffer.

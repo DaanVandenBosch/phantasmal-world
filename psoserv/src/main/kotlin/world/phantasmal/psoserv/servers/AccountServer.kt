@@ -19,7 +19,7 @@ class AccountServer(
     override fun createCipher() = BbCipher()
 
     override fun createClientReceiver(
-        sender: ClientSender<BbMessage>,
+        ctx: ClientContext<BbMessage>,
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
@@ -31,7 +31,7 @@ class AccountServer(
         private var charSelected: Boolean = false
 
         init {
-            sender.send(
+            ctx.send(
                 BbMessage.InitEncryption(
                     "Phantasy Star Online Blue Burst Game Server. Copyright 1999-2004 SONICTEAM.",
                     serverCipher.key,
@@ -46,7 +46,7 @@ class AccountServer(
                 // TODO: Actual authentication.
                 guildCard = message.guildCard
                 teamId = message.teamId
-                send(
+                ctx.send(
                     BbMessage.AuthData(
                         AuthStatus.Success,
                         guildCard,
@@ -56,10 +56,10 @@ class AccountServer(
                     )
                 )
 
-                // When the player has selected a character, we send him the list of ships to choose
-                // from.
+                // When the player has selected a character, we send him the list of ships to
+                // choose from.
                 if (message.charSelected) {
-                    send(BbMessage.ShipList(ships.map { it.uiName }))
+                    ctx.send(BbMessage.ShipList(ships.map { it.uiName }))
                 }
 
                 true
@@ -67,7 +67,7 @@ class AccountServer(
 
             is BbMessage.GetAccount -> {
                 // TODO: Send correct guild card number and team ID.
-                send(BbMessage.Account(0, 0))
+                ctx.send(BbMessage.Account(0, 0))
 
                 true
             }
@@ -79,7 +79,7 @@ class AccountServer(
                     if (slot in 0..3) {
                         slot = message.slot
                         charSelected = true
-                        send(
+                        ctx.send(
                             BbMessage.AuthData(
                                 AuthStatus.Success,
                                 guildCard,
@@ -88,19 +88,19 @@ class AccountServer(
                                 charSelected,
                             )
                         )
-                        send(
+                        ctx.send(
                             BbMessage.CharSelectAck(slot, CharSelectStatus.Select)
                         )
                     } else {
-                        send(
+                        ctx.send(
                             BbMessage.CharSelectAck(slot, CharSelectStatus.Nonexistent)
                         )
                     }
                 } else {
                     // Player is previewing characters.
                     // TODO: Look up character data.
-                    send(
-                        BbMessage.CharData(
+                    ctx.send(
+                        BbMessage.Char(
                             PsoCharacter(
                                 slot = message.slot,
                                 exp = 0,
@@ -133,13 +133,13 @@ class AccountServer(
 
             is BbMessage.Checksum -> {
                 // TODO: Checksum checking.
-                send(BbMessage.ChecksumAck(true))
+                ctx.send(BbMessage.ChecksumAck(true))
 
                 true
             }
 
             is BbMessage.GetGuildCardHeader -> {
-                send(
+                ctx.send(
                     BbMessage.GuildCardHeader(
                         guildCardBuffer.size,
                         crc32Checksum(guildCardBuffer),
@@ -158,7 +158,7 @@ class AccountServer(
                     )
                     val size = (guildCardBuffer.size - offset).coerceAtMost(MAX_CHUNK_SIZE)
 
-                    send(
+                    ctx.send(
                         BbMessage.GuildCardChunk(
                             message.chunkNo,
                             guildCardBuffer.cursor(offset, size),
@@ -172,7 +172,7 @@ class AccountServer(
             is BbMessage.GetFileList -> {
                 fileChunkNo = 0
 
-                send(BbMessage.FileList(FILE_LIST))
+                ctx.send(BbMessage.FileList(FILE_LIST))
 
                 true
             }
@@ -185,7 +185,7 @@ class AccountServer(
                     MAX_CHUNK_SIZE
                 )
 
-                send(BbMessage.FileChunk(fileChunkNo, FILE_BUFFER.cursor(offset, size)))
+                ctx.send(BbMessage.FileChunk(fileChunkNo, FILE_BUFFER.cursor(offset, size)))
 
                 if (offset + size < FILE_BUFFER.size) {
                     fileChunkNo++
@@ -197,7 +197,12 @@ class AccountServer(
             is BbMessage.MenuSelect -> {
                 if (message.menuType == MenuType.Ship) {
                     ships.getOrNull(message.itemId - 1)?.let { ship ->
-                        send(BbMessage.Redirect(ship.bindPair.address.address, ship.bindPair.port))
+                        ctx.send(
+                            BbMessage.Redirect(
+                                ship.bindPair.address.address,
+                                ship.bindPair.port.toUShort(),
+                            )
+                        )
                     }
 
                     // Disconnect.
@@ -209,11 +214,7 @@ class AccountServer(
 
             is BbMessage.Disconnect -> false
 
-            else -> unexpectedMessage(message)
-        }
-
-        private fun send(message: BbMessage) {
-            sender.send(message)
+            else -> ctx.unexpectedMessage(message)
         }
     }
 

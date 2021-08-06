@@ -11,6 +11,8 @@ private const val KEY_SIZE: Int = 48
 const val BB_HEADER_SIZE: Int = 8
 const val BB_MSG_SIZE_POS: Int = 0
 const val BB_MSG_CODE_POS: Int = 2
+const val BB_MSG_FLAGS_POS: Int = 4
+const val BB_MSG_BODY_POS: Int = 8
 
 object BbMessageDescriptor : MessageDescriptor<BbMessage> {
     override val headerSize: Int = BB_HEADER_SIZE
@@ -18,8 +20,8 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
     override fun readHeader(buffer: Buffer): Header {
         val size = buffer.getUShort(BB_MSG_SIZE_POS).toInt()
         val code = buffer.getUShort(BB_MSG_CODE_POS).toInt()
-        // Ignore 4 flag bytes.
-        return Header(code, size)
+        val flags = buffer.getInt(BB_MSG_FLAGS_POS)
+        return Header(code, size, flags)
     }
 
     override fun readMessage(buffer: Buffer): BbMessage =
@@ -30,8 +32,11 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             0x0007 -> BbMessage.BlockList(buffer)
             0x0010 -> BbMessage.MenuSelect(buffer)
             0x0019 -> BbMessage.Redirect(buffer)
+            0x0061 -> BbMessage.CharData(buffer)
+            0x0067 -> BbMessage.JoinLobby(buffer)
             0x0083 -> BbMessage.LobbyList(buffer)
             0x0093 -> BbMessage.Authenticate(buffer)
+            0x0095 -> BbMessage.GetCharData(buffer)
             0x00A0 -> BbMessage.ShipList(buffer)
             0x01DC -> BbMessage.GuildCardHeader(buffer)
             0x02DC -> BbMessage.GuildCardChunk(buffer)
@@ -40,8 +45,9 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             0x00E2 -> BbMessage.Account(buffer)
             0x00E3 -> BbMessage.CharSelect(buffer)
             0x00E4 -> BbMessage.CharSelectAck(buffer)
-            0x00E5 -> BbMessage.CharData(buffer)
+            0x00E5 -> BbMessage.Char(buffer)
             0x00E6 -> BbMessage.AuthData(buffer)
+            0x00E7 -> BbMessage.FullCharacterData(buffer)
             0x01E8 -> BbMessage.Checksum(buffer)
             0x02E8 -> BbMessage.ChecksumAck(buffer)
             0x03E8 -> BbMessage.GetGuildCardHeader(buffer)
@@ -56,6 +62,7 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
 sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_SIZE) {
     override val code: Int get() = buffer.getUShort(BB_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(BB_MSG_SIZE_POS).toInt()
+    override val flags: Int get() = buffer.getInt(BB_MSG_FLAGS_POS)
 
     // 0x0003
     class InitEncryption(buffer: Buffer) : BbMessage(buffer), InitEncryptionMessage {
@@ -126,20 +133,16 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
                 require(value.size == 4)
                 setByteArray(0, value)
             }
-        override var port: Int
-            get() = uShort(4).toInt()
-            set(value) {
-                require(value in 0..65535)
-                setShort(4, value.toShort())
-            }
+        override var port: UShort
+            get() = uShort(4)
+            set(value) = setUShort(4, value)
 
-        constructor(ipAddress: ByteArray, port: Int) : this(
+        constructor(ipAddress: ByteArray, port: UShort) : this(
             buf(0x0019, 8) {
                 require(ipAddress.size == 4)
-                require(port in 0..65535)
 
                 writeByteArray(ipAddress)
-                writeShort(port.toShort())
+                writeUShort(port)
                 writeShort(0) // Padding.
             }
         )
@@ -148,6 +151,55 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             messageString(
                 "ipAddress" to ipAddress.joinToString(".") { it.toUByte().toString() },
                 "port" to port,
+            )
+    }
+
+    // 0x0061
+    class CharData(buffer: Buffer) : BbMessage(buffer)
+
+    // 0x0067
+    class JoinLobby(buffer: Buffer) : BbMessage(buffer) {
+        val playerCount: Int get() = flags
+        var clientId: UByte
+            get() = uByte(0)
+            set(value) = setUByte(0, value)
+        var leaderId: UByte
+            get() = uByte(1)
+            set(value) = setUByte(1, value)
+        var lobbyNo: UByte
+            get() = uByte(3)
+            set(value) = setUByte(3, value)
+        var blockNo: UShort
+            get() = uShort(4)
+            set(value) = setUShort(4, value)
+
+        constructor(
+            clientId: UByte,
+            leaderId: UByte,
+            disableUdp: Boolean,
+            lobbyNo: UByte,
+            blockNo: UShort,
+            event: UShort,
+        ) : this(
+            buf(0x0067, 12 + 1312, flags = 1) { // TODO: Set flags to player count.
+                writeUByte(clientId)
+                writeUByte(leaderId)
+                writeByte(if (disableUdp) 1 else 0)
+                writeUByte(lobbyNo)
+                writeUShort(blockNo)
+                writeUShort(event)
+                writeInt(0) // Unused.
+                repeat(328) { writeInt(0) }
+            }
+        )
+
+        override fun toString(): String =
+            messageString(
+                "playerCount" to playerCount,
+                "clientId" to clientId,
+                "leaderId" to leaderId,
+                "lobbyNo" to lobbyNo,
+                "blockNo" to blockNo,
             )
     }
 
@@ -174,17 +226,15 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         val guildCard: Int get() = int(4)
         val version: Short get() = short(8)
         val teamId: Int get() = int(16)
-        val userName: String
-            get() = stringAscii(offset = 20, maxByteLength = 16, nullTerminated = true)
-        val password: String
-            get() = stringAscii(offset = 68, maxByteLength = 16, nullTerminated = true)
+        val userName: String get() = stringAscii(offset = 20, maxByteLength = 16)
+        val password: String get() = stringAscii(offset = 68, maxByteLength = 16)
         val magic: Int get() = int(132) // Should be 0xDEADBEEF
         val charSlot: Int get() = byte(136).toInt()
         val charSelected: Boolean get() = byte(137).toInt() != 0
     }
 
     // 0x0095
-    class GetCharacterInfo(buffer: Buffer) : BbMessage(buffer) {
+    class GetCharData(buffer: Buffer) : BbMessage(buffer) {
         constructor() : this(buf(0x0095))
     }
 
@@ -259,7 +309,8 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             buf(0x00E2, 2804) {
                 // 276 Bytes of unknown data.
                 repeat(69) { writeInt(0) }
-                writeByteArray(DEFAULT_KEYBOARD_GAMEPAD_CONFIG)
+                writeByteArray(DEFAULT_KEYBOARD_CONFIG)
+                writeByteArray(DEFAULT_GAMEPAD_CONFIG)
                 writeInt(guildCard)
                 writeInt(teamId)
                 // 2092 Bytes of team data.
@@ -297,7 +348,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     }
 
     // 0x00E5
-    class CharData(buffer: Buffer) : BbMessage(buffer) {
+    class Char(buffer: Buffer) : BbMessage(buffer) {
         constructor(char: PsoCharacter) : this(
             buf(0x00E5, 128) {
                 writeInt(char.slot)
@@ -359,6 +410,26 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
                 writeShort(0)
                 repeat(8) { writeInt(0) }
                 writeInt(0x102)
+            }
+        )
+    }
+
+    // 0x00E7
+    class FullCharacterData(buffer: Buffer) : BbMessage(buffer) {
+        constructor(char: PsoCharData) : this(
+            buf(0x00E7, 14744) {
+                repeat(211) { writeInt(0) }
+                repeat(3) { writeShort(0) } // ATP/MST/EVP
+                writeShort(char.hp)
+                repeat(3) { writeShort(0) } // DFP/ATA/LCK
+                writeShort(0) // Unknown.
+                repeat(2) { writeInt(0) } // Unknown.
+                writeInt(char.level)
+                writeInt(char.exp)
+                repeat(2835) { writeInt(0) }
+                writeByteArray(DEFAULT_KEYBOARD_CONFIG)
+                writeByteArray(DEFAULT_GAMEPAD_CONFIG)
+                repeat(527) { writeInt(0) }
             }
         )
     }
@@ -430,21 +501,21 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             code: Int,
             bodySize: Int = 0,
             flags: Int = 0,
-            writeBody: WritableCursor.() -> Unit = {},
+            writeBody: (WritableCursor.() -> Unit)? = null,
         ): Buffer {
             val size = BB_HEADER_SIZE + bodySize
             val buffer = Buffer.withSize(size)
+                .setShort(BB_MSG_SIZE_POS, size.toShort())
+                .setShort(BB_MSG_CODE_POS, code.toShort())
+                .setInt(BB_MSG_FLAGS_POS, flags)
 
-            val cursor = buffer.cursor()
-                // Write header.
-                .writeShort(size.toShort())
-                .writeShort(code.toShort())
-                .writeInt(flags)
+            if (writeBody != null) {
+                val cursor = buffer.cursor(BB_MSG_BODY_POS)
+                cursor.writeBody()
 
-            cursor.writeBody()
-
-            require(cursor.position == buffer.size) {
-                "Message buffer should be filled completely, only ${cursor.position} / ${buffer.size} bytes written."
+                require(cursor.position == bodySize) {
+                    "Message buffer should be filled completely, only ${cursor.position} / $bodySize bytes written."
+                }
             }
 
             return buffer
@@ -533,3 +604,9 @@ enum class MenuType(private val type: Int) {
         }
     }
 }
+
+class PsoCharData(
+    val hp: Short,
+    val level: Int,
+    val exp: Int,
+)

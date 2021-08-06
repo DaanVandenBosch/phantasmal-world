@@ -12,6 +12,8 @@ private const val KEY_SIZE: Int = 4
 const val PC_HEADER_SIZE: Int = 4
 const val PC_MSG_SIZE_POS: Int = 0
 const val PC_MSG_CODE_POS: Int = 2
+const val PC_MSG_FLAGS_POS: Int = 3
+const val PC_MSG_BODY_POS: Int = 4
 
 object PcMessageDescriptor : MessageDescriptor<PcMessage> {
     override val headerSize: Int = PC_HEADER_SIZE
@@ -19,8 +21,8 @@ object PcMessageDescriptor : MessageDescriptor<PcMessage> {
     override fun readHeader(buffer: Buffer): Header {
         val size = buffer.getUShort(PC_MSG_SIZE_POS).toInt()
         val code = buffer.getUByte(PC_MSG_CODE_POS).toInt()
-        // Ignore flag byte at position 3.
-        return Header(code, size)
+        val flags = buffer.getUByte(PC_MSG_FLAGS_POS).toInt()
+        return Header(code, size, flags)
     }
 
     override fun readMessage(buffer: Buffer): PcMessage =
@@ -40,6 +42,7 @@ object PcMessageDescriptor : MessageDescriptor<PcMessage> {
 sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_SIZE) {
     override val code: Int get() = buffer.getUByte(PC_MSG_CODE_POS).toInt()
     override val size: Int get() = buffer.getUShort(PC_MSG_SIZE_POS).toInt()
+    override val flags: Int get() = buffer.getUByte(PC_MSG_FLAGS_POS).toInt()
 
     // 0x02
     class InitEncryption(buffer: Buffer) : PcMessage(buffer), InitEncryptionMessage {
@@ -76,13 +79,13 @@ sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_
         constructor() : this(buf(0x0D))
     }
 
+    // 0x10
+    class PatchListOk(buffer: Buffer) : PcMessage(buffer)
+
     // 0x12
     class PatchDone(buffer: Buffer) : PcMessage(buffer) {
         constructor() : this(buf(0x12))
     }
-
-    // 0x10
-    class PatchListOk(buffer: Buffer) : PcMessage(buffer)
 
     // 0x13
     class WelcomeMessage(buffer: Buffer) : PcMessage(buffer) {
@@ -101,24 +104,22 @@ sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_
                 require(value.size == 4)
                 setByteArray(0, value)
             }
-        override var port: Int
+        override var port: UShort
             get() {
                 buffer.endianness = Endianness.Big
-                val p = uShort(4).toInt()
+                val p = uShort(4)
                 buffer.endianness = Endianness.Little
                 return p
             }
             set(value) {
-                require(value in 0..65535)
                 buffer.endianness = Endianness.Big
                 setShort(4, value.toShort())
                 buffer.endianness = Endianness.Little
             }
 
-        constructor(ipAddress: ByteArray, port: Int) : this(
+        constructor(ipAddress: ByteArray, port: UShort) : this(
             buf(0x14, 8) {
                 require(ipAddress.size == 4)
-                require(port in 0..65535)
 
                 writeByteArray(ipAddress)
                 endianness = Endianness.Big
@@ -141,21 +142,22 @@ sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_
         private fun buf(
             code: Int,
             bodySize: Int = 0,
-            writeBody: WritableCursor.() -> Unit = {},
+            writeBody: (WritableCursor.() -> Unit)? = null,
         ): Buffer {
             val size = PC_HEADER_SIZE + bodySize
             val buffer = Buffer.withSize(size)
+                // Write header.
+                .setShort(PC_MSG_SIZE_POS, size.toShort())
+                .setByte(PC_MSG_CODE_POS, code.toByte())
+                .setByte(PC_MSG_FLAGS_POS, 0) // Flags
 
-            val cursor = buffer.cursor()
-                // Write Header
-                .writeShort(size.toShort())
-                .writeByte(code.toByte())
-                .writeByte(0) // Flags
+            if (writeBody != null) {
+                val cursor = buffer.cursor(PC_MSG_BODY_POS)
+                cursor.writeBody()
 
-            cursor.writeBody()
-
-            require(cursor.position == buffer.size) {
-                "Message buffer should be filled completely, only ${cursor.position} / ${buffer.size} bytes written."
+                require(cursor.position == bodySize) {
+                    "Message buffer should be filled completely, only ${cursor.position} / $bodySize bytes written."
+                }
             }
 
             return buffer

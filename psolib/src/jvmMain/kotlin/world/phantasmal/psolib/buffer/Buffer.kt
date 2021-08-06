@@ -4,6 +4,7 @@ import world.phantasmal.psolib.Endianness
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
+import kotlin.math.min
 
 actual class Buffer private constructor(
     private var buf: ByteBuffer,
@@ -154,6 +155,36 @@ actual class Buffer private constructor(
     actual fun setFloat(offset: Int, value: Float): Buffer {
         checkOffset(offset, 4)
         buf.putFloat(offset, value)
+        return this
+    }
+
+    actual fun setStringAscii(offset: Int, str: String, byteLength: Int): Buffer {
+        checkOffset(offset, byteLength)
+
+        for (i in 0 until min(str.length, byteLength)) {
+            val codePoint = str[i].code.toByte()
+            buf.put(offset + i, codePoint)
+        }
+
+        for (i in str.length until byteLength) {
+            buf.put(offset + i, 0)
+        }
+
+        return this
+    }
+
+    actual fun setStringUtf16(offset: Int, str: String, byteLength: Int): Buffer {
+        checkOffset(offset, byteLength)
+
+        for (i in 0 until min(str.length, byteLength / 2)) {
+            val codePoint = str[i].code.toShort()
+            buf.putShort(offset + 2 * i, codePoint)
+        }
+
+        for (i in 2 * str.length until byteLength) {
+            buf.putShort(offset + i, 0)
+        }
+
         return this
     }
 

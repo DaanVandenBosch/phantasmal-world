@@ -18,12 +18,12 @@ class AuthServer(
     override fun createCipher() = BbCipher()
 
     override fun createClientReceiver(
-        sender: ClientSender<BbMessage>,
+        ctx: ClientContext<BbMessage>,
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
         init {
-            sender.send(
+            ctx.send(
                 BbMessage.InitEncryption(
                     "Phantasy Star Online Blue Burst Game Server. Copyright 1999-2004 SONICTEAM.",
                     serverCipher.key,
@@ -36,7 +36,7 @@ class AuthServer(
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
                 // TODO: Actual authentication.
-                send(
+                ctx.send(
                     BbMessage.AuthData(
                         AuthStatus.Success,
                         message.guildCard,
@@ -45,19 +45,15 @@ class AuthServer(
                         selected = false,
                     )
                 )
-                send(
-                    BbMessage.Redirect(accountServerAddress.address, accountServerPort)
+                ctx.send(
+                    BbMessage.Redirect(accountServerAddress.address, accountServerPort.toUShort())
                 )
 
                 // Disconnect.
                 false
             }
 
-            else -> unexpectedMessage(message)
-        }
-
-        private fun send(message: BbMessage) {
-            sender.send(message)
+            else -> ctx.unexpectedMessage(message)
         }
     }
 }

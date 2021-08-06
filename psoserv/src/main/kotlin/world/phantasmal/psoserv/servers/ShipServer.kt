@@ -19,12 +19,12 @@ class ShipServer(
     override fun createCipher() = BbCipher()
 
     override fun createClientReceiver(
-        sender: ClientSender<BbMessage>,
+        ctx: ClientContext<BbMessage>,
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
         init {
-            sender.send(
+            ctx.send(
                 BbMessage.InitEncryption(
                     "Phantasy Star Online Blue Burst Game Server. Copyright 1999-2004 SONICTEAM.",
                     serverCipher.key,
@@ -37,7 +37,7 @@ class ShipServer(
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
                 // TODO: Actual authentication.
-                send(
+                ctx.send(
                     BbMessage.AuthData(
                         AuthStatus.Success,
                         message.guildCard,
@@ -46,7 +46,7 @@ class ShipServer(
                         message.charSelected,
                     )
                 )
-                send(
+                ctx.send(
                     BbMessage.BlockList(uiName, blocks.map { it.uiName })
                 )
 
@@ -56,8 +56,11 @@ class ShipServer(
             is BbMessage.MenuSelect -> {
                 if (message.menuType == MenuType.Block) {
                     blocks.getOrNull(message.itemId - 1)?.let { block ->
-                        send(
-                            BbMessage.Redirect(block.bindPair.address.address, block.bindPair.port)
+                        ctx.send(
+                            BbMessage.Redirect(
+                                block.bindPair.address.address,
+                                block.bindPair.port.toUShort(),
+                            )
                         )
                     }
 
@@ -68,11 +71,7 @@ class ShipServer(
                 }
             }
 
-            else -> unexpectedMessage(message)
-        }
-
-        private fun send(message: BbMessage) {
-            sender.send(message)
+            else -> ctx.unexpectedMessage(message)
         }
     }
 }

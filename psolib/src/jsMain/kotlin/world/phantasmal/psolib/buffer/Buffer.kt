@@ -6,6 +6,7 @@ import org.khronos.webgl.Int8Array
 import org.khronos.webgl.Uint8Array
 import org.w3c.dom.WindowOrWorkerGlobalScope
 import world.phantasmal.psolib.Endianness
+import kotlin.math.min
 
 external val self: WindowOrWorkerGlobalScope
 
@@ -153,6 +154,36 @@ actual class Buffer private constructor(
     actual fun setFloat(offset: Int, value: Float): Buffer {
         checkOffset(offset, 4)
         dataView.setFloat32(offset, value, littleEndian)
+        return this
+    }
+
+    actual fun setStringAscii(offset: Int, str: String, byteLength: Int): Buffer {
+        checkOffset(offset, byteLength)
+
+        for (i in 0 until min(str.length, byteLength)) {
+            val codePoint = str[i].code.toByte()
+            dataView.setInt8(offset + i, codePoint)
+        }
+
+        for (i in str.length until byteLength) {
+            dataView.setInt8(offset + i, 0)
+        }
+
+        return this
+    }
+
+    actual fun setStringUtf16(offset: Int, str: String, byteLength: Int): Buffer {
+        checkOffset(offset, byteLength)
+
+        for (i in 0 until min(str.length, byteLength / 2)) {
+            val codePoint = str[i].code.toShort()
+            dataView.setInt16(offset + 2 * i, codePoint)
+        }
+
+        for (i in 2 * str.length until byteLength) {
+            dataView.setInt8(offset + i, 0)
+        }
+
         return this
     }
 

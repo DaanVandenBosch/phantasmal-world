@@ -1,17 +1,10 @@
 package world.phantasmal.psoserv.servers
 
+import mu.KLogger
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.Message
 import world.phantasmal.psoserv.messages.MessageDescriptor
 import java.net.Socket
-
-interface ClientReceiver<MessageType : Message> {
-    fun process(message: MessageType): Boolean
-}
-
-interface ClientSender<MessageType : Message> {
-    fun send(message: MessageType, encrypt: Boolean = true)
-}
 
 abstract class GameServer<MessageType : Message>(
     name: String,
@@ -33,14 +26,27 @@ abstract class GameServer<MessageType : Message>(
     protected abstract fun createCipher(): Cipher
 
     protected abstract fun createClientReceiver(
-        sender: ClientSender<MessageType>,
+        ctx: ClientContext<MessageType>,
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<MessageType>
 
-    protected fun unexpectedMessage(message: MessageType): Boolean {
-        logger.debug { "Unexpected message: $message." }
-        return true
+    protected interface ClientReceiver<MessageType : Message> {
+        fun process(message: MessageType): Boolean
+    }
+
+    protected class ClientContext<MessageType : Message>(
+        private val logger: KLogger,
+        private val handler: SocketHandler<MessageType>,
+    ) {
+        fun send(message: MessageType, encrypt: Boolean = true) {
+            handler.sendMessage(message, encrypt)
+        }
+
+        fun unexpectedMessage(message: MessageType): Boolean {
+            logger.debug { "Unexpected message: $message." }
+            return true
+        }
     }
 
     private inner class GameClientHandler(client: String, socket: Socket) :
@@ -49,16 +55,8 @@ abstract class GameServer<MessageType : Message>(
         private val serverCipher = createCipher()
         private val clientCipher = createCipher()
 
-        private val handler: ClientReceiver<MessageType> =
-            createClientReceiver(
-                object : ClientSender<MessageType> {
-                    override fun send(message: MessageType, encrypt: Boolean) {
-                        sendMessage(message, encrypt)
-                    }
-                },
-                serverCipher,
-                clientCipher,
-            )
+        private val clientContext = ClientContext(logger, this)
+        private val receiver = createClientReceiver(clientContext, serverCipher, clientCipher)
 
         override val messageDescriptor = this@GameServer.messageDescriptor
 
@@ -67,7 +65,7 @@ abstract class GameServer<MessageType : Message>(
         override val writeEncryptCipher: Cipher = serverCipher
 
         override fun processMessage(message: MessageType): ProcessResult =
-            if (handler.process(message)) {
+            if (receiver.process(message)) {
                 ProcessResult.Ok
             } else {
                 // Give the client some time to disconnect.

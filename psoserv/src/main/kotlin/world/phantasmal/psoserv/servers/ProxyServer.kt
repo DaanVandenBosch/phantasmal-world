@@ -66,7 +66,7 @@ class ProxyServer(
                 }
 
                 is RedirectMessage -> {
-                    val oldAddress = Inet4Pair(message.ipAddress, message.port)
+                    val oldAddress = Inet4Pair(message.ipAddress, message.port.toInt())
 
                     redirectMap[oldAddress]?.let { newAddress ->
                         logger.debug {
@@ -74,7 +74,7 @@ class ProxyServer(
                         }
 
                         message.ipAddress = newAddress.address.address
-                        message.port = newAddress.port
+                        message.port = newAddress.port.toUShort()
 
                         return ProcessResult.Changed
                     }

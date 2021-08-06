@@ -15,12 +15,12 @@ class PatchServer(
     override fun createCipher() = PcCipher()
 
     override fun createClientReceiver(
-        sender: ClientSender<PcMessage>,
+        ctx: ClientContext<PcMessage>,
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<PcMessage> = object : ClientReceiver<PcMessage> {
         init {
-            sender.send(
+            ctx.send(
                 PcMessage.InitEncryption(
                     "Patch Server. Copyright SonicTeam, LTD. 2001",
                     serverCipher.key,
@@ -32,31 +32,27 @@ class PatchServer(
 
         override fun process(message: PcMessage): Boolean = when (message) {
             is PcMessage.InitEncryption -> {
-                send(PcMessage.Login())
+                ctx.send(PcMessage.Login())
 
                 true
             }
 
             is PcMessage.Login -> {
-                send(PcMessage.WelcomeMessage(welcomeMessage))
-                send(PcMessage.PatchListStart())
-                send(PcMessage.PatchListEnd())
+                ctx.send(PcMessage.WelcomeMessage(welcomeMessage))
+                ctx.send(PcMessage.PatchListStart())
+                ctx.send(PcMessage.PatchListEnd())
 
                 true
             }
 
             is PcMessage.PatchListOk -> {
-                send(PcMessage.PatchDone())
+                ctx.send(PcMessage.PatchDone())
 
                 // Disconnect.
                 false
             }
 
-            else -> unexpectedMessage(message)
-        }
-
-        private fun send(message: PcMessage) {
-            sender.send(message)
+            else -> ctx.unexpectedMessage(message)
         }
     }
 }

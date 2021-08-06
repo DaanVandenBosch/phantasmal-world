@@ -22,7 +22,7 @@ fun messageString(
         append("]")
     }
 
-data class Header(val code: Int, val size: Int)
+data class Header(val code: Int, val size: Int, val flags: Int)
 
 interface Message {
     val buffer: Buffer
@@ -30,6 +30,7 @@ interface Message {
     val size: Int
     val headerSize: Int
     val bodySize: Int get() = size - headerSize
+    val flags: Int
 }
 
 interface MessageDescriptor<out MessageType : Message> {
@@ -47,7 +48,7 @@ interface InitEncryptionMessage : Message {
 
 interface RedirectMessage : Message {
     var ipAddress: ByteArray
-    var port: Int
+    var port: UShort
 }
 
 abstract class AbstractMessage(override val headerSize: Int) : Message {
@@ -60,8 +61,16 @@ abstract class AbstractMessage(override val headerSize: Int) : Message {
     protected fun short(offset: Int) = buffer.getShort(headerSize + offset)
     protected fun int(offset: Int) = buffer.getInt(headerSize + offset)
     protected fun byteArray(offset: Int, size: Int) = ByteArray(size) { byte(offset + it) }
-    protected fun stringAscii(offset: Int, maxByteLength: Int, nullTerminated: Boolean) =
-        buffer.getStringAscii(headerSize + offset, maxByteLength, nullTerminated)
+    protected fun stringAscii(offset: Int, maxByteLength: Int) =
+        buffer.getStringAscii(headerSize + offset, maxByteLength, nullTerminated = true)
+
+    protected fun setUByte(offset: Int, value: UByte) {
+        buffer.setUByte(headerSize + offset, value)
+    }
+
+    protected fun setUShort(offset: Int, value: UShort) {
+        buffer.setUShort(headerSize + offset, value)
+    }
 
     protected fun setByte(offset: Int, value: Byte) {
         buffer.setByte(headerSize + offset, value)
@@ -75,6 +84,10 @@ abstract class AbstractMessage(override val headerSize: Int) : Message {
         for ((index, byte) in array.withIndex()) {
             setByte(offset + index, byte)
         }
+    }
+
+    protected fun setStringAscii(offset: Int, str: String, byteLength: Int) {
+        buffer.setStringAscii(headerSize + offset, str, byteLength)
     }
 
     protected fun messageString(vararg props: Pair<String, Any>): String =
