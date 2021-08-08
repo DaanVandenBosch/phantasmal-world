@@ -80,6 +80,10 @@ abstract class AbstractMessage(override val headerSize: Int) : Message {
         buffer.setShort(headerSize + offset, value)
     }
 
+    protected fun setInt(offset: Int, value: Int) {
+        buffer.setInt(headerSize + offset, value)
+    }
+
     protected fun setByteArray(offset: Int, array: ByteArray) {
         for ((index, byte) in array.withIndex()) {
             setByte(offset + index, byte)

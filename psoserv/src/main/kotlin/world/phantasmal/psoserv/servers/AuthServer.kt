@@ -35,14 +35,15 @@ class AuthServer(
 
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
-                // TODO: Actual authentication.
+                // Don't actually authenticate, since we're simply redirecting the player to the
+                // account server.
                 ctx.send(
                     BbMessage.AuthData(
                         AuthStatus.Success,
-                        message.guildCard,
+                        message.guildCardNo,
                         message.teamId,
-                        slot = 0,
-                        selected = false,
+                        charSlot = 0,
+                        charSelected = false,
                     )
                 )
                 ctx.send(

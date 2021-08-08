@@ -33,6 +33,7 @@ abstract class GameServer<MessageType : Message>(
 
     protected interface ClientReceiver<MessageType : Message> {
         fun process(message: MessageType): Boolean
+        fun connectionClosed() {}
     }
 
     protected class ClientContext<MessageType : Message>(
@@ -74,5 +75,9 @@ abstract class GameServer<MessageType : Message>(
                 // Close the connection.
                 ProcessResult.Done
             }
+
+        override fun socketClosed() {
+            receiver.connectionClosed()
+        }
     }
 }

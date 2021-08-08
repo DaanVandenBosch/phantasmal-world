@@ -48,6 +48,7 @@ abstract class SocketHandler<MessageType : Message>(
 
                 if (readSize == -1) {
                     // Close the connection if no more bytes available.
+                    logger.debug { "$name ($sockName) end of stream." }
                     break@readLoop
                 }
 

@@ -13,7 +13,9 @@ val log4jVersion: String by project.extra
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "11"
-        freeCompilerArgs = freeCompilerArgs + EXPERIMENTAL_ANNOTATION_COMPILER_ARGS
+        freeCompilerArgs = freeCompilerArgs +
+                EXPERIMENTAL_ANNOTATION_COMPILER_ARGS +
+                "-Xjvm-default=all"
     }
 }
 

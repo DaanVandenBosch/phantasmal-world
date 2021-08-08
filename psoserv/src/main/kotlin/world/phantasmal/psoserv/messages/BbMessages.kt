@@ -180,8 +180,9 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             lobbyNo: UByte,
             blockNo: UShort,
             event: UShort,
+            players: List<LobbyPlayer>,
         ) : this(
-            buf(0x0067, 12 + 1312, flags = 1) { // TODO: Set flags to player count.
+            buf(0x0067, 12 + players.size * 1312, flags = players.size) {
                 writeUByte(clientId)
                 writeUByte(leaderId)
                 writeByte(if (disableUdp) 1 else 0)
@@ -189,7 +190,16 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
                 writeUShort(blockNo)
                 writeUShort(event)
                 writeInt(0) // Unused.
-                repeat(328) { writeInt(0) }
+
+                for (player in players) {
+                    writeInt(player.playerTag)
+                    writeInt(player.guildCardNo)
+                    repeat(5) { writeInt(0) } // Unknown.
+                    writeInt(player.clientId)
+                    writeStringUtf16(player.charName, 32)
+                    writeInt(0) // Unknown.
+                    repeat(311) { writeInt(0) }
+                }
             }
         )
 
@@ -223,10 +233,10 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
 
     // 0x0093
     class Authenticate(buffer: Buffer) : BbMessage(buffer) {
-        val guildCard: Int get() = int(4)
+        val guildCardNo: Int get() = int(4)
         val version: Short get() = short(8)
         val teamId: Int get() = int(16)
-        val userName: String get() = stringAscii(offset = 20, maxByteLength = 16)
+        val username: String get() = stringAscii(offset = 20, maxByteLength = 16)
         val password: String get() = stringAscii(offset = 68, maxByteLength = 16)
         val magic: Int get() = int(132) // Should be 0xDEADBEEF
         val charSlot: Int get() = byte(136).toInt()
@@ -301,17 +311,19 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     }
 
     // 0x00E0
-    class GetAccount(buffer: Buffer) : BbMessage(buffer)
+    class GetAccount(buffer: Buffer) : BbMessage(buffer) {
+        constructor() : this(buf(0x00E1))
+    }
 
     // 0x00E2
     class Account(buffer: Buffer) : BbMessage(buffer) {
-        constructor(guildCard: Int, teamId: Int) : this(
+        constructor(guildCardNo: Int, teamId: Int) : this(
             buf(0x00E2, 2804) {
                 // 276 Bytes of unknown data.
                 repeat(69) { writeInt(0) }
                 writeByteArray(DEFAULT_KEYBOARD_CONFIG)
                 writeByteArray(DEFAULT_GAMEPAD_CONFIG)
-                writeInt(guildCard)
+                writeInt(guildCardNo)
                 writeInt(teamId)
                 // 2092 Bytes of team data.
                 repeat(523) { writeInt(0) }
@@ -383,12 +395,26 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
 
     // 0x00E6
     class AuthData(buffer: Buffer) : BbMessage(buffer) {
+        var status: AuthStatus
+            get() = when (val value = int(0)) {
+                0 -> AuthStatus.Success
+                1 -> AuthStatus.Error
+                8 -> AuthStatus.Nonexistent
+                else -> AuthStatus.Unknown(value)
+            }
+            set(status) = setInt(0, when (status) {
+                AuthStatus.Success -> 0
+                AuthStatus.Error -> 1
+                AuthStatus.Nonexistent -> 8
+                is AuthStatus.Unknown -> status.value
+            })
+
         constructor(
             status: AuthStatus,
-            guildCard: Int,
+            guildCardNo: Int,
             teamId: Int,
-            slot: Int,
-            selected: Boolean,
+            charSlot: Int,
+            charSelected: Boolean,
         ) : this(
             buf(0x00E6, 60) {
                 writeInt(
@@ -396,27 +422,31 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
                         AuthStatus.Success -> 0
                         AuthStatus.Error -> 1
                         AuthStatus.Nonexistent -> 8
+                        is AuthStatus.Unknown -> status.value
                     }
                 )
                 writeInt(0x10000)
-                writeInt(guildCard)
+                writeInt(guildCardNo)
                 writeInt(teamId)
                 writeInt(
                     if (status == AuthStatus.Success) (0xDEADBEEF).toInt() else 0
                 )
-                writeByte(slot.toByte())
-                writeByte(if (selected) 1 else 0)
+                writeByte(charSlot.toByte())
+                writeByte(if (charSelected) 1 else 0)
                 // 34 Bytes of unknown data.
                 writeShort(0)
                 repeat(8) { writeInt(0) }
                 writeInt(0x102)
             }
         )
+
+        override fun toString(): String =
+            messageString("status" to status)
     }
 
     // 0x00E7
     class FullCharacterData(buffer: Buffer) : BbMessage(buffer) {
-        constructor(char: PsoCharData) : this(
+        constructor(char: PsoCharData, name: String, sectionId: Byte, charClass: Byte) : this(
             buf(0x00E7, 14744) {
                 repeat(211) { writeInt(0) }
                 repeat(3) { writeShort(0) } // ATP/MST/EVP
@@ -426,7 +456,15 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
                 repeat(2) { writeInt(0) } // Unknown.
                 writeInt(char.level)
                 writeInt(char.exp)
-                repeat(2835) { writeInt(0) }
+                repeat(92) { writeInt(0) } // Rest of char.
+                repeat(1275) { writeInt(0) }
+                writeStringUtf16(name, byteLength = 48)
+                repeat(8) { writeInt(0) } // Team name.
+                repeat(44) { writeInt(0) } // Guild card description.
+                writeShort(0) // Reserved.
+                writeByte(sectionId)
+                writeByte(charClass)
+                repeat(1403) { writeInt(0) }
                 writeByteArray(DEFAULT_KEYBOARD_CONFIG)
                 writeByteArray(DEFAULT_GAMEPAD_CONFIG)
                 repeat(527) { writeInt(0) }
@@ -523,8 +561,15 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     }
 }
 
-enum class AuthStatus {
-    Success, Error, Nonexistent
+sealed class AuthStatus {
+    object Success : AuthStatus()
+    object Error : AuthStatus()
+    object Nonexistent : AuthStatus()
+    class Unknown(val value: Int) : AuthStatus() {
+        override fun toString(): String = "Unknown[$value]"
+    }
+
+    override fun toString(): String = this::class.simpleName!!
 }
 
 class PsoCharacter(
@@ -561,7 +606,7 @@ class GuildCardEntry(
 )
 
 class GuildCard(
-    val entries: List<GuildCardEntry>
+    val entries: List<GuildCardEntry>,
 )
 
 class FileListEntry(
@@ -609,4 +654,11 @@ class PsoCharData(
     val hp: Short,
     val level: Int,
     val exp: Int,
+)
+
+class LobbyPlayer(
+    val playerTag: Int,
+    val guildCardNo: Int,
+    val clientId: Int,
+    val charName: String,
 )

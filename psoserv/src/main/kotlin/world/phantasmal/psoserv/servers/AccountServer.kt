@@ -4,12 +4,15 @@ import world.phantasmal.core.math.clamp
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psoserv.data.AccountStore
+import world.phantasmal.psoserv.data.AccountStore.LogInResult
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.*
 import world.phantasmal.psoserv.utils.crc32Checksum
 
 class AccountServer(
+    private val accountStore: AccountStore,
     bindPair: Inet4Pair,
     private val ships: List<ShipInfo>,
 ) : GameServer<BbMessage>("account", bindPair) {
@@ -23,11 +26,10 @@ class AccountServer(
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
+        private var accountId: Long? = null
         private val guildCardBuffer = Buffer.withSize(54672)
         private var fileChunkNo = 0
-        private var guildCard: Int = -1
-        private var teamId: Int = -1
-        private var slot: Int = 0
+        private var charSlot: Int = 0
         private var charSelected: Boolean = false
 
         init {
@@ -43,88 +45,124 @@ class AccountServer(
 
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
-                // TODO: Actual authentication.
-                guildCard = message.guildCard
-                teamId = message.teamId
-                ctx.send(
-                    BbMessage.AuthData(
-                        AuthStatus.Success,
-                        guildCard,
-                        teamId,
-                        slot,
-                        charSelected,
+                when (
+                    val result = accountStore.logIn(
+                        message.username,
+                        message.password,
                     )
-                )
+                ) {
+                    is LogInResult.Ok -> {
+                        val account = result.account
+                        this.accountId = account.id
 
-                // When the player has selected a character, we send him the list of ships to
-                // choose from.
-                if (message.charSelected) {
-                    ctx.send(BbMessage.ShipList(ships.map { it.uiName }))
+                        charSlot = message.charSlot
+                        charSelected = message.charSelected
+
+                        ctx.send(
+                            BbMessage.AuthData(
+                                AuthStatus.Success,
+                                account.guildCardNo,
+                                account.teamId,
+                                charSlot,
+                                charSelected,
+                            )
+                        )
+
+                        // When the player has selected a character, we send him the list of ships
+                        // to choose from.
+                        if (charSelected) {
+                            ctx.send(BbMessage.ShipList(ships.map { it.uiName }))
+                        }
+                    }
+                    LogInResult.BadPassword -> {
+                        ctx.send(
+                            BbMessage.AuthData(
+                                AuthStatus.Nonexistent,
+                                message.guildCardNo,
+                                message.teamId,
+                                message.charSlot,
+                                message.charSelected,
+                            )
+                        )
+                    }
+                    LogInResult.AlreadyLoggedIn -> {
+                        ctx.send(
+                            BbMessage.AuthData(
+                                AuthStatus.Error,
+                                message.guildCardNo,
+                                message.teamId,
+                                message.charSlot,
+                                message.charSelected,
+                            )
+                        )
+                    }
                 }
 
                 true
             }
 
             is BbMessage.GetAccount -> {
-                // TODO: Send correct guild card number and team ID.
-                ctx.send(BbMessage.Account(0, 0))
+                accountId?.let(accountStore::getAccountById)?.let {
+                    ctx.send(BbMessage.Account(it.guildCardNo, it.teamId))
+                }
 
                 true
             }
 
             is BbMessage.CharSelect -> {
-                if (message.selected) {
-                    // Player has chosen a character.
-                    // TODO: Verify slot.
-                    if (slot in 0..3) {
-                        slot = message.slot
+                val account = accountId?.let(accountStore::getAccountById)
+
+                if (account != null && message.slot in account.characters.indices) {
+                    if (message.selected) {
+                        // Player has chosen a character.
+                        charSlot = message.slot
                         charSelected = true
                         ctx.send(
                             BbMessage.AuthData(
                                 AuthStatus.Success,
-                                guildCard,
-                                teamId,
-                                slot,
+                                account.guildCardNo,
+                                account.teamId,
+                                charSlot,
                                 charSelected,
                             )
                         )
                         ctx.send(
-                            BbMessage.CharSelectAck(slot, CharSelectStatus.Select)
+                            BbMessage.CharSelectAck(charSlot, CharSelectStatus.Select)
                         )
                     } else {
+                        // Player is previewing characters.
+                        val char = account.characters[message.slot]
                         ctx.send(
-                            BbMessage.CharSelectAck(slot, CharSelectStatus.Nonexistent)
+                            BbMessage.Char(
+                                PsoCharacter(
+                                    slot = message.slot,
+                                    exp = char.exp,
+                                    level = char.level - 1,
+                                    guildCardString = "",
+                                    nameColor = 0,
+                                    model = 0,
+                                    nameColorChecksum = 0,
+                                    sectionId = char.sectionId.ordinal,
+                                    characterClass = 0,
+                                    costume = 0,
+                                    skin = 0,
+                                    face = 0,
+                                    head = 0,
+                                    hair = 0,
+                                    hairRed = 0,
+                                    hairGreen = 0,
+                                    hairBlue = 0,
+                                    propX = 0.5,
+                                    propY = 0.5,
+                                    name = char.name,
+                                    playTime = 0,
+                                )
+                            )
                         )
                     }
                 } else {
-                    // Player is previewing characters.
-                    // TODO: Look up character data.
                     ctx.send(
-                        BbMessage.Char(
-                            PsoCharacter(
-                                slot = message.slot,
-                                exp = 0,
-                                level = 0,
-                                guildCardString = "",
-                                nameColor = 0,
-                                model = 0,
-                                nameColorChecksum = 0,
-                                sectionId = message.slot,
-                                characterClass = message.slot,
-                                costume = 0,
-                                skin = 0,
-                                face = 0,
-                                head = 0,
-                                hair = 0,
-                                hairRed = 0,
-                                hairGreen = 0,
-                                hairBlue = 0,
-                                propX = 0.5,
-                                propY = 0.5,
-                                name = "Phantasmal ${message.slot}",
-                                playTime = 0,
-                            )
-                        )
+                        BbMessage.CharSelectAck(message.slot, CharSelectStatus.Nonexistent)
                     )
                 }
 
@@ -205,16 +243,33 @@ class AccountServer(
                         )
                     }
 
-                    // Disconnect.
+                    // Log out and disconnect.
+                    logOut()
                     false
                 } else {
                     true
                 }
             }
 
-            is BbMessage.Disconnect -> false
+            is BbMessage.Disconnect -> {
+                // Log out and disconnect.
+                logOut()
+                false
+            }
 
             else -> ctx.unexpectedMessage(message)
+        }
+
+        override fun connectionClosed() {
+            logOut()
+        }
+
+        private fun logOut() {
+            try {
+                accountId?.let(accountStore::logOut)
+            } finally {
+                accountId = null
+            }
         }
     }
 

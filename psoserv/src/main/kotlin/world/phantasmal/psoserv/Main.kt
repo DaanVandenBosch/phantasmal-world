@@ -5,6 +5,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.Hocon
 import kotlinx.serialization.hocon.decodeFromConfig
 import mu.KotlinLogging
+import world.phantasmal.psoserv.data.AccountStore
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.encryption.PcCipher
@@ -71,7 +72,8 @@ fun main(args: Array<String>) {
         }
 
         // Initialize and start the server.
-        val servers = initialize(config)
+        val accountStore = AccountStore(LOGGER)
+        val servers = initialize(config, accountStore)
 
         if (servers.isEmpty()) {
             LOGGER.info { "No servers configured, stopping." }
@@ -85,7 +87,7 @@ fun main(args: Array<String>) {
     }
 }
 
-private fun initialize(config: Config): List<Server> {
+private fun initialize(config: Config, accountStore: AccountStore): List<Server> {
     val address = config.address?.let(::inet4Address) ?: DEFAULT_ADDRESS
 
     LOGGER.info { "Binding to $address." }
@@ -96,16 +98,22 @@ private fun initialize(config: Config): List<Server> {
     val blocks: Map<String, BlockInfo> = run {
         var blockI = 1
         var blockPort = DEFAULT_FIRST_SHIP_PORT + config.ships.size
+        val blocks = mutableMapOf<String, BlockInfo>()
 
-        config.blocks.associate { blockCfg ->
+        for (blockCfg in config.blocks) {
             val block = BlockInfo(
                 name = validateName("Block", blockCfg.name) ?: "block_$blockI",
                 uiName = blockCfg.uiName ?: "BLOCK${blockI.toString(2).padStart(2, '0')}",
                 bindPair = Inet4Pair(address, blockCfg.port ?: blockPort++),
             )
             blockI++
-            Pair(block.name, block)
+
+            require(blocks.put(block.name, block) == null) {
+                """Duplicate block with name ${block.name}."""
+            }
         }
+
+        blocks
     }
 
     val ships: List<ShipInfo> = run {
@@ -118,7 +126,7 @@ private fun initialize(config: Config): List<Server> {
                 uiName = shipCfg.uiName ?: "Ship $shipI",
                 bindPair = Inet4Pair(address, shipCfg.port ?: shipPort++),
                 blocks = shipCfg.blocks.map {
-                    blocks[it] ?: error("""No block with name "$it".""")
+                    blocks[it] ?: error("""No block with name $it.""")
                 },
             )
             shipI++
@@ -164,12 +172,13 @@ private fun initialize(config: Config): List<Server> {
         LOGGER.info { "Configuring account server to bind to port ${bindPair.port}." }
         LOGGER.info {
             "Account server will redirect to ${ships.size} ship servers: ${
-                ships.joinToString { """"${it.name}" (port ${it.bindPair.port})""" }
+                ships.joinToString { """${it.name} (port ${it.bindPair.port})""" }
             }."
         }
 
         servers.add(
             AccountServer(
+                accountStore,
                 bindPair,
                 ships,
             )
@@ -198,9 +207,10 @@ private fun initialize(config: Config): List<Server> {
 
         servers.add(
             BlockServer(
+                accountStore,
                 block.name,
                 block.bindPair,
-                blockNo = index + 1,
+                blockId = index + 1,
             )
         )
     }
