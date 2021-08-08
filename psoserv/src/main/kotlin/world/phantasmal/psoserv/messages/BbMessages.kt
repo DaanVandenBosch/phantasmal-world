@@ -363,32 +363,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     class Char(buffer: Buffer) : BbMessage(buffer) {
         constructor(char: PsoCharacter) : this(
             buf(0x00E5, 128) {
-                writeInt(char.slot)
-                writeInt(char.exp)
-                writeInt(char.level)
-                writeStringAscii(char.guildCardString, byteLength = 16)
-                repeat(2) { writeInt(0) } // Unknown.
-                writeInt(char.nameColor)
-                writeInt(char.model)
-                repeat(3) { writeInt(0) } // Unused.
-                writeInt(char.nameColorChecksum)
-                writeByte(char.sectionId.toByte())
-                writeByte(char.characterClass.toByte())
-                writeByte(0) // V2 flags.
-                writeByte(0) // Version.
-                writeInt(0) // V1 flags.
-                writeShort(char.costume.toShort())
-                writeShort(char.skin.toShort())
-                writeShort(char.face.toShort())
-                writeShort(char.head.toShort())
-                writeShort(char.hair.toShort())
-                writeShort(char.hairRed.toShort())
-                writeShort(char.hairGreen.toShort())
-                writeShort(char.hairBlue.toShort())
-                writeFloat(char.propX.toFloat())
-                writeFloat(char.propY.toFloat())
-                writeStringUtf16(char.name, byteLength = 32)
-                writeInt(char.playTime)
+                char.write(this)
             }
         )
     }
@@ -446,24 +421,17 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
 
     // 0x00E7
     class FullCharacterData(buffer: Buffer) : BbMessage(buffer) {
-        constructor(char: PsoCharData, name: String, sectionId: Byte, charClass: Byte) : this(
+        constructor(char: PsoCharData) : this(
             buf(0x00E7, 14744) {
                 repeat(211) { writeInt(0) }
-                repeat(3) { writeShort(0) } // ATP/MST/EVP
-                writeShort(char.hp)
-                repeat(3) { writeShort(0) } // DFP/ATA/LCK
-                writeShort(0) // Unknown.
-                repeat(2) { writeInt(0) } // Unknown.
-                writeInt(char.level)
-                writeInt(char.exp)
-                repeat(92) { writeInt(0) } // Rest of char.
+                char.write(this)
                 repeat(1275) { writeInt(0) }
-                writeStringUtf16(name, byteLength = 48)
-                repeat(8) { writeInt(0) } // Team name.
-                repeat(44) { writeInt(0) } // Guild card description.
-                writeShort(0) // Reserved.
-                writeByte(sectionId)
-                writeByte(charClass)
+                writeStringUtf16(char.name, byteLength = 48)
+                repeat(8) { writeInt(0) } // Team name
+                repeat(44) { writeInt(0) } // Guild card description
+                writeShort(0) // Reserved
+                writeByte(char.sectionId)
+                writeByte(char.charClass)
                 repeat(1403) { writeInt(0) }
                 writeByteArray(DEFAULT_KEYBOARD_CONFIG)
                 writeByteArray(DEFAULT_GAMEPAD_CONFIG)
@@ -594,7 +562,38 @@ class PsoCharacter(
     val propY: Double,
     val name: String,
     val playTime: Int,
-)
+) {
+    fun write(cursor: WritableCursor) {
+        with(cursor) {
+            writeInt(slot)
+            writeInt(exp)
+            writeInt(level)
+            writeStringAscii(guildCardString, byteLength = 16)
+            repeat(2) { writeInt(0) } // Unknown.
+            writeInt(nameColor)
+            writeInt(model)
+            repeat(3) { writeInt(0) } // Unused.
+            writeInt(nameColorChecksum)
+            writeByte(sectionId.toByte())
+            writeByte(characterClass.toByte())
+            writeByte(0) // V2 flags.
+            writeByte(0) // Version.
+            writeInt(0) // V1 flags.
+            writeShort(costume.toShort())
+            writeShort(skin.toShort())
+            writeShort(face.toShort())
+            writeShort(head.toShort())
+            writeShort(hair.toShort())
+            writeShort(hairRed.toShort())
+            writeShort(hairGreen.toShort())
+            writeShort(hairBlue.toShort())
+            writeFloat(propX.toFloat())
+            writeFloat(propY.toFloat())
+            writeStringUtf16(name, byteLength = 32)
+            writeInt(playTime)
+        }
+    }
+}
 
 class GuildCardEntry(
     val playerTag: Int,
@@ -654,7 +653,48 @@ class PsoCharData(
     val hp: Short,
     val level: Int,
     val exp: Int,
-)
+    val sectionId: Byte,
+    val charClass: Byte,
+    val name: String,
+) {
+    fun write(cursor: WritableCursor) {
+        with(cursor) {
+            repeat(3) { writeShort(0) } // ATP/MST/EVP
+            writeShort(hp)
+            repeat(3) { writeShort(0) } // DFP/ATA/LCK
+            writeShort(0) // Unknown
+            repeat(2) { writeInt(0) } // Unknown
+            writeInt(level)
+            writeInt(exp)
+            writeInt(0) // Meseta
+            repeat(4) { writeInt(0) } // Guild card
+            repeat(2) { writeInt(0) } // Unknown
+            writeInt(0) // Name color
+            writeByte(0) // Extra model
+            repeat(3) { writeByte(0) } // Unused
+            repeat(3) { writeInt(0) } // Unused
+            writeInt(0) // Name color checksum
+            writeByte(sectionId)
+            writeByte(charClass)
+            writeByte(0) // V2 flags
+            writeByte(0) // Version
+            writeInt(0) // V1 flags
+            writeShort(0) // Costume
+            writeShort(0) // Skin
+            writeShort(0) // Face
+            writeShort(0) // Head
+            writeShort(0) // Hair
+            writeShort(0) // Hair red
+            writeShort(0) // Hair green
+            writeShort(0) // Hair blue
+            writeFloat(0.5f) // Prop x
+            writeFloat(0.5f) // Prop y
+            writeStringUtf16(name, 32)
+            repeat(58) { writeInt(0) } // Config
+            repeat(5) { writeInt(0) } // Tech levels
+        }
+    }
+}
 
 class LobbyPlayer(
     val playerTag: Int,

@@ -77,10 +77,10 @@ class BlockServer(
                                         hp = 0,
                                         level = char.level - 1,
                                         exp = char.exp,
+                                        sectionId = char.sectionId.ordinal.toByte(),
+                                        charClass = 0,
+                                        name = char.name,
                                     ),
-                                    char.name,
-                                    char.sectionId.ordinal.toByte(),
-                                    charClass = 0,
                                 )
                             )
                             ctx.send(BbMessage.GetCharData())
