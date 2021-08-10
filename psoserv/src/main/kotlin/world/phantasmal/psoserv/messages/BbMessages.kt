@@ -57,6 +57,13 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             0x04EB -> BbMessage.GetFileList(buffer)
             else -> BbMessage.Unknown(buffer)
         }
+
+    override fun createInitEncryption(serverKey: ByteArray, clientKey: ByteArray) =
+        BbMessage.InitEncryption(
+            "Phantasy Star Online Blue Burst Game Server. Copyright 1999-2004 SONICTEAM.",
+            serverKey,
+            clientKey,
+        )
 }
 
 sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_SIZE) {
@@ -601,7 +608,7 @@ class GuildCardEntry(
     val name: String,
     val description: String,
     val sectionId: Int,
-    val characterClass: Int,
+    val charClass: Int,
 )
 
 class GuildCard(

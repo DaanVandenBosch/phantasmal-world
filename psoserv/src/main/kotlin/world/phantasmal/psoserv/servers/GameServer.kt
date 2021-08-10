@@ -65,6 +65,13 @@ abstract class GameServer<MessageType : Message>(
         override val readEncryptCipher: Cipher? = null
         override val writeEncryptCipher: Cipher = serverCipher
 
+        init {
+            sendMessage(
+                messageDescriptor.createInitEncryption(serverCipher.key, clientCipher.key),
+                encrypt = false,
+            )
+        }
+
         override fun processMessage(message: MessageType): ProcessResult =
             if (receiver.process(message)) {
                 ProcessResult.Ok

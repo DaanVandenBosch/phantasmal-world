@@ -19,17 +19,6 @@ class PatchServer(
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<PcMessage> = object : ClientReceiver<PcMessage> {
-        init {
-            ctx.send(
-                PcMessage.InitEncryption(
-                    "Patch Server. Copyright SonicTeam, LTD. 2001",
-                    serverCipher.key,
-                    clientCipher.key,
-                ),
-                encrypt = false,
-            )
-        }
-
         override fun process(message: PcMessage): Boolean = when (message) {
             is PcMessage.InitEncryption -> {
                 ctx.send(PcMessage.Login())

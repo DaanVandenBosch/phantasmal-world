@@ -22,9 +22,9 @@ class Config(
     val patch: PatchServerConfig? = null,
     val auth: ServerConfig? = null,
     val account: ServerConfig? = null,
-    val proxy: ProxyConfig? = null,
     val ships: List<ShipServerConfig> = emptyList(),
     val blocks: List<BlockServerConfig> = emptyList(),
+    val proxy: ProxyConfig? = null,
 )
 
 @Serializable

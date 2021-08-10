@@ -22,17 +22,6 @@ class AuthServer(
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
-        init {
-            ctx.send(
-                BbMessage.InitEncryption(
-                    "Phantasy Star Online Blue Burst Game Server. Copyright 1999-2004 SONICTEAM.",
-                    serverCipher.key,
-                    clientCipher.key,
-                ),
-                encrypt = false,
-            )
-        }
-
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
                 // Don't actually authenticate, since we're simply redirecting the player to the

@@ -103,7 +103,7 @@ private fun initialize(config: Config, accountStore: AccountStore): List<Server>
         for (blockCfg in config.blocks) {
             val block = BlockInfo(
                 name = validateName("Block", blockCfg.name) ?: "block_$blockI",
-                uiName = blockCfg.uiName ?: "BLOCK${blockI.toString(2).padStart(2, '0')}",
+                uiName = blockCfg.uiName ?: "BLOCK${blockI.toString().padStart(2, '0')}",
                 bindPair = Inet4Pair(address, blockCfg.port ?: blockPort++),
             )
             blockI++

@@ -37,6 +37,13 @@ object PcMessageDescriptor : MessageDescriptor<PcMessage> {
             0x14 -> PcMessage.Redirect(buffer)
             else -> PcMessage.Unknown(buffer)
         }
+
+    override fun createInitEncryption(serverKey: ByteArray, clientKey: ByteArray) =
+        PcMessage.InitEncryption(
+            "Patch Server. Copyright SonicTeam, LTD. 2001",
+            serverKey,
+            clientKey,
+        )
 }
 
 sealed class PcMessage(override val buffer: Buffer) : AbstractMessage(PC_HEADER_SIZE) {

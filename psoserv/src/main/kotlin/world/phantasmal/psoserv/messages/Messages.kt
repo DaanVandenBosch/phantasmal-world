@@ -39,6 +39,8 @@ interface MessageDescriptor<out MessageType : Message> {
     fun readHeader(buffer: Buffer): Header
 
     fun readMessage(buffer: Buffer): MessageType
+
+    fun createInitEncryption(serverKey: ByteArray, clientKey: ByteArray): MessageType
 }
 
 interface InitEncryptionMessage : Message {

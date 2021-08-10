@@ -1,7 +1,8 @@
 package world.phantasmal.psoserv.servers
 
+import world.phantasmal.psoserv.data.AccountData
 import world.phantasmal.psoserv.data.AccountStore
-import world.phantasmal.psoserv.data.AccountStore.LogInResult
+import world.phantasmal.psoserv.data.LogInResult
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.*
@@ -22,27 +23,16 @@ class BlockServer(
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
-        private var accountId: Long? = null
-
-        init {
-            ctx.send(
-                BbMessage.InitEncryption(
-                    "Phantasy Star Online Blue Burst Game Server. Copyright 1999-2004 SONICTEAM.",
-                    serverCipher.key,
-                    clientCipher.key,
-                ),
-                encrypt = false,
-            )
-        }
+        private var accountData: AccountData? = null
 
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
-                when (
-                    val result = accountStore.logIn(message.username, message.password)
-                ) {
-                    is LogInResult.Ok -> {
-                        accountId = result.account.id
-                        val char = result.account.characters.getOrNull(message.charSlot)
+                val accountData = accountStore.getAccountData(message.username, message.password)
+                this.accountData = accountData
+
+                when (accountData.logIn(message.password)) {
+                    LogInResult.Ok -> {
+                        val char = accountData.account.characters.getOrNull(message.charSlot)
 
                         if (char == null) {
                             ctx.send(
@@ -55,11 +45,8 @@ class BlockServer(
                                 )
                             )
                         } else {
-                            val account = accountStore.setAccountPlaying(
-                                result.account.id,
-                                char,
-                                blockId,
-                            )
+                            accountData.setPlaying(char, blockId)
+                            val account = accountData.account
                             ctx.send(
                                 BbMessage.AuthData(
                                     AuthStatus.Success,
@@ -122,7 +109,7 @@ class BlockServer(
                         lobbyNo = 0u,
                         blockNo = blockId.toUShort(),
                         event = 0u,
-                        players = accountStore.getAccountsByBlock(blockId).map {
+                        players = accountStore.getPlayingAccountsForBlock(blockId).map {
                             LobbyPlayer(
                                 playerTag = 0,
                                 guildCardNo = it.account.guildCardNo,
@@ -151,9 +138,9 @@ class BlockServer(
 
         private fun logOut() {
             try {
-                accountId?.let(accountStore::logOut)
+                accountData?.let(AccountData::logOut)
             } finally {
-                accountId = null
+                accountData = null
             }
         }
     }

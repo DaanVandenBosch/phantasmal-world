@@ -4,8 +4,9 @@ import world.phantasmal.core.math.clamp
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psoserv.data.AccountData
 import world.phantasmal.psoserv.data.AccountStore
-import world.phantasmal.psoserv.data.AccountStore.LogInResult
+import world.phantasmal.psoserv.data.LogInResult
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.*
@@ -26,38 +27,23 @@ class AccountServer(
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
-        private var accountId: Long? = null
+        private var accountData: AccountData? = null
         private val guildCardBuffer = Buffer.withSize(54672)
         private var fileChunkNo = 0
         private var charSlot: Int = 0
         private var charSelected: Boolean = false
 
-        init {
-            ctx.send(
-                BbMessage.InitEncryption(
-                    "Phantasy Star Online Blue Burst Game Server. Copyright 1999-2004 SONICTEAM.",
-                    serverCipher.key,
-                    clientCipher.key,
-                ),
-                encrypt = false,
-            )
-        }
-
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
-                when (
-                    val result = accountStore.logIn(
-                        message.username,
-                        message.password,
-                    )
-                ) {
-                    is LogInResult.Ok -> {
-                        val account = result.account
-                        this.accountId = account.id
+                val accountData = accountStore.getAccountData(message.username, message.password)
+                this.accountData = accountData
 
+                when (accountData.logIn(message.password)) {
+                    LogInResult.Ok -> {
                         charSlot = message.charSlot
                         charSelected = message.charSelected
 
+                        val account = accountData.account
                         ctx.send(
                             BbMessage.AuthData(
                                 AuthStatus.Success,
@@ -102,7 +88,7 @@ class AccountServer(
             }
 
             is BbMessage.GetAccount -> {
-                accountId?.let(accountStore::getAccountById)?.let {
+                accountData?.account?.let {
                     ctx.send(BbMessage.Account(it.guildCardNo, it.teamId))
                 }
 
@@ -110,7 +96,7 @@ class AccountServer(
             }
 
             is BbMessage.CharSelect -> {
-                val account = accountId?.let(accountStore::getAccountById)
+                val account = accountData?.account
 
                 if (account != null && message.slot in account.characters.indices) {
                     if (message.selected) {
@@ -266,9 +252,9 @@ class AccountServer(
 
         private fun logOut() {
             try {
-                accountId?.let(accountStore::logOut)
+                accountData?.let(AccountData::logOut)
             } finally {
-                accountId = null
+                accountData = null
             }
         }
     }
