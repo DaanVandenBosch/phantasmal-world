@@ -38,6 +38,7 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             0x0093 -> BbMessage.Authenticate(buffer)
             0x0095 -> BbMessage.GetCharData(buffer)
             0x00A0 -> BbMessage.ShipList(buffer)
+            0x00C1 -> BbMessage.CreateParty(buffer)
             0x01DC -> BbMessage.GuildCardHeader(buffer)
             0x02DC -> BbMessage.GuildCardChunk(buffer)
             0x03DC -> BbMessage.GetGuildCardChunk(buffer)
@@ -274,6 +275,9 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             }
         )
     }
+
+    // 0x00C1
+    class CreateParty(buffer: Buffer) : BbMessage(buffer)
 
     // 0x01DC
     class GuildCardHeader(buffer: Buffer) : BbMessage(buffer) {

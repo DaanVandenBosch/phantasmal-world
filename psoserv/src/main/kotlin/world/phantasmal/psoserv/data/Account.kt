@@ -10,7 +10,8 @@ class AccountData(
     private var loggedIn: Boolean,
 ) {
     /**
-     * All access to this class' properties must synchronize on this lock.
+     * All operations on this object must synchronize on this lock. All exposed data must be deeply
+     * immutable and represent a consistent snapshot of the object's state at the time of retrieval.
      */
     private val lock = Any()
     private var _account = account

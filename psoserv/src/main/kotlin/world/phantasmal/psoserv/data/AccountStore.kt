@@ -4,7 +4,7 @@ import mu.KLogger
 
 class AccountStore(private val logger: KLogger) {
     /**
-     * All access to this class' properties must synchronize on this lock.
+     * All operations on this object must synchronize on this lock.
      */
     private val lock = Any()
     private var nextId: Long = 1L
@@ -49,7 +49,7 @@ class AccountStore(private val logger: KLogger) {
     fun getPlayingAccountsForBlock(blockId: Int): List<PlayingAccount> =
         synchronized(lock) {
             idToAccountData.values.asSequence()
-                .mapNotNull { it.playing }
+                .mapNotNull { it.playing } // Map before filtering to avoid race condition.
                 .filter { it.blockId == blockId }
                 .toList()
         }

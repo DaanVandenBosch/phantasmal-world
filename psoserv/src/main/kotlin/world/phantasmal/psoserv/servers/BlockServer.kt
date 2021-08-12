@@ -123,6 +123,10 @@ class BlockServer(
                 true
             }
 
+            is BbMessage.CreateParty -> {
+                true
+            }
+
             is BbMessage.Disconnect -> {
                 // Log out and disconnect.
                 logOut()

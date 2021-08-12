@@ -58,6 +58,8 @@ abstract class Server(
                     // Retry after timeout.
                     continue
                 } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+
                     logger.error(e) {
                         "Interrupted while trying to accept client connections on $bindPair, stopping."
                     }
