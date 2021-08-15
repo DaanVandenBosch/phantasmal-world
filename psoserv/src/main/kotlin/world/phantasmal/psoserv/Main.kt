@@ -28,7 +28,7 @@ private val LOGGER = KotlinLogging.logger("main")
 
 fun main(args: Array<String>) {
     try {
-        LOGGER.info { "Initializing." }
+        LOGGER.info { "Initializing psoserv version ${VersionInfo.version}." }
 
         // Try to get config file location from arguments first.
         var configFile: File? = null
