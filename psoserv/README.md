@@ -1,5 +1,8 @@
 # Phantasmal PSO Server
 
+This server is far from complete, the only functionality that works at the moment is the proxy
+server.
+
 ## Configuration
 
 Put a psoserv.conf file in the directory where psoserv will run or pass
@@ -71,3 +74,22 @@ proxy: {
   ]
 }
 ```
+
+## Developers
+
+## Building and Running
+
+Build with `./gradlew :psoserv:build` or run with `./gradlew :psoserv:run`.
+
+## Native Builds with GraalVM
+
+You can create a native build using [GraalVM](https://www.graalvm.org/) by
+running `./gradlew :psoserv:nativeBuild`.
+
+Prerequisites:
+
+- Make sure the JAVA_HOME environment variable points to a GraalVM JDK
+- Install native-image with `gu` (the GraalVM updater tool)
+- Install necessary libraries on Linux
+- Install MSVC and use a x64 Native Tools Command Prompt for running gradle on Windows
+- See the [manual](https://www.graalvm.org/reference-manual/native-image/) for details

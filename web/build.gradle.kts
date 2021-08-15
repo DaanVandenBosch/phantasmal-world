@@ -53,7 +53,7 @@ val copyAssemblyWorkerJsTask = tasks.register<Copy>("copyAssemblyWorkerJs") {
 }
 
 // TODO: Figure out how to make this work with --continuous.
-tasks.getByName("processResources").dependsOn(copyAssemblyWorkerJsTask)
+tasks.named("processResources").configure { dependsOn(copyAssemblyWorkerJsTask) }
 
 tasks.register<Copy>("generateAssets") {
     dependsOn(":web:assets-generation:generateAssets")

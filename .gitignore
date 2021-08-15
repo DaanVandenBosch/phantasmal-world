@@ -12,4 +12,4 @@ build
 karma.config.generated.js
 
 # Config
-/psoserv/*.conf
+/psoserv/psoserv.conf

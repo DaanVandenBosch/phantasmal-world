@@ -32,18 +32,20 @@ fun main(args: Array<String>) {
 
         // Try to get config file location from arguments first.
         var configFile: File? = null
+        var start = true
 
         // Parse arguments.
         for (arg in args) {
             val split = arg.split('=')
+            val param = split[0]
+            val value = split.getOrNull(1)
 
-            if (split.size == 2) {
-                val (param, value) = split
-
-                when (param) {
-                    "--config" -> {
-                        configFile = File(value)
-                    }
+            when (param) {
+                "--config" -> {
+                    configFile = value?.let(::File)
+                }
+                "--nostart" -> {
+                    start = false
                 }
             }
         }
@@ -75,12 +77,16 @@ fun main(args: Array<String>) {
         val accountStore = AccountStore(LOGGER)
         val servers = initialize(config, accountStore)
 
-        if (servers.isEmpty()) {
-            LOGGER.info { "No servers configured, stopping." }
-        } else {
-            LOGGER.info { "Starting up." }
+        if (start) {
+            if (servers.isEmpty()) {
+                LOGGER.info { "No servers configured, stopping." }
+            } else {
+                LOGGER.info { "Starting up." }
 
-            servers.forEach(Server::start)
+                servers.forEach(Server::start)
+            }
+        } else {
+            LOGGER.info { "Not starting, configuration OK." }
         }
     } catch (e: Throwable) {
         LOGGER.error(e) { "Failed to start up." }
