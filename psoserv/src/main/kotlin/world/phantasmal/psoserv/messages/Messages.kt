@@ -1,19 +1,26 @@
 package world.phantasmal.psoserv.messages
 
 import world.phantasmal.psolib.buffer.Buffer
+import world.phantasmal.psoserv.utils.toHex
 
 fun messageString(
     code: Int,
     size: Int,
+    flags: Int,
     name: String? = null,
     vararg props: Pair<String, Any>,
 ): String =
     buildString {
         append(name ?: "Message")
-        append("[0x")
-        append(code.toString(16).uppercase().padStart(4, '0'))
+        append("[")
+        append(code.toHex(pad = 4))
         append(",size=")
         append(size)
+
+        if (flags != 0) {
+            append(",flags=")
+            append(flags.toHex())
+        }
 
         if (props.isNotEmpty()) {
             props.joinTo(this, prefix = ",", separator = ",") { (prop, value) -> "$prop=$value" }
@@ -97,5 +104,5 @@ abstract class AbstractMessage(override val headerSize: Int) : Message {
     }
 
     protected fun messageString(vararg props: Pair<String, Any>): String =
-        messageString(code, size, this::class.simpleName, *props)
+        messageString(code, size, flags, this::class.simpleName, *props)
 }

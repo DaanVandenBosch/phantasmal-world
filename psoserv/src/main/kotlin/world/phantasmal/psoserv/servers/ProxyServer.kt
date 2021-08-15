@@ -120,9 +120,9 @@ class ProxyServer(
 
         override val messageDescriptor = this@ProxyServer.messageDescriptor
 
-        override fun logMessageTooLarge(code: Int, size: Int) {
+        override fun logMessageTooLarge(code: Int, size: Int, flags: Int) {
             logger.warn {
-                val message = messageString(code, size)
+                val message = messageString(code, size, flags)
                 "Sending $message with size ${size}B. Skipping because it's too large."
             }
         }

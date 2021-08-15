@@ -4,6 +4,7 @@ import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.WritableCursor
 import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psoserv.utils.toHex
 
 private const val INIT_MSG_SIZE: Int = 96
 private const val KEY_SIZE: Int = 48
@@ -32,6 +33,8 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             0x0007 -> BbMessage.BlockList(buffer)
             0x0010 -> BbMessage.MenuSelect(buffer)
             0x0019 -> BbMessage.Redirect(buffer)
+            0x001D -> BbMessage.Ping(buffer)
+            0x0060 -> BbMessage.Broadcast(buffer)
             0x0061 -> BbMessage.CharData(buffer)
             0x0067 -> BbMessage.JoinLobby(buffer)
             0x0083 -> BbMessage.LobbyList(buffer)
@@ -159,6 +162,31 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             messageString(
                 "ipAddress" to ipAddress.joinToString(".") { it.toUByte().toString() },
                 "port" to port,
+            )
+    }
+
+    // 0x001D
+    class Ping(buffer: Buffer) : BbMessage(buffer) {
+        constructor() : this(buf(code = 0x001D))
+    }
+
+    // 0x0060
+    class Broadcast(buffer: Buffer) : BbMessage(buffer) {
+        var subType: UByte
+            get() = uByte(0)
+            set(value) = setUByte(0, value)
+        var subSize: UByte
+            get() = uByte(1)
+            set(value) = setUByte(1, value)
+        var clientId: UByte
+            get() = uByte(2)
+            set(value) = setUByte(2, value)
+
+        override fun toString(): String =
+            messageString(
+                "subType" to subType.toHex(),
+                "subSize" to subSize,
+                "clientId" to clientId,
             )
     }
 

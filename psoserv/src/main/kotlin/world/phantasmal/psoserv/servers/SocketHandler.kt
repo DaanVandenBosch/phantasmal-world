@@ -73,7 +73,7 @@ abstract class SocketHandler<MessageType : Message>(
                         decryptCipher.decrypt(headerBuffer)
                     }
 
-                    val (code, size) = messageDescriptor.readHeader(headerBuffer)
+                    val (code, size, flags) = messageDescriptor.readHeader(headerBuffer)
                     val encryptedSize = alignToWidth(size, decryptCipher?.blockSize ?: 1)
                     // Bytes available for the next message.
                     val available = readBuffer.size - offset
@@ -81,7 +81,7 @@ abstract class SocketHandler<MessageType : Message>(
                     when {
                         // Don't parse the message when it's too large.
                         encryptedSize > BUFFER_CAPACITY -> {
-                            logMessageTooLarge(code, size)
+                            logMessageTooLarge(code, size, flags)
 
                             bytesToSkip = encryptedSize - available
 
@@ -273,9 +273,9 @@ abstract class SocketHandler<MessageType : Message>(
         // Do nothing.
     }
 
-    protected open fun logMessageTooLarge(code: Int, size: Int) {
+    protected open fun logMessageTooLarge(code: Int, size: Int, flags: Int) {
         logger.warn {
-            val message = messageString(code, size)
+            val message = messageString(code, size, flags)
             "Receiving $message with size ${size}B. Skipping because it's too large."
         }
     }
