@@ -4,6 +4,7 @@ import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.*
 import java.net.Socket
+import java.net.SocketException
 
 class ProxyServer(
     name: String,
@@ -128,6 +129,10 @@ class ProxyServer(
 
         override fun logMessageReceived(message: Message) {
             logger.trace { "Sent $message." }
+        }
+
+        override fun logUnexpectedSocketException(e: SocketException) {
+            // Do nothing, we expect both server and client to close connections.
         }
     }
 }
