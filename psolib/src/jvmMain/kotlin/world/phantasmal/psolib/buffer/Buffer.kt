@@ -100,7 +100,7 @@ actual class Buffer private constructor(
             for (i in 0 until len) {
                 val codePoint = buf.getChar(offset + i * 2)
 
-                if (nullTerminated && codePoint == '0') {
+                if (nullTerminated && codePoint == '\u0000') {
                     break
                 }
 

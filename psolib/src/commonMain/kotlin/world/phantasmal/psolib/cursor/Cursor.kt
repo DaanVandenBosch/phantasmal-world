@@ -118,8 +118,8 @@ interface Cursor {
      */
     fun stringAscii(
         maxByteLength: Int,
-        nullTerminated: Boolean,
-        dropRemaining: Boolean,
+        nullTerminated: Boolean = true,
+        dropRemaining: Boolean = true,
     ): String
 
     /**
@@ -127,8 +127,8 @@ interface Cursor {
      */
     fun stringUtf16(
         maxByteLength: Int,
-        nullTerminated: Boolean,
-        dropRemaining: Boolean,
+        nullTerminated: Boolean = true,
+        dropRemaining: Boolean = true,
     ): String
 
     /**

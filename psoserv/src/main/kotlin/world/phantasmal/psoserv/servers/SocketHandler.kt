@@ -140,8 +140,8 @@ abstract class SocketHandler<MessageType : Message>(
                                         break@readLoop
                                     }
                                 }
-                            } catch (e: Throwable) {
-                                logger.error(e) { "Error while processing message." }
+                            } catch (e: Exception) {
+                                logger.error(e) { "Exception while processing message." }
                             }
 
                             offset += encryptedSize
@@ -231,19 +231,14 @@ abstract class SocketHandler<MessageType : Message>(
         socket.close()
     }
 
-    fun sendMessage(message: MessageType, encrypt: Boolean) {
+    fun sendMessage(message: Message, encrypt: Boolean) {
         logger.trace {
             "Sending $message${if (encrypt) "" else " (unencrypted)"}."
         }
 
-        if (message.buffer.size != message.size) {
-            logger.warn {
-                "Message size of $message is ${message.size}B, but wrote ${message.buffer.size} bytes."
-            }
-        }
-
         val cipher = writeEncryptCipher
         val buffer: Buffer
+        val expectedMaxSize: Int
 
         if (encrypt) {
             checkNotNull(cipher)
@@ -253,8 +248,17 @@ abstract class SocketHandler<MessageType : Message>(
                 size = alignToWidth(initialSize, cipher.blockSize)
             )
             cipher.encrypt(buffer)
+            expectedMaxSize = alignToWidth(message.size, cipher.blockSize)
         } else {
             buffer = message.buffer
+            expectedMaxSize = message.size
+        }
+
+        // Message buffer can be padded for encryption in advance.
+        if (message.buffer.size !in message.size..expectedMaxSize) {
+            logger.warn {
+                "Message size of $message is ${message.size}B, but wrote ${message.buffer.size} bytes."
+            }
         }
 
         socket.write(buffer, 0, buffer.size)

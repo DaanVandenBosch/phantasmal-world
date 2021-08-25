@@ -36,7 +36,9 @@ object BbMessageDescriptor : MessageDescriptor<BbMessage> {
             0x001D -> BbMessage.Ping(buffer)
             0x0060 -> BbMessage.Broadcast(buffer)
             0x0061 -> BbMessage.CharData(buffer)
+            0x0064 -> BbMessage.JoinParty(buffer)
             0x0067 -> BbMessage.JoinLobby(buffer)
+            0x0068 -> BbMessage.JoinedLobby(buffer)
             0x0083 -> BbMessage.LobbyList(buffer)
             0x0093 -> BbMessage.Authenticate(buffer)
             0x0095 -> BbMessage.GetCharData(buffer)
@@ -167,7 +169,7 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
 
     // 0x001D
     class Ping(buffer: Buffer) : BbMessage(buffer) {
-        constructor() : this(buf(code = 0x001D))
+        constructor() : this(buf(0x001D))
     }
 
     // 0x0060
@@ -193,8 +195,51 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     // 0x0061
     class CharData(buffer: Buffer) : BbMessage(buffer)
 
-    // 0x0067
-    class JoinLobby(buffer: Buffer) : BbMessage(buffer) {
+    // 0x0064
+    class JoinParty(buffer: Buffer) : BbMessage(buffer) {
+        constructor(
+            players: List<LobbyPlayer>,
+            clientId: Byte,
+            leaderId: Byte,
+            difficulty: Byte,
+            battleMode: Boolean,
+            event: Byte,
+            sectionId: Byte,
+            challengeMode: Boolean,
+            prngSeed: Int,
+            episode: Byte,
+            soloMode: Boolean,
+        ) : this(
+            buf(0x0064, 416, flags = players.size) {
+                require(players.size <= 4)
+
+                repeat(32) { writeInt(0) } // Map layout
+
+                for (player in players) {
+                    player.write(this)
+                }
+
+                // Empty player slots.
+                repeat((4 - players.size) * (LobbyPlayer.SIZE / 4)) { writeInt(0) }
+
+                writeByte(clientId)
+                writeByte(leaderId)
+                writeByte(1) // Unknown
+                writeByte(difficulty)
+                writeByte(if (battleMode) 1 else 0)
+                writeByte(event)
+                writeByte(sectionId)
+                writeByte(if (challengeMode) 1 else 0)
+                writeInt(prngSeed)
+                writeByte(episode)
+                writeByte(1) // Unknown
+                writeByte(if (soloMode) 1 else 0)
+                writeByte(0) // Unused
+            }
+        )
+    }
+
+    abstract class AbstractJoinLobby(buffer: Buffer) : BbMessage(buffer) {
         val playerCount: Int get() = flags
         var clientId: UByte
             get() = uByte(0)
@@ -209,39 +254,93 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
             get() = uShort(4)
             set(value) = setUShort(4, value)
 
+        override fun toString(): String =
+            messageString(
+                "playerCount" to playerCount,
+                "clientId" to clientId,
+                "leaderId" to leaderId,
+                "lobbyNo" to lobbyNo,
+                "blockNo" to blockNo,
+            )
+
+        companion object {
+            @JvmStatic
+            protected fun joinLobbyBuf(
+                code: Int,
+                clientId: Byte,
+                leaderId: Byte,
+                disableUdp: Boolean,
+                lobbyNo: UByte,
+                blockNo: UShort,
+                event: UShort,
+                players: List<LobbyPlayer>,
+            ): Buffer =
+                buf(code, 12 + players.size * (LobbyPlayer.SIZE + 1244), flags = players.size) {
+                    writeByte(clientId)
+                    writeByte(leaderId)
+                    writeByte(if (disableUdp) 1 else 0)
+                    writeUByte(lobbyNo)
+                    writeUShort(blockNo)
+                    writeUShort(event)
+                    writeInt(0) // Unused.
+
+                    for (player in players) {
+                        player.write(this)
+                        repeat(311) { writeInt(0) } // Inventory and character data.
+                    }
+                }
+        }
+    }
+
+    // 0x0067
+    class JoinLobby(buffer: Buffer) : AbstractJoinLobby(buffer) {
         constructor(
-            clientId: UByte,
-            leaderId: UByte,
+            clientId: Byte,
+            leaderId: Byte,
             disableUdp: Boolean,
             lobbyNo: UByte,
             blockNo: UShort,
             event: UShort,
             players: List<LobbyPlayer>,
         ) : this(
-            buf(0x0067, 12 + players.size * 1312, flags = players.size) {
-                writeUByte(clientId)
-                writeUByte(leaderId)
-                writeByte(if (disableUdp) 1 else 0)
-                writeUByte(lobbyNo)
-                writeUShort(blockNo)
-                writeUShort(event)
-                writeInt(0) // Unused.
+            joinLobbyBuf(
+                0x0067,
+                clientId,
+                leaderId,
+                disableUdp,
+                lobbyNo,
+                blockNo,
+                event,
+                players,
+            )
+        )
+    }
 
-                for (player in players) {
-                    writeInt(player.playerTag)
-                    writeInt(player.guildCardNo)
-                    repeat(5) { writeInt(0) } // Unknown.
-                    writeInt(player.clientId)
-                    writeStringUtf16(player.charName, 32)
-                    writeInt(0) // Unknown.
-                    repeat(311) { writeInt(0) }
-                }
-            }
+    // 0x0068
+    class JoinedLobby(buffer: Buffer) : AbstractJoinLobby(buffer) {
+        constructor(
+            clientId: Byte,
+            leaderId: Byte,
+            disableUdp: Boolean,
+            lobbyNo: UByte,
+            blockNo: UShort,
+            event: UShort,
+            player: LobbyPlayer,
+        ) : this(
+            joinLobbyBuf(
+                0x0068,
+                clientId,
+                leaderId,
+                disableUdp,
+                lobbyNo,
+                blockNo,
+                event,
+                listOf(player),
+            )
         )
 
         override fun toString(): String =
             messageString(
-                "playerCount" to playerCount,
                 "clientId" to clientId,
                 "leaderId" to leaderId,
                 "lobbyNo" to lobbyNo,
@@ -251,11 +350,11 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
 
     // 0x0083
     class LobbyList(buffer: Buffer) : BbMessage(buffer) {
-        constructor() : this(
+        constructor(lobbyIds: List<Int>) : this(
             buf(0x0083, 192) {
-                repeat(15) {
+                for (lobbyId in lobbyIds) {
                     writeInt(MenuType.Lobby.toInt())
-                    writeInt(it + 1) // Item ID.
+                    writeInt(lobbyId) // Item ID.
                     writeInt(0) // Padding.
                 }
                 // 12 zero bytes of padding.
@@ -277,6 +376,16 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
         val magic: Int get() = int(132) // Should be 0xDEADBEEF
         val charSlot: Int get() = byte(136).toInt()
         val charSelected: Boolean get() = byte(137).toInt() != 0
+
+        override fun toString(): String =
+            messageString(
+                "guildCardNo" to guildCardNo,
+                "version" to version,
+                "teamId" to teamId,
+                "username" to username,
+                "charSlot" to charSlot,
+                "charSelected" to charSelected,
+            )
     }
 
     // 0x0095
@@ -305,7 +414,39 @@ sealed class BbMessage(override val buffer: Buffer) : AbstractMessage(BB_HEADER_
     }
 
     // 0x00C1
-    class CreateParty(buffer: Buffer) : BbMessage(buffer)
+    class CreateParty(buffer: Buffer) : BbMessage(buffer) {
+        var name: String
+            get() = stringUtf16(8, 32)
+            set(value) = setStringUtf16(8, value, 32)
+        var password: String
+            get() = stringUtf16(40, 32)
+            set(value) = setStringUtf16(40, value, 32)
+        var difficulty: Byte
+            get() = byte(72)
+            set(value) = setByte(72, value)
+        var battleMode: Boolean
+            get() = byte(73).toInt() != 0
+            set(value) = setByte(73, if (value) 1 else 0)
+        var challengeMode: Boolean
+            get() = byte(74).toInt() != 0
+            set(value) = setByte(74, if (value) 1 else 0)
+        var episode: Byte
+            get() = byte(75)
+            set(value) = setByte(75, value)
+        var soloMode: Boolean
+            get() = byte(76).toInt() != 0
+            set(value) = setByte(76, if (value) 1 else 0)
+
+        override fun toString(): String =
+            messageString(
+                "name" to name,
+                "difficulty" to difficulty,
+                "battleMode" to battleMode,
+                "challengeMode" to challengeMode,
+                "episode" to episode,
+                "soloMode" to soloMode,
+            )
+    }
 
     // 0x01DC
     class GuildCardHeader(buffer: Buffer) : BbMessage(buffer) {
@@ -735,9 +876,49 @@ class PsoCharData(
     }
 }
 
+class PlayerHeader(
+    val playerTag: Int,
+    val guildCardNo: Int,
+    val clientId: UByte,
+    val charName: String,
+) {
+    fun write(cursor: WritableCursor) {
+        with(cursor) {
+            writeInt(playerTag)
+            writeInt(guildCardNo)
+            repeat(5) { writeInt(0) } // Unknown.
+            writeUByte(clientId)
+            repeat(3) { writeByte(0) } // Unknown.
+            writeStringUtf16(charName, 32)
+            writeInt(0) // Unknown.
+            repeat(311) { writeInt(0) }
+        }
+    }
+
+    companion object {
+        const val SIZE: Int = 1312
+    }
+}
+
 class LobbyPlayer(
     val playerTag: Int,
     val guildCardNo: Int,
-    val clientId: Int,
+    val clientId: Byte,
     val charName: String,
-)
+) {
+    fun write(cursor: WritableCursor) {
+        with(cursor) {
+            writeInt(playerTag)
+            writeInt(guildCardNo)
+            repeat(5) { writeInt(0) } // Unknown.
+            writeByte(clientId)
+            repeat(3) { writeByte(0) } // Unknown.
+            writeStringUtf16(charName, 32)
+            writeInt(0) // Unknown.
+        }
+    }
+
+    companion object {
+        const val SIZE: Int = 68
+    }
+}

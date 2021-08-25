@@ -1,14 +1,13 @@
 package world.phantasmal.psoserv.servers
 
-import world.phantasmal.psoserv.data.AccountData
-import world.phantasmal.psoserv.data.AccountStore
-import world.phantasmal.psoserv.data.LogInResult
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psoserv.data.*
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.*
 
 class BlockServer(
-    private val accountStore: AccountStore,
+    private val store: Store,
     name: String,
     bindPair: Inet4Pair,
     private val blockId: Int,
@@ -23,18 +22,67 @@ class BlockServer(
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
-        private var accountData: AccountData? = null
+        private var client: Client? = null
 
-        override fun process(message: BbMessage): Boolean = when (message) {
-            is BbMessage.Authenticate -> {
-                val accountData = accountStore.getAccountData(message.username, message.password)
-                this.accountData = accountData
+        override fun process(message: BbMessage): Boolean {
+            when (message) {
+                is BbMessage.Authenticate -> {
+                    val result = store.authenticate(
+                        message.username,
+                        message.password,
+                        ctx::send,
+                    )
 
-                when (accountData.logIn(message.password)) {
-                    LogInResult.Ok -> {
-                        val char = accountData.account.characters.getOrNull(message.charSlot)
+                    when (result) {
+                        is AuthResult.Ok -> {
+                            client = result.client
 
-                        if (char == null) {
+                            val account = result.client.account
+                            val char = account.characters.getOrNull(message.charSlot)
+
+                            if (char == null) {
+                                ctx.send(
+                                    BbMessage.AuthData(
+                                        AuthStatus.Nonexistent,
+                                        message.guildCardNo,
+                                        message.teamId,
+                                        message.charSlot,
+                                        message.charSelected,
+                                    )
+                                )
+                            } else {
+                                result.client.setPlaying(char, blockId)
+                                ctx.send(
+                                    BbMessage.AuthData(
+                                        AuthStatus.Success,
+                                        account.guildCardNo,
+                                        account.teamId,
+                                        message.charSlot,
+                                        message.charSelected,
+                                    )
+                                )
+
+                                val lobbies = store.getLobbies(blockId)
+                                ctx.send(BbMessage.LobbyList(lobbies.map { it.id }))
+
+                                ctx.send(
+                                    BbMessage.FullCharacterData(
+                                        // TODO: Fill in char data correctly.
+                                        PsoCharData(
+                                            hp = 0,
+                                            level = char.level - 1,
+                                            exp = char.exp,
+                                            sectionId = char.sectionId.ordinal.toByte(),
+                                            charClass = 0,
+                                            name = char.name,
+                                        ),
+                                    )
+                                )
+
+                                ctx.send(BbMessage.GetCharData())
+                            }
+                        }
+                        AuthResult.BadPassword -> {
                             ctx.send(
                                 BbMessage.AuthData(
                                     AuthStatus.Nonexistent,
@@ -44,96 +92,178 @@ class BlockServer(
                                     message.charSelected,
                                 )
                             )
-                        } else {
-                            accountData.setPlaying(char, blockId)
-                            val account = accountData.account
+                        }
+                        AuthResult.AlreadyLoggedIn -> {
                             ctx.send(
                                 BbMessage.AuthData(
-                                    AuthStatus.Success,
-                                    account.guildCardNo,
-                                    account.teamId,
+                                    AuthStatus.Error,
+                                    message.guildCardNo,
+                                    message.teamId,
                                     message.charSlot,
                                     message.charSelected,
                                 )
                             )
-
-                            ctx.send(BbMessage.LobbyList())
-                            ctx.send(
-                                BbMessage.FullCharacterData(
-                                    PsoCharData(
-                                        hp = 0,
-                                        level = char.level - 1,
-                                        exp = char.exp,
-                                        sectionId = char.sectionId.ordinal.toByte(),
-                                        charClass = 0,
-                                        name = char.name,
-                                    ),
-                                )
-                            )
-                            ctx.send(BbMessage.GetCharData())
                         }
                     }
-                    LogInResult.BadPassword -> {
-                        ctx.send(
-                            BbMessage.AuthData(
-                                AuthStatus.Nonexistent,
-                                message.guildCardNo,
-                                message.teamId,
-                                message.charSlot,
-                                message.charSelected,
-                            )
+
+                    return true
+                }
+
+                is BbMessage.CharData -> {
+                    val client = client
+                        ?: return false
+
+                    val lobby = store.joinFirstAvailableLobby(blockId, client)
+                        ?: return false
+
+                    val clientId = client.id
+
+                    ctx.send(
+                        BbMessage.JoinLobby(
+                            clientId = clientId,
+                            leaderId = 0, // TODO: What should leaderId be in lobbies?
+                            disableUdp = true,
+                            lobbyNo = lobby.id.toUByte(),
+                            blockNo = blockId.toUShort(),
+                            event = 0u,
+                            players = lobby.getClients().mapNotNull { c ->
+                                c.playing?.let {
+                                    LobbyPlayer(
+                                        playerTag = 0,
+                                        guildCardNo = it.account.guildCardNo,
+                                        clientId = c.id,
+                                        charName = it.char.name,
+                                    )
+                                }
+                            }
                         )
+                    )
+
+                    // Notify other clients.
+                    client.playing?.let { playingAccount ->
+                        val joinedMessage = BbMessage.JoinedLobby(
+                            clientId = clientId,
+                            leaderId = 0, // TODO: What should leaderId be in lobbies?
+                            disableUdp = true,
+                            lobbyNo = lobby.id.toUByte(),
+                            blockNo = blockId.toUShort(),
+                            event = 0u,
+                            player = LobbyPlayer(
+                                playerTag = 0,
+                                guildCardNo = playingAccount.account.guildCardNo,
+                                clientId = clientId,
+                                charName = playingAccount.char.name,
+                            ),
+                        )
+                        lobby.broadcastMessage(joinedMessage, exclude = client)
                     }
-                    LogInResult.AlreadyLoggedIn -> {
-                        ctx.send(
-                            BbMessage.AuthData(
-                                AuthStatus.Error,
-                                message.guildCardNo,
-                                message.teamId,
-                                message.charSlot,
-                                message.charSelected,
-                            )
-                        )
+
+                    return true
+                }
+
+                is BbMessage.CreateParty -> {
+                    val client = client
+                        ?: return false
+                    val difficulty = when (message.difficulty.toInt()) {
+                        0 -> Difficulty.Normal
+                        1 -> Difficulty.Hard
+                        2 -> Difficulty.VHard
+                        3 -> Difficulty.Ultimate
+                        else -> return false
+                    }
+                    val episode = when (message.episode.toInt()) {
+                        1 -> Episode.I
+                        2 -> Episode.II
+                        3 -> Episode.IV
+                        else -> return false
+                    }
+                    val mode = when {
+                        message.battleMode -> Mode.Battle
+                        message.challengeMode -> Mode.Challenge
+                        message.soloMode -> Mode.Solo
+                        else -> Mode.Normal
+                    }
+
+                    val result = store.createAndJoinParty(
+                        blockId,
+                        message.name,
+                        message.password,
+                        difficulty,
+                        episode,
+                        mode,
+                        client,
+                    )
+
+                    when (result) {
+                        is CreateAndJoinPartyResult.Ok -> {
+                            val party = result.party
+                            val details = party.details
+
+                            // TODO: Send lobby leave message to all clients.
+
+                            ctx.send(BbMessage.JoinParty(
+                                players = party.getClients().mapNotNull { c ->
+                                    c.playing?.let {
+                                        LobbyPlayer(
+                                            playerTag = 0,
+                                            guildCardNo = it.account.guildCardNo,
+                                            clientId = c.id,
+                                            charName = it.char.name,
+                                        )
+                                    }
+                                },
+                                clientId = client.id,
+                                leaderId = party.leaderId,
+                                difficulty = when (details.difficulty) {
+                                    Difficulty.Normal -> 0
+                                    Difficulty.Hard -> 1
+                                    Difficulty.VHard -> 2
+                                    Difficulty.Ultimate -> 3
+                                },
+                                battleMode = details.mode == Mode.Battle,
+                                event = 0,
+                                sectionId = 0,
+                                challengeMode = details.mode == Mode.Challenge,
+                                prngSeed = 0,
+                                episode = when (details.episode) {
+                                    Episode.I -> 1
+                                    Episode.II -> 2
+                                    Episode.IV -> 3
+                                },
+                                soloMode = details.mode == Mode.Solo,
+                            ))
+
+                            // TODO: Send player join message to other clients.
+
+                            return true
+                        }
+                        is CreateAndJoinPartyResult.NameInUse -> {
+                            // TODO: Just send message instead of disconnecting.
+                            return false
+                        }
+                        is CreateAndJoinPartyResult.AlreadyInParty -> {
+                            logger.warn {
+                                "${client.account} tried to create a party while in a party."
+                            }
+                            return true
+                        }
                     }
                 }
 
-                true
+                is BbMessage.Broadcast -> {
+                    // TODO: Verify broadcast messages.
+                    client?.lop?.broadcastMessage(message, client)
+                    return true
+                }
+
+                is BbMessage.Disconnect -> {
+                    // Log out and disconnect.
+                    logOut()
+                    return false
+                }
+
+                else -> return ctx.unexpectedMessage(message)
             }
-
-            is BbMessage.CharData -> {
-                ctx.send(
-                    BbMessage.JoinLobby(
-                        clientId = 0u,
-                        leaderId = 0u,
-                        disableUdp = true,
-                        lobbyNo = 0u,
-                        blockNo = blockId.toUShort(),
-                        event = 0u,
-                        players = accountStore.getPlayingAccountsForBlock(blockId).map {
-                            LobbyPlayer(
-                                playerTag = 0,
-                                guildCardNo = it.account.guildCardNo,
-                                clientId = 0,
-                                charName = it.char.name,
-                            )
-                        }
-                    )
-                )
-
-                true
-            }
-
-            is BbMessage.CreateParty -> {
-                true
-            }
-
-            is BbMessage.Disconnect -> {
-                // Log out and disconnect.
-                logOut()
-                false
-            }
-
-            else -> ctx.unexpectedMessage(message)
         }
 
         override fun connectionClosed() {
@@ -142,9 +272,9 @@ class BlockServer(
 
         private fun logOut() {
             try {
-                accountData?.let(AccountData::logOut)
+                client?.let(store::logOut)
             } finally {
-                accountData = null
+                client = null
             }
         }
     }

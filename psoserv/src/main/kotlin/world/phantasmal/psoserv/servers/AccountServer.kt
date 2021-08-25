@@ -4,16 +4,16 @@ import world.phantasmal.core.math.clamp
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.cursor
-import world.phantasmal.psoserv.data.AccountData
-import world.phantasmal.psoserv.data.AccountStore
-import world.phantasmal.psoserv.data.LogInResult
+import world.phantasmal.psoserv.data.Client
+import world.phantasmal.psoserv.data.AuthResult
+import world.phantasmal.psoserv.data.Store
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.messages.*
 import world.phantasmal.psoserv.utils.crc32Checksum
 
 class AccountServer(
-    private val accountStore: AccountStore,
+    private val store: Store,
     bindPair: Inet4Pair,
     private val ships: List<ShipInfo>,
 ) : GameServer<BbMessage>("account", bindPair) {
@@ -27,7 +27,7 @@ class AccountServer(
         serverCipher: Cipher,
         clientCipher: Cipher,
     ): ClientReceiver<BbMessage> = object : ClientReceiver<BbMessage> {
-        private var accountData: AccountData? = null
+        private var client: Client? = null
         private val guildCardBuffer = Buffer.withSize(54672)
         private var fileChunkNo = 0
         private var charSlot: Int = 0
@@ -35,15 +35,19 @@ class AccountServer(
 
         override fun process(message: BbMessage): Boolean = when (message) {
             is BbMessage.Authenticate -> {
-                val accountData = accountStore.getAccountData(message.username, message.password)
-                this.accountData = accountData
+                val result = store.authenticate(
+                    message.username,
+                    message.password,
+                    ctx::send,
+                )
 
-                when (accountData.logIn(message.password)) {
-                    LogInResult.Ok -> {
+                when (result) {
+                    is AuthResult.Ok -> {
+                        client = result.client
                         charSlot = message.charSlot
                         charSelected = message.charSelected
 
-                        val account = accountData.account
+                        val account = result.client.account
                         ctx.send(
                             BbMessage.AuthData(
                                 AuthStatus.Success,
@@ -60,7 +64,7 @@ class AccountServer(
                             ctx.send(BbMessage.ShipList(ships.map { it.uiName }))
                         }
                     }
-                    LogInResult.BadPassword -> {
+                    AuthResult.BadPassword -> {
                         ctx.send(
                             BbMessage.AuthData(
                                 AuthStatus.Nonexistent,
@@ -71,7 +75,7 @@ class AccountServer(
                             )
                         )
                     }
-                    LogInResult.AlreadyLoggedIn -> {
+                    AuthResult.AlreadyLoggedIn -> {
                         ctx.send(
                             BbMessage.AuthData(
                                 AuthStatus.Error,
@@ -88,7 +92,7 @@ class AccountServer(
             }
 
             is BbMessage.GetAccount -> {
-                accountData?.account?.let {
+                client?.account?.let {
                     ctx.send(BbMessage.Account(it.guildCardNo, it.teamId))
                 }
 
@@ -96,7 +100,7 @@ class AccountServer(
             }
 
             is BbMessage.CharSelect -> {
-                val account = accountData?.account
+                val account = client?.account
 
                 if (account != null && message.slot in account.characters.indices) {
                     if (message.selected) {
@@ -252,9 +256,9 @@ class AccountServer(
 
         private fun logOut() {
             try {
-                accountData?.let(AccountData::logOut)
+                client?.let(store::logOut)
             } finally {
-                accountData = null
+                client = null
             }
         }
     }

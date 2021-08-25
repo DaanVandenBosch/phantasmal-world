@@ -5,7 +5,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.Hocon
 import kotlinx.serialization.hocon.decodeFromConfig
 import mu.KotlinLogging
-import world.phantasmal.psoserv.data.AccountStore
+import world.phantasmal.psoserv.data.Store
 import world.phantasmal.psoserv.encryption.BbCipher
 import world.phantasmal.psoserv.encryption.Cipher
 import world.phantasmal.psoserv.encryption.PcCipher
@@ -74,8 +74,8 @@ fun main(args: Array<String>) {
         }
 
         // Initialize and start the server.
-        val accountStore = AccountStore(LOGGER)
-        val servers = initialize(config, accountStore)
+        val store = Store(LOGGER)
+        val servers = initialize(config, store)
 
         if (start) {
             if (servers.isEmpty()) {
@@ -93,7 +93,7 @@ fun main(args: Array<String>) {
     }
 }
 
-private fun initialize(config: Config, accountStore: AccountStore): List<Server> {
+private fun initialize(config: Config, store: Store): List<Server> {
     val address = config.address?.let(::inet4Address) ?: DEFAULT_ADDRESS
 
     LOGGER.info { "Binding to $address." }
@@ -184,7 +184,7 @@ private fun initialize(config: Config, accountStore: AccountStore): List<Server>
 
         servers.add(
             AccountServer(
-                accountStore,
+                store,
                 bindPair,
                 ships,
             )
@@ -213,7 +213,7 @@ private fun initialize(config: Config, accountStore: AccountStore): List<Server>
 
         servers.add(
             BlockServer(
-                accountStore,
+                store,
                 block.name,
                 block.bindPair,
                 blockId = index + 1,

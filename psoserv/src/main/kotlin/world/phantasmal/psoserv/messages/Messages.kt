@@ -72,6 +72,8 @@ abstract class AbstractMessage(override val headerSize: Int) : Message {
     protected fun byteArray(offset: Int, size: Int) = ByteArray(size) { byte(offset + it) }
     protected fun stringAscii(offset: Int, maxByteLength: Int) =
         buffer.getStringAscii(headerSize + offset, maxByteLength, nullTerminated = true)
+    protected fun stringUtf16(offset: Int, maxByteLength: Int) =
+        buffer.getStringUtf16(headerSize + offset, maxByteLength, nullTerminated = true)
 
     protected fun setUByte(offset: Int, value: UByte) {
         buffer.setUByte(headerSize + offset, value)
@@ -101,6 +103,10 @@ abstract class AbstractMessage(override val headerSize: Int) : Message {
 
     protected fun setStringAscii(offset: Int, str: String, byteLength: Int) {
         buffer.setStringAscii(headerSize + offset, str, byteLength)
+    }
+
+    protected fun setStringUtf16(offset: Int, str: String, byteLength: Int) {
+        buffer.setStringUtf16(headerSize + offset, str, byteLength)
     }
 
     protected fun messageString(vararg props: Pair<String, Any>): String =

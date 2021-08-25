@@ -40,7 +40,7 @@ abstract class GameServer<MessageType : Message>(
         private val logger: KLogger,
         private val handler: SocketHandler<MessageType>,
     ) {
-        fun send(message: MessageType, encrypt: Boolean = true) {
+        fun send(message: Message, encrypt: Boolean = true) {
             handler.sendMessage(message, encrypt)
         }
 

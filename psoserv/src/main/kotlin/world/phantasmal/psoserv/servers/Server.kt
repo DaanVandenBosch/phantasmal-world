@@ -49,6 +49,7 @@ abstract class Server(
             while (running) {
                 try {
                     val clientSocket = bindSocket.accept()
+                    // TODO: Limit number of connected clients.
                     logger.info {
                         "New client connection from ${clientSocket.inetAddress}:${clientSocket.port}."
                     }
