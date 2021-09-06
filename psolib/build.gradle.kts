@@ -21,6 +21,10 @@ val serializationVersion: String by project.extra
 
 kotlin {
     sourceSets {
+        all {
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
+
         commonMain {
             kotlin.setSrcDirs(kotlin.srcDirs + generatedCommonSrc)
             dependencies {

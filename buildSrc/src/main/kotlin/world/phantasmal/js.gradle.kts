@@ -8,10 +8,8 @@ plugins {
 
 kotlin {
     js {
-        compilations.all {
-            kotlinOptions {
-                freeCompilerArgs = freeCompilerArgs + EXPERIMENTAL_ANNOTATION_COMPILER_ARGS
-            }
+        compilations.configureEach {
+            EXPERIMENTAL_ANNOTATIONS.forEach(languageSettings::optIn)
         }
         browser {
             testTask {

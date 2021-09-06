@@ -23,16 +23,17 @@ kotlin {
     }
 
     jvm {
-        compilations.all {
+        compilations.configureEach {
             kotlinOptions {
                 jvmTarget = "11"
+                freeCompilerArgs = freeCompilerArgs + "-Xjvm-default=all"
             }
         }
     }
 
     sourceSets {
-        all {
-            EXPERIMENTAL_ANNOTATIONS.forEach(languageSettings::useExperimentalAnnotation)
+        configureEach {
+            EXPERIMENTAL_ANNOTATIONS.forEach(languageSettings::optIn)
         }
 
         commonMain {

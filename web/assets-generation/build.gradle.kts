@@ -2,6 +2,12 @@ plugins {
     id("world.phantasmal.jvm")
 }
 
+kotlin {
+    sourceSets.configureEach {
+        languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+    }
+}
+
 dependencies {
     implementation(project(":psolib"))
     implementation(project(":web:shared"))

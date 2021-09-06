@@ -10,12 +10,16 @@ plugins {
 val junitVersion: String by project.extra
 val log4jVersion: String by project.extra
 
+kotlin {
+    sourceSets.configureEach {
+        EXPERIMENTAL_ANNOTATIONS.forEach(languageSettings::optIn)
+    }
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "11"
-        freeCompilerArgs = freeCompilerArgs +
-                EXPERIMENTAL_ANNOTATION_COMPILER_ARGS +
-                "-Xjvm-default=all"
+        freeCompilerArgs = freeCompilerArgs + "-Xjvm-default=all"
     }
 }
 

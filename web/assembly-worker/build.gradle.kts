@@ -4,6 +4,10 @@ plugins {
 
 kotlin {
     js {
+        compilations.configureEach {
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
+
         binaries.executable()
     }
 }

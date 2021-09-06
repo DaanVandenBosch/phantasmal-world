@@ -5,6 +5,9 @@ plugins {
 
 kotlin {
     js {
+        compilations.configureEach {
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+        }
         browser {
             commonWebpackConfig {
                 cssSupport.enabled = true
