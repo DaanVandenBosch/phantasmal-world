@@ -28,7 +28,7 @@ proxy: {
       # Name used for e.g. the logs. Should contain only alpha-numeric characters, minus (-) or
       # underscore (_).
       name: patch_proxy
-      # PC or BB, determines the message format encryption cipher used.
+      # PC or BB, determines the message format and encryption cipher used.
       version: PC
       # Local port the proxy will listen on.
       bindPort: 11000

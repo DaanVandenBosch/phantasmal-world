@@ -1,10 +1,8 @@
 # Phantasmal World
 
-[Phantasmal World](https://www.phantasmal.world/) is a suite of tools for Phantasy Star Online.
-
-## PSO Server
-
-Phantasmal world contains a [PSO server](psoserv/README.md).
+Phantasmal World is a collection of software for Phantasy Star Online.
+The [web aplication](https://www.phantasmal.world/) has a model viewer, quest editor and hunt
+optimizer. There is also a work-in-progress [PSO server](psoserv/README.md).
 
 ## Developers
 
@@ -26,26 +24,36 @@ See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 ### Getting Started
 
-1. Install Java 11+ (e.g. [AdoptOpenJDK](https://adoptopenjdk.net/)
-   or [GraalVM](https://www.graalvm.org/downloads/))
+1. Install Java 11+ ([GraalVM](https://www.graalvm.org/downloads/) is recommended, and necessary if
+   you want to produce native builds of the PSO server)
 2. Ensure the JAVA_HOME environment variable is set to JDK's location
-3. `cd` to the project directory
-4. Launch webpack server on [http://localhost:1623/](http://localhost:1623/)
+
+Then, for the web application:
+
+1. `cd` to the project directory
+2. Launch webpack server on [http://localhost:1623/](http://localhost:1623/)
    with `./gradlew :web:run --continuous`
-5. [web/src/main/kotlin/world/phantasmal/web/Main.kt](web/src/main/kotlin/world/phantasmal/web/Main.kt)
+3. [web/src/main/kotlin/world/phantasmal/web/Main.kt](web/src/main/kotlin/world/phantasmal/web/Main.kt)
    is the application's entry point
+
+For the PSO server:
+
+1. `cd` to the project directory
+2. Start the server with `./gradlew :psoserv:run`
+3. [psoserv/src/main/kotlin/world/phantasmal/psoserv/Main.kt](psoserv/src/main/kotlin/world/phantasmal/psoserv/Main.kt)
+   is the server's entry point
 
 [IntelliJ IDEA](https://www.jetbrains.com/idea/download/) is recommended for development. IntelliJ
 setup:
 
 1. Use Ctrl-Alt-Shift-S to open the Project Structure window and select a JDK (you can let IntelliJ
    download a JDK if you don't have a compatible one installed)
-2. Configure the Gradle run task:
-   1. In the Gradle window, right click web -> Tasks -> other -> run
-   2. Click "Modify Run Configuration..."
-   3. Add `--continuous` to the arguments field
-   4. Click OK
-   5. You can now start the webpack server from the main toolbar
+2. Configure the Gradle run task for the web application:
+    1. In the Gradle window, right click web -> Tasks -> other -> run
+    2. Click "Modify Run Configuration..."
+    3. Add `--continuous` to the arguments field
+    4. Click OK
+    5. You can now start the webpack server from the main toolbar
 
 ### Exploring the Code Base
 
@@ -85,12 +93,19 @@ Work-in-progress PSO server and fully functional PSO proxy server.
 ### Unit Tests
 
 Run the unit tests with `./gradlew check`. JS tests are run with Karma and Mocha, JVM tests with
-Junit 5.
+Junit 5. Tests can also be run per project with e.g. `./gradlew :psolib:check`.
 
 ### Code Style and Formatting
 
 The Kotlin [coding conventions](https://kotlinlang.org/docs/coding-conventions.html) are used.
 
-### Production Build
+### Production Builds
+
+#### Web Application
 
 Create an optimized production build with `./gradlew :web:browserDistribution`.
+
+#### PSO Server
+
+Create a native production build with `./gradlew :psoserv:nativeBuild`. Cross-compilation is not
+possible, this command has to be run on each platform.
