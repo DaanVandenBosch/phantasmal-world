@@ -3,7 +3,6 @@ package world.phantasmal
 plugins {
     kotlin("multiplatform")
     id("world.phantasmal.common")
-    id("world.phantasmal.karma-resources")
 }
 
 val coroutinesVersion: String by project.ext
@@ -12,7 +11,7 @@ val kotlinLoggingVersion: String by project.extra
 val log4jVersion: String by project.extra
 
 kotlin {
-    js {
+    js(IR) {
         browser {
             testTask {
                 useKarma {
@@ -32,10 +31,6 @@ kotlin {
     }
 
     sourceSets {
-        configureEach {
-            EXPERIMENTAL_ANNOTATIONS.forEach(languageSettings::optIn)
-        }
-
         commonMain {
             dependencies {
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
