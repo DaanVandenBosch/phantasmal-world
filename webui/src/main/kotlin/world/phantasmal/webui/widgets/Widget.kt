@@ -217,13 +217,6 @@ abstract class Widget(
             el
         }
 
-        init {
-            js("require('@fortawesome/fontawesome-free/js/fontawesome');")
-            js("require('@fortawesome/fontawesome-free/js/solid');")
-            js("require('@fortawesome/fontawesome-free/js/regular');")
-            js("require('@fortawesome/fontawesome-free/js/brands');")
-        }
-
         protected fun style(style: String) {
             STYLE_EL.append(style)
         }

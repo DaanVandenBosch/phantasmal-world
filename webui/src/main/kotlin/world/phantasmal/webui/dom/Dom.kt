@@ -10,10 +10,18 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.core.unsafe.UnsafeMap
+import world.phantasmal.core.unsafe.getOrPut
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.ListChange
 import world.phantasmal.observable.cell.list.ListChangeEvent
+import world.phantasmal.webui.externals.fontawesome.IconDefinition
+import world.phantasmal.webui.externals.fontawesome.freeBrandsSvgIcons.faGithub
+import world.phantasmal.webui.externals.fontawesome.freeRegularSvgIcons.faCaretSquareRight
+import world.phantasmal.webui.externals.fontawesome.freeRegularSvgIcons.faEye
+import world.phantasmal.webui.externals.fontawesome.freeSolidSvgIcons.*
+import world.phantasmal.webui.externals.fontawesome.icon as faIcon
 
 fun <E : Event> EventTarget.disposableListener(
     type: String,
@@ -120,32 +128,36 @@ enum class Icon {
     Undo,
 }
 
+/** Fontawesome icons. */
+private val faElementCache = UnsafeMap<IconDefinition, Element>()
+
 fun Node.icon(icon: Icon): HTMLElement {
-    val iconStr = when (icon) {
-        Icon.ArrowDown -> "fas fa-arrow-down"
-        Icon.ArrowRight -> "fas fa-arrow-right"
-        Icon.Eye -> "far fa-eye"
-        Icon.File -> "fas fa-file"
-        Icon.GitHub -> "fab fa-github"
-        Icon.LevelDown -> "fas fa-level-down-alt"
-        Icon.LevelUp -> "fas fa-level-up-alt"
-        Icon.LongArrowRight -> "fas fa-long-arrow-alt-right"
-        Icon.NewFile -> "fas fa-file-medical"
-        Icon.Play -> "fas fa-play"
-        Icon.Plus -> "fas fa-plus"
-        Icon.Redo -> "fas fa-redo"
-        Icon.Remove -> "fas fa-trash-alt"
-        Icon.Save -> "fas fa-save"
-        Icon.Stop -> "fas fa-stop"
-        Icon.SquareArrowRight -> "far fa-caret-square-right"
-        Icon.TriangleDown -> "fas fa-caret-down"
-        Icon.TriangleUp -> "fas fa-caret-up"
-        Icon.Undo -> "fas fa-undo"
+    val iconDef = when (icon) {
+        Icon.ArrowDown -> faArrowDown
+        Icon.ArrowRight -> faArrowRight
+        Icon.Eye -> faEye
+        Icon.File -> faFile
+        Icon.GitHub -> faGithub
+        Icon.LevelDown -> faLevelDownAlt
+        Icon.LevelUp -> faLevelUpAlt
+        Icon.LongArrowRight -> faLongArrowAltRight
+        Icon.NewFile -> faFileMedical
+        Icon.Play -> faPlay
+        Icon.Plus -> faPlus
+        Icon.Redo -> faRedo
+        Icon.Remove -> faTrashAlt
+        Icon.Save -> faSave
+        Icon.Stop -> faStop
+        Icon.SquareArrowRight -> faCaretSquareRight
+        Icon.TriangleDown -> faCaretDown
+        Icon.TriangleUp -> faCaretUp
+        Icon.Undo -> faUndo
     }
 
-    // Wrap the span in another span, because Font Awesome will replace the inner element. This way
-    // the returned element will stay valid.
-    return span { span { className = iconStr } }
+    return span {
+        val iconEl = faElementCache.getOrPut(iconDef) { faIcon(iconDef).node[0]!! }
+        append(iconEl.cloneNode(deep = true))
+    }
 }
 
 fun <T> bindChildrenTo(

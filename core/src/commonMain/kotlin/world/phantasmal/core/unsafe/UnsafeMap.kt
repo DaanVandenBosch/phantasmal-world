@@ -12,3 +12,14 @@ expect class UnsafeMap<K, V>() {
     fun set(key: K, value: V)
     fun delete(key: K): Boolean
 }
+
+fun <K, V : Any> UnsafeMap<K, V>.getOrPut(key: K, default: () -> V): V {
+    var value = get(key)
+
+    if (value == null) {
+        value = default()
+        set(key, value)
+    }
+
+    return value
+}
