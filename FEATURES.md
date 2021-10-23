@@ -190,3 +190,4 @@ Features that are in ***bold italics*** are planned but not yet implemented.
         - Desert Fixed Type Box (Breakable Crystals)
         - Merissa A
         - Merissa AA
+- Hunt optimizer combobox doesn't show any items when menu is initially opened
