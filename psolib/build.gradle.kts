@@ -58,7 +58,7 @@ val generateOpcodes = tasks.register("generateOpcodes") {
 
         outputFile.printWriter()
             .use { writer ->
-                writer.println("@file:Suppress(\"unused\")")
+                writer.println("@file:Suppress(\"unused\", \"BooleanLiteralArgument\")")
                 writer.println()
                 writer.println("package $packageName")
                 writer.println()
