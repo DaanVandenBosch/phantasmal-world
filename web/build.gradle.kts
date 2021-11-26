@@ -1,9 +1,21 @@
 plugins {
-    id("world.phantasmal.js")
+    kotlin("js") version "1.6.0"
+}
+
+repositories {
+    mavenCentral()
 }
 
 kotlin {
-    js {
+    js(IR) {
+        browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
+            }
+        }
+
         binaries.executable()
     }
 }
