@@ -4,13 +4,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import world.phantasmal.core.*
+import world.phantasmal.core.JsObject
+import world.phantasmal.core.component1
+import world.phantasmal.core.component2
 import world.phantasmal.core.unsafe.UnsafeMap
-import world.phantasmal.psolib.fileFormats.quest.NpcType
+import world.phantasmal.core.unsafe.UnsafeSet
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.EnemyDropTable
 import world.phantasmal.web.core.stores.ItemDropStore
@@ -138,7 +141,7 @@ class HuntOptimizerStore(
         // Each variable has a matching FullMethod.
         val fullMethods = UnsafeMap<String, FullMethod>()
 
-        val wantedItemTypeIds = emptyJsSet<Int>()
+        val wantedItemTypeIds = UnsafeSet<Int>()
 
         for (wanted in filteredWantedItems) {
             wantedItemTypeIds.add(wanted.itemType.id)
@@ -191,7 +194,7 @@ class HuntOptimizerStore(
 
     private fun createFullMethods(
         dropTable: EnemyDropTable,
-        wantedItemTypeIds: JsSet<Int>,
+        wantedItemTypeIds: UnsafeSet<Int>,
         method: HuntMethodModel,
         defaultCounts: UnsafeMap<NpcType, Double>,
         splitPanArms: Boolean,
@@ -260,7 +263,7 @@ class HuntOptimizerStore(
     }
 
     private fun solve(
-        wantedItemTypeIds: JsSet<Int>,
+        wantedItemTypeIds: UnsafeSet<Int>,
         constraints: dynamic,
         variables: dynamic,
         fullMethods: UnsafeMap<String, FullMethod>,
@@ -277,13 +280,13 @@ class HuntOptimizerStore(
         }
 
         // Loop over the entries in result, ignore standard properties that aren't variables.
-        return objectEntries(result).mapNotNull { (variableName, runsOrOther) ->
+        return JsObject.entries(result).mapNotNull { (variableName, runsOrOther) ->
             fullMethods.get(variableName)?.let { fullMethod ->
                 val runs = runsOrOther as Double
                 val variable = variables[variableName]
 
                 val itemTypeIdToCount: Map<Int, Double> =
-                    objectEntries(variable)
+                    JsObject.entries(variable)
                         .mapNotNull { (itemTypeIdStr, expectedAmount) ->
                             itemTypeIdStr.toIntOrNull()?.let { itemTypeId ->
                                 if (wantedItemTypeIds.has(itemTypeId)) {
@@ -318,7 +321,7 @@ class HuntOptimizerStore(
                         if (v == null) {
                             matchFound = false
                         } else {
-                            for ((itemName, expectedAmount) in objectEntries(variable)) {
+                            for ((itemName, expectedAmount) in JsObject.entries(variable)) {
                                 if (v[itemName] != expectedAmount.unsafeCast<Double>()) {
                                     matchFound = false
                                     break

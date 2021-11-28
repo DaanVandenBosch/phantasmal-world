@@ -3,12 +3,15 @@ package world.phantasmal.core.disposable
 /**
  * A global count is kept of all undisposed instances of this class.
  * This count can be used to find memory leaks.
+ *
+ * Tracking is not thread-safe.
  */
 abstract class TrackedDisposable : Disposable {
     var disposed = false
         private set
 
     init {
+        // Suppress this warning, because track simply adds this disposable to a set at this point.
         @Suppress("LeakingThis")
         track(this)
     }

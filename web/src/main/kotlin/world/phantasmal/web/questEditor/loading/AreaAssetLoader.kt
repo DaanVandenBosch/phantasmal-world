@@ -2,6 +2,8 @@ package world.phantasmal.web.questEditor.loading
 
 import org.khronos.webgl.ArrayBuffer
 import world.phantasmal.core.*
+import world.phantasmal.core.unsafe.UnsafeSet
+import world.phantasmal.core.unsafe.unsafeSetOf
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.cursor.cursor
@@ -20,9 +22,7 @@ import world.phantasmal.webui.DisposableContainer
 import kotlin.math.PI
 import kotlin.math.cos
 
-interface AreaUserData {
-    var section: SectionModel?
-}
+class AreaUserData(val section: SectionModel?)
 
 /**
  * Loads and caches area assets.
@@ -65,9 +65,11 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
     suspend fun loadSections(episode: Episode, areaVariant: AreaVariantModel): List<SectionModel> =
         cache.get(EpisodeAndAreaVariant(episode, areaVariant)).sections
 
+    /** The returned object is not copyable because it contains non-serializable user data. */
     suspend fun loadRenderGeometry(episode: Episode, areaVariant: AreaVariantModel): Object3D =
         cache.get(EpisodeAndAreaVariant(episode, areaVariant)).renderGeometry
 
+    /** The returned object is not copyable because it contains non-serializable user data. */
     suspend fun loadCollisionGeometry(
         episode: Episode,
         areaVariant: AreaVariantModel,
@@ -94,14 +96,14 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             tmpIntersections.asJsArray().splice(0)
             val intersection1 = raycaster
                 .intersectObject(renderGeom, true, tmpIntersections)
-                .find { (it.`object`.userData.unsafeCast<AreaUserData>()).section != null }
+                .find { it.`object`.userData is AreaUserData }
 
             // Cast a ray upward from the center of the section.
             raycaster.set(origin, UP)
             tmpIntersections.asJsArray().splice(0)
             val intersection2 = raycaster
                 .intersectObject(renderGeom, true, tmpIntersections)
-                .find { (it.`object`.userData.unsafeCast<AreaUserData>()).section != null }
+                .find { it.`object`.userData is AreaUserData }
 
             // Choose the nearest intersection if we have 2.
             val intersection =
@@ -113,9 +115,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                 }
 
             if (intersection != null) {
-                val cud = collisionMesh.userData.unsafeCast<AreaUserData>()
-                val rud = intersection.`object`.userData.unsafeCast<AreaUserData>()
-                cud.section = rud.section
+                collisionMesh.userData = intersection.`object`.userData
             }
         }
     }
@@ -194,7 +194,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                         )
                     }
 
-                    (mesh.userData.unsafeCast<AreaUserData>()).section = sectionModel
+                    mesh.userData = AreaUserData(sectionModel)
                 }
             }
 
@@ -241,12 +241,12 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
          * regular geometry. Might not be necessary anymore once order-independent rendering is
          * implemented.
          */
-        private val renderOnTopTextures: JsSet<Int> = emptyJsSet(),
+        private val renderOnTopTextures: UnsafeSet<Int> = UnsafeSet(),
         /**
          * Set of [AreaObject] finger prints.
          * These objects should be hidden because they cover floors and other useful geometry.
          */
-        private val hiddenObjects: JsSet<String> = emptyJsSet(),
+        private val hiddenObjects: UnsafeSet<String> = UnsafeSet(),
     ) {
         fun shouldRenderOnTop(obj: XjObject): Boolean {
             obj.model?.meshes?.let { meshes ->
@@ -330,7 +330,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         private val MANUAL_FIXES: Map<Pair<Episode, Int>, Fix> = mutableMapOf(
             // Pioneer 2
             Pair(Episode.I, 0) to Fix(
-                renderOnTopTextures = jsSetOf(
+                renderOnTopTextures = unsafeSetOf(
                     20,
                     40,
                     41,
@@ -360,7 +360,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     234,
                     243,
                 ),
-                hiddenObjects = jsSetOf(
+                hiddenObjects = unsafeSetOf(
                     "s_m_0_6a_d_iu5sg6",
                     "s_m_0_4b_7_ioh738",
                     "s_k_0_1s_3_irasis",
@@ -398,9 +398,9 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Forest 1
             Pair(Episode.I, 1) to Fix(
-                renderOnTopTextures = jsSetOf(12, 24, 41),
+                renderOnTopTextures = unsafeSetOf(12, 24, 41),
                 // Hiding trees and their shadows doesn't seem to improve things.
-//                hiddenObjects = jsSetOf(
+//                hiddenObjects = unsafeSetOf(
 //                    // Trees
 //                    "s_n_0_2i_2_im1teq",
 //                    "s_n_0_2i_2_im1tep",
@@ -425,8 +425,8 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Cave 1
             Pair(Episode.I, 3) to Fix(
-                renderOnTopTextures = jsSetOf(89),
-                hiddenObjects = jsSetOf(
+                renderOnTopTextures = unsafeSetOf(89),
+                hiddenObjects = unsafeSetOf(
                     "s_n_0_8_1_iqrqjj",
                     "s_i_0_b5_1_is7ajh",
                     "s_n_0_24_1_in5ce2",
@@ -463,7 +463,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Cave 2
             Pair(Episode.I, 4) to Fix(
-                hiddenObjects = jsSetOf(
+                hiddenObjects = unsafeSetOf(
                     "s_n_0_4j_1_irf90i",
                     "s_n_0_5i_1_iqqrft",
                     "s_n_0_g_1_iipv9r",
@@ -490,7 +490,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Cave 3
             Pair(Episode.I, 5) to Fix(
-                hiddenObjects = jsSetOf(
+                hiddenObjects = unsafeSetOf(
                     "s_n_0_2o_5_inun1c",
                     "s_n_0_5y_2_ipyair",
                     "s_n_0_6s_1_ineank",
@@ -540,7 +540,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Mine 1
             Pair(Episode.I, 6) to Fix(
-                hiddenObjects = jsSetOf(
+                hiddenObjects = unsafeSetOf(
                     "s_n_0_2e_2_iqfpg8",
                     "s_n_0_d_1_iruof6",
                     "s_n_0_o_1_im9ta5",
@@ -628,8 +628,8 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Mine 2
             Pair(Episode.I, 7) to Fix(
-                renderOnTopTextures = jsSetOf(0, 1, 7, 17, 23, 56, 57, 58, 59, 60, 83),
-                hiddenObjects = jsSetOf(
+                renderOnTopTextures = unsafeSetOf(0, 1, 7, 17, 23, 56, 57, 58, 59, 60, 83),
+                hiddenObjects = unsafeSetOf(
                     "s_n_0_22_4_imqetn",
                     "s_n_0_25_4_imqeto",
                     "s_n_0_26_4_imqeto",
@@ -719,8 +719,8 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Ruins 1
             Pair(Episode.I, 8) to Fix(
-                renderOnTopTextures = jsSetOf(1, 21, 22, 27, 28, 43, 51, 59, 70, 72, 75),
-                hiddenObjects = jsSetOf(
+                renderOnTopTextures = unsafeSetOf(1, 21, 22, 27, 28, 43, 51, 59, 70, 72, 75),
+                hiddenObjects = unsafeSetOf(
                     "s_n_0_2p_4_iohs6r",
                     "s_n_0_2q_4_iohs6r",
                     "s_m_0_l_1_io448k",
@@ -728,18 +728,18 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Ruins 2
             Pair(Episode.I, 9) to Fix(
-                hiddenObjects = jsSetOf(
+                hiddenObjects = unsafeSetOf(
                     "s_m_0_l_1_io448k",
                 ),
             ),
             // Lab
             Pair(Episode.II, 0) to Fix(
-                renderOnTopTextures = jsSetOf(36, 37, 38, 48, 60, 67, 79, 80),
+                renderOnTopTextures = unsafeSetOf(36, 37, 38, 48, 60, 67, 79, 80),
             ),
             // VR Spaceship Alpha
             Pair(Episode.II, 3) to Fix(
-                renderOnTopTextures = jsSetOf(7, 59),
-                hiddenObjects = jsSetOf(
+                renderOnTopTextures = unsafeSetOf(7, 59),
+                hiddenObjects = unsafeSetOf(
                     "s_l_0_45_5_ing07n",
                     "s_n_0_45_5_ing07k",
                     "s_n_0_g2_b_im2en1",
@@ -774,12 +774,12 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Central Control Area
             Pair(Episode.II, 5) to Fix(
-                renderOnTopTextures = jsSetOf(*((0..59).toSet() + setOf(69, 77)).toTypedArray()),
+                renderOnTopTextures = unsafeSetOf(*((0..59).toSet() + setOf(69, 77)).toTypedArray()),
             ),
             // Jungle Area East
             Pair(Episode.II, 6) to Fix(
-                renderOnTopTextures = jsSetOf(0, 1, 2, 18, 21, 24),
-                hiddenObjects = jsSetOf(
+                renderOnTopTextures = unsafeSetOf(0, 1, 2, 18, 21, 24),
+                hiddenObjects = unsafeSetOf(
                     "a_m_0_1i_1_isf1hw",
                     "a_m_0_1i_1_isfvf0",
                     "a_m_0_1i_1_ise7ew",
@@ -802,8 +802,8 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Subterranean Desert 1
             Pair(Episode.IV, 6) to Fix(
-                renderOnTopTextures = jsSetOf(48, 50, 58, 66, 80, 81, 92, 93, 94, 99, 100, 103),
-                hiddenObjects = jsSetOf(
+                renderOnTopTextures = unsafeSetOf(48, 50, 58, 66, 80, 81, 92, 93, 94, 99, 100, 103),
+                hiddenObjects = unsafeSetOf(
                     "s_v_f_16u_b_j2s5tx",
                     "s_v_d_84_f_j046sf",
                     "s_v_1v_205_2n_jb17vl",

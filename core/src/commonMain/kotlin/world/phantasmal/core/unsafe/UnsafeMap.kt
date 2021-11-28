@@ -2,8 +2,22 @@ package world.phantasmal.core.unsafe
 
 /**
  * Map optimized for JS (it compiles to the built-in Map).
+ *
  * In JS, keys are compared by reference, equals and hashCode are NOT invoked. On JVM, equals and
  * hashCode ARE used.
+ *
+ * DO NOT USE THIS UNLESS ALL THE FOLLOWING REQUIREMENTS ARE MET:
+ *
+ * 1. It improves performance substantially.
+ *    If it doesn't improve performance by a very noticeable amount, it's not worth the risk.
+ *
+ * 2. It's only used internally.
+ *    E.g. in a private property which no other code can access and misuse accidentally. This way
+ *    only a small part of the code can contain hard to discover errors.
+ *
+ * 3. The keys used do not require equals or hashCode to be called in JS.
+ *    E.g. Int, String, objects which you consider equal if and only if they are the exact same
+ *    instance.
  */
 expect class UnsafeMap<K, V>() {
     fun get(key: K): V?
@@ -13,7 +27,7 @@ expect class UnsafeMap<K, V>() {
     fun delete(key: K): Boolean
 }
 
-fun <K, V : Any> UnsafeMap<K, V>.getOrPut(key: K, default: () -> V): V {
+inline fun <K, V : Any> UnsafeMap<K, V>.getOrPut(key: K, default: () -> V): V {
     var value = get(key)
 
     if (value == null) {

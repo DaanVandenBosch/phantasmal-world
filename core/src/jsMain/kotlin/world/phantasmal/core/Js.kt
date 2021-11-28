@@ -2,6 +2,9 @@
 
 package world.phantasmal.core
 
+import org.w3c.dom.DOMRectReadOnly
+import org.w3c.dom.Element
+
 external interface JsArray<T> {
     val length: Int
 
@@ -43,23 +46,19 @@ inline val <T> JsPair<*, T>.second: T get() = asDynamic()[1].unsafeCast<T>()
 inline operator fun <T> JsPair<T, *>.component1(): T = first
 inline operator fun <T> JsPair<*, T>.component2(): T = second
 
-@Suppress("UNUSED_PARAMETER")
-inline fun objectEntries(jsObject: dynamic): Array<JsPair<String, dynamic>> =
-    js("Object.entries(jsObject)").unsafeCast<Array<JsPair<String, dynamic>>>()
-
-external interface JsSet<T> {
-    val size: Int
-
-    fun add(value: T): JsSet<T>
-    fun clear()
-    fun delete(value: T): Boolean
-    fun has(value: T): Boolean
-    fun forEach(callback: (value: T) -> Unit)
+@JsName("Object")
+external class JsObject {
+    companion object {
+        fun entries(jsObject: dynamic): Array<JsPair<String, dynamic>>
+    }
 }
 
-inline fun <T> emptyJsSet(): JsSet<T> =
-    js("new Set()").unsafeCast<JsSet<T>>()
+external class ResizeObserver(callback: (entries: Array<ResizeObserverEntry>) -> Unit) {
+    fun observe(target: Element)
+    fun unobserve(target: Element)
+    fun disconnect()
+}
 
-@Suppress("UNUSED_PARAMETER")
-inline fun <T> jsSetOf(vararg values: T): JsSet<T> =
-    js("new Set(values)").unsafeCast<JsSet<T>>()
+external interface ResizeObserverEntry {
+    val contentRect: DOMRectReadOnly
+}

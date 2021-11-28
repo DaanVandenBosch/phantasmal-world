@@ -107,4 +107,27 @@ class AsmTokenizationTests : LibTestSuite {
         assertEquals(len, this.len)
         assertFalse(nextToken())
     }
+
+    @Test
+    fun valid_identifiers_are_parsed_as_Ident_tokens() {
+        val tokenizer = LineTokenizer()
+
+        tokenizer.testIdent("  opcode_mnemonic ", "opcode_mnemonic", col = 3, len = 15)
+        tokenizer.testIdent("inst_1", "inst_1", col = 1, len = 6)
+    }
+
+    private fun LineTokenizer.testIdent(
+        line: String,
+        value: String,
+        col: Int,
+        len: Int,
+    ) {
+        tokenize(line)
+        assertTrue(nextToken())
+        assertEquals(Token.Ident, this.type)
+        assertEquals(value, this.strValue)
+        assertEquals(col, this.col)
+        assertEquals(len, this.len)
+        assertFalse(nextToken())
+    }
 }

@@ -14,21 +14,8 @@ import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.toQuaternion
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.obj
-import kotlin.collections.List
-import kotlin.collections.MutableList
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.forEach
-import kotlin.collections.forEachIndexed
-import kotlin.collections.getOrPut
-import kotlin.collections.indices
-import kotlin.collections.iterator
-import kotlin.collections.last
-import kotlin.collections.map
-import kotlin.collections.mutableListOf
-import kotlin.collections.mutableMapOf
-import kotlin.collections.sum
-import kotlin.collections.withIndex
 
 private val logger = KotlinLogging.logger {}
 
@@ -92,10 +79,7 @@ private val tmpNormal = Vector3()
 private val tmpVec = Vector3()
 private val tmpNormalMatrix = Matrix3()
 
-interface AreaObjectUserData {
-    var sectionId: Int
-    var areaObject: AreaObject
-}
+class AreaObjectUserData(val sectionId: Int, val areaObject: AreaObject)
 
 fun ninjaObjectToMesh(
     ninjaObject: NinjaObject<*, *>,
@@ -141,6 +125,7 @@ fun ninjaObjectToMeshBuilder(
     NinjaToMeshConverter(builder).convert(ninjaObject)
 }
 
+/** The returned group is not copyable because it contains non-serializable user data. */
 fun renderGeometryToGroup(
     renderGeometry: AreaGeometry,
     textures: List<XvrTexture?>,
@@ -221,6 +206,7 @@ fun AreaObject.fingerPrint(): String =
         append(radius.toRawBits().toUInt().toString(36))
     }
 
+/** The returned mesh is not copyable because it contains non-serializable user data. */
 private fun areaObjectToMesh(
     textures: List<XvrTexture?>,
     textureCache: UnsafeMap<Int, Texture?>,
@@ -230,9 +216,10 @@ private fun areaObjectToMesh(
     areaObj: AreaObject,
     processMesh: (AreaSection, AreaObject, Mesh) -> Unit,
 ): Mesh {
-    var mesh = meshCache.get(areaObj.xjObject)
+    val cachedMesh = meshCache.get(areaObj.xjObject)
+    val mesh: Mesh
 
-    if (mesh == null) {
+    if (cachedMesh == null) {
         val builder = MeshBuilder(textures, textureCache)
         ninjaObjectToMeshBuilder(areaObj.xjObject, builder)
 
@@ -248,13 +235,10 @@ private fun areaObjectToMesh(
     } else {
         // If we already have a mesh for this XjObject, make a copy and reuse the existing buffer
         // geometry and materials.
-        mesh = Mesh(mesh.geometry, mesh.material.unsafeCast<Array<Material>>())
+        mesh = Mesh(cachedMesh.geometry, cachedMesh.material.unsafeCast<Array<Material>>())
     }
 
-    val userData = mesh.userData.unsafeCast<AreaObjectUserData>()
-    userData.sectionId = section.id
-    userData.areaObject = areaObj
-
+    mesh.userData = AreaObjectUserData(section.id, areaObj)
     mesh.position.setFromVec3(section.position)
     mesh.rotation.setFromVec3(section.rotation)
     mesh.updateMatrixWorld()
