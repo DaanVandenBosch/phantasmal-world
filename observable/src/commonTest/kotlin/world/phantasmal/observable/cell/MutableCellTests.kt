@@ -1,9 +1,6 @@
 package world.phantasmal.observable.cell
 
-import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.Dependent
-import world.phantasmal.observable.change
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

@@ -1,5 +1,6 @@
 package world.phantasmal.observable.cell.list
 
+import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.Dependent
@@ -14,7 +15,7 @@ class FilteredListCell<E>(
      */
     private val indexMap = mutableListOf<Int>()
 
-    private val elements = mutableListOf<E>()
+    override val elements = mutableListOf<E>()
 
     override val value: List<E>
         get() {
@@ -22,7 +23,7 @@ class FilteredListCell<E>(
                 recompute()
             }
 
-            return elements
+            return elementsWrapper
         }
 
     override fun addDependent(dependent: Dependent) {
@@ -125,6 +126,7 @@ class FilteredListCell<E>(
                                     }
                                 }
 
+                                copyAndResetWrapper()
                                 elements.add(insertIndex, change.updated)
                                 indexMap[change.index] = insertIndex
 
@@ -151,6 +153,7 @@ class FilteredListCell<E>(
                             if (index != -1) {
                                 // If the element now doesn't pass the test and it previously did
                                 // pass, remove it and emit a structural change.
+                                copyAndResetWrapper()
                                 elements.removeAt(index)
                                 indexMap[change.index] = -1
 
@@ -181,7 +184,7 @@ class FilteredListCell<E>(
             if (filteredChanges.isEmpty()) {
                 emitDependencyChanged(null)
             } else {
-                emitDependencyChanged(ListChangeEvent(elements, filteredChanges))
+                emitDependencyChanged(ListChangeEvent(elementsWrapper, filteredChanges))
             }
         } else {
             emitDependencyChanged(null)
@@ -195,6 +198,7 @@ class FilteredListCell<E>(
     }
 
     private fun recompute() {
+        copyAndResetWrapper()
         elements.clear()
         indexMap.clear()
 

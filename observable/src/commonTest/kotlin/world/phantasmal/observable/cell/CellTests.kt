@@ -122,6 +122,32 @@ interface CellTests : ObservableTests {
         }
     }
 
+    /**
+     * [Cell.value] should correctly reflect changes even when the [Cell] has no observers.
+     * Typically this means that the cell's value is not updated in real time, only when it is
+     * queried.
+     */
+    @Test
+    fun reflects_changes_without_observers() = test {
+        val p = createProvider()
+
+        var old: Any?
+
+        repeat(5) {
+            // Value should change after emit.
+            old = p.observable.value
+
+            p.emit()
+
+            val new = p.observable.value
+
+            assertNotEquals(old, new)
+
+            // Value should not change when emit hasn't been called since the last access.
+            assertEquals(new, p.observable.value)
+        }
+    }
+
     interface Provider : ObservableTests.Provider {
         override val observable: Cell<Any>
     }

@@ -17,7 +17,7 @@ typealias DependenciesExtractor<E> = (element: E) -> Array<Dependency>
  * event.
  */
 class SimpleListCell<E>(
-    private val elements: MutableList<E>,
+    override val elements: MutableList<E>,
     private val extractDependencies: DependenciesExtractor<E>? = null,
 ) : AbstractListCell<E>(), MutableListCell<E> {
 
@@ -30,7 +30,7 @@ class SimpleListCell<E>(
     private var changes = mutableListOf<ListChange<E>>()
 
     override var value: List<E>
-        get() = elements
+        get() = elementsWrapper
         set(value) {
             replaceAll(value)
         }
@@ -42,6 +42,7 @@ class SimpleListCell<E>(
         checkIndex(index, elements.lastIndex)
         emitMightChange()
 
+        copyAndResetWrapper()
         val removed = elements.set(index, element)
 
         if (dependents.isNotEmpty() && extractDependencies != null) {
@@ -59,6 +60,7 @@ class SimpleListCell<E>(
         emitMightChange()
 
         val index = elements.size
+        copyAndResetWrapper()
         elements.add(element)
 
         finalizeStructuralChange(index, emptyList(), listOf(element))
@@ -68,6 +70,7 @@ class SimpleListCell<E>(
         checkIndex(index, elements.size)
         emitMightChange()
 
+        copyAndResetWrapper()
         elements.add(index, element)
 
         finalizeStructuralChange(index, emptyList(), listOf(element))
@@ -88,6 +91,7 @@ class SimpleListCell<E>(
         checkIndex(index, elements.lastIndex)
         emitMightChange()
 
+        copyAndResetWrapper()
         val removed = elements.removeAt(index)
 
         finalizeStructuralChange(index, listOf(removed), emptyList())
@@ -97,19 +101,21 @@ class SimpleListCell<E>(
     override fun replaceAll(elements: Iterable<E>) {
         emitMightChange()
 
-        val removed = ArrayList(this.elements)
+        val removed = elementsWrapper
+        copyAndResetWrapper()
         this.elements.replaceAll(elements)
 
-        finalizeStructuralChange(0, removed, ArrayList(this.elements))
+        finalizeStructuralChange(0, removed, elementsWrapper)
     }
 
     override fun replaceAll(elements: Sequence<E>) {
         emitMightChange()
 
-        val removed = ArrayList(this.elements)
+        val removed = elementsWrapper
+        copyAndResetWrapper()
         this.elements.replaceAll(elements)
 
-        finalizeStructuralChange(0, removed, ArrayList(this.elements))
+        finalizeStructuralChange(0, removed, elementsWrapper)
     }
 
     override fun splice(fromIndex: Int, removeCount: Int, newElement: E) {
@@ -121,6 +127,7 @@ class SimpleListCell<E>(
 
         emitMightChange()
 
+        copyAndResetWrapper()
         repeat(removeCount) { elements.removeAt(fromIndex) }
         elements.add(fromIndex, newElement)
 
@@ -130,7 +137,8 @@ class SimpleListCell<E>(
     override fun clear() {
         emitMightChange()
 
-        val removed = ArrayList(this.elements)
+        val removed = elementsWrapper
+        copyAndResetWrapper()
         elements.clear()
 
         finalizeStructuralChange(0, removed, emptyList())
@@ -139,7 +147,8 @@ class SimpleListCell<E>(
     override fun sortWith(comparator: Comparator<E>) {
         emitMightChange()
 
-        val removed = ArrayList(elements)
+        val removed = elementsWrapper
+        copyAndResetWrapper()
         var throwable: Throwable? = null
 
         try {
@@ -148,7 +157,7 @@ class SimpleListCell<E>(
             throwable = e
         }
 
-        finalizeStructuralChange(0, removed, ArrayList(elements))
+        finalizeStructuralChange(0, removed, elementsWrapper)
 
         if (throwable != null) {
             throw throwable
@@ -180,7 +189,7 @@ class SimpleListCell<E>(
     override fun emitDependencyChanged() {
         val currentChanges = changes
         changes = mutableListOf()
-        emitDependencyChanged(ListChangeEvent(elements, currentChanges))
+        emitDependencyChanged(ListChangeEvent(elementsWrapper, currentChanges))
     }
 
     private fun checkIndex(index: Int, maxIndex: Int) {

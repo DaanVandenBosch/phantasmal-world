@@ -29,7 +29,7 @@ class FlatteningDependentListCell<E>(
             computedCell = computeElements.invoke().also { computedCell ->
                 computedCell.addDependent(this)
                 computedInDeps = dependencies.any { it === computedCell }
-                elements = computedCell.value.toList()
+                elements = computedCell.value
             }
         }
 
@@ -70,6 +70,6 @@ class FlatteningDependentListCell<E>(
             shouldRecompute = false
         }
 
-        elements = unsafeAssertNotNull(computedCell).value.toList()
+        elements = unsafeAssertNotNull(computedCell).value
     }
 }
