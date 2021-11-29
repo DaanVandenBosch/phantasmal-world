@@ -2,13 +2,12 @@ package world.phantasmal.web.questEditor.rendering.input.state
 
 import mu.KotlinLogging
 import world.phantasmal.core.asJsArray
-import world.phantasmal.psolib.fileFormats.ninja.XjObject
 import world.phantasmal.observable.cell.Cell
+import world.phantasmal.psolib.fileFormats.ninja.XjObject
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.minusAssign
 import world.phantasmal.web.core.plusAssign
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
-import world.phantasmal.web.core.rendering.conversion.AreaObjectUserData
 import world.phantasmal.web.core.rendering.conversion.fingerPrint
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.actions.CreateEntityAction
@@ -264,7 +263,7 @@ class StateContext(
 
         if (mesh != null) {
             logger.info {
-                val userData = mesh.userData.unsafeCast<AreaObjectUserData>()
+                val userData = mesh.userData.unsafeCast<AreaUserData>()
 
                 val areaObj = userData.areaObject
                 val textureIds = mutableSetOf<Int>()
@@ -278,7 +277,7 @@ class StateContext(
 
                 buildString {
                     append("Section ")
-                    append(userData.sectionId)
+                    append(userData.section?.id ?: 0)
                     append(" (finger print: ")
                     append(areaObj.fingerPrint())
                     append(", texture IDs: ")

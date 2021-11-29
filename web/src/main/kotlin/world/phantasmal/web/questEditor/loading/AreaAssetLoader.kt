@@ -1,7 +1,8 @@
 package world.phantasmal.web.questEditor.loading
 
 import org.khronos.webgl.ArrayBuffer
-import world.phantasmal.core.*
+import world.phantasmal.core.asJsArray
+import world.phantasmal.core.isBitSet
 import world.phantasmal.core.unsafe.UnsafeSet
 import world.phantasmal.core.unsafe.unsafeSetOf
 import world.phantasmal.psolib.Endianness
@@ -19,10 +20,11 @@ import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.webui.DisposableContainer
+import kotlin.collections.set
 import kotlin.math.PI
 import kotlin.math.cos
 
-class AreaUserData(val section: SectionModel?)
+class AreaUserData(val section: SectionModel?, val areaObject: AreaObject)
 
 /**
  * Loads and caches area assets.
@@ -184,8 +186,8 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                     }
                 }
 
-                if (renderSection.id >= 0) {
-                    val sectionModel = sections.getOrPut(renderSection.id) {
+                val sectionModel = if (renderSection.id >= 0) {
+                    sections.getOrPut(renderSection.id) {
                         SectionModel(
                             renderSection.id,
                             vec3ToThree(renderSection.position),
@@ -193,9 +195,14 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                             areaVariant,
                         )
                     }
-
-                    mesh.userData = AreaUserData(sectionModel)
+                } else {
+                    null
                 }
+
+                mesh.userData = AreaUserData(
+                    sectionModel,
+                    mesh.userData.unsafeCast<AreaObjectUserData>().areaObject,
+                )
             }
 
         return Pair(group, sections.values.toList())
@@ -774,7 +781,9 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             ),
             // Central Control Area
             Pair(Episode.II, 5) to Fix(
-                renderOnTopTextures = unsafeSetOf(*((0..59).toSet() + setOf(69, 77)).toTypedArray()),
+                renderOnTopTextures = unsafeSetOf(
+                    *((0..59).toSet() + setOf(69, 77)).toTypedArray(),
+                ),
             ),
             // Jungle Area East
             Pair(Episode.II, 6) to Fix(
