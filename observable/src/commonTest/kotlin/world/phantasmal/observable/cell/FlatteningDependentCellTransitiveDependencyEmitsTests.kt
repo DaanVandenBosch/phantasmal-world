@@ -10,7 +10,7 @@ class FlatteningDependentCellTransitiveDependencyEmitsTests :
     override fun createProvider() = Provider()
 
     override fun <T> createWithValue(value: T): FlatteningDependentCell<T> {
-        val dependency = StaticCell(StaticCell(value))
+        val dependency = ImmutableCell(ImmutableCell(value))
         return FlatteningDependentCell(dependency) { dependency.value }
     }
 
@@ -19,7 +19,7 @@ class FlatteningDependentCellTransitiveDependencyEmitsTests :
         private val transitiveDependency = SimpleCell(5)
 
         // The direct dependency of the cell under test can't change.
-        private val directDependency = StaticCell(transitiveDependency)
+        private val directDependency = ImmutableCell(transitiveDependency)
 
         override val observable =
             FlatteningDependentCell(directDependency) { directDependency.value }
@@ -30,6 +30,6 @@ class FlatteningDependentCellTransitiveDependencyEmitsTests :
         }
 
         override fun createWithDependencies(vararg dependencies: Cell<Int>): Cell<Any> =
-            FlatteningDependentCell(*dependencies) { StaticCell(dependencies.sumOf { it.value }) }
+            FlatteningDependentCell(*dependencies) { ImmutableCell(dependencies.sumOf { it.value }) }
     }
 }

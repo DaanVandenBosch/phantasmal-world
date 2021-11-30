@@ -8,7 +8,7 @@ import world.phantasmal.observable.cell.SimpleCell
 class FlatteningDependentListCellDirectDependencyEmitsTests : ListCellTests {
     override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
         // The transitive dependency can't change.
-        private val transitiveDependency = StaticListCell(if (empty) emptyList() else listOf(7))
+        private val transitiveDependency = ImmutableListCell(if (empty) emptyList() else listOf(7))
 
         // The direct dependency of the list under test can change.
         private val directDependency = SimpleCell<ListCell<Int>>(transitiveDependency)
@@ -19,7 +19,7 @@ class FlatteningDependentListCellDirectDependencyEmitsTests : ListCellTests {
         override fun addElement() {
             // Update the direct dependency.
             val oldTransitiveDependency: ListCell<Int> = directDependency.value
-            directDependency.value = StaticListCell(oldTransitiveDependency.value + 4)
+            directDependency.value = ImmutableListCell(oldTransitiveDependency.value + 4)
         }
     }
 }

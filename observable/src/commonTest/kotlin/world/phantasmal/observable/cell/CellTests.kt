@@ -55,7 +55,7 @@ interface CellTests : ObservableTests {
     fun propagates_changes_to_flat_mapped_cell() = test {
         val p = createProvider()
 
-        val mapped = p.observable.flatMap { StaticCell(it.hashCode()) }
+        val mapped = p.observable.flatMap { ImmutableCell(it.hashCode()) }
         val initialValue = mapped.value
 
         var observedValue: Int? = null

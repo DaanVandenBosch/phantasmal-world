@@ -1,21 +1,27 @@
 package world.phantasmal.observable.cell
 
-private val TRUE_CELL: Cell<Boolean> = StaticCell(true)
-private val FALSE_CELL: Cell<Boolean> = StaticCell(false)
-private val NULL_CELL: Cell<Nothing?> = StaticCell(null)
-private val ZERO_INT_CELL: Cell<Int> = StaticCell(0)
-private val EMPTY_STRING_CELL: Cell<String> = StaticCell("")
+private val TRUE_CELL: Cell<Boolean> = ImmutableCell(true)
+private val FALSE_CELL: Cell<Boolean> = ImmutableCell(false)
+private val NULL_CELL: Cell<Nothing?> = ImmutableCell(null)
+private val ZERO_INT_CELL: Cell<Int> = ImmutableCell(0)
+private val EMPTY_STRING_CELL: Cell<String> = ImmutableCell("")
 
-fun <T> cell(value: T): Cell<T> = StaticCell(value)
+/** Returns an immutable cell containing [value]. */
+fun <T> cell(value: T): Cell<T> = ImmutableCell(value)
 
+/** Returns a singleton immutable cell containing the value `true`. */
 fun trueCell(): Cell<Boolean> = TRUE_CELL
 
+/** Returns a singleton immutable cell containing the value `false`. */
 fun falseCell(): Cell<Boolean> = FALSE_CELL
 
+/** Returns a singleton immutable cell containing the value `null`. */
 fun nullCell(): Cell<Nothing?> = NULL_CELL
 
+/** Returns a singleton immutable cell containing the integer value `0`. */
 fun zeroIntCell(): Cell<Int> = ZERO_INT_CELL
 
+/** Returns a singleton immutable cell containing the empty string (""). */
 fun emptyStringCell(): Cell<String> = EMPTY_STRING_CELL
 
 /**

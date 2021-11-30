@@ -2,7 +2,7 @@ package world.phantasmal.observable.cell.list
 
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.CellWithDependenciesTests
-import world.phantasmal.observable.cell.StaticCell
+import world.phantasmal.observable.cell.ImmutableCell
 
 /**
  * In these tests the dependency of the [FlatteningDependentListCell]'s direct dependency changes.
@@ -21,7 +21,7 @@ class FlatteningDependentListCellTransitiveDependencyEmitsTests :
             SimpleListCell(if (empty) mutableListOf() else mutableListOf(7))
 
         // The direct dependency of the list under test can't change.
-        private val directDependency = StaticCell<ListCell<Int>>(transitiveDependency)
+        private val directDependency = ImmutableCell<ListCell<Int>>(transitiveDependency)
 
         override val observable =
             FlatteningDependentListCell(directDependency) { directDependency.value }
@@ -33,7 +33,7 @@ class FlatteningDependentListCellTransitiveDependencyEmitsTests :
 
         override fun createWithDependencies(vararg dependencies: Cell<Int>): Cell<Any> =
             FlatteningDependentListCell(*dependencies) {
-                StaticListCell(dependencies.map { it.value })
+                ImmutableListCell(dependencies.map { it.value })
             }
     }
 }

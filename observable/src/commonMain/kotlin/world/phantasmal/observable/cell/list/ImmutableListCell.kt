@@ -8,7 +8,7 @@ import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observer
 import world.phantasmal.observable.cell.*
 
-class StaticListCell<E>(private val elements: List<E>) : AbstractDependency(), ListCell<E> {
+class ImmutableListCell<E>(private val elements: List<E>) : AbstractDependency(), ListCell<E> {
     private var firstOrNull: Cell<E?>? = null
 
     override val size: Cell<Int> = cell(elements.size)
@@ -40,13 +40,13 @@ class StaticListCell<E>(private val elements: List<E>) : AbstractDependency(), L
 
     override fun firstOrNull(): Cell<E?> {
         if (firstOrNull == null) {
-            firstOrNull = StaticCell(elements.firstOrNull())
+            firstOrNull = ImmutableCell(elements.firstOrNull())
         }
 
         return unsafeAssertNotNull(firstOrNull)
     }
 
     override fun emitDependencyChanged() {
-        error("StaticListCell can't change.")
+        error("ImmutableListCell can't change.")
     }
 }

@@ -2,12 +2,15 @@ package world.phantasmal.observable.cell.list
 
 import world.phantasmal.observable.cell.Cell
 
-private val EMPTY_LIST_CELL = StaticListCell<Nothing>(emptyList())
+private val EMPTY_LIST_CELL = ImmutableListCell<Nothing>(emptyList())
 
-fun <E> listCell(vararg elements: E): ListCell<E> = StaticListCell(elements.toList())
+/** Returns an immutable list cell containing [elements]. */
+fun <E> listCell(vararg elements: E): ListCell<E> = ImmutableListCell(elements.toList())
 
+/** Returns a singleton empty immutable cell. */
 fun <E> emptyListCell(): ListCell<E> = EMPTY_LIST_CELL
 
+/** Returns a mutable list cell containing [elements]. */
 fun <E> mutableListCell(
     vararg elements: E,
     extractDependencies: DependenciesExtractor<E>? = null,

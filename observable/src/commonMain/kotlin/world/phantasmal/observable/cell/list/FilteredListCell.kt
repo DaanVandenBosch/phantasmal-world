@@ -1,6 +1,5 @@
 package world.phantasmal.observable.cell.list
 
-import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.Dependent
