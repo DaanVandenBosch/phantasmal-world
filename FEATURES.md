@@ -171,8 +171,8 @@ Features that are in ***bold italics*** are planned but not yet implemented.
 
 - When a modal dialog is open, global keybindings should be disabled
 - Improve the default camera target for Crater Interior
-- Creating a new quest discards changes to previously open quest without asking user
-- Opening a new file discards changes to previously open quest without asking user
+- Creating a new quest discards changes to the previously open quest without asking user
+- Opening a new file discards changes to the previously open quest without asking user
 - Toggling "Inline args" clears the undo stack
 - Entities with rendering issues:
     - Caves 4 Button door
@@ -184,10 +184,9 @@ Features that are in ***bold italics*** are planned but not yet implemented.
     - 21st Century
     - Light rays - used in forest and CCA
     - Big CCA Door Switch
-        - Laser Detect - used in CCA
-        - Wide Glass Wall (breakable) - used in Seabed
-        - item box cca
-        - Desert Fixed Type Box (Breakable Crystals)
-        - Merissa A
-        - Merissa AA
-- Hunt optimizer combobox doesn't show any items when menu is initially opened
+    - Laser Detect - used in CCA
+    - Wide Glass Wall (breakable) - used in Seabed
+    - item box cca
+    - Desert Fixed Type Box (Breakable Crystals)
+    - Merissa A
+    - Merissa AA
