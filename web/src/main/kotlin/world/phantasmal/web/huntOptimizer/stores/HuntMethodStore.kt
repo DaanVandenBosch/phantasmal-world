@@ -1,12 +1,11 @@
 package world.phantasmal.web.huntOptimizer.stores
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
@@ -14,6 +13,8 @@ import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
 import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
 import world.phantasmal.web.shared.dto.QuestDto
+import world.phantasmal.webui.LoadingStatusCell
+import world.phantasmal.webui.LoadingStatusCellImpl
 import world.phantasmal.webui.stores.Store
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -32,13 +33,16 @@ class HuntMethodStore(
         _methods
     }
 
+    private val _methodsStatus = LoadingStatusCellImpl("methods")
+    val methodsStatus: LoadingStatusCell = _methodsStatus
+
     suspend fun setMethodTime(method: HuntMethodModel, time: Duration) {
         method.setUserTime(time)
         huntMethodPersister.persistMethodUserTimes(methods.value, uiStore.server.value)
     }
 
     private fun loadMethods(server: Server) {
-        scope.launch(Dispatchers.Default) {
+        _methodsStatus.load(scope) {
             val quests = assetLoader.load<List<QuestDto>>("/quests.${server.slug}.json")
 
             val methods = quests

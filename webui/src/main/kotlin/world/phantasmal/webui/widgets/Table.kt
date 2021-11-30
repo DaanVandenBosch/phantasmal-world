@@ -5,6 +5,7 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.webui.LoadingStatus
 import world.phantasmal.webui.controllers.Column
 import world.phantasmal.webui.controllers.TableController
 import world.phantasmal.webui.dom.*
@@ -25,6 +26,25 @@ class Table<T>(
 
             this@Table.className?.let { classList.add(it) }
 
+            div {
+                className = "pw-table-notification"
+
+                observe(ctrl.valuesStatus) {
+                    when (it) {
+                        LoadingStatus.InitialLoad -> {
+                            hidden = false
+                            innerText = "Loading..."
+                        }
+                        LoadingStatus.Error -> {
+                            hidden = false
+                            innerText = "An error occurred while loading this table."
+                        }
+                        else -> {
+                            hidden = true
+                        }
+                    }
+                }
+            }
             thead {
                 tr {
                     className = "pw-table-row pw-table-header-row"
@@ -183,6 +203,20 @@ class Table<T>(
                     overflow: auto;
                     background-color: var(--pw-bg-color);
                     border-collapse: collapse;
+                }
+                
+                .pw-table-notification {
+                    position: absolute;
+                    top: 0;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    display: grid;
+                    grid-template: 100% / 100%;
+                    place-items: center;
+                    text-align: center;
+                    color: var(--pw-text-color-disabled);
+                    font-size: 20px;
                 }
 
                 .pw-table > thead {

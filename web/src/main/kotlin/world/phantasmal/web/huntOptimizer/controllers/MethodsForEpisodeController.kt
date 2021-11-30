@@ -1,12 +1,13 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
-import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.listCell
 import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
+import world.phantasmal.webui.LoadingStatusCell
 import world.phantasmal.webui.controllers.Column
 import world.phantasmal.webui.controllers.SortColumn
 import world.phantasmal.webui.controllers.SortDirection
@@ -23,6 +24,8 @@ class MethodsForEpisodeController(
     override val fixedColumns = 2
 
     override val values: ListCell<HuntMethodModel> = methods
+
+    override val valuesStatus: LoadingStatusCell = huntMethodStore.methodsStatus
 
     override val columns: ListCell<Column<HuntMethodModel>> = listCell(
         Column(

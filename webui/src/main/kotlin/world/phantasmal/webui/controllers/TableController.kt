@@ -3,6 +3,9 @@ package world.phantasmal.webui.controllers
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.webui.ImmutableLoadingStatusCell
+import world.phantasmal.webui.LoadingStatus
+import world.phantasmal.webui.LoadingStatusCell
 
 class Column<T>(
     val key: String,
@@ -34,13 +37,17 @@ interface SortColumn<T> {
 abstract class TableController<T> : Controller() {
     private val sortColumns: MutableList<SortColumnImpl> = mutableListOf()
 
-    /**
-     * How many columns stay in place on the left side while scrolling.
-     */
+    /** How many columns stay in place on the left side while scrolling. */
     open val fixedColumns: Int = 0
     open val hasFooter: Boolean = false
 
+    /** Each value is represented by a row in the table. */
     abstract val values: ListCell<T>
+
+    open val valuesStatus: LoadingStatusCell =
+        // Assume values are already loaded by default.
+        ImmutableLoadingStatusCell(LoadingStatus.Ok)
+
     abstract val columns: ListCell<Column<T>>
 
     open fun sort(sortColumns: List<SortColumn<T>>) {
