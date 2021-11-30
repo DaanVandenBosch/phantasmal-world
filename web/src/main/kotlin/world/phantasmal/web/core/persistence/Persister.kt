@@ -1,6 +1,5 @@
 package world.phantasmal.web.core.persistence
 
-import kotlinx.browser.localStorage
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -9,7 +8,7 @@ import world.phantasmal.web.core.models.Server
 
 private val logger = KotlinLogging.logger {}
 
-abstract class Persister {
+abstract class Persister(private val store: KeyValueStore) {
     private val format = Json {
         classDiscriminator = "#type"
         ignoreUnknownKeys = true
@@ -23,7 +22,7 @@ abstract class Persister {
     @Suppress("RedundantSuspendModifier")
     protected suspend fun <T> persist(key: String, data: T, serializer: KSerializer<T>) {
         try {
-            localStorage.setItem(key, format.encodeToString(serializer, data))
+            store.put(key, format.encodeToString(serializer, data))
         } catch (e: Throwable) {
             logger.error(e) { "Couldn't persist ${key}." }
         }
@@ -44,7 +43,7 @@ abstract class Persister {
     @Suppress("RedundantSuspendModifier")
     protected suspend fun <T> load(key: String, serializer: KSerializer<T>): T? =
         try {
-            val json = localStorage.getItem(key)
+            val json = store.get(key)
             json?.let { format.decodeFromString(serializer, it) }
         } catch (e: Throwable) {
             logger.error(e) { "Couldn't load ${key}." }

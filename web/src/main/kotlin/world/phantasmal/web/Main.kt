@@ -18,6 +18,7 @@ import world.phantasmal.core.disposable.disposable
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.application.Application
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.persistence.LocalStorageKeyValueStore
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.externals.three.WebGLRenderer
@@ -58,6 +59,7 @@ private fun init(): Disposable {
     disposer.add(
         Application(
             rootElement,
+            LocalStorageKeyValueStore(),
             AssetLoader(httpClient),
             disposer.add(HistoryApplicationUrl()),
             ::createThreeRenderer,

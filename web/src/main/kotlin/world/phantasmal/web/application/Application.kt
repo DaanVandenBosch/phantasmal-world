@@ -14,6 +14,7 @@ import world.phantasmal.web.application.widgets.MainContentWidget
 import world.phantasmal.web.application.widgets.NavigationWidget
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.persistence.KeyValueStore
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
@@ -25,6 +26,7 @@ import world.phantasmal.webui.dom.disposableListener
 
 class Application(
     rootElement: HTMLElement,
+    keyValueStore: KeyValueStore,
     assetLoader: AssetLoader,
     applicationUrl: ApplicationUrl,
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
@@ -34,7 +36,7 @@ class Application(
         addDisposables(
             // Disable native undo/redo.
             document.disposableListener("beforeinput", ::beforeInput),
-            // Work-around for FireFox:
+            // Disable native undo/redo in FireFox.
             document.disposableListener("keydown", ::keydown),
 
             // Disable native drag-and-drop to avoid users dragging in unsupported file formats and
@@ -50,8 +52,8 @@ class Application(
         // The various tools Phantasmal World consists of.
         val tools: List<PwTool> = listOf(
             addDisposable(Viewer(assetLoader, uiStore, createThreeRenderer)),
-            addDisposable(QuestEditor(assetLoader, uiStore, createThreeRenderer)),
-            addDisposable(HuntOptimizer(assetLoader, uiStore)),
+            addDisposable(QuestEditor(keyValueStore, assetLoader, uiStore, createThreeRenderer)),
+            addDisposable(HuntOptimizer(keyValueStore, assetLoader, uiStore)),
         )
 
         // Controllers.

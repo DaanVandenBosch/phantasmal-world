@@ -1,12 +1,17 @@
 package world.phantasmal.web.huntOptimizer.persistence
 
 import world.phantasmal.web.core.models.Server
+import world.phantasmal.web.core.persistence.KeyValueStore
 import world.phantasmal.web.core.persistence.Persister
 import world.phantasmal.web.core.stores.ItemTypeStore
-import world.phantasmal.web.shared.dto.WantedItemDto
 import world.phantasmal.web.huntOptimizer.models.WantedItemModel
+import world.phantasmal.web.shared.dto.WantedItemDto
 
-class WantedItemPersister(private val itemTypeStore: ItemTypeStore) : Persister() {
+class WantedItemPersister(
+    keyValueStore: KeyValueStore,
+    private val itemTypeStore: ItemTypeStore,
+) : Persister(keyValueStore) {
+
     suspend fun persistWantedItems(wantedItems: List<WantedItemModel>, server: Server) {
         persistForServer(server, WANTED_ITEMS_KEY, wantedItems.map {
             WantedItemDto(it.itemType.id, it.amount.value)

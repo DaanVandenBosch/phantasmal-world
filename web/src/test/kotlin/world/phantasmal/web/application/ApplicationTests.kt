@@ -2,6 +2,7 @@ package world.phantasmal.web.application
 
 import kotlinx.browser.document
 import world.phantasmal.web.core.PwToolType
+import world.phantasmal.web.core.persistence.MemoryKeyValueStore
 import world.phantasmal.web.test.TestApplicationUrl
 import world.phantasmal.web.test.WebTestContext
 import world.phantasmal.web.test.WebTestSuite
@@ -30,8 +31,10 @@ class ApplicationTests : WebTestSuite {
 
     private fun WebTestContext.initialization_and_shutdown_succeeds(url: String) {
         components.applicationUrl = TestApplicationUrl(url)
+
         disposer.add(
             Application(
+                keyValueStore = MemoryKeyValueStore(),
                 rootElement = document.body!!,
                 assetLoader = components.assetLoader,
                 applicationUrl = components.applicationUrl,

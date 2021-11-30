@@ -3,6 +3,7 @@ package world.phantasmal.web.huntOptimizer
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.persistence.KeyValueStore
 import world.phantasmal.web.core.stores.ItemDropStore
 import world.phantasmal.web.core.stores.ItemTypeStore
 import world.phantasmal.web.core.stores.UiStore
@@ -16,6 +17,7 @@ import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.widgets.Widget
 
 class HuntOptimizer(
+    private val keyValueStore: KeyValueStore,
     private val assetLoader: AssetLoader,
     private val uiStore: UiStore,
 ) : DisposableContainer(), PwTool {
@@ -25,8 +27,8 @@ class HuntOptimizer(
         val itemTypeStore = addDisposable(ItemTypeStore(assetLoader))
 
         // Persistence
-        val huntMethodPersister = HuntMethodPersister()
-        val wantedItemPersister = WantedItemPersister(itemTypeStore)
+        val huntMethodPersister = HuntMethodPersister(keyValueStore)
+        val wantedItemPersister = WantedItemPersister(keyValueStore, itemTypeStore)
 
         // Stores
         val huntMethodStore =

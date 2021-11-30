@@ -1,10 +1,11 @@
 package world.phantasmal.web.questEditor.persistence
 
 import world.phantasmal.web.core.controllers.*
+import world.phantasmal.web.core.persistence.KeyValueStore
 import world.phantasmal.web.core.persistence.Persister
 import world.phantasmal.web.shared.dto.*
 
-class QuestEditorUiPersister : Persister() {
+class QuestEditorUiPersister(keyValueStore: KeyValueStore) : Persister(keyValueStore) {
     // TODO: Throttle this method.
     suspend fun persistLayoutConfig(config: DockedItem) {
         persist(LAYOUT_CONFIG_KEY, toDto(config))

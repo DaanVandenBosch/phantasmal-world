@@ -13,6 +13,7 @@ class ViewerTests : WebTestSuite {
         val viewer = disposer.add(
             Viewer(components.assetLoader, components.uiStore, components.createThreeRenderer)
         )
+
         disposer.add(viewer.initialize())
     }
 }

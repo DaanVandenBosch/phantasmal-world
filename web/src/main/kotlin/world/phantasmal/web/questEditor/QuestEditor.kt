@@ -6,6 +6,7 @@ import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.core.PwTool
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.persistence.KeyValueStore
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.core.undo.UndoManager
@@ -25,6 +26,7 @@ import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.widgets.Widget
 
 class QuestEditor(
+    private val keyValueStore: KeyValueStore,
     private val assetLoader: AssetLoader,
     private val uiStore: UiStore,
     private val createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
@@ -38,7 +40,7 @@ class QuestEditor(
         val entityAssetLoader = addDisposable(EntityAssetLoader(assetLoader))
 
         // Persistence
-        val questEditorUiPersister = QuestEditorUiPersister()
+        val questEditorUiPersister = QuestEditorUiPersister(keyValueStore)
 
         // Undo
         val undoManager = UndoManager()

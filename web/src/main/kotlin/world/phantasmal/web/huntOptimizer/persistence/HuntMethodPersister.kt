@@ -1,12 +1,13 @@
 package world.phantasmal.web.huntOptimizer.persistence
 
 import world.phantasmal.web.core.models.Server
+import world.phantasmal.web.core.persistence.KeyValueStore
 import world.phantasmal.web.core.persistence.Persister
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import kotlin.time.Duration
 import kotlin.time.DurationUnit.HOURS
 
-class HuntMethodPersister : Persister() {
+class HuntMethodPersister(keyValueStore: KeyValueStore) : Persister(keyValueStore) {
     suspend fun persistMethodUserTimes(huntMethods: List<HuntMethodModel>, server: Server) {
         val userTimes = mutableMapOf<String, Double>()
 
