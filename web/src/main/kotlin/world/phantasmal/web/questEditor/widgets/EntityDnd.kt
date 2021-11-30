@@ -115,6 +115,8 @@ private fun HTMLElement.observeEntityEvent(
         getEventData(e)?.let { data ->
             observer(EntityDragEvent(data, e))
         }
+
+        focus()
     })
 
 private fun dragStart(e: DragEvent, entityType: EntityType, imageUrl: String) {
