@@ -10,15 +10,20 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestContext
 import world.phantasmal.web.core.loading.AssetLoader
+import world.phantasmal.web.core.persistence.KeyValueStore
+import world.phantasmal.web.core.persistence.MemoryKeyValueStore
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.three.WebGLRenderer
+import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
+import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /**
@@ -52,6 +57,12 @@ class TestComponents(private val ctx: TestContext) {
 
     var questLoader: QuestLoader by default { QuestLoader(assetLoader) }
 
+    // Persistence
+
+    var keyValueStore: KeyValueStore by default { MemoryKeyValueStore() }
+
+    var huntMethodPersister: HuntMethodPersister by default { HuntMethodPersister(keyValueStore) }
+
     // Undo
 
     var undoManager: UndoManager by default { UndoManager() }
@@ -61,6 +72,10 @@ class TestComponents(private val ctx: TestContext) {
     var uiStore: UiStore by default { UiStore(applicationUrl) }
 
     var areaStore: AreaStore by default { AreaStore(areaAssetLoader) }
+
+    var huntMethodStore: HuntMethodStore by default {
+        HuntMethodStore(uiStore, assetLoader, huntMethodPersister)
+    }
 
     var questEditorStore: QuestEditorStore by default {
         QuestEditorStore(questLoader, uiStore, areaStore, undoManager, initializeNewQuest = false)
@@ -78,30 +93,30 @@ class TestComponents(private val ctx: TestContext) {
 
     private fun <T> default(defaultValue: () -> T) = LazyDefault(defaultValue)
 
-    private inner class LazyDefault<T>(private val defaultValue: () -> T) {
+    private inner class LazyDefault<T>(
+        private val defaultValue: () -> T,
+    ) : ReadWriteProperty<Any?, T> {
+
         private var initialized = false
         private var value: T? = null
 
-        operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
+        override operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
             if (!initialized) {
-                val value = defaultValue()
-
-                if (value is Disposable) {
-                    ctx.disposer.add(value)
-                }
-
-                this.value = value
-                initialized = true
+                setValue(defaultValue())
             }
 
             return value.unsafeCast<T>()
         }
 
-        operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
+        override operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
             require(!initialized) {
-                "Property ${prop.name} is already initialized."
+                "Property ${property.name} is already initialized."
             }
 
+            setValue(value)
+        }
+
+        private fun setValue(value: T) {
             if (value is Disposable) {
                 ctx.disposer.add(value)
             }

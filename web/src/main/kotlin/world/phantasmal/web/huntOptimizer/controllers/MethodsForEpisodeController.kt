@@ -21,11 +21,47 @@ class MethodsForEpisodeController(
     private val methods = mutableListCell<HuntMethodModel>()
     private val enemies: List<NpcType> = NpcType.VALUES.filter { it.enemy && it.episode == episode }
 
+    private var sortColumns: List<SortColumn<HuntMethodModel>> = emptyList()
+
+    private val comparator: Comparator<HuntMethodModel> =
+        Comparator { a, b ->
+            for (sortColumn in sortColumns) {
+                val cmp = when (sortColumn.column.key) {
+                    METHOD_COL_KEY ->
+                        a.name.asDynamic().localeCompare(b.name).unsafeCast<Int>()
+
+                    TIME_COL_KEY -> a.time.value.compareTo(b.time.value)
+
+                    else -> {
+                        val type = NpcType.valueOf(sortColumn.column.key)
+                        (a.enemyCounts[type] ?: 0) - (b.enemyCounts[type] ?: 0)
+                    }
+                }
+
+                if (cmp != 0) {
+                    return@Comparator if (sortColumn.direction == SortDirection.Asc) cmp else -cmp
+                }
+            }
+
+            0
+        }
+
     override val fixedColumns = 2
 
-    override val values: ListCell<HuntMethodModel> = methods
+    override val values: ListCell<HuntMethodModel> by lazy {
+        // TODO: Use ListCell.sortedWith when this is available.
+        observe(huntMethodStore.methods) { allMethods ->
+            methods.value = allMethods
+                .asSequence()
+                .filter { it.episode == episode }
+                .sortedWith(comparator)
+                .toList()
+        }
 
-    override val valuesStatus: LoadingStatusCell = huntMethodStore.methodsStatus
+        methods
+    }
+
+    override val loadingStatus: LoadingStatusCell = huntMethodStore.methodsStatus
 
     override val columns: ListCell<Column<HuntMethodModel>> = listCell(
         Column(
@@ -59,42 +95,6 @@ class MethodsForEpisodeController(
             )
         }.toTypedArray()
     )
-
-    private var sortColumns: List<SortColumn<HuntMethodModel>> = emptyList()
-
-    private val comparator: Comparator<HuntMethodModel> =
-        Comparator { a, b ->
-            for (sortColumn in sortColumns) {
-                val cmp = when (sortColumn.column.key) {
-                    METHOD_COL_KEY ->
-                        a.name.asDynamic().localeCompare(b.name).unsafeCast<Int>()
-
-                    TIME_COL_KEY -> a.time.value.compareTo(b.time.value)
-
-                    else -> {
-                        val type = NpcType.valueOf(sortColumn.column.key)
-                        (a.enemyCounts[type] ?: 0) - (b.enemyCounts[type] ?: 0)
-                    }
-                }
-
-                if (cmp != 0) {
-                    return@Comparator if (sortColumn.direction == SortDirection.Asc) cmp else -cmp
-                }
-            }
-
-            0
-        }
-
-    init {
-        // TODO: Use ListCell.sortedWith when this is available.
-        observe(huntMethodStore.methods) { allMethods ->
-            methods.value = allMethods
-                .asSequence()
-                .filter { it.episode == episode }
-                .sortedWith(comparator)
-                .toList()
-        }
-    }
 
     override fun sort(sortColumns: List<SortColumn<HuntMethodModel>>) {
         this.sortColumns = sortColumns

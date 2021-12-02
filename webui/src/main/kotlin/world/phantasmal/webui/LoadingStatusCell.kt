@@ -3,7 +3,6 @@ package world.phantasmal.webui
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.ImmutableCell
 import world.phantasmal.observable.cell.SimpleCell
 import kotlin.time.measureTime
 
@@ -18,58 +17,65 @@ enum class LoadingStatus {
 }
 
 interface LoadingStatusCell : Cell<LoadingStatus> {
-    suspend fun awaitLoad()
+    /** Await the current load, if a load in ongoing. */
+    suspend fun await()
 }
 
-class ImmutableLoadingStatusCell(status: LoadingStatus) :
-    LoadingStatusCell,
-    Cell<LoadingStatus> by ImmutableCell(status) {
-
-    override suspend fun awaitLoad() {
-        // Nothing to await.
-    }
-}
-
-class LoadingStatusCellImpl(
-    private val cellDelegate: SimpleCell<LoadingStatus>,
+class LoadingStatusCellImpl private constructor(
+    private val scope: CoroutineScope,
     private val dataName: String,
+    /** Will be called with [Dispatchers.Main] context. */
+    private val loadData: suspend () -> Unit,
+    private val cellDelegate: SimpleCell<LoadingStatus>,
 ) : LoadingStatusCell, Cell<LoadingStatus> by cellDelegate {
 
-    constructor(dataName: String) : this(SimpleCell(LoadingStatus.Uninitialized), dataName)
+    constructor(
+        scope: CoroutineScope,
+        dataName: String,
+        loadData: suspend () -> Unit,
+    ) : this(scope, dataName, loadData, SimpleCell(LoadingStatus.Uninitialized))
 
-    private var job: Job? = null
+    private var currentJob: Job? = null
 
-    fun load(scope: CoroutineScope, loadData: suspend () -> Unit) {
+    fun load() {
         logger.trace { "Loading $dataName." }
 
         cellDelegate.value =
             if (value == LoadingStatus.Uninitialized) LoadingStatus.InitialLoad
             else LoadingStatus.Loading
 
-        job = scope.launch {
+        currentJob?.cancel("New load started.")
+
+        currentJob = scope.launch(Dispatchers.Main) {
             var success = false
 
             try {
                 val duration = measureTime {
-                    withContext(Dispatchers.Default) {
-                        loadData()
-                    }
+                    loadData()
                 }
 
                 logger.trace { "Loaded $dataName in ${duration.inWholeMilliseconds}ms." }
 
                 success = true
+            } catch (e: CancellationException) {
+                logger.trace(e) { "Loading $dataName was cancelled." }
             } catch (e: Exception) {
                 logger.error(e) { "Error while loading $dataName." }
-            } finally {
-                job = null
+            }
 
+            // Only reset job and set value when a new job hasn't been started in the meantime.
+            if (coroutineContext.job == currentJob) {
+                currentJob = null
                 cellDelegate.value = if (success) LoadingStatus.Ok else LoadingStatus.Error
             }
         }
     }
 
-    override suspend fun awaitLoad() {
-        job?.join()
+    override suspend fun await() {
+        currentJob?.let {
+            if (!it.isCompleted) {
+                it.join()
+            }
+        }
     }
 }

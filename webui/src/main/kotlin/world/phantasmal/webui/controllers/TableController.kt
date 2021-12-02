@@ -3,8 +3,6 @@ package world.phantasmal.webui.controllers
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.webui.ImmutableLoadingStatusCell
-import world.phantasmal.webui.LoadingStatus
 import world.phantasmal.webui.LoadingStatusCell
 
 class Column<T>(
@@ -44,9 +42,7 @@ abstract class TableController<T> : Controller() {
     /** Each value is represented by a row in the table. */
     abstract val values: ListCell<T>
 
-    open val valuesStatus: LoadingStatusCell =
-        // Assume values are already loaded by default.
-        ImmutableLoadingStatusCell(LoadingStatus.Ok)
+    open val loadingStatus: LoadingStatusCell? = null
 
     abstract val columns: ListCell<Column<T>>
 

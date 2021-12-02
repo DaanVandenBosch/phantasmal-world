@@ -7,8 +7,8 @@ import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.core.loading.AssetLoader
-import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.huntOptimizer.HuntOptimizerUrls.methods
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
 import world.phantasmal.web.huntOptimizer.models.SimpleQuestModel
 import world.phantasmal.web.huntOptimizer.persistence.HuntMethodPersister
@@ -27,22 +27,27 @@ class HuntMethodStore(
     private val huntMethodPersister: HuntMethodPersister,
 ) : Store() {
     private val _methods = mutableListCell<HuntMethodModel> { arrayOf(it.time) }
+    private val _methodsStatus = LoadingStatusCellImpl(scope, "methods", ::loadMethods)
 
+    /** Hunting methods supported by the current server. */
     val methods: ListCell<HuntMethodModel> by lazy {
-        observe(uiStore.server) { loadMethods(it) }
+        observe(uiStore.server) { _methodsStatus.load() }
         _methods
     }
 
-    private val _methodsStatus = LoadingStatusCellImpl("methods")
+    /** Loading status of [methods]. */
     val methodsStatus: LoadingStatusCell = _methodsStatus
 
     suspend fun setMethodTime(method: HuntMethodModel, time: Duration) {
         method.setUserTime(time)
+
         huntMethodPersister.persistMethodUserTimes(methods.value, uiStore.server.value)
     }
 
-    private fun loadMethods(server: Server) {
-        _methodsStatus.load(scope) {
+    private suspend fun loadMethods() {
+        val server = uiStore.server.value
+
+        withContext(Dispatchers.Default) {
             val quests = assetLoader.load<List<QuestDto>>("/quests.${server.slug}.json")
 
             val methods = quests

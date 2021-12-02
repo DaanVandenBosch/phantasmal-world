@@ -29,18 +29,22 @@ class Table<T>(
             div {
                 className = "pw-table-notification"
 
-                observe(ctrl.valuesStatus) {
-                    when (it) {
-                        LoadingStatus.InitialLoad -> {
-                            hidden = false
-                            innerText = "Loading..."
-                        }
-                        LoadingStatus.Error -> {
-                            hidden = false
-                            innerText = "An error occurred while loading this table."
-                        }
-                        else -> {
-                            hidden = true
+                ctrl.loadingStatus?.let { loadingStatus ->
+                    observe(loadingStatus) { status ->
+                        when (status) {
+                            LoadingStatus.Uninitialized,
+                            LoadingStatus.InitialLoad,
+                            -> {
+                                hidden = false
+                                innerText = "Loading..."
+                            }
+                            LoadingStatus.Error -> {
+                                hidden = false
+                                innerText = "An error occurred while loading this table."
+                            }
+                            else -> {
+                                hidden = true
+                            }
                         }
                     }
                 }
