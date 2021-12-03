@@ -26,10 +26,10 @@ class Table<T>(
 
             this@Table.className?.let { classList.add(it) }
 
-            div {
-                className = "pw-table-notification"
+            ctrl.loadingStatus?.let { loadingStatus ->
+                div {
+                    className = "pw-table-notification"
 
-                ctrl.loadingStatus?.let { loadingStatus ->
                     observe(loadingStatus) { status ->
                         when (status) {
                             LoadingStatus.Uninitialized,
@@ -49,6 +49,7 @@ class Table<T>(
                     }
                 }
             }
+
             thead {
                 tr {
                     className = "pw-table-row pw-table-header-row"
@@ -208,7 +209,7 @@ class Table<T>(
                     background-color: var(--pw-bg-color);
                     border-collapse: collapse;
                 }
-                
+
                 .pw-table-notification {
                     position: absolute;
                     top: 0;
@@ -230,7 +231,7 @@ class Table<T>(
                     z-index: 2;
                 }
 
-                .pw-table > tbody {
+                .pw-table > tbody, .pw-table > tfoot {
                     user-select: text;
                     cursor: text;
                 }
