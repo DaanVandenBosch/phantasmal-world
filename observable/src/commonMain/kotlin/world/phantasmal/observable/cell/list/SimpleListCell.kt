@@ -50,7 +50,12 @@ class SimpleListCell<E>(
             elementDependents[index] = ElementDependent(index, element)
         }
 
-        changes.add(ListChange.Structural(index, listOf(removed), listOf(element)))
+        changes.add(ListChange.Structural(
+            index,
+            prevSize = elements.size,
+            removed = listOf(removed),
+            inserted = listOf(element),
+        ))
         ChangeManager.changed(this)
 
         return removed
@@ -63,17 +68,23 @@ class SimpleListCell<E>(
         copyAndResetWrapper()
         elements.add(element)
 
-        finalizeStructuralChange(index, emptyList(), listOf(element))
+        finalizeStructuralChange(
+            index,
+            prevSize = index,
+            removed = emptyList(),
+            inserted = listOf(element),
+        )
     }
 
     override fun add(index: Int, element: E) {
-        checkIndex(index, elements.size)
+        val prevSize = elements.size
+        checkIndex(index, prevSize)
         emitMightChange()
 
         copyAndResetWrapper()
         elements.add(index, element)
 
-        finalizeStructuralChange(index, emptyList(), listOf(element))
+        finalizeStructuralChange(index, prevSize, removed = emptyList(), inserted = listOf(element))
     }
 
     override fun remove(element: E): Boolean {
@@ -91,34 +102,41 @@ class SimpleListCell<E>(
         checkIndex(index, elements.lastIndex)
         emitMightChange()
 
+        val prevSize = elements.size
+
         copyAndResetWrapper()
         val removed = elements.removeAt(index)
 
-        finalizeStructuralChange(index, listOf(removed), emptyList())
+        finalizeStructuralChange(index, prevSize, removed = listOf(removed), inserted = emptyList())
         return removed
     }
 
     override fun replaceAll(elements: Iterable<E>) {
         emitMightChange()
 
+        val prevSize = this.elements.size
         val removed = elementsWrapper
+
         copyAndResetWrapper()
         this.elements.replaceAll(elements)
 
-        finalizeStructuralChange(0, removed, elementsWrapper)
+        finalizeStructuralChange(index = 0, prevSize, removed, inserted = elementsWrapper)
     }
 
     override fun replaceAll(elements: Sequence<E>) {
         emitMightChange()
 
+        val prevSize = this.elements.size
         val removed = elementsWrapper
+
         copyAndResetWrapper()
         this.elements.replaceAll(elements)
 
-        finalizeStructuralChange(0, removed, elementsWrapper)
+        finalizeStructuralChange(index = 0, prevSize, removed, inserted = elementsWrapper)
     }
 
     override fun splice(fromIndex: Int, removeCount: Int, newElement: E) {
+        val prevSize = elements.size
         val removed = ArrayList<E>(removeCount)
 
         for (i in fromIndex until (fromIndex + removeCount)) {
@@ -131,17 +149,19 @@ class SimpleListCell<E>(
         repeat(removeCount) { elements.removeAt(fromIndex) }
         elements.add(fromIndex, newElement)
 
-        finalizeStructuralChange(fromIndex, removed, listOf(newElement))
+        finalizeStructuralChange(fromIndex, prevSize, removed, inserted = listOf(newElement))
     }
 
     override fun clear() {
         emitMightChange()
 
+        val prevSize = elements.size
         val removed = elementsWrapper
+
         copyAndResetWrapper()
         elements.clear()
 
-        finalizeStructuralChange(0, removed, emptyList())
+        finalizeStructuralChange(index = 0, prevSize, removed, inserted = emptyList())
     }
 
     override fun sortWith(comparator: Comparator<E>) {
@@ -157,7 +177,12 @@ class SimpleListCell<E>(
             throwable = e
         }
 
-        finalizeStructuralChange(0, removed, elementsWrapper)
+        finalizeStructuralChange(
+            index = 0,
+            prevSize = elements.size,
+            removed,
+            inserted = elementsWrapper,
+        )
 
         if (throwable != null) {
             throw throwable
@@ -200,7 +225,12 @@ class SimpleListCell<E>(
         }
     }
 
-    private fun finalizeStructuralChange(index: Int, removed: List<E>, inserted: List<E>) {
+    private fun finalizeStructuralChange(
+        index: Int,
+        prevSize: Int,
+        removed: List<E>,
+        inserted: List<E>,
+    ) {
         if (dependents.isNotEmpty() && extractDependencies != null) {
             repeat(removed.size) {
                 elementDependents.removeAt(index).dispose()
@@ -218,7 +248,7 @@ class SimpleListCell<E>(
             }
         }
 
-        changes.add(ListChange.Structural(index, removed, inserted))
+        changes.add(ListChange.Structural(index, prevSize, removed, inserted))
         ChangeManager.changed(this)
     }
 

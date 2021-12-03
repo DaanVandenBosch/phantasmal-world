@@ -32,7 +32,15 @@ class ImmutableListCell<E>(private val elements: List<E>) : AbstractDependency()
 
     override fun observeList(callNow: Boolean, observer: ListObserver<E>): Disposable {
         if (callNow) {
-            observer(ListChangeEvent(value, listOf(ListChange.Structural(0, emptyList(), value))))
+            observer(ListChangeEvent(
+                value,
+                listOf(ListChange.Structural(
+                    index = 0,
+                    prevSize = 0,
+                    removed = emptyList(),
+                    inserted = value,
+                )),
+            ))
         }
 
         return nopDisposable()

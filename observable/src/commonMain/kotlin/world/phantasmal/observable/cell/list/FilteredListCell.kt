@@ -48,6 +48,7 @@ class FilteredListCell<E>(
 
     override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
         if (event is ListChangeEvent<*>) {
+            val prevSize = elements.size
             val filteredChanges = mutableListOf<ListChange<E>>()
 
             for (change in event.changes) {
@@ -95,6 +96,7 @@ class FilteredListCell<E>(
                             filteredChanges.add(
                                 ListChange.Structural(
                                     eventIndex,
+                                    prevSize,
                                     removed,
                                     inserted
                                 )
@@ -140,6 +142,7 @@ class FilteredListCell<E>(
                                 filteredChanges.add(
                                     ListChange.Structural(
                                         insertIndex,
+                                        prevSize,
                                         removed = emptyList(),
                                         inserted = listOf(change.updated),
                                     )
@@ -167,6 +170,7 @@ class FilteredListCell<E>(
                                 filteredChanges.add(
                                     ListChange.Structural(
                                         index,
+                                        prevSize,
                                         removed = listOf(change.updated),
                                         inserted = emptyList(),
                                     )

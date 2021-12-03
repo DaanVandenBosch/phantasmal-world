@@ -273,8 +273,12 @@ private fun <T> bindChildrenTo(
     list.observeList(callNow = true) { event: ListChangeEvent<T> ->
         for (change in event.changes) {
             if (change is ListChange.Structural) {
-                repeat(change.removed.size) {
-                    parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
+                if (change.allRemoved) {
+                    parent.innerHTML = ""
+                } else {
+                    repeat(change.removed.size) {
+                        parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
+                    }
                 }
 
                 childrenRemoved(change.index, change.removed.size)

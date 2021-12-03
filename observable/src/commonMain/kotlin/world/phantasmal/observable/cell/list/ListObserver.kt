@@ -13,6 +13,7 @@ sealed class ListChange<out E> {
      */
     class Structural<out E>(
         val index: Int,
+        val prevSize: Int,
         /**
          * The elements that were removed from the list at [index].
          *
@@ -27,7 +28,9 @@ sealed class ListChange<out E> {
          * be mutated when the originating [ListCell] is mutated.
          */
         val inserted: List<E>,
-    ) : ListChange<E>()
+    ) : ListChange<E>() {
+        val allRemoved: Boolean get() = removed.size == prevSize
+    }
 
     /**
      * Represents a change to an element in a list cell. Will only be emitted if the list is

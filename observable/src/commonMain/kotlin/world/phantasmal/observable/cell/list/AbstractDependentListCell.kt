@@ -65,9 +65,12 @@ abstract class AbstractDependentListCell<E> :
             observer(
                 ListChangeEvent(
                     value,
-                    listOf(
-                        ListChange.Structural(index = 0, removed = emptyList(), inserted = value),
-                    ),
+                    listOf(ListChange.Structural(
+                        index = 0,
+                        prevSize = 0,
+                        removed = emptyList(),
+                        inserted = value,
+                    )),
                 )
             )
         }
@@ -81,7 +84,15 @@ abstract class AbstractDependentListCell<E> :
         computeElements()
 
         emitDependencyChanged(
-            ListChangeEvent(elements, listOf(ListChange.Structural(0, oldElements, elements)))
+            ListChangeEvent(
+                elements,
+                listOf(ListChange.Structural(
+                    index = 0,
+                    prevSize = oldElements.size,
+                    removed = oldElements,
+                    inserted = elements,
+                )),
+            )
         )
     }
 
