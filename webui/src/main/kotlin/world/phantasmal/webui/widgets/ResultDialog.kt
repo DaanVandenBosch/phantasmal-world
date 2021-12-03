@@ -3,9 +3,7 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import world.phantasmal.core.Failure
 import world.phantasmal.core.PwResult
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.emptyStringCell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.observable.cell.*
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.li
 import world.phantasmal.webui.dom.ul

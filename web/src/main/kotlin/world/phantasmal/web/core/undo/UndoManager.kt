@@ -1,6 +1,7 @@
 package world.phantasmal.web.core.undo
 
 import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.list.fold
 import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.web.core.actions.Action
 

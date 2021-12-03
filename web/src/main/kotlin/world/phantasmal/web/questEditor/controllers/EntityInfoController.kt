@@ -2,13 +2,12 @@ package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.core.math.degToRad
 import world.phantasmal.core.math.radToDeg
-import world.phantasmal.psolib.fileFormats.quest.EntityPropType
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.observable.cell.list.flatMapToList
-import world.phantasmal.observable.cell.zeroIntCell
+import world.phantasmal.observable.cell.list.listMap
+import world.phantasmal.psolib.fileFormats.quest.EntityPropType
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3

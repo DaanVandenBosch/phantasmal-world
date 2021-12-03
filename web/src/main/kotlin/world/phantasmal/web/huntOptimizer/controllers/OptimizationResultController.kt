@@ -2,6 +2,7 @@ package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.observable.cell.cell
 import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.mapToList
 import world.phantasmal.web.huntOptimizer.models.OptimalMethodModel
 import world.phantasmal.web.huntOptimizer.stores.HuntOptimizerStore
 import world.phantasmal.webui.controllers.Column

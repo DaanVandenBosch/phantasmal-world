@@ -35,7 +35,7 @@ abstract class AbstractListCell<E> : AbstractCell<List<E>>(), ListCell<E> {
     @Suppress("LeakingThis")
     final override val size: Cell<Int> = DependentCell(this) { value.size }
 
-    final override val empty: Cell<Boolean> = size.map { it == 0 }
+    final override val empty: Cell<Boolean> = DependentCell(size) { size.value == 0 }
 
     final override val notEmpty: Cell<Boolean> = !empty
 

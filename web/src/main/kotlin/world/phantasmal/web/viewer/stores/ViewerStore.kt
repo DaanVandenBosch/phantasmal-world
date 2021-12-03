@@ -13,6 +13,7 @@ import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.and
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.observable.cell.map
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.observable.change
 import world.phantasmal.web.core.PwToolType

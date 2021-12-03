@@ -2,7 +2,10 @@ package world.phantasmal.web.questEditor.controllers
 
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.flatMap
+import world.phantasmal.observable.cell.isNull
 import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.map
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller

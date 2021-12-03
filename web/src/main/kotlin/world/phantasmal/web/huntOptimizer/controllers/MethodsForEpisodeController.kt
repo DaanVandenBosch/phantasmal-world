@@ -1,8 +1,10 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
 import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.filtered
 import world.phantasmal.observable.cell.list.listCell
-import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.observable.cell.list.sortedWith
+import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.huntOptimizer.models.HuntMethodModel
@@ -18,47 +20,16 @@ class MethodsForEpisodeController(
     private val huntMethodStore: HuntMethodStore,
     episode: Episode,
 ) : TableController<HuntMethodModel>() {
-    private val methods = mutableListCell<HuntMethodModel>()
     private val enemies: List<NpcType> = NpcType.VALUES.filter { it.enemy && it.episode == episode }
 
-    private var sortColumns: List<SortColumn<HuntMethodModel>> = emptyList()
-
-    private val comparator: Comparator<HuntMethodModel> =
-        Comparator { a, b ->
-            for (sortColumn in sortColumns) {
-                val cmp = when (sortColumn.column.key) {
-                    METHOD_COL_KEY ->
-                        a.name.asDynamic().localeCompare(b.name).unsafeCast<Int>()
-
-                    TIME_COL_KEY -> a.time.value.compareTo(b.time.value)
-
-                    else -> {
-                        val type = NpcType.valueOf(sortColumn.column.key)
-                        (a.enemyCounts[type] ?: 0) - (b.enemyCounts[type] ?: 0)
-                    }
-                }
-
-                if (cmp != 0) {
-                    return@Comparator if (sortColumn.direction == SortDirection.Asc) cmp else -cmp
-                }
-            }
-
-            0
-        }
+    private val comparator = mutableCell(Comparator<HuntMethodModel> { _, _ -> 0 })
 
     override val fixedColumns = 2
 
     override val values: ListCell<HuntMethodModel> by lazy {
-        // TODO: Use ListCell.sortedWith when this is available.
-        observe(huntMethodStore.methods) { allMethods ->
-            methods.value = allMethods
-                .asSequence()
-                .filter { it.episode == episode }
-                .sortedWith(comparator)
-                .toList()
-        }
-
-        methods
+        huntMethodStore.methods
+            .filtered { it.episode == episode }
+            .sortedWith(comparator)
     }
 
     override val loadingStatus: LoadingStatusCell = huntMethodStore.methodsStatus
@@ -97,8 +68,27 @@ class MethodsForEpisodeController(
     )
 
     override fun sort(sortColumns: List<SortColumn<HuntMethodModel>>) {
-        this.sortColumns = sortColumns
-        methods.sortWith(comparator)
+        comparator.value = Comparator { a, b ->
+            for (sortColumn in sortColumns) {
+                val cmp = when (sortColumn.column.key) {
+                    METHOD_COL_KEY ->
+                        a.name.asDynamic().localeCompare(b.name).unsafeCast<Int>()
+
+                    TIME_COL_KEY -> a.time.value.compareTo(b.time.value)
+
+                    else -> {
+                        val type = NpcType.valueOf(sortColumn.column.key)
+                        (a.enemyCounts[type] ?: 0) - (b.enemyCounts[type] ?: 0)
+                    }
+                }
+
+                if (cmp != 0) {
+                    return@Comparator if (sortColumn.direction == SortDirection.Asc) cmp else -cmp
+                }
+            }
+
+            0
+        }
     }
 
     suspend fun setMethodTime(method: HuntMethodModel, time: Duration) {

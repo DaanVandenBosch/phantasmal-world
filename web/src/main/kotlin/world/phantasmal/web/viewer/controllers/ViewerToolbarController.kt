@@ -14,6 +14,8 @@ import world.phantasmal.psolib.fileFormats.parseAfs
 import world.phantasmal.psolib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.psolib.fileFormats.parseAreaRenderGeometry
 import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.isNotNull
+import world.phantasmal.observable.cell.map
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.observable.change
 import world.phantasmal.web.core.files.cursor

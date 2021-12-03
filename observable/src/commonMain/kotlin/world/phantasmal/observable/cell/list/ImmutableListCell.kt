@@ -2,15 +2,15 @@ package world.phantasmal.observable.cell.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.nopDisposable
-import world.phantasmal.core.unsafe.unsafeAssertNotNull
 import world.phantasmal.observable.AbstractDependency
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observer
-import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.cell
+import world.phantasmal.observable.cell.falseCell
+import world.phantasmal.observable.cell.trueCell
 
 class ImmutableListCell<E>(private val elements: List<E>) : AbstractDependency(), ListCell<E> {
-    private var firstOrNull: Cell<E?>? = null
-
     override val size: Cell<Int> = cell(elements.size)
     override val empty: Cell<Boolean> = if (elements.isEmpty()) trueCell() else falseCell()
     override val notEmpty: Cell<Boolean> = if (elements.isNotEmpty()) trueCell() else falseCell()
@@ -36,14 +36,6 @@ class ImmutableListCell<E>(private val elements: List<E>) : AbstractDependency()
         }
 
         return nopDisposable()
-    }
-
-    override fun firstOrNull(): Cell<E?> {
-        if (firstOrNull == null) {
-            firstOrNull = ImmutableCell(elements.firstOrNull())
-        }
-
-        return unsafeAssertNotNull(firstOrNull)
     }
 
     override fun emitDependencyChanged() {

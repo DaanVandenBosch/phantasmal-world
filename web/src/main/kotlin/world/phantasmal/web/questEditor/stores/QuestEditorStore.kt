@@ -6,6 +6,7 @@ import world.phantasmal.psolib.Episode
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.observable.cell.list.filtered
 import world.phantasmal.observable.cell.list.flatMapToList
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.actions.Action

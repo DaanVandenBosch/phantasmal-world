@@ -3,6 +3,7 @@ package world.phantasmal.web.huntOptimizer.controllers
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.MutableCell
 import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.filtered
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.huntOptimizer.models.WantedItemModel
 import world.phantasmal.web.huntOptimizer.stores.HuntOptimizerStore
@@ -14,10 +15,8 @@ class WantedItemsController(
 ) : Controller() {
     private val selectableItemsFilter: MutableCell<(ItemType) -> Boolean> = mutableCell { true }
 
-    // TODO: Use ListCell.filtered with a Cell when this is supported.
-    val selectableItems: Cell<List<ItemType>> = selectableItemsFilter.flatMap { filter ->
-        huntOptimizerStore.huntableItems.filtered(filter)
-    }
+    val selectableItems: Cell<List<ItemType>> =
+        huntOptimizerStore.huntableItems.filtered(selectableItemsFilter)
 
     val wantedItems: ListCell<WantedItemModel> = huntOptimizerStore.wantedItems
 
