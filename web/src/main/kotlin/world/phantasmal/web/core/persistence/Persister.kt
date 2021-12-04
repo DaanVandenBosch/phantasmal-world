@@ -24,10 +24,12 @@ abstract class Persister(private val store: KeyValueStore) {
     @Suppress("RedundantSuspendModifier")
     protected suspend fun <T> persist(key: String, data: T, serializer: KSerializer<T>) {
         withContext(Dispatchers.Default) {
+            logger.trace { """Persisting data with key "$key".""" }
+
             try {
                 store.put(key, format.encodeToString(serializer, data))
             } catch (e: Throwable) {
-                logger.error(e) { "Couldn't persist ${key}." }
+                logger.error(e) { """Couldn't persist data with key "$key".""" }
             }
         }
     }
@@ -47,11 +49,20 @@ abstract class Persister(private val store: KeyValueStore) {
     @Suppress("RedundantSuspendModifier")
     protected suspend fun <T> load(key: String, serializer: KSerializer<T>): T? =
         withContext(Dispatchers.Default) {
+            logger.trace { """Loading persisted data with key "$key".""" }
+
             try {
                 val json = store.get(key)
-                json?.let { format.decodeFromString(serializer, it) }
+
+                if (json == null) {
+                    logger.trace { """No persisted data with key "$key".""" }
+                    null
+                } else {
+                    logger.trace { """Loaded persisted data with key "$key".""" }
+                    format.decodeFromString(serializer, json)
+                }
             } catch (e: Throwable) {
-                logger.error(e) { "Couldn't load ${key}." }
+                logger.error(e) { """Couldn't load persisted data with key "$key".""" }
                 null
             }
         }
