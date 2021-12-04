@@ -7,6 +7,7 @@ import mu.KotlinLogging
 import world.phantasmal.core.JsObject
 import world.phantasmal.core.component1
 import world.phantasmal.core.component2
+import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.core.unsafe.UnsafeSet
 import world.phantasmal.observable.cell.Cell
@@ -51,6 +52,7 @@ class HuntOptimizerStore(
     private val _huntableItems = mutableListCell<ItemType>()
     private val _wantedItems = mutableListCell<WantedItemModel> { arrayOf(it.amount) }
     private val _optimizationResult = mutableCell(OptimizationResultModel(emptyList(), emptyList()))
+    private var wantedItemsPersistenceObserver: Disposable? = null
 
     val huntableItems: ListCell<ItemType> by lazy {
         observe(uiStore.server) { server ->
@@ -73,20 +75,19 @@ class HuntOptimizerStore(
         _wantedItems
     }
 
-    val optimizationResult: Cell<OptimizationResultModel> = _optimizationResult
-
-    init {
-        observe(wantedItems) {
-            scope.launch(Dispatchers.Default) {
-                wantedItemPersister.persistWantedItems(it, uiStore.server.value)
-            }
-        }
-
+    val optimizationResult: Cell<OptimizationResultModel> by lazy {
         observe(wantedItems, huntMethodStore.methods) { wantedItems, huntMethods ->
             scope.launch(Dispatchers.Default) {
                 _optimizationResult.value = optimize(wantedItems, huntMethods)
             }
         }
+
+        _optimizationResult
+    }
+
+    override fun dispose() {
+        wantedItemsPersistenceObserver?.dispose()
+        super.dispose()
     }
 
     fun addWantedItem(itemType: ItemType) {
@@ -104,7 +105,22 @@ class HuntOptimizerStore(
             val wantedItems = wantedItemPersister.loadWantedItems(server)
 
             withContext(Dispatchers.Main) {
+                // Clear the previous wanted items observer, because we don't want it to persist
+                // changes using the previous server as key. This way we also avoid an unnecessary
+                // persist call right after the loading and replacing the wanted items.
+                wantedItemsPersistenceObserver?.dispose()
+                wantedItemsPersistenceObserver = null
+
                 _wantedItems.replaceAll(wantedItems)
+
+                // Wanted items are loaded, start observing them and persist whenever they change.
+                wantedItemsPersistenceObserver = _wantedItems.observe {
+                    val items = it.value
+
+                    scope.launch(Dispatchers.Main) {
+                        wantedItemPersister.persistWantedItems(items, server)
+                    }
+                }
             }
         }
     }
