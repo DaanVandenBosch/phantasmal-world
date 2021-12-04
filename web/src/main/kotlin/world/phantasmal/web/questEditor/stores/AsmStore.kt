@@ -55,11 +55,11 @@ class AsmStore(
     val problems: ListCell<AssemblyProblem> = asmAnalyser.problems
 
     init {
-        observe(questEditorStore.currentQuest) { quest ->
+        observeNow(questEditorStore.currentQuest) { quest ->
             setTextModel(quest, inlineStackArgs.value)
         }
 
-        observe(inlineStackArgs) { inlineStackArgs ->
+        observeNow(inlineStackArgs) { inlineStackArgs ->
             // Ensure we have the most up-to-date bytecode before we disassemble it again.
             if (setBytecodeIrTimeout != null) {
                 setBytecodeIr()
@@ -72,7 +72,7 @@ class AsmStore(
             scope.launch { questEditorStore.setMapDesignations(it) }
         }
 
-        observe(problems) { problems ->
+        observeNow(problems) { problems ->
             textModel.value?.let { model ->
                 val markers = Array<IMarkerData>(problems.size) {
                     val problem = problems[it]

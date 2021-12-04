@@ -55,7 +55,7 @@ class HuntOptimizerStore(
     private var wantedItemsPersistenceObserver: Disposable? = null
 
     val huntableItems: ListCell<ItemType> by lazy {
-        observe(uiStore.server) { server ->
+        observeNow(uiStore.server) { server ->
             _huntableItems.clear()
 
             scope.launch {
@@ -71,12 +71,12 @@ class HuntOptimizerStore(
     }
 
     val wantedItems: ListCell<WantedItemModel> by lazy {
-        observe(uiStore.server) { loadWantedItems(it) }
+        observeNow(uiStore.server) { loadWantedItems(it) }
         _wantedItems
     }
 
     val optimizationResult: Cell<OptimizationResultModel> by lazy {
-        observe(wantedItems, huntMethodStore.methods) { wantedItems, huntMethods ->
+        observeNow(wantedItems, huntMethodStore.methods) { wantedItems, huntMethods ->
             scope.launch(Dispatchers.Default) {
                 _optimizationResult.value = optimize(wantedItems, huntMethods)
             }
@@ -114,7 +114,7 @@ class HuntOptimizerStore(
                 _wantedItems.replaceAll(wantedItems)
 
                 // Wanted items are loaded, start observing them and persist whenever they change.
-                wantedItemsPersistenceObserver = _wantedItems.observe {
+                wantedItemsPersistenceObserver = _wantedItems.observeChange {
                     val items = it.value
 
                     scope.launch(Dispatchers.Main) {

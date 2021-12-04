@@ -82,7 +82,7 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
             window.disposableListener("keydown", ::dispatchGlobalKeyDown),
         )
 
-        observe(applicationUrl.url) { setDataFromUrl(it) }
+        observeNow(applicationUrl.url) { setDataFromUrl(it) }
     }
 
     fun setCurrentTool(tool: PwToolType) {
@@ -126,12 +126,12 @@ class UiStore(private val applicationUrl: ApplicationUrl) : Store() {
         }
 
         return Disposer(
-            value.observe {
+            value.observeChange {
                 if (it.value != param.value) {
                     setParameter(tool, path, param, it.value, replaceUrl = false)
                 }
             },
-            param.observe { onChange(it.value) },
+            param.observeChange { onChange(it.value) },
         )
     }
 

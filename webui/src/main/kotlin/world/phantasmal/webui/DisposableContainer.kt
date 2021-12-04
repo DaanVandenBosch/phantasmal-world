@@ -4,8 +4,9 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.observable.Observable
-import world.phantasmal.observable.Observer
 import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.observeNow
+import world.phantasmal.observable.observe
 
 abstract class DisposableContainer : TrackedDisposable() {
     private val disposer = Disposer()
@@ -29,85 +30,55 @@ abstract class DisposableContainer : TrackedDisposable() {
         disposer.remove(disposable, dispose)
     }
 
-    protected fun <V1> observe(observable: Observable<V1>, operation: (V1) -> Unit) {
-        addDisposable(
-            if (observable is Cell<V1>) {
-                observable.observe(callNow = true) { operation(it.value) }
-            } else {
-                observable.observe { operation(it.value) }
-            }
-        )
+    protected fun <T> observe(
+        o1: Observable<T>,
+        observer: (T) -> Unit,
+    ) {
+        addDisposable(o1.observe(observer))
     }
 
-    protected fun <V1, V2> observe(
-        v1: Cell<V1>,
-        v2: Cell<V2>,
-        operation: (V1, V2) -> Unit,
+    protected fun <T> observeNow(
+        c1: Cell<T>,
+        observer: (T) -> Unit,
     ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value)
-        }
-        addDisposables(
-            v1.observe(observer),
-            v2.observe(observer),
-        )
-        operation(v1.value, v2.value)
+        addDisposable(c1.observeNow(observer))
     }
 
-    protected fun <V1, V2, V3> observe(
-        v1: Cell<V1>,
-        v2: Cell<V2>,
-        v3: Cell<V3>,
-        operation: (V1, V2, V3) -> Unit,
+    protected fun <T1, T2> observeNow(
+        c1: Cell<T1>,
+        c2: Cell<T2>,
+        observer: (T1, T2) -> Unit,
     ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value, v3.value)
-        }
-        addDisposables(
-            v1.observe(observer),
-            v2.observe(observer),
-            v3.observe(observer),
-        )
-        operation(v1.value, v2.value, v3.value)
+        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, observer))
     }
 
-    protected fun <V1, V2, V3, V4> observe(
-        v1: Cell<V1>,
-        v2: Cell<V2>,
-        v3: Cell<V3>,
-        v4: Cell<V4>,
-        operation: (V1, V2, V3, V4) -> Unit,
+    protected fun <T1, T2, T3> observeNow(
+        c1: Cell<T1>,
+        c2: Cell<T2>,
+        c3: Cell<T3>,
+        observer: (T1, T2, T3) -> Unit,
     ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value, v3.value, v4.value)
-        }
-        addDisposables(
-            v1.observe(observer),
-            v2.observe(observer),
-            v3.observe(observer),
-            v4.observe(observer),
-        )
-        operation(v1.value, v2.value, v3.value, v4.value)
+        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, c3, observer))
     }
 
-    protected fun <V1, V2, V3, V4, V5> observe(
-        v1: Cell<V1>,
-        v2: Cell<V2>,
-        v3: Cell<V3>,
-        v4: Cell<V4>,
-        v5: Cell<V5>,
-        operation: (V1, V2, V3, V4, V5) -> Unit,
+    protected fun <T1, T2, T3, T4> observeNow(
+        c1: Cell<T1>,
+        c2: Cell<T2>,
+        c3: Cell<T3>,
+        c4: Cell<T4>,
+        observer: (T1, T2, T3, T4) -> Unit,
     ) {
-        val observer: Observer<*> = {
-            operation(v1.value, v2.value, v3.value, v4.value, v5.value)
-        }
-        addDisposables(
-            v1.observe(observer),
-            v2.observe(observer),
-            v3.observe(observer),
-            v4.observe(observer),
-            v5.observe(observer),
-        )
-        operation(v1.value, v2.value, v3.value, v4.value, v5.value)
+        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, c3, c4, observer))
+    }
+
+    protected fun <T1, T2, T3, T4, T5> observeNow(
+        c1: Cell<T1>,
+        c2: Cell<T2>,
+        c3: Cell<T3>,
+        c4: Cell<T4>,
+        c5: Cell<T5>,
+        observer: (T1, T2, T3, T4, T5) -> Unit,
+    ) {
+        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, c3, c4, c5, observer))
     }
 }

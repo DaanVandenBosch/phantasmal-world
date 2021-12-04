@@ -53,7 +53,7 @@ class TextModelUndo(
 
     init {
         undoManager.addUndo(this)
-        modelObserver = model.observe(callNow = true) { onModelChange(it.value) }
+        modelObserver = model.observeNow(::onModelChange)
     }
 
     override fun dispose() {

@@ -249,11 +249,8 @@ private fun <T> bindChildrenTo(
     list: Cell<List<T>>,
     createChild: Node.(T, index: Int) -> Node,
     childrenRemoved: () -> Unit,
-): Disposable =
-    list.observe(callNow = true) { (items) ->
-        parent.innerHTML = ""
-        childrenRemoved()
-
+): Disposable {
+    inline fun createChildNodes(items: List<T>) {
         val frag = document.createDocumentFragment()
 
         items.forEachIndexed { i, item ->
@@ -263,14 +260,33 @@ private fun <T> bindChildrenTo(
         parent.appendChild(frag)
     }
 
+    parent.innerHTML = ""
+    createChildNodes(list.value)
+
+    return list.observeChange { (items) ->
+        parent.innerHTML = ""
+        childrenRemoved()
+        createChildNodes(items)
+    }
+}
+
 private fun <T> bindChildrenTo(
     parent: Element,
     list: ListCell<T>,
     createChild: Node.(T, index: Int) -> Node,
     childrenRemoved: (index: Int, count: Int) -> Unit,
     after: (ListChangeEvent<T>) -> Unit,
-): Disposable =
-    list.observeList(callNow = true) { event: ListChangeEvent<T> ->
+): Disposable {
+    parent.innerHTML = ""
+    val initialFrag = document.createDocumentFragment()
+
+    list.value.forEachIndexed { i, value ->
+        initialFrag.appendChild(initialFrag.createChild(value, i))
+    }
+
+    parent.appendChild(initialFrag)
+
+    return list.observeListChange { event: ListChangeEvent<T> ->
         for (change in event.changes) {
             if (change is ListChange.Structural) {
                 if (change.allRemoved) {
@@ -299,3 +315,4 @@ private fun <T> bindChildrenTo(
 
         after(event)
     }
+}

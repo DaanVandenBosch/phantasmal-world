@@ -94,13 +94,13 @@ class QuestEditorStore(
             },
         )
 
-        observe(uiStore.currentTool) { tool ->
+        observeNow(uiStore.currentTool) { tool ->
             if (tool == PwToolType.QuestEditor) {
                 makeMainUndoCurrent()
             }
         }
 
-        observe(currentQuest.flatMap { it?.npcs ?: emptyListCell() }) { npcs ->
+        observeNow(currentQuest.flatMap { it?.npcs ?: emptyListCell() }) { npcs ->
             val selected = selectedEntity.value
 
             if (selected is QuestNpcModel && selected !in npcs) {
@@ -108,7 +108,7 @@ class QuestEditorStore(
             }
         }
 
-        observe(currentQuest.flatMap { it?.objects ?: emptyListCell() }) { objects ->
+        observeNow(currentQuest.flatMap { it?.objects ?: emptyListCell() }) { objects ->
             val selected = selectedEntity.value
 
             if (selected is QuestObjectModel && selected !in objects) {

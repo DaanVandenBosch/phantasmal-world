@@ -14,7 +14,7 @@ interface MutableCellTests<T : Any> : CellTests {
 
         var observedValue: Any? = null
 
-        disposer.add(p.observable.observe {
+        disposer.add(p.observable.observeChange {
             assertNull(observedValue)
             observedValue = it.value
         })

@@ -32,11 +32,11 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
 
             addDisposable(disposable { editor.dispose() })
 
-            observe(ctrl.textModel) { editor.setModel(it) }
+            observeNow(ctrl.textModel) { editor.setModel(it) }
 
-            observe(ctrl.readOnly) { editor.updateOptions(obj { readOnly = it }) }
+            observeNow(ctrl.readOnly) { editor.updateOptions(obj { readOnly = it }) }
 
-            addDisposable(size.observe { (size) ->
+            addDisposable(size.observeChange { (size) ->
                 if (size.width > .0 && size.height > .0) {
                     editor.layout(obj {
                         width = size.width
@@ -65,7 +65,7 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
                 editor.trigger(
                     source = AsmEditorWidget::class.simpleName,
                     handlerId = "undo",
-                    payload = undefined
+                    payload = undefined,
                 )
             }
 
@@ -74,7 +74,7 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
                 editor.trigger(
                     source = AsmEditorWidget::class.simpleName,
                     handlerId = "redo",
-                    payload = undefined
+                    payload = undefined,
                 )
             }
 

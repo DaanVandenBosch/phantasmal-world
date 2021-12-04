@@ -64,7 +64,7 @@ class DockWidget(
                 style.width = ""
                 style.height = ""
 
-                addDisposable(size.observe { (size) ->
+                addDisposable(size.observeChange { (size) ->
                     goldenLayout.updateSize(size.width, size.height)
                 })
             }

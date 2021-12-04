@@ -3,8 +3,7 @@ package world.phantasmal.observable.cell.list
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.nopDisposable
 import world.phantasmal.observable.AbstractDependency
-import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.Observer
+import world.phantasmal.observable.ChangeObserver
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.cell
 import world.phantasmal.observable.cell.falseCell
@@ -20,31 +19,9 @@ class ImmutableListCell<E>(private val elements: List<E>) : AbstractDependency()
     override fun get(index: Int): E =
         elements[index]
 
-    override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable {
-        if (callNow) {
-            observer(ChangeEvent(value))
-        }
+    override fun observeChange(observer: ChangeObserver<List<E>>): Disposable = nopDisposable()
 
-        return nopDisposable()
-    }
-
-    override fun observe(observer: Observer<List<E>>): Disposable = nopDisposable()
-
-    override fun observeList(callNow: Boolean, observer: ListObserver<E>): Disposable {
-        if (callNow) {
-            observer(ListChangeEvent(
-                value,
-                listOf(ListChange.Structural(
-                    index = 0,
-                    prevSize = 0,
-                    removed = emptyList(),
-                    inserted = value,
-                )),
-            ))
-        }
-
-        return nopDisposable()
-    }
+    override fun observeListChange(observer: ListChangeObserver<E>): Disposable = nopDisposable()
 
     override fun emitDependencyChanged() {
         error("ImmutableListCell can't change.")

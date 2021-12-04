@@ -46,10 +46,10 @@ class FilteredListCellTests : ListCellTests {
         var changes = 0
         var listChanges = 0
 
-        disposer.add(list.observe {
+        disposer.add(list.observeChange {
             changes++
         })
-        disposer.add(list.observeList {
+        disposer.add(list.observeListChange {
             listChanges++
         })
 
@@ -74,7 +74,7 @@ class FilteredListCellTests : ListCellTests {
         val list = FilteredListCell(dep, predicate = { it % 2 == 0 })
         var event: ListChangeEvent<Int>? = null
 
-        disposer.add(list.observeList {
+        disposer.add(list.observeListChange {
             assertNull(event)
             event = it
         })
@@ -128,7 +128,7 @@ class FilteredListCellTests : ListCellTests {
         val list = FilteredListCell(dep, predicate = { it.value % 2 == 0 })
         var event: ListChangeEvent<SimpleCell<Int>>? = null
 
-        disposer.add(list.observeList {
+        disposer.add(list.observeListChange {
             assertNull(event)
             event = it
         })

@@ -11,8 +11,8 @@ class DestinationInstance(
 ) : Instance<QuestObjectModel>(entity, mesh, instanceIndex) {
     init {
         addDisposables(
-            entity.destinationPosition.observe { updateMatrix() },
-            entity.destinationRotationY.observe { updateMatrix() },
+            entity.destinationPosition.observeChange { updateMatrix() },
+            entity.destinationRotationY.observeChange { updateMatrix() },
         )
     }
 

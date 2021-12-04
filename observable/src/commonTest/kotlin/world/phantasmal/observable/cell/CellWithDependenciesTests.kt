@@ -19,7 +19,7 @@ interface CellWithDependenciesTests : CellTests {
 
         var observedChanges = 0
 
-        disposer.add(leaf.observe { observedChanges++ })
+        disposer.add(leaf.observeChange { observedChanges++ })
 
         // Change root, which results in both branches changing and thus two dependencies of leaf
         // changing.
@@ -47,7 +47,7 @@ interface CellWithDependenciesTests : CellTests {
 
         assertTrue(dependency.publicDependents.isEmpty())
 
-        disposer.add(cell.observe { })
+        disposer.add(cell.observeChange { })
 
         assertEquals(1, dependency.publicDependents.size)
     }

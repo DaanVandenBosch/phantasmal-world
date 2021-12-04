@@ -13,7 +13,7 @@ class ChangeTests : ObservableTestSuite {
         val dependent = dependency.map { 2 * it }
 
         var dependentObservedValue: Int? = null
-        disposer.add(dependent.observe { dependentObservedValue = it.value })
+        disposer.add(dependent.observeChange { dependentObservedValue = it.value })
 
         assertFails {
             change {

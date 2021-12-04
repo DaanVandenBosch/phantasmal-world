@@ -54,7 +54,7 @@ open class Button(
                     className = "pw-button-center"
 
                     if (textCell != null) {
-                        observe(textCell) {
+                        observeNow(textCell) {
                             textContent = it
                             hidden = it.isEmpty()
                         }

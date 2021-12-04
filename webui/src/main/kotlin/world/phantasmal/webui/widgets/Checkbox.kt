@@ -23,7 +23,7 @@ class Checkbox(
             type = "checkbox"
 
             if (this@Checkbox.checked != null) {
-                observe(this@Checkbox.checked) {
+                observeNow(this@Checkbox.checked) {
                     checked = it
                 }
             }

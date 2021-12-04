@@ -73,7 +73,7 @@ open class Dialog(
     }
 
     init {
-        observe(visible) {
+        observeNow(visible) {
             if (it) {
                 setPosition(
                     (window.innerWidth - WIDTH) / 2,

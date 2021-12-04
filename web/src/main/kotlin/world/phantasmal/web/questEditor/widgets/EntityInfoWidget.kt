@@ -100,7 +100,7 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
             val inputValue = mutableCell(value.value)
             var timeout = -1
 
-            observe(value) {
+            observeNow(value) {
                 if (timeout == -1) {
                     timeout = window.setTimeout({
                         inputValue.value = value.value

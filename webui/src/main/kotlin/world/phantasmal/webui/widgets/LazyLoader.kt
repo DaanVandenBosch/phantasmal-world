@@ -16,7 +16,7 @@ class LazyLoader(
         div {
             className = "pw-lazy-loader"
 
-            observe(this@LazyLoader.visible) { v ->
+            observeNow(this@LazyLoader.visible) { v ->
                 if (v && !initialized) {
                     initialized = true
                     addChild(createWidget())

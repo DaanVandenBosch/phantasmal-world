@@ -13,14 +13,14 @@ class EntityInstance(
 ) : Instance<QuestEntityModel<*, *>>(entity, mesh, instanceIndex) {
     init {
         if (entity is QuestObjectModel) {
-            addDisposable(entity.model.observe(callNow = false) {
+            addDisposable(entity.model.observeChange {
                 modelChanged(this.instanceIndex)
             })
         }
 
         addDisposables(
-            entity.worldPosition.observe { updateMatrix() },
-            entity.worldRotation.observe { updateMatrix() },
+            entity.worldPosition.observeChange { updateMatrix() },
+            entity.worldRotation.observeChange { updateMatrix() },
         )
     }
 

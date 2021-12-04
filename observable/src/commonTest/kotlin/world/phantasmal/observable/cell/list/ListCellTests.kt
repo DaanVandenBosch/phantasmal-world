@@ -16,6 +16,8 @@ interface ListCellTests : CellTests {
     fun list_value_is_accessible_without_observers() = test {
         val p = createListProvider(empty = false)
 
+        // We literally just test that accessing the value property doesn't throw or return the
+        // wrong list.
         assertTrue(p.observable.value.isNotEmpty())
     }
 
@@ -23,14 +25,28 @@ interface ListCellTests : CellTests {
     fun list_value_is_accessible_with_observers() = test {
         val p = createListProvider(empty = false)
 
-        var observedValue: List<*>? = null
+        disposer.add(p.observable.observeListChange {})
 
-        disposer.add(p.observable.observe(callNow = true) {
-            observedValue = it.value
+        // We literally just test that accessing the value property doesn't throw or return the
+        // wrong list.
+        assertTrue(p.observable.value.isNotEmpty())
+    }
+
+    @Test
+    fun emits_no_list_change_event_until_changed() = test {
+        val p = createListProvider(empty = false)
+
+        var observedEvent: ListChangeEvent<Any>? = null
+
+        disposer.add(p.observable.observeListChange { listChangeEvent ->
+            observedEvent = listChangeEvent
         })
 
-        assertTrue(observedValue!!.isNotEmpty())
-        assertTrue(p.observable.value.isNotEmpty())
+        assertNull(observedEvent)
+
+        p.emit()
+
+        assertNotNull(observedEvent)
     }
 
     @Test
@@ -40,7 +56,7 @@ interface ListCellTests : CellTests {
         var event: ListChangeEvent<*>? = null
 
         disposer.add(
-            p.observable.observeList {
+            p.observable.observeListChange {
                 assertNull(event)
                 event = it
             }
@@ -64,7 +80,7 @@ interface ListCellTests : CellTests {
         var observedSize: Int? = null
 
         disposer.add(
-            p.observable.size.observe {
+            p.observable.size.observeChange {
                 assertNull(observedSize)
                 observedSize = it.value
             }
@@ -102,7 +118,7 @@ interface ListCellTests : CellTests {
 
         var observedValue: Int? = null
 
-        disposer.add(fold.observe {
+        disposer.add(fold.observeChange {
             assertNull(observedValue)
             observedValue = it.value
         })
@@ -127,7 +143,7 @@ interface ListCellTests : CellTests {
 
         var observedValue: Int? = null
 
-        disposer.add(sum.observe {
+        disposer.add(sum.observeChange {
             assertNull(observedValue)
             observedValue = it.value
         })
@@ -152,7 +168,7 @@ interface ListCellTests : CellTests {
 
         var event: ListChangeEvent<*>? = null
 
-        disposer.add(filtered.observeList {
+        disposer.add(filtered.observeListChange {
             assertNull(event)
             event = it
         })
@@ -177,7 +193,7 @@ interface ListCellTests : CellTests {
 
         var observedValue: Any? = null
 
-        disposer.add(firstOrNull.observe {
+        disposer.add(firstOrNull.observeChange {
             assertNull(observedValue)
             observedValue = it.value
         })

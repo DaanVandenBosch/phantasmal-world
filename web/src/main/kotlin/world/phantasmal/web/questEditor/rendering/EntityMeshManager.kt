@@ -5,6 +5,7 @@ import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.Disposer
+import world.phantasmal.observable.cell.observeNow
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*
@@ -92,13 +93,13 @@ class EntityMeshManager(
     }
 
     init {
-        observe(questEditorStore.highlightedEntity) { entity ->
+        observeNow(questEditorStore.highlightedEntity) { entity ->
             // getEntityInstance can return null at this point because the entity mesh might not be
             // loaded yet.
             markHighlighted(entity?.let(::getEntityInstance))
         }
 
-        observe(questEditorStore.selectedEntity) { entity ->
+        observeNow(questEditorStore.selectedEntity) { entity ->
             // getEntityInstance can return null at this point because the entity mesh might not be
             // loaded yet.
             markSelected(entity?.let(::getEntityInstance))
@@ -135,7 +136,9 @@ class EntityMeshManager(
                         destinationInstanceContainer.addInstance(entity)
                     }
                 } catch (e: CancellationException) {
-                    // Do nothing.
+                    logger.trace(e) {
+                        "Mesh loading for entity of type ${entity.type} cancelled."
+                    }
                 } catch (e: Throwable) {
                     logger.error(e) {
                         "Couldn't load mesh for entity of type ${entity.type}."
@@ -228,12 +231,12 @@ class EntityMeshManager(
             newInstance.entity is QuestObjectModel &&
             newInstance.entity.hasDestination
         ) {
-            warpLineDisposer.add(newInstance.entity.worldPosition.observe(callNow = true) {
-                warpLineBufferAttribute.setXYZ(0, it.value.x, it.value.y, it.value.z)
+            warpLineDisposer.add(newInstance.entity.worldPosition.observeNow {
+                warpLineBufferAttribute.setXYZ(0, it.x, it.y, it.z)
                 warpLineBufferAttribute.needsUpdate = true
             })
-            warpLineDisposer.add(newInstance.entity.destinationPosition.observe(callNow = true) {
-                warpLineBufferAttribute.setXYZ(1, it.value.x, it.value.y, it.value.z)
+            warpLineDisposer.add(newInstance.entity.destinationPosition.observeNow {
+                warpLineBufferAttribute.setXYZ(1, it.x, it.y, it.z)
                 warpLineBufferAttribute.needsUpdate = true
             })
             warpLines.visible = true

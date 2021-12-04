@@ -37,7 +37,7 @@ class Select<T : Any>(
             this@Select.className?.let { classList.add(it) }
 
             // Default to a single space so the inner text part won't be hidden.
-            observe(selected) { buttonText.value = it?.let(itemToString) ?: " " }
+            observeNow(selected) { buttonText.value = it?.let(itemToString) ?: " " }
 
             addWidget(Button(
                 enabled = enabled,

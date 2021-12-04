@@ -16,7 +16,7 @@ interface MutableListCellTests<T : Any> : ListCellTests, MutableCellTests<List<T
 
         var changeEvent: ListChangeEvent<T>? = null
 
-        disposer.add(p.observable.observeList {
+        disposer.add(p.observable.observeListChange {
             assertNull(changeEvent)
             changeEvent = it
         })

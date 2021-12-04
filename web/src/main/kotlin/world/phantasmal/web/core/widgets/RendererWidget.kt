@@ -12,7 +12,7 @@ class RendererWidget(
         div {
             className = "pw-core-renderer"
 
-            observe(selfOrAncestorVisible) { visible ->
+            observeNow(selfOrAncestorVisible) { visible ->
                 if (visible) {
                     renderer.startRendering()
                 } else {
@@ -20,7 +20,7 @@ class RendererWidget(
                 }
             }
 
-            addDisposable(size.observe { (size) ->
+            addDisposable(size.observeChange { (size) ->
                 renderer.setSize(size.width.toInt(), size.height.toInt())
             })
 

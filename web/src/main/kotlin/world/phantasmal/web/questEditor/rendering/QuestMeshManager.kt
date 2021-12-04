@@ -5,10 +5,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
-import world.phantasmal.psolib.Episode
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.ListChange
 import world.phantasmal.observable.cell.list.ListChangeEvent
+import world.phantasmal.psolib.Episode
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.AreaVariantModel
@@ -55,7 +55,9 @@ abstract class QuestMeshManager protected constructor(
             npcObserver?.dispose()
             npcMeshManager.removeAll()
 
-            npcObserver = npcs.observeList(callNow = true, ::npcsChanged)
+            npcs.value.forEach(npcMeshManager::add)
+
+            npcObserver = npcs.observeListChange(::npcsChanged)
         }
     }
 
@@ -65,7 +67,9 @@ abstract class QuestMeshManager protected constructor(
             objectObserver?.dispose()
             objectMeshManager.removeAll()
 
-            objectObserver = objects.observeList(callNow = true, ::objectsChanged)
+            objects.value.forEach(objectMeshManager::add)
+
+            objectObserver = objects.observeListChange(::objectsChanged)
         }
     }
 

@@ -56,14 +56,14 @@ class MeshRenderer(
     )
 
     init {
-        observe(viewerStore.currentNinjaGeometry) { rebuildMesh(resetCamera = true) }
-        observe(viewerStore.currentTextures) { rebuildMesh(resetCamera = true) }
-        observe(viewerStore.applyTextures) { rebuildMesh(resetCamera = false) }
-        observe(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
-        observe(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
-        observe(viewerStore.animationPlaying, ::animationPlayingChanged)
-        observe(viewerStore.frameRate, ::frameRateChanged)
-        observe(viewerStore.frame, ::frameChanged)
+        observeNow(viewerStore.currentNinjaGeometry) { rebuildMesh(resetCamera = true) }
+        observeNow(viewerStore.currentTextures) { rebuildMesh(resetCamera = true) }
+        observeNow(viewerStore.applyTextures) { rebuildMesh(resetCamera = false) }
+        observeNow(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
+        observeNow(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
+        observeNow(viewerStore.animationPlaying, ::animationPlayingChanged)
+        observeNow(viewerStore.frameRate, ::frameRateChanged)
+        observeNow(viewerStore.frame, ::frameChanged)
     }
 
     override fun dispose() {

@@ -2,8 +2,8 @@ package world.phantasmal.observable.cell.list
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.unsafe.unsafeAssertNotNull
-import world.phantasmal.observable.CallbackObserver
-import world.phantasmal.observable.Observer
+import world.phantasmal.observable.CallbackChangeObserver
+import world.phantasmal.observable.ChangeObserver
 import world.phantasmal.observable.cell.AbstractCell
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.DependentCell
@@ -19,7 +19,7 @@ abstract class AbstractListCell<E> : AbstractCell<List<E>>(), ListCell<E> {
      * its old value whenever a change event was emitted.
      */
     // TODO: Optimize this by using a weak reference to avoid copying when nothing references the
-    //  wrapper.
+    //       wrapper.
     private var _elementsWrapper: DelegatingList<E>? = null
     protected val elementsWrapper: DelegatingList<E>
         get() {
@@ -39,28 +39,11 @@ abstract class AbstractListCell<E> : AbstractCell<List<E>>(), ListCell<E> {
 
     final override val notEmpty: Cell<Boolean> = !empty
 
-    final override fun observe(callNow: Boolean, observer: Observer<List<E>>): Disposable =
-        observeList(callNow, observer as ListObserver<E>)
+    final override fun observeChange(observer: ChangeObserver<List<E>>): Disposable =
+        observeListChange(observer)
 
-    override fun observeList(callNow: Boolean, observer: ListObserver<E>): Disposable {
-        val observingCell = CallbackObserver(this, observer)
-
-        if (callNow) {
-            observer(
-                ListChangeEvent(
-                    value,
-                    listOf(ListChange.Structural(
-                        index = 0,
-                        prevSize = 0,
-                        removed = emptyList(),
-                        inserted = value
-                    )),
-                )
-            )
-        }
-
-        return observingCell
-    }
+    override fun observeListChange(observer: ListChangeObserver<E>): Disposable =
+        CallbackChangeObserver(this, observer)
 
     protected fun copyAndResetWrapper() {
         _elementsWrapper?.backingList = elements.toList()

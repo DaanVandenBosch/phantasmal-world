@@ -14,14 +14,14 @@ class QuestEditorMeshManager(
     renderContext: QuestRenderContext,
 ) : QuestMeshManager(areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
     init {
-        observe(
+        observeNow(
             questEditorStore.currentQuest,
             questEditorStore.currentAreaVariant,
         ) { quest, areaVariant ->
             loadAreaMeshes(quest?.episode, areaVariant)
         }
 
-        observe(
+        observeNow(
             questEditorStore.currentQuest,
             questEditorStore.currentArea,
             questEditorStore.selectedEvent.flatMapNull { it?.wave },
@@ -39,7 +39,7 @@ class QuestEditorMeshManager(
             )
         }
 
-        observe(
+        observeNow(
             questEditorStore.currentQuest,
             questEditorStore.currentArea,
         ) { quest, area ->
@@ -54,7 +54,7 @@ class QuestEditorMeshManager(
             )
         }
 
-        observe(questEditorStore.showCollisionGeometry) {
+        observeNow(questEditorStore.showCollisionGeometry) {
             renderContext.collisionGeometryVisible = it
             renderContext.renderGeometryVisible = !it
         }

@@ -14,7 +14,11 @@ interface ListCell<out E> : Cell<List<E>> {
 
     operator fun get(index: Int): E = value[index]
 
-    fun observeList(callNow: Boolean = false, observer: ListObserver<E>): Disposable
+    /**
+     * List variant of [Cell.observeChange].
+     */
+    // Exists solely because function parameters are invariant.
+    fun observeListChange(observer: ListChangeObserver<E>): Disposable
 
     operator fun contains(element: @UnsafeVariance E): Boolean = element in value
 }

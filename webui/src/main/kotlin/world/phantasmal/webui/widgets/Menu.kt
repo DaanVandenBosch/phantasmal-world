@@ -53,7 +53,7 @@ class Menu<T : Any>(
                 }
             }
 
-            observe(this@Menu.visible) {
+            observeNow(this@Menu.visible) {
                 if (it) {
                     onDocumentMouseDownListener =
                         document.disposableListener("mousedown", ::onDocumentMouseDown)
@@ -66,13 +66,13 @@ class Menu<T : Any>(
                 }
             }
 
-            observe(enabled) {
+            observeNow(enabled) {
                 if (!it) {
                     clearHighlightItem()
                 }
             }
 
-            observe(items) {
+            observeNow(items) {
                 clearHighlightItem()
             }
 

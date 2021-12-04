@@ -2,25 +2,15 @@ package world.phantasmal.observable.cell
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.observable.AbstractDependency
-import world.phantasmal.observable.CallbackObserver
+import world.phantasmal.observable.CallbackChangeObserver
 import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.Observer
+import world.phantasmal.observable.ChangeObserver
 
 abstract class AbstractCell<T> : AbstractDependency(), Cell<T> {
     private var mightChangeEmitted = false
 
-    final override fun observe(observer: Observer<T>): Disposable =
-        observe(callNow = false, observer)
-
-    override fun observe(callNow: Boolean, observer: Observer<T>): Disposable {
-        val observingCell = CallbackObserver(this, observer)
-
-        if (callNow) {
-            observer(ChangeEvent(value))
-        }
-
-        return observingCell
-    }
+    override fun observeChange(observer: ChangeObserver<T>): Disposable =
+        CallbackChangeObserver(this, observer)
 
     protected fun emitMightChange() {
         if (!mightChangeEmitted) {

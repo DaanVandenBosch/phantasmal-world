@@ -28,7 +28,7 @@ class TabContainer<T : Tab>(
                         title = tab.title
                         textContent = tab.title
 
-                        observe(ctrl.activeTab) {
+                        observeNow(ctrl.activeTab) {
                             if (it == tab) {
                                 classList.add(ACTIVE_CLASS)
                             } else {
@@ -55,7 +55,7 @@ class TabContainer<T : Tab>(
         }
 
     init {
-        observe(selfOrAncestorVisible, ctrl::visibleChanged)
+        observeNow(selfOrAncestorVisible, ctrl::visibleChanged)
     }
 
     companion object {

@@ -15,8 +15,8 @@ class SimpleEmitter<T> : AbstractDependency(), Emitter<T> {
         ChangeManager.changed(this)
     }
 
-    override fun observe(observer: Observer<T>): Disposable =
-        CallbackObserver(this, observer)
+    override fun observeChange(observer: ChangeObserver<T>): Disposable =
+        CallbackChangeObserver(this, observer)
 
     override fun emitDependencyChanged() {
         if (event != null) {

@@ -3,7 +3,7 @@ package world.phantasmal.observable
 interface Dependency {
     /**
      * This method is not meant to be called from typical application code. Usually you'll want to
-     * use [Observable.observe].
+     * use [Observable.observeChange].
      */
     fun addDependent(dependent: Dependent)
 

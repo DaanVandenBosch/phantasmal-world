@@ -31,7 +31,7 @@ class HuntMethodStore(
 
     /** Hunting methods supported by the current server. */
     val methods: ListCell<HuntMethodModel> by lazy {
-        observe(uiStore.server) { _methodsStatus.load() }
+        observeNow(uiStore.server) { _methodsStatus.load() }
         _methods
     }
 

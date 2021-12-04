@@ -245,7 +245,7 @@ class SimpleListCellTests : MutableListCellTests<Int> {
 
         var event: ListChangeEvent<SimpleCell<String>>? = null
 
-        disposer.add(list.observeList {
+        disposer.add(list.observeListChange {
             assertNull(event)
             event = it
         })

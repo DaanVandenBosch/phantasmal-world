@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.controllers
 
+import world.phantasmal.observable.cell.observeNow
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.test.WebTestSuite
@@ -115,9 +116,9 @@ class EventsControllerTests : WebTestSuite {
         // We test the observed value instead of the cell's value property.
         var canGoToEventValue: Boolean? = null
 
-        disposer.add(canGoToEvent.observe(callNow = true) {
+        disposer.add(canGoToEvent.observeNow {
             assertNull(canGoToEventValue)
-            canGoToEventValue = it.value
+            canGoToEventValue = it
         })
 
         assertEquals(true, canGoToEventValue)

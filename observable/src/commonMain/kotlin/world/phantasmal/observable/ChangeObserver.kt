@@ -1,5 +1,7 @@
 package world.phantasmal.observable
 
+typealias ChangeObserver<T> = (ChangeEvent<T>) -> Unit
+
 open class ChangeEvent<out T>(
     /**
      * The observable's new value.
@@ -8,5 +10,3 @@ open class ChangeEvent<out T>(
 ) {
     operator fun component1() = value
 }
-
-typealias Observer<T> = (ChangeEvent<T>) -> Unit

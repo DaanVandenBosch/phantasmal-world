@@ -4,6 +4,7 @@ import org.w3c.dom.*
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.observeNow
 import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.LoadingStatus
 import world.phantasmal.webui.controllers.Column
@@ -30,7 +31,7 @@ class Table<T>(
                 div {
                     className = "pw-table-notification"
 
-                    observe(loadingStatus) { status ->
+                    observeNow(loadingStatus) { status ->
                         when (status) {
                             LoadingStatus.Uninitialized,
                             LoadingStatus.InitialLoad,
@@ -167,8 +168,8 @@ class Table<T>(
             style.width = "${column.width}px"
             column.textAlign?.let { style.textAlign = it }
 
-            disposer.add(column.footer.observe(callNow = true) { textContent = it.value ?: "" })
-            disposer.add(column.footerTooltip.observe(callNow = true) { title = it.value ?: "" })
+            disposer.add(column.footer.observeNow { textContent = it ?: "" })
+            disposer.add(column.footerTooltip.observeNow { title = it ?: "" })
         }
 
         return Pair(cell, disposer)

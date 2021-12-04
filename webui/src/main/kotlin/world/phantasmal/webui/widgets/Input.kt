@@ -34,13 +34,13 @@ abstract class Input<T>(
                 id = labelId
                 classList.add("pw-input-inner")
 
-                observe(this@Input.enabled) { disabled = !it }
+                observeNow(this@Input.enabled) { disabled = !it }
 
                 onchange = { callOnChange(this) }
 
                 interceptInputElement(this)
 
-                observe(this@Input.value) {
+                observeNow(this@Input.value) {
                     setInputValue(this, it)
                 }
             }

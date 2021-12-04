@@ -37,13 +37,13 @@ class TextArea(
                 id = labelId
                 className = "pw-text-area-inner"
 
-                observe(this@TextArea.enabled) { disabled = !it }
+                observeNow(this@TextArea.enabled) { disabled = !it }
 
                 if (onChange != null) {
                     onchange = { onChange.invoke(value) }
                 }
 
-                observe(this@TextArea.value) { value = it }
+                observeNow(this@TextArea.value) { value = it }
 
                 this@TextArea.maxLength?.let { maxLength = it }
                 fontFamily?.let { style.fontFamily = it }

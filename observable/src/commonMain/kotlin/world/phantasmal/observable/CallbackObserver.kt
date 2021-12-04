@@ -1,28 +1,46 @@
 package world.phantasmal.observable
 
 import world.phantasmal.core.disposable.TrackedDisposable
-import world.phantasmal.core.unsafe.unsafeCast
 
-class CallbackObserver<T, E : ChangeEvent<T>>(
-    private val dependency: Dependency,
-    private val callback: (E) -> Unit,
+/**
+ * Calls [callback] when one or more dependency in [dependencies] changes.
+ */
+class CallbackObserver(
+    private vararg val dependencies: Dependency,
+    private val callback: () -> Unit,
 ) : TrackedDisposable(), Dependent {
+    private var changingDependencies = 0
+    private var dependenciesActuallyChanged = false
+
     init {
-        dependency.addDependent(this)
+        for (dependency in dependencies) {
+            dependency.addDependent(this)
+        }
     }
 
     override fun dispose() {
-        dependency.removeDependent(this)
+        for (dependency in dependencies) {
+            dependency.removeDependent(this)
+        }
+
         super.dispose()
     }
 
     override fun dependencyMightChange() {
-        // Do nothing.
+        changingDependencies++
     }
 
     override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
         if (event != null) {
-            callback(unsafeCast(event))
+            dependenciesActuallyChanged = true
+        }
+
+        changingDependencies--
+
+        if (changingDependencies == 0 && dependenciesActuallyChanged) {
+            dependenciesActuallyChanged = false
+
+            callback()
         }
     }
 }

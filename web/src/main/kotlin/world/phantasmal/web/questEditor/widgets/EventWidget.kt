@@ -36,7 +36,7 @@ class EventWidget(
                 }
             }
 
-            observe(isSelected) {
+            observeNow(isSelected) {
                 if (it) {
                     scrollIntoView(obj<ScrollIntoViewOptions> {
                         behavior = ScrollBehavior.SMOOTH

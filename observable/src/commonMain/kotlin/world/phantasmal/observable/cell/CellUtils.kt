@@ -1,5 +1,8 @@
 package world.phantasmal.observable.cell
 
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.observable.CallbackObserver
+
 private val TRUE_CELL: Cell<Boolean> = ImmutableCell(true)
 private val FALSE_CELL: Cell<Boolean> = ImmutableCell(false)
 private val NULL_CELL: Cell<Nothing?> = ImmutableCell(null)
@@ -35,6 +38,62 @@ fun <T> mutableCell(value: T): MutableCell<T> = SimpleCell(value)
  */
 fun <T> mutableCell(getter: () -> T, setter: (T) -> Unit): MutableCell<T> =
     DelegatingCell(getter, setter)
+
+fun <T> Cell<T>.observeNow(
+    observer: (T) -> Unit,
+): Disposable {
+    observer(value)
+
+    return observeChange { observer(it.value) }
+}
+
+fun <T1, T2> observeNow(
+    c1: Cell<T1>,
+    c2: Cell<T2>,
+    observer: (T1, T2) -> Unit,
+): Disposable {
+    observer(c1.value, c2.value)
+
+    return CallbackObserver(c1, c2) { observer(c1.value, c2.value) }
+}
+
+fun <T1, T2, T3> observeNow(
+    c1: Cell<T1>,
+    c2: Cell<T2>,
+    c3: Cell<T3>,
+    observer: (T1, T2, T3) -> Unit,
+): Disposable {
+    observer(c1.value, c2.value, c3.value)
+
+    return CallbackObserver(c1, c2, c3) { observer(c1.value, c2.value, c3.value) }
+}
+
+fun <T1, T2, T3, T4> observeNow(
+    c1: Cell<T1>,
+    c2: Cell<T2>,
+    c3: Cell<T3>,
+    c4: Cell<T4>,
+    observer: (T1, T2, T3, T4) -> Unit,
+): Disposable {
+    observer(c1.value, c2.value, c3.value, c4.value)
+
+    return CallbackObserver(c1, c2, c3, c4) { observer(c1.value, c2.value, c3.value, c4.value) }
+}
+
+fun <T1, T2, T3, T4, T5> observeNow(
+    c1: Cell<T1>,
+    c2: Cell<T2>,
+    c3: Cell<T3>,
+    c4: Cell<T4>,
+    c5: Cell<T5>,
+    observer: (T1, T2, T3, T4, T5) -> Unit,
+): Disposable {
+    observer(c1.value, c2.value, c3.value, c4.value, c5.value)
+
+    return CallbackObserver(c1, c2, c3, c4, c5) {
+        observer(c1.value, c2.value, c3.value, c4.value, c5.value)
+    }
+}
 
 /**
  * Map a transformation function over this cell.

@@ -46,7 +46,7 @@ class TextureRenderer(
     ))
 
     init {
-        observe(store.currentTextures) {
+        observeNow(store.currentTextures) {
             texturesChanged(it.filterNotNull())
         }
     }

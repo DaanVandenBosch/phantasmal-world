@@ -42,8 +42,8 @@ class ComboBox<T : Any>(
                     id = labelId
                     placeholderText?.let { placeholder = it }
                     hidden(!visible)
-                    observe(enabled) { disabled = !it }
-                    observe(selected) { value = it?.let(itemToString) ?: "" }
+                    observeNow(enabled) { disabled = !it }
+                    observeNow(selected) { value = it?.let(itemToString) ?: "" }
 
                     onmousedown = ::onInputMouseDown
                     onkeydown = ::onInputKeyDown

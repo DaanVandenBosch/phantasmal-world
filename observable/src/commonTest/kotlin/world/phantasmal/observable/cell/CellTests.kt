@@ -1,6 +1,7 @@
 package world.phantasmal.observable.cell
 
 import world.phantasmal.core.disposable.use
+import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.ObservableTests
 import kotlin.test.*
 
@@ -15,6 +16,7 @@ interface CellTests : ObservableTests {
     fun value_is_accessible_without_observers() = test {
         val p = createProvider()
 
+        // We literally just test that accessing the value property doesn't throw or return null.
         assertNotNull(p.observable.value)
     }
 
@@ -22,103 +24,52 @@ interface CellTests : ObservableTests {
     fun value_is_accessible_with_observers() = test {
         val p = createProvider()
 
-        var observedValue: Any? = null
+        disposer.add(p.observable.observeChange {})
 
-        disposer.add(p.observable.observe(callNow = true) {
-            observedValue = it.value
-        })
-
-        assertNotNull(observedValue)
+        // We literally just test that accessing the value property doesn't throw or return null.
         assertNotNull(p.observable.value)
     }
 
     @Test
-    fun propagates_changes_to_mapped_cell() = test {
+    fun emits_no_change_event_until_changed() = test {
         val p = createProvider()
-        val mapped = p.observable.map { it.hashCode() }
-        val initialValue = mapped.value
 
-        var observedValue: Int? = null
+        var observedEvent: ChangeEvent<Any>? = null
 
-        disposer.add(mapped.observe {
-            assertNull(observedValue)
-            observedValue = it.value
+        disposer.add(p.observable.observeChange { changeEvent ->
+            observedEvent = changeEvent
         })
+
+        assertNull(observedEvent)
 
         p.emit()
 
-        assertNotEquals(initialValue, mapped.value)
-        assertEquals(mapped.value, observedValue)
-    }
-
-    @Test
-    fun propagates_changes_to_flat_mapped_cell() = test {
-        val p = createProvider()
-
-        val mapped = p.observable.flatMap { ImmutableCell(it.hashCode()) }
-        val initialValue = mapped.value
-
-        var observedValue: Int? = null
-
-        disposer.add(mapped.observe {
-            assertNull(observedValue)
-            observedValue = it.value
-        })
-
-        p.emit()
-
-        assertNotEquals(initialValue, mapped.value)
-        assertEquals(mapped.value, observedValue)
+        assertNotNull(observedEvent)
     }
 
     @Test
     fun emits_correct_value_in_change_events() = test {
         val p = createProvider()
 
+        var prevValue: Any?
         var observedValue: Any? = null
 
-        disposer.add(p.observable.observe {
+        disposer.add(p.observable.observeChange { changeEvent ->
             assertNull(observedValue)
-            observedValue = it.value
+            observedValue = changeEvent.value
         })
 
         repeat(3) {
+            prevValue = observedValue
             observedValue = null
 
             p.emit()
 
+            // We should have observed a value, it should be different from the previous value, and
+            // it should be equal to the cell's current value.
             assertNotNull(observedValue)
+            assertNotEquals(prevValue, observedValue)
             assertEquals(p.observable.value, observedValue)
-        }
-    }
-
-    /**
-     * When [Cell.observe] is called with callNow = true, it should call the observer immediately.
-     * Otherwise it should only call the observer when it changes.
-     */
-    @Test
-    fun respects_call_now_argument() = test {
-        val p = createProvider()
-        var changes = 0
-
-        // Test callNow = false
-        p.observable.observe(callNow = false) {
-            changes++
-        }.use {
-            p.emit()
-
-            assertEquals(1, changes)
-        }
-
-        // Test callNow = true
-        changes = 0
-
-        p.observable.observe(callNow = true) {
-            changes++
-        }.use {
-            p.emit()
-
-            assertEquals(2, changes)
         }
     }
 
@@ -146,6 +97,63 @@ interface CellTests : ObservableTests {
             // Value should not change when emit hasn't been called since the last access.
             assertEquals(new, p.observable.value)
         }
+    }
+
+    //
+    // CellUtils Tests
+    //
+
+    @Test
+    fun propagates_changes_to_observeNow_observers() = test {
+        val p = createProvider()
+        var changes = 0
+
+        p.observable.observeNow {
+            changes++
+        }.use {
+            p.emit()
+
+            assertEquals(2, changes)
+        }
+    }
+
+    @Test
+    fun propagates_changes_to_mapped_cell() = test {
+        val p = createProvider()
+        val mapped = p.observable.map { it.hashCode() }
+        val initialValue = mapped.value
+
+        var observedValue: Int? = null
+
+        disposer.add(mapped.observeChange { changeEvent ->
+            assertNull(observedValue)
+            observedValue = changeEvent.value
+        })
+
+        p.emit()
+
+        assertNotEquals(initialValue, mapped.value)
+        assertEquals(mapped.value, observedValue)
+    }
+
+    @Test
+    fun propagates_changes_to_flat_mapped_cell() = test {
+        val p = createProvider()
+
+        val mapped = p.observable.flatMap { ImmutableCell(it.hashCode()) }
+        val initialValue = mapped.value
+
+        var observedValue: Int? = null
+
+        disposer.add(mapped.observeChange {
+            assertNull(observedValue)
+            observedValue = it.value
+        })
+
+        p.emit()
+
+        assertNotEquals(initialValue, mapped.value)
+        assertEquals(mapped.value, observedValue)
     }
 
     interface Provider : ObservableTests.Provider {

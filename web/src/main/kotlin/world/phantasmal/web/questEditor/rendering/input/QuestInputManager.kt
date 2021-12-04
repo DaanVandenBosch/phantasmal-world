@@ -84,8 +84,8 @@ class QuestInputManager(
         stateContext = StateContext(questEditorStore, renderContext, cameraInputManager)
         state = IdleState(stateContext, entityManipulationEnabled)
 
-        observe(questEditorStore.selectedEntity) { returnToIdleState() }
-        observe(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
+        observeNow(questEditorStore.selectedEntity) { returnToIdleState() }
+        observeNow(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
 
         pointerTrap.className = "pw-quest-editor-input-manager-pointer-trap"
         pointerTrap.hidden = true

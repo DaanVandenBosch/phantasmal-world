@@ -12,7 +12,6 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.Observable
 import world.phantasmal.observable.cell.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.*
@@ -36,12 +35,12 @@ abstract class Widget(
     private val elementDelegate = lazy {
         val el = documentFragment().createElement()
 
-        observe(visible) { visible ->
+        observeNow(visible) { visible ->
             el.hidden = !visible
             children.forEach { setAncestorVisible(it, visible && ancestorVisible.value) }
         }
 
-        observe(enabled) { enabled ->
+        observeNow(enabled) { enabled ->
             if (enabled) {
                 el.removeAttribute("disabled")
                 el.classList.remove("pw-disabled")
@@ -51,7 +50,7 @@ abstract class Widget(
             }
         }
 
-        observe(tooltip) { tooltip ->
+        observeNow(tooltip) { tooltip ->
             if (tooltip == null) {
                 el.removeAttribute("title")
             } else {
@@ -111,16 +110,16 @@ abstract class Widget(
         super.dispose()
     }
 
-    protected fun Node.text(observable: Observable<String>) {
-        observe(observable) { textContent = it }
+    protected fun Node.text(cell: Cell<String>) {
+        observeNow(cell) { textContent = it }
     }
 
-    protected fun HTMLElement.hidden(observable: Observable<Boolean>) {
-        observe(observable) { hidden = it }
+    protected fun HTMLElement.hidden(cell: Cell<Boolean>) {
+        observeNow(cell) { hidden = it }
     }
 
-    protected fun HTMLElement.toggleClass(className: String, observable: Observable<Boolean>) {
-        observe(observable) {
+    protected fun HTMLElement.toggleClass(className: String, cell: Cell<Boolean>) {
+        observeNow(cell) {
             if (it) classList.add(className)
             else classList.remove(className)
         }

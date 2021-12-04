@@ -1,7 +1,7 @@
 package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.Observable
+import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.nullCell
 import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.web.core.PwToolType
@@ -12,7 +12,7 @@ import world.phantasmal.webui.widgets.Control
 
 class PwToolButton(
     private val tool: PwToolType,
-    private val toggled: Observable<Boolean>,
+    private val toggled: Cell<Boolean>,
     private val onMouseDown: () -> Unit,
 ) : Control(visible = trueCell(), enabled = trueCell(), tooltip = nullCell()) {
     private val inputId = "pw-application-pw-tool-button-${tool.name.lowercase()}"
@@ -25,7 +25,7 @@ class PwToolButton(
                 type = "radio"
                 id = inputId
                 name = "pw-application-pw-tool-button"
-                observe(toggled) { checked = it }
+                observeNow(toggled) { checked = it }
             }
             label {
                 htmlFor = inputId

@@ -42,4 +42,4 @@ sealed class ListChange<out E> {
     ) : ListChange<E>()
 }
 
-typealias ListObserver<E> = (ListChangeEvent<E>) -> Unit
+typealias ListChangeObserver<E> = (ListChangeEvent<E>) -> Unit

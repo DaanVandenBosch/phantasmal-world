@@ -16,7 +16,7 @@ interface ObservableTests : DependencyTests {
         var changes = 0
 
         disposer.add(
-            p.observable.observe {
+            p.observable.observeChange {
                 changes++
             }
         )
@@ -37,7 +37,7 @@ interface ObservableTests : DependencyTests {
         val p = createProvider()
         var changes = 0
 
-        val observer = p.observable.observe {
+        val observer = p.observable.observeChange {
             changes++
         }
 

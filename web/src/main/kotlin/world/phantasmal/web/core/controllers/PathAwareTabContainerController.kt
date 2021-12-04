@@ -15,7 +15,7 @@ open class PathAwareTabContainerController<T : PathAwareTab>(
     tabs: List<T>,
 ) : TabContainerController<T>(tabs) {
     init {
-        observe(uiStore.path) { path ->
+        observeNow(uiStore.path) { path ->
             if (uiStore.currentTool.value == tool) {
                 tabs.find { path.startsWith(it.path) }?.let {
                     setActiveTab(it, replaceUrl = true)
