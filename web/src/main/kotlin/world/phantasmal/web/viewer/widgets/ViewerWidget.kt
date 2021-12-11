@@ -25,10 +25,12 @@ class ViewerWidget(
                 className = "pw-viewer-viewer-content"
 
                 addChild(SelectionWidget(
-                    ctrl.characterClasses,
-                    ctrl.currentCharacterClass,
-                    { char -> scope.launch { ctrl.setCurrentCharacterClass(char) } },
-                    { it.uiName },
+                    items = ctrl.characterClasses,
+                    selected = ctrl.currentCharacterClass,
+                    onSelect = { char ->
+                        scope.launch { ctrl.setCurrentCharacterClass(char) }
+                    },
+                    itemToString = { it.uiName },
                 ))
                 addChild(createCharacterClassOptionsWidget())
                 addChild(TabContainer(ctrl = ctrl, createWidget = { tab ->
@@ -38,10 +40,12 @@ class ViewerWidget(
                     }
                 }))
                 addChild(SelectionWidget(
-                    ctrl.animations,
-                    ctrl.currentAnimation,
-                    { animation -> scope.launch { ctrl.setCurrentAnimation(animation) } },
-                    { it.name },
+                    items = ctrl.animations,
+                    selected = ctrl.currentAnimation,
+                    onSelect = { animation ->
+                        scope.launch { ctrl.setCurrentAnimation(animation) }
+                    },
+                    itemToString = { it.name },
                     borderLeft = true,
                 ))
             }
