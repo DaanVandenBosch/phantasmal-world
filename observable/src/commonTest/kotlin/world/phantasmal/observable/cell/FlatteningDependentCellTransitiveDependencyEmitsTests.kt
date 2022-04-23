@@ -14,7 +14,16 @@ class FlatteningDependentCellTransitiveDependencyEmitsTests :
         return FlatteningDependentCell(dependency) { dependency.value }
     }
 
-    class Provider : CellTests.Provider, CellWithDependenciesTests.Provider {
+    override fun createWithDependencies(
+        dependency1: Cell<Int>,
+        dependency2: Cell<Int>,
+        dependency3: Cell<Int>,
+    ) =
+        FlatteningDependentCell(dependency1, dependency2, dependency3) {
+            ImmutableCell(dependency1.value + dependency2.value + dependency3.value)
+        }
+
+    class Provider : CellTests.Provider {
         // The transitive dependency can change.
         private val transitiveDependency = SimpleCell(5)
 
@@ -28,8 +37,5 @@ class FlatteningDependentCellTransitiveDependencyEmitsTests :
             // Update the transitive dependency.
             transitiveDependency.value += 5
         }
-
-        override fun createWithDependencies(vararg dependencies: Cell<Int>): Cell<Any> =
-            FlatteningDependentCell(*dependencies) { ImmutableCell(dependencies.sumOf { it.value }) }
     }
 }

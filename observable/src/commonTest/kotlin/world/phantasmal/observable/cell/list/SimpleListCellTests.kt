@@ -1,9 +1,10 @@
 package world.phantasmal.observable.cell.list
 
-import world.phantasmal.observable.cell.SimpleCell
 import world.phantasmal.observable.test.assertListCellEquals
-import world.phantasmal.testUtils.TestContext
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class SimpleListCellTests : MutableListCellTests<Int> {
     override fun createProvider() = createListProvider(empty = true)
@@ -31,15 +32,8 @@ class SimpleListCellTests : MutableListCellTests<Int> {
 
     @Test
     fun set() = test {
-        testSet(SimpleListCell(mutableListOf("a", "b", "c")))
-    }
+        val list = SimpleListCell(mutableListOf("a", "b", "c"))
 
-    @Test
-    fun set_with_extractDependencies() = test {
-        testSet(SimpleListCell(mutableListOf("a", "b", "c")) { arrayOf() })
-    }
-
-    private fun testSet(list: SimpleListCell<String>) {
         list[1] = "test"
         list[2] = "test2"
         assertFailsWith<IndexOutOfBoundsException> {
@@ -146,134 +140,5 @@ class SimpleListCellTests : MutableListCellTests<Int> {
 
         // List should remain unchanged after invalid calls.
         assertListCellEquals(listOf(101, 0, 1, 2, 100, 8, 9, 102), list)
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_set() = test {
-        testElementChangePropagation {
-            val old = it[1]
-            it[1] = SimpleCell("new")
-            listOf(old)
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_add() = test {
-        testElementChangePropagation {
-            it.add(SimpleCell("new"))
-            emptyList()
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_add_with_index() = test {
-        testElementChangePropagation {
-            it.add(1, SimpleCell("new"))
-            emptyList()
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_remove() = test {
-        testElementChangePropagation {
-            val removed = it[1]
-            it.remove(removed)
-            listOf(removed)
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_removeAt() = test {
-        testElementChangePropagation {
-            listOf(it.removeAt(2))
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_replaceAll() = test {
-        testElementChangePropagation {
-            val removed = it.value.toList()
-            it.replaceAll(listOf(SimpleCell("new a"), SimpleCell("new b")))
-            removed
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_replaceAll_with_sequence() = test {
-        testElementChangePropagation {
-            val removed = it.value.toList()
-            it.replaceAll(sequenceOf(SimpleCell("new a"), SimpleCell("new b")))
-            removed
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_splice() = test {
-        testElementChangePropagation {
-            val removed = it.value.toList().drop(1)
-            it.splice(1, 2, SimpleCell("new"))
-            removed
-        }
-    }
-
-    @Test
-    fun element_changes_propagate_correctly_after_clear() = test {
-        testElementChangePropagation {
-            val removed = it.value.toList()
-            it.clear()
-            removed
-        }
-    }
-
-    /**
-     * Creates a list with 3 SimpleCells as elements, calls [updateList] with this list and then
-     * checks that changes to old elements don't affect the list and changes to new elements do
-     * affect the list.
-     *
-     * @param updateList Function that changes the list and returns the removed elements if any.
-     */
-    private fun TestContext.testElementChangePropagation(
-        updateList: (SimpleListCell<SimpleCell<String>>) -> List<SimpleCell<String>>
-    ) {
-        val list = SimpleListCell(
-            mutableListOf(
-                SimpleCell("a"),
-                SimpleCell("b"),
-                SimpleCell("c")
-            )
-        ) { arrayOf(it) }
-
-        var event: ListChangeEvent<SimpleCell<String>>? = null
-
-        disposer.add(list.observeListChange {
-            assertNull(event)
-            event = it
-        })
-
-        val removed = updateList(list)
-
-        event = null
-
-        // The list should not emit events when an old element is changed.
-        for (element in removed) {
-            element.value += "-1"
-
-            assertNull(event)
-        }
-
-        // The list should emit events when any of the current elements are changed.
-        for ((index, element) in list.value.withIndex()) {
-            event = null
-
-            element.value += "-2"
-
-            val e = event
-            assertNotNull(e)
-            assertEquals(1, e.changes.size)
-            val c = e.changes.first()
-            assertTrue(c is ListChange.Element)
-            assertEquals(index, c.index)
-            assertEquals(element, c.updated)
-        }
     }
 }

@@ -22,7 +22,7 @@ abstract class AbstractCell<T> : AbstractDependency(), Cell<T> {
         }
     }
 
-    protected fun emitDependencyChanged(event: ChangeEvent<*>?) {
+    protected fun emitDependencyChangedEvent(event: ChangeEvent<*>?) {
         if (mightChangeEmitted) {
             mightChangeEmitted = false
 
@@ -31,4 +31,6 @@ abstract class AbstractCell<T> : AbstractDependency(), Cell<T> {
             }
         }
     }
+
+    override fun toString(): String = "${this::class.simpleName}[$value]"
 }

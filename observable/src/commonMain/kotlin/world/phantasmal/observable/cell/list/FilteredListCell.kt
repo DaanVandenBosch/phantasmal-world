@@ -1,217 +1,212 @@
 package world.phantasmal.observable.cell.list
 
+import world.phantasmal.core.assert
+import world.phantasmal.core.unsafe.unsafeCast
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.Dependent
+import world.phantasmal.observable.cell.Cell
 
 class FilteredListCell<E>(
-    private val dependency: ListCell<E>,
-    private val predicate: (E) -> Boolean,
-) : AbstractListCell<E>(), Dependent {
+    list: ListCell<E>,
+    private val predicate: Cell<(E) -> Cell<Boolean>>,
+) : AbstractFilteredListCell<E>(list) {
     /**
-     * Maps the dependency's indices to this list's indices. When an element of the dependency list
+     * Maps the dependency's indices to the corresponding index into this list and the result of the
+     * predicate applied to the element at that index. When an element of the dependency list
      * doesn't pass the predicate, its index in this mapping is set to -1.
      */
-    private val indexMap = mutableListOf<Int>()
+    private val indexMap = mutableListOf<Mapping>()
 
-    override val elements = mutableListOf<E>()
+    private val changedPredicateResults = mutableListOf<Mapping>()
 
-    override val value: List<E>
-        get() {
-            if (dependents.isEmpty()) {
-                recompute()
-            }
-
-            return elementsWrapper
-        }
-
-    override fun addDependent(dependent: Dependent) {
-        if (dependents.isEmpty()) {
-            dependency.addDependent(this)
-            recompute()
-        }
-
-        super.addDependent(dependent)
-    }
+    override val predicateDependency: Dependency
+        get() = predicate
 
     override fun removeDependent(dependent: Dependent) {
         super.removeDependent(dependent)
 
         if (dependents.isEmpty()) {
-            dependency.removeDependent(this)
+            for (mapping in indexMap) {
+                mapping.removeDependent(this)
+            }
         }
     }
 
-    override fun dependencyMightChange() {
-        emitMightChange()
+    override fun otherDependencyChanged(dependency: Dependency) {
+        assert { dependency is FilteredListCell<*>.Mapping }
+
+        changedPredicateResults.add(unsafeCast(dependency))
     }
 
-    override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
-        if (event is ListChangeEvent<*>) {
-            val prevSize = elements.size
-            val filteredChanges = mutableListOf<ListChange<E>>()
+    override fun ignoreOtherChanges() {
+        changedPredicateResults.clear()
+    }
 
-            for (change in event.changes) {
-                when (change) {
-                    is ListChange.Structural -> {
-                        // Figure out which elements should be removed from this list, then simply
-                        // recompute the entire filtered list and finally figure out which elements
-                        // have been added. Emit a change event if something actually changed.
-                        @Suppress("UNCHECKED_CAST")
-                        change as ListChange.Structural<E>
+    override fun processOtherChanges(filteredChanges: MutableList<ListChange<E>>) {
+        var shift = 0
 
-                        val removed = mutableListOf<E>()
-                        var eventIndex = -1
+        for ((dependencyIndex, mapping) in indexMap.withIndex()) {
+            if (changedPredicateResults.isEmpty()) {
+                break
+            }
 
-                        change.removed.forEachIndexed { i, element ->
-                            val index = indexMap[change.index + i]
+            if (changedPredicateResults.remove(mapping)) {
+                val result = mapping.predicateResult.value
+                val oldResult = mapping.index != -1
 
-                            if (index != -1) {
-                                removed.add(element)
+                if (result != oldResult) {
+                    val prevSize = elements.size
 
-                                if (eventIndex == -1) {
-                                    eventIndex = index
-                                }
+                    if (result) {
+                        // TODO: Avoid this loop by storing the index where an element "would" be
+                        //       if it passed the predicate.
+                        var insertionIndex = elements.size
+
+                        for (index in (dependencyIndex + 1)..indexMap.lastIndex) {
+                            val i = indexMap[index].index
+
+                            if (i != -1) {
+                                insertionIndex = i + shift
+                                break
                             }
                         }
 
-                        recompute()
+                        val element = list.value[dependencyIndex]
+                        elements.add(insertionIndex, element)
+                        mapping.index = insertionIndex
+                        shift++
 
-                        val inserted = mutableListOf<E>()
+                        filteredChanges.add(ListChange(
+                            insertionIndex,
+                            prevSize,
+                            removed = emptyList(),
+                            inserted = listOf(element),
+                        ))
+                    } else {
+                        val index = mapping.index + shift
+                        val element = elements.removeAt(index)
+                        mapping.index = -1
+                        shift--
 
-                        change.inserted.forEachIndexed { i, element ->
-                            val index = indexMap[change.index + i]
-
-                            if (index != -1) {
-                                inserted.add(element)
-
-                                if (eventIndex == -1) {
-                                    eventIndex = index
-                                }
-                            }
-                        }
-
-                        if (removed.isNotEmpty() || inserted.isNotEmpty()) {
-                            check(eventIndex != -1)
-                            filteredChanges.add(
-                                ListChange.Structural(
-                                    eventIndex,
-                                    prevSize,
-                                    removed,
-                                    inserted
-                                )
-                            )
-                        }
+                        filteredChanges.add(ListChange(
+                            index,
+                            prevSize,
+                            removed = listOf(element),
+                            inserted = emptyList(),
+                        ))
                     }
-                    is ListChange.Element -> {
-                        // Emit a structural or element change based on whether the updated element
-                        // passes the predicate test and whether it was already in the elements list
-                        // (i.e. whether it passed the predicate test before the update).
-                        @Suppress("UNCHECKED_CAST")
-                        change as ListChange.Element<E>
-
-                        val index = indexMap[change.index]
-
-                        if (predicate(change.updated)) {
-                            if (index == -1) {
-                                // If the element now passed the test and previously didn't pass,
-                                // insert it and emit a Change event.
-                                var insertIndex = elements.size
-
-                                for (depIdx in (change.index + 1)..indexMap.lastIndex) {
-                                    val thisIdx = indexMap[depIdx]
-
-                                    if (thisIdx != -1) {
-                                        insertIndex = thisIdx
-                                        break
-                                    }
-                                }
-
-                                copyAndResetWrapper()
-                                elements.add(insertIndex, change.updated)
-                                indexMap[change.index] = insertIndex
-
-                                for (depIdx in (change.index + 1)..indexMap.lastIndex) {
-                                    val thisIdx = indexMap[depIdx]
-
-                                    if (thisIdx != -1) {
-                                        indexMap[depIdx]++
-                                    }
-                                }
-
-                                filteredChanges.add(
-                                    ListChange.Structural(
-                                        insertIndex,
-                                        prevSize,
-                                        removed = emptyList(),
-                                        inserted = listOf(change.updated),
-                                    )
-                                )
-                            } else {
-                                // Otherwise just propagate the element change.
-                                filteredChanges.add(ListChange.Element(index, change.updated))
-                            }
-                        } else {
-                            if (index != -1) {
-                                // If the element now doesn't pass the test and it previously did
-                                // pass, remove it and emit a structural change.
-                                copyAndResetWrapper()
-                                elements.removeAt(index)
-                                indexMap[change.index] = -1
-
-                                for (depIdx in (change.index + 1)..indexMap.lastIndex) {
-                                    val thisIdx = indexMap[depIdx]
-
-                                    if (thisIdx != -1) {
-                                        indexMap[depIdx]--
-                                    }
-                                }
-
-                                filteredChanges.add(
-                                    ListChange.Structural(
-                                        index,
-                                        prevSize,
-                                        removed = listOf(change.updated),
-                                        inserted = emptyList(),
-                                    )
-                                )
-                            } else {
-                                // Otherwise just propagate the element change.
-                                filteredChanges.add(ListChange.Element(index, change.updated))
-                            }
-                        }
-                    }
+                } else if (oldResult) {
+                    mapping.index += shift
                 }
-            }
-
-            if (filteredChanges.isEmpty()) {
-                emitDependencyChanged(null)
             } else {
-                emitDependencyChanged(ListChangeEvent(elementsWrapper, filteredChanges))
+                mapping.index += shift
             }
-        } else {
-            emitDependencyChanged(null)
+        }
+
+        // Can still contain changed mappings at this point if e.g. an element was removed after its
+        // predicate result changed.
+        changedPredicateResults.clear()
+    }
+
+    override fun applyPredicate(element: E): Boolean =
+        predicate.value(element).value
+
+    override fun maxDepIndex(): Int =
+        indexMap.lastIndex
+
+    override fun mapIndex(index: Int): Int =
+        indexMap[index].index
+
+    override fun removeIndexMapping(index: Int): Int {
+        val mapping = indexMap.removeAt(index)
+        mapping.removeDependent(this)
+        return mapping.index
+    }
+
+    override fun insertIndexMapping(depIndex: Int, localIndex: Int, element: E) {
+        val mapping = Mapping(predicate.value(element), localIndex)
+        mapping.addDependent(this)
+        indexMap.add(depIndex, mapping)
+    }
+
+    override fun shiftIndexMapping(depIndex: Int, shift: Int) {
+        val mapping = indexMap[depIndex]
+
+        if (mapping.index != -1) {
+            mapping.index += shift
         }
     }
 
-    override fun emitDependencyChanged() {
-        // Nothing to do because FilteredListCell emits dependencyChanged immediately. We don't
-        // defer this operation because FilteredListCell only changes when there is no transaction
-        // or the current transaction is being committed.
-    }
-
-    private fun recompute() {
+    override fun recompute() {
         copyAndResetWrapper()
         elements.clear()
+
+        for (mapping in indexMap) {
+            mapping.removeDependent(this)
+        }
+
         indexMap.clear()
 
-        dependency.value.forEach { element ->
-            if (predicate(element)) {
-                elements.add(element)
-                indexMap.add(elements.lastIndex)
-            } else {
-                indexMap.add(-1)
+        // Cache value here to facilitate loop unswitching.
+        val hasDependents = dependents.isNotEmpty()
+        val pred = predicate.value
+
+        for (element in list.value) {
+            val predicateResult = pred(element)
+
+            val index =
+                if (predicateResult.value) {
+                    elements.add(element)
+                    elements.lastIndex
+                } else {
+                    -1
+                }
+
+            if (hasDependents) {
+                val mapping = Mapping(predicateResult, index)
+                mapping.addDependent(this)
+                indexMap.add(mapping)
             }
+        }
+    }
+
+    override fun resetChangeWaveData() {
+        changedPredicateResults.clear()
+    }
+
+    private inner class Mapping(
+        val predicateResult: Cell<Boolean>,
+        /**
+         * The index into [elements] if the element passes the predicate. -1 If the element does not
+         * pass the predicate.
+         */
+        var index: Int,
+    ) : Dependent, Dependency {
+        override fun dependencyMightChange() {
+            this@FilteredListCell.dependencyMightChange()
+        }
+
+        override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
+            assert { dependency === predicateResult }
+
+            this@FilteredListCell.dependencyChanged(this, event)
+        }
+
+        override fun addDependent(dependent: Dependent) {
+            assert { dependent === this@FilteredListCell }
+
+            predicateResult.addDependent(this)
+        }
+
+        override fun removeDependent(dependent: Dependent) {
+            assert { dependent === this@FilteredListCell }
+
+            predicateResult.removeDependent(this)
+        }
+
+        override fun emitDependencyChanged() {
+            // Nothing to do.
         }
     }
 }

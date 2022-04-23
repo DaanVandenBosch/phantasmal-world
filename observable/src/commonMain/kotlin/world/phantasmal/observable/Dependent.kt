@@ -8,7 +8,10 @@ interface Dependent {
      * know that it will actually change, just that it might change. Always call [dependencyChanged]
      * after calling this method.
      *
-     * E.g. C depends on B and B depends on A. A is about to change, so it calls [dependencyMightChange] on B. At this point B doesn't know whether it will actually change since the new value of A doesn't necessarily result in a new value for B (e.g. B = A % 2 and A changes from 0 to 2). So B then calls [dependencyMightChange] on C.
+     * E.g. C depends on B and B depends on A. A is about to change, so it calls
+     * [dependencyMightChange] on B. At this point B doesn't know whether it will actually change
+     * since the new value of A doesn't necessarily result in a new value for B (e.g. B = A % 2 and
+     * A changes from 0 to 2). So B then calls [dependencyMightChange] on C.
      */
     fun dependencyMightChange()
 

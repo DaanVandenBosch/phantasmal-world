@@ -34,7 +34,6 @@ interface MutableListCellTests<T : Any> : ListCellTests, MutableCellTests<List<T
             assertEquals(1, e.changes.size)
 
             val c0 = e.changes[0]
-            assertTrue(c0 is ListChange.Structural)
             assertEquals(0, c0.index)
             assertTrue(c0.removed.isEmpty())
             assertEquals(1, c0.inserted.size)
@@ -57,7 +56,6 @@ interface MutableListCellTests<T : Any> : ListCellTests, MutableCellTests<List<T
             assertEquals(1, e.changes.size)
 
             val c0 = e.changes[0]
-            assertTrue(c0 is ListChange.Structural)
             assertEquals(1, c0.index)
             assertTrue(c0.removed.isEmpty())
             assertEquals(1, c0.inserted.size)
@@ -81,7 +79,6 @@ interface MutableListCellTests<T : Any> : ListCellTests, MutableCellTests<List<T
             assertEquals(1, e.changes.size)
 
             val c0 = e.changes[0]
-            assertTrue(c0 is ListChange.Structural)
             assertEquals(1, c0.index)
             assertTrue(c0.removed.isEmpty())
             assertEquals(1, c0.inserted.size)

@@ -8,7 +8,16 @@ class DependentListCellTests : ListCellTests, CellWithDependenciesTests {
 
     override fun createListProvider(empty: Boolean) = Provider(empty)
 
-    class Provider(empty: Boolean) : ListCellTests.Provider, CellWithDependenciesTests.Provider {
+    override fun createWithDependencies(
+        dependency1: Cell<Int>,
+        dependency2: Cell<Int>,
+        dependency3: Cell<Int>,
+    ) =
+        DependentListCell(dependency1, dependency2, dependency3) {
+            listOf(dependency1.value, dependency2.value, dependency3.value)
+        }
+
+    class Provider(empty: Boolean) : ListCellTests.Provider {
         private val dependencyCell =
             SimpleListCell(if (empty) mutableListOf() else mutableListOf(5))
 
@@ -18,8 +27,5 @@ class DependentListCellTests : ListCellTests, CellWithDependenciesTests {
         override fun addElement() {
             dependencyCell.add(4)
         }
-
-        override fun createWithDependencies(vararg dependencies: Cell<Int>): Cell<Any> =
-            DependentListCell(*dependencies) { dependencies.map { it.value } }
     }
 }

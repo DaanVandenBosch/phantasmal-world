@@ -1,8 +1,11 @@
 package world.phantasmal.web.questEditor.rendering
 
+import world.phantasmal.observable.cell.and
+import world.phantasmal.observable.cell.eq
 import world.phantasmal.observable.cell.flatMapNull
 import world.phantasmal.observable.cell.list.emptyListCell
-import world.phantasmal.observable.cell.list.filtered
+import world.phantasmal.observable.cell.list.filteredCell
+import world.phantasmal.observable.cell.or
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -28,10 +31,10 @@ class QuestEditorMeshManager(
         ) { quest, area, wave ->
             loadNpcMeshes(
                 if (quest != null && area != null) {
-                    quest.npcs.filtered {
-                        it.sectionInitialized.value &&
-                                it.areaId == area.id &&
-                                (wave == null || it.wave.value == wave)
+                    quest.npcs.filteredCell {
+                        it.sectionInitialized and
+                                (it.areaId == area.id) and
+                                ((wave == null) or (it.wave eq wave))
                     }
                 } else {
                     emptyListCell()
@@ -45,8 +48,8 @@ class QuestEditorMeshManager(
         ) { quest, area ->
             loadObjectMeshes(
                 if (quest != null && area != null) {
-                    quest.objects.filtered {
-                        it.sectionInitialized.value && it.areaId == area.id
+                    quest.objects.filteredCell {
+                        it.sectionInitialized and (it.areaId == area.id)
                     }
                 } else {
                     emptyListCell()

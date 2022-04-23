@@ -1,7 +1,9 @@
 package world.phantasmal.observable.cell.list
 
+import world.phantasmal.observable.Observable
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.DependentCell
+import world.phantasmal.observable.cell.ImmutableCell
 
 private val EMPTY_LIST_CELL = ImmutableListCell<Nothing>(emptyList())
 
@@ -12,11 +14,20 @@ fun <E> listCell(vararg elements: E): ListCell<E> = ImmutableListCell(elements.t
 fun <E> emptyListCell(): ListCell<E> = EMPTY_LIST_CELL
 
 /** Returns a mutable list cell containing [elements]. */
-fun <E> mutableListCell(
-    vararg elements: E,
-    extractDependencies: DependenciesExtractor<E>? = null,
-): MutableListCell<E> =
-    SimpleListCell(mutableListOf(*elements), extractDependencies)
+fun <E> mutableListCell(vararg elements: E): MutableListCell<E> =
+    SimpleListCell(mutableListOf(*elements))
+
+/**
+ * Returns a cell that changes whenever this list cell is structurally changed or when its
+ * individual elements change.
+ *
+ * @param extractObservables Called on each element to determine which element changes should be
+ * observed.
+ */
+fun <E> ListCell<E>.dependingOnElements(
+    extractObservables: (element: E) -> Array<out Observable<*>>,
+): Cell<List<E>> =
+    ListElementsDependentCell(this, extractObservables)
 
 fun <E, R> ListCell<E>.listMap(transform: (E) -> R): ListCell<R> =
     DependentListCell(this) { value.map(transform) }
@@ -31,13 +42,16 @@ fun <E> ListCell<E>.sumOf(selector: (E) -> Int): Cell<Int> =
     DependentCell(this) { value.sumOf(selector) }
 
 fun <E> ListCell<E>.filtered(predicate: (E) -> Boolean): ListCell<E> =
-    FilteredListCell(this, predicate)
+    SimpleFilteredListCell(this, ImmutableCell(predicate))
 
 fun <E> ListCell<E>.filtered(predicate: Cell<(E) -> Boolean>): ListCell<E> =
-    DependentListCell(this, predicate) { value.filter(predicate.value) }
+    SimpleFilteredListCell(this, predicate)
 
-fun <E> ListCell<E>.sortedWith(comparator: Cell<Comparator<E>>): ListCell<E> =
-    DependentListCell(this, comparator) { value.sortedWith(comparator.value) }
+fun <E> ListCell<E>.filteredCell(predicate: (E) -> Cell<Boolean>): ListCell<E> =
+    FilteredListCell(this, ImmutableCell(predicate))
+
+fun <E> ListCell<E>.filteredCell(predicate: Cell<(E) -> Cell<Boolean>>): ListCell<E> =
+    FilteredListCell(this, predicate)
 
 fun <E> ListCell<E>.firstOrNull(): Cell<E?> =
     DependentCell(this) { value.firstOrNull() }

@@ -11,7 +11,7 @@ import world.phantasmal.observable.Dependent
  */
 class FlatteningDependentCell<T>(
     private vararg val dependencies: Dependency,
-    private val compute: () -> Cell<T>
+    private val compute: () -> Cell<T>,
 ) : AbstractDependentCell<T>() {
 
     private var computedCell: Cell<T>? = null
@@ -66,7 +66,7 @@ class FlatteningDependentCell<T>(
         super.dependencyChanged(dependency, event)
     }
 
-    override fun dependenciesChanged() {
+    override fun dependenciesFinishedChanging() {
         if (shouldRecompute) {
             computedCell?.removeDependent(this)
 
@@ -79,12 +79,7 @@ class FlatteningDependentCell<T>(
         }
 
         val newValue = unsafeAssertNotNull(computedCell).value
-
-        if (newValue != _value) {
-            _value = newValue
-            emitDependencyChanged(ChangeEvent(newValue))
-        } else {
-            emitDependencyChanged(null)
-        }
+        _value = newValue
+        emitDependencyChangedEvent(ChangeEvent(newValue))
     }
 }

@@ -1,11 +1,13 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.observable.cell.observeNow
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.test.WebTestSuite
 import world.phantasmal.web.test.createQuestModel
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class EventsControllerTests : WebTestSuite {
     @Test
@@ -113,38 +115,27 @@ class EventsControllerTests : WebTestSuite {
             (ctrl.events[0].actions[0] as QuestEventActionModel.TriggerEvent).eventId
         )
 
-        // We test the observed value instead of the cell's value property.
-        var canGoToEventValue: Boolean? = null
-
-        disposer.add(canGoToEvent.observeNow {
-            assertNull(canGoToEventValue)
-            canGoToEventValue = it
-        })
-
-        assertEquals(true, canGoToEventValue)
+        assertEquals(true, canGoToEvent.value)
 
         // Let event 100 point to nonexistent event 102.
-        canGoToEventValue = null
         ctrl.setActionEventId(
             ctrl.events[0],
             ctrl.events[0].actions[0] as QuestEventActionModel.TriggerEvent,
             102,
         )
 
-        assertEquals(false, canGoToEventValue)
+        assertEquals(false, canGoToEvent.value)
 
         // Add event 102.
-        canGoToEventValue = null
         ctrl.selectEvent(null) // Deselect so the next event will be added at the end of the list.
         ctrl.addEvent()
         ctrl.setId(ctrl.events.value.last(), 102)
 
-        assertEquals(true, canGoToEventValue)
+        assertEquals(true, canGoToEvent.value)
 
         // Remove event 102.
-        canGoToEventValue = null
         ctrl.removeEvent(ctrl.events.value.last())
 
-        assertEquals(false, canGoToEventValue)
+        assertEquals(false, canGoToEvent.value)
     }
 }

@@ -39,7 +39,16 @@ class QuestRenderer(
             ),
         )
 
-        observeNow(questEditorStore.currentQuest) { inputManager.resetCamera() }
-        observeNow(questEditorStore.currentAreaVariant) { inputManager.resetCamera() }
+        var prevQuest = questEditorStore.currentQuest.value
+        var prevAreaVariant = questEditorStore.currentAreaVariant.value
+
+        observeNow(questEditorStore.currentQuest, questEditorStore.currentAreaVariant) { q, av ->
+            if (q !== prevQuest || av !== prevAreaVariant) {
+                inputManager.resetCamera()
+
+                prevQuest = q
+                prevAreaVariant = av
+            }
+        }
     }
 }

@@ -16,6 +16,6 @@ class SimpleCell<T>(value: T) : AbstractCell<T>(), MutableCell<T> {
         }
 
     override fun emitDependencyChanged() {
-        emitDependencyChanged(ChangeEvent(value))
+        emitDependencyChangedEvent(ChangeEvent(value))
     }
 }

@@ -7,39 +7,19 @@ class ListChangeEvent<out E>(
     val changes: List<ListChange<E>>,
 ) : ChangeEvent<List<E>>(value)
 
-sealed class ListChange<out E> {
-    /**
-     * Represents a structural change to a list cell. E.g. an element is inserted or removed.
-     */
-    class Structural<out E>(
-        val index: Int,
-        val prevSize: Int,
-        /**
-         * The elements that were removed from the list at [index].
-         *
-         * Do not keep long-lived references to a [ChangeEvent]'s [removed] list, it may or may not
-         * be mutated when the originating [ListCell] is mutated.
-         */
-        val removed: List<E>,
-        /**
-         * The elements that were inserted into the list at [index].
-         *
-         * Do not keep long-lived references to a [ChangeEvent]'s [inserted] list, it may or may not
-         * be mutated when the originating [ListCell] is mutated.
-         */
-        val inserted: List<E>,
-    ) : ListChange<E>() {
-        val allRemoved: Boolean get() = removed.size == prevSize
-    }
-
-    /**
-     * Represents a change to an element in a list cell. Will only be emitted if the list is
-     * configured to do so.
-     */
-    class Element<E>(
-        val index: Int,
-        val updated: E,
-    ) : ListChange<E>()
+/**
+ * Represents a structural change to a list cell. E.g. an element is inserted or removed.
+ */
+class ListChange<out E>(
+    val index: Int,
+    val prevSize: Int,
+    /** The elements that were removed from the list at [index]. */
+    val removed: List<E>,
+    /** The elements that were inserted into the list at [index]. */
+    val inserted: List<E>,
+) {
+    /** True when this change resulted in the removal of all elements from the list. */
+    val allRemoved: Boolean get() = removed.size == prevSize
 }
 
 typealias ListChangeObserver<E> = (ListChangeEvent<E>) -> Unit

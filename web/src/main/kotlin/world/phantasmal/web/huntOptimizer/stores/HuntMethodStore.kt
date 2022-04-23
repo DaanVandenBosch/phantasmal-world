@@ -26,7 +26,7 @@ class HuntMethodStore(
     private val assetLoader: AssetLoader,
     private val huntMethodPersister: HuntMethodPersister,
 ) : Store() {
-    private val _methods = mutableListCell<HuntMethodModel> { arrayOf(it.time) }
+    private val _methods = mutableListCell<HuntMethodModel>()
     private val _methodsStatus = LoadingStatusCellImpl(scope, "methods", ::loadMethods)
 
     /** Hunting methods supported by the current server. */

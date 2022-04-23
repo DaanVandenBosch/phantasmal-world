@@ -12,8 +12,10 @@ import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.core.unsafe.UnsafeSet
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
+import world.phantasmal.observable.cell.list.dependingOnElements
 import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.observe
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.web.core.stores.EnemyDropTable
@@ -50,7 +52,7 @@ class HuntOptimizerStore(
     private val itemDropStore: ItemDropStore,
 ) : Store() {
     private val _huntableItems = mutableListCell<ItemType>()
-    private val _wantedItems = mutableListCell<WantedItemModel> { arrayOf(it.amount) }
+    private val _wantedItems = mutableListCell<WantedItemModel>()
     private val _optimizationResult = mutableCell(OptimizationResultModel(emptyList(), emptyList()))
     private var wantedItemsPersistenceObserver: Disposable? = null
 
@@ -58,6 +60,7 @@ class HuntOptimizerStore(
         observeNow(uiStore.server) { server ->
             _huntableItems.clear()
 
+            // There's a race condition here.
             scope.launch {
                 val dropTable = itemDropStore.getEnemyDropTable(server)
 
@@ -76,9 +79,18 @@ class HuntOptimizerStore(
     }
 
     val optimizationResult: Cell<OptimizationResultModel> by lazy {
-        observeNow(wantedItems, huntMethodStore.methods) { wantedItems, huntMethods ->
+        observeNow(
+            _wantedItems.dependingOnElements { arrayOf(it.amount) },
+            huntMethodStore.methods.dependingOnElements { arrayOf(it.time) },
+        ) { wantedItems, huntMethods ->
+            // There's a race condition here.
             scope.launch(Dispatchers.Default) {
-                _optimizationResult.value = optimize(wantedItems, huntMethods)
+                val dropTable = itemDropStore.getEnemyDropTable(uiStore.server.value)
+                val result = optimize(wantedItems, huntMethods, dropTable)
+
+                withContext(Dispatchers.Main) {
+                    _optimizationResult.value = result
+                }
             }
         }
 
@@ -91,7 +103,7 @@ class HuntOptimizerStore(
     }
 
     fun addWantedItem(itemType: ItemType) {
-        if (wantedItems.value.none { it.itemType == itemType }) {
+        if (_wantedItems.value.none { it.itemType == itemType }) {
             _wantedItems.add(WantedItemModel(itemType, 1))
         }
     }
@@ -114,20 +126,20 @@ class HuntOptimizerStore(
                 _wantedItems.replaceAll(wantedItems)
 
                 // Wanted items are loaded, start observing them and persist whenever they change.
-                wantedItemsPersistenceObserver = _wantedItems.observeChange {
-                    val items = it.value
-
-                    scope.launch(Dispatchers.Main) {
-                        wantedItemPersister.persistWantedItems(items, server)
+                wantedItemsPersistenceObserver =
+                    _wantedItems.dependingOnElements { arrayOf(it.amount) }.observe { items ->
+                        scope.launch(Dispatchers.Main) {
+                            wantedItemPersister.persistWantedItems(items, server)
+                        }
                     }
-                }
             }
         }
     }
 
-    private suspend fun optimize(
+    private fun optimize(
         wantedItems: List<WantedItemModel>,
         methods: List<HuntMethodModel>,
+        dropTable: EnemyDropTable,
     ): OptimizationResultModel {
         logger.debug { "Optimization start." }
 
@@ -138,8 +150,6 @@ class HuntOptimizerStore(
 
             return OptimizationResultModel(emptyList(), emptyList())
         }
-
-        val dropTable = itemDropStore.getEnemyDropTable(uiStore.server.value)
 
         // Add a constraint per wanted item.
         val constraints: dynamic = obj {}

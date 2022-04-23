@@ -209,14 +209,14 @@ class IdleState(
         val entity: QuestEntityModel<*, *>,
 
         /**
-         * Vector that points from the grabbing point (somewhere on the model's surface) to the entity's
-         * origin.
+         * Vector that points from the grabbing point (somewhere on the model's surface) to the
+         * entity's origin.
          */
         val grabOffset: Vector3,
 
         /**
-         * Vector that points from the grabbing point to the terrain point directly under the entity's
-         * origin.
+         * Vector that points from the grabbing point to the terrain point directly under the
+         * entity's origin.
          */
         val dragAdjust: Vector3,
     )

@@ -14,7 +14,6 @@ import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.core.unsafe.getOrPut
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.ListChange
 import world.phantasmal.observable.cell.list.ListChangeEvent
 import world.phantasmal.webui.externals.fontawesome.IconDefinition
 import world.phantasmal.webui.externals.fontawesome.freeBrandsSvgIcons.faGithub
@@ -288,28 +287,26 @@ private fun <T> bindChildrenTo(
 
     return list.observeListChange { event: ListChangeEvent<T> ->
         for (change in event.changes) {
-            if (change is ListChange.Structural) {
-                if (change.allRemoved) {
-                    parent.innerHTML = ""
-                } else {
-                    repeat(change.removed.size) {
-                        parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
-                    }
+            if (change.allRemoved) {
+                parent.innerHTML = ""
+            } else {
+                repeat(change.removed.size) {
+                    parent.removeChild(parent.childNodes[change.index].unsafeCast<Node>())
                 }
+            }
 
-                childrenRemoved(change.index, change.removed.size)
+            childrenRemoved(change.index, change.removed.size)
 
-                val frag = document.createDocumentFragment()
+            val frag = document.createDocumentFragment()
 
-                change.inserted.forEachIndexed { i, value ->
-                    frag.appendChild(frag.createChild(value, change.index + i))
-                }
+            change.inserted.forEachIndexed { i, value ->
+                frag.appendChild(frag.createChild(value, change.index + i))
+            }
 
-                if (change.index >= parent.childNodes.length) {
-                    parent.appendChild(frag)
-                } else {
-                    parent.insertBefore(frag, parent.childNodes[change.index])
-                }
+            if (change.index >= parent.childNodes.length) {
+                parent.appendChild(frag)
+            } else {
+                parent.insertBefore(frag, parent.childNodes[change.index])
             }
         }
 

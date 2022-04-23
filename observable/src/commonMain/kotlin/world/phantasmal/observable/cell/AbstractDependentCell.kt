@@ -18,13 +18,15 @@ abstract class AbstractDependentCell<T> : AbstractCell<T>(), Dependent {
             dependenciesActuallyChanged = true
         }
 
-        if (--changingDependencies == 0) {
+        changingDependencies--
+
+        if (changingDependencies == 0) {
             if (dependenciesActuallyChanged) {
                 dependenciesActuallyChanged = false
 
-                dependenciesChanged()
+                dependenciesFinishedChanging()
             } else {
-                emitDependencyChanged(null)
+                emitDependencyChangedEvent(null)
             }
         }
     }
@@ -35,5 +37,9 @@ abstract class AbstractDependentCell<T> : AbstractCell<T>(), Dependent {
         // change set is being completed.
     }
 
-    protected abstract fun dependenciesChanged()
+    /**
+     * Called after a wave of dependencyMightChange notifications followed by an equal amount of
+     * dependencyChanged notifications of which at least one signified an actual change.
+     */
+    protected abstract fun dependenciesFinishedChanging()
 }

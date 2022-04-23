@@ -158,8 +158,8 @@ class QuestEditorStore(
             updateQuestEntitySections(quest)
 
             // Ensure all entities have their section initialized.
-            quest.npcs.value.forEach { it.setSectionInitialized() }
-            quest.objects.value.forEach { it.setSectionInitialized() }
+            quest.npcs.value.forEach(QuestNpcModel::setSectionInitialized)
+            quest.objects.value.forEach(QuestObjectModel::setSectionInitialized)
         }
     }
 

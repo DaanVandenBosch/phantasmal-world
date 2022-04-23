@@ -6,7 +6,6 @@ import kotlinx.coroutines.launch
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.ListChange
 import world.phantasmal.observable.cell.list.ListChangeEvent
 import world.phantasmal.psolib.Episode
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
@@ -75,19 +74,15 @@ abstract class QuestMeshManager protected constructor(
 
     private fun npcsChanged(event: ListChangeEvent<QuestNpcModel>) {
         for (change in event.changes) {
-            if (change is ListChange.Structural) {
-                change.removed.forEach(npcMeshManager::remove)
-                change.inserted.forEach(npcMeshManager::add)
-            }
+            change.removed.forEach(npcMeshManager::remove)
+            change.inserted.forEach(npcMeshManager::add)
         }
     }
 
     private fun objectsChanged(event: ListChangeEvent<QuestObjectModel>) {
         for (change in event.changes) {
-            if (change is ListChange.Structural) {
-                change.removed.forEach(objectMeshManager::remove)
-                change.inserted.forEach(objectMeshManager::add)
-            }
+            change.removed.forEach(objectMeshManager::remove)
+            change.inserted.forEach(objectMeshManager::add)
         }
     }
 }

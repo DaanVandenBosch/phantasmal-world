@@ -61,15 +61,15 @@ abstract class AbstractDependentListCell<E> :
     override fun observeListChange(observer: ListChangeObserver<E>): Disposable =
         CallbackChangeObserver(this, observer)
 
-    final override fun dependenciesChanged() {
+    final override fun dependenciesFinishedChanging() {
         val oldElements = value
 
         computeElements()
 
-        emitDependencyChanged(
+        emitDependencyChangedEvent(
             ListChangeEvent(
                 elements,
-                listOf(ListChange.Structural(
+                listOf(ListChange(
                     index = 0,
                     prevSize = oldElements.size,
                     removed = oldElements,

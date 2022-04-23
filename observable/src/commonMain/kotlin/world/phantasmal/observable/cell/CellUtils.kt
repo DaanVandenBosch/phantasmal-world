@@ -193,17 +193,23 @@ infix fun <T : Comparable<T>> Cell<T>.lt(value: T): Cell<Boolean> =
 infix fun <T : Comparable<T>> Cell<T>.lt(other: Cell<T>): Cell<Boolean> =
     map(this, other) { a, b -> a < b }
 
-fun and(vararg cells: Cell<Boolean>): Cell<Boolean> =
-    DependentCell(*cells) { cells.all { it.value } }
-
 infix fun Cell<Boolean>.and(other: Cell<Boolean>): Cell<Boolean> =
     map(this, other) { a, b -> a && b }
 
 infix fun Cell<Boolean>.and(other: Boolean): Cell<Boolean> =
     if (other) this else falseCell()
 
+infix fun Boolean.and(other: Cell<Boolean>): Cell<Boolean> =
+    if (this) other else falseCell()
+
 infix fun Cell<Boolean>.or(other: Cell<Boolean>): Cell<Boolean> =
     map(this, other) { a, b -> a || b }
+
+infix fun Cell<Boolean>.or(other: Boolean): Cell<Boolean> =
+    if (other) trueCell() else this
+
+infix fun Boolean.or(other: Cell<Boolean>): Cell<Boolean> =
+    if (this) trueCell() else other
 
 infix fun Cell<Boolean>.xor(other: Cell<Boolean>): Cell<Boolean> =
     // Use != because of https://youtrack.jetbrains.com/issue/KT-31277.

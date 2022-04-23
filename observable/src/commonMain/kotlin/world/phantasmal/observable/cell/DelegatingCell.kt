@@ -22,6 +22,6 @@ class DelegatingCell<T>(
         }
 
     override fun emitDependencyChanged() {
-        emitDependencyChanged(ChangeEvent(value))
+        emitDependencyChangedEvent(ChangeEvent(value))
     }
 }

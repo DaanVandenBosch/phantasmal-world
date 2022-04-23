@@ -42,6 +42,10 @@ interface DependencyTests : ObservableTestSuite {
     interface Provider {
         val dependency: Dependency
 
+        /**
+         * Makes [dependency] emit [Dependent.dependencyMightChange] followed by
+         * [Dependent.dependencyChanged] with a non-null event.
+         */
         fun emit()
     }
 }

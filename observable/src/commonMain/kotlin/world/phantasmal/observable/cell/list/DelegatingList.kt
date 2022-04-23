@@ -27,8 +27,7 @@ class DelegatingList<E>(var backingList: List<E>) : List<E> {
     override fun subList(fromIndex: Int, toIndex: Int): List<E> =
         backingList.subList(fromIndex, toIndex)
 
-    @Suppress("SuspiciousEqualsCombination")
-    override fun equals(other: Any?): Boolean = this === other || other == backingList
+    override fun equals(other: Any?): Boolean = other == backingList
 
     override fun hashCode(): Int = backingList.hashCode()
 

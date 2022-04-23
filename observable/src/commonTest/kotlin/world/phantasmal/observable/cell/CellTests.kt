@@ -51,12 +51,12 @@ interface CellTests : ObservableTests {
     fun emits_correct_value_in_change_events() = test {
         val p = createProvider()
 
-        var prevValue: Any?
-        var observedValue: Any? = null
+        var prevValue: Snapshot?
+        var observedValue: Snapshot? = null
 
         disposer.add(p.observable.observeChange { changeEvent ->
             assertNull(observedValue)
-            observedValue = changeEvent.value
+            observedValue = changeEvent.value.snapshot()
         })
 
         repeat(3) {
@@ -69,7 +69,7 @@ interface CellTests : ObservableTests {
             // it should be equal to the cell's current value.
             assertNotNull(observedValue)
             assertNotEquals(prevValue, observedValue)
-            assertEquals(p.observable.value, observedValue)
+            assertEquals(p.observable.value.snapshot(), observedValue)
         }
     }
 
@@ -82,20 +82,20 @@ interface CellTests : ObservableTests {
     fun reflects_changes_without_observers() = test {
         val p = createProvider()
 
-        var old: Any?
+        var old: Snapshot?
 
         repeat(5) {
             // Value should change after emit.
-            old = p.observable.value
+            old = p.observable.value.snapshot()
 
             p.emit()
 
-            val new = p.observable.value
+            val new = p.observable.value.snapshot()
 
             assertNotEquals(old, new)
 
             // Value should not change when emit hasn't been called since the last access.
-            assertEquals(new, p.observable.value)
+            assertEquals(new, p.observable.value.snapshot())
         }
     }
 
@@ -120,10 +120,10 @@ interface CellTests : ObservableTests {
     @Test
     fun propagates_changes_to_mapped_cell() = test {
         val p = createProvider()
-        val mapped = p.observable.map { it.hashCode() }
+        val mapped = p.observable.map { it.snapshot() }
         val initialValue = mapped.value
 
-        var observedValue: Int? = null
+        var observedValue: Snapshot? = null
 
         disposer.add(mapped.observeChange { changeEvent ->
             assertNull(observedValue)
@@ -140,10 +140,10 @@ interface CellTests : ObservableTests {
     fun propagates_changes_to_flat_mapped_cell() = test {
         val p = createProvider()
 
-        val mapped = p.observable.flatMap { ImmutableCell(it.hashCode()) }
+        val mapped = p.observable.flatMap { ImmutableCell(it.snapshot()) }
         val initialValue = mapped.value
 
-        var observedValue: Int? = null
+        var observedValue: Snapshot? = null
 
         disposer.add(mapped.observeChange {
             assertNull(observedValue)
@@ -160,3 +160,16 @@ interface CellTests : ObservableTests {
         override val observable: Cell<Any>
     }
 }
+
+/** See [snapshot]. */
+private typealias Snapshot = String
+
+/**
+ * We use toString to create "snapshots" of values throughout the tests. Most of the time cells will
+ * actually have a new value after emitting a change event, but this is not always the case with
+ * more complex cells or cells that point to complex values. So instead of keeping references to
+ * values and comparing them with == (or using e.g. assertEquals), we compare snapshots.
+ *
+ * This of course assumes that all values have sensible toString implementations.
+ */
+private fun Any?.snapshot(): Snapshot = toString()

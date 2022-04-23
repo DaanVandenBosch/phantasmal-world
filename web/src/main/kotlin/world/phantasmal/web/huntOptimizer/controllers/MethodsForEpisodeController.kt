@@ -1,9 +1,6 @@
 package world.phantasmal.web.huntOptimizer.controllers
 
-import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.filtered
-import world.phantasmal.observable.cell.list.listCell
-import world.phantasmal.observable.cell.list.sortedWith
+import world.phantasmal.observable.cell.list.*
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.NpcType
@@ -27,9 +24,13 @@ class MethodsForEpisodeController(
     override val fixedColumns = 2
 
     override val values: ListCell<HuntMethodModel> by lazy {
-        huntMethodStore.methods
+        val methodsForEpisode = huntMethodStore.methods
             .filtered { it.episode == episode }
-            .sortedWith(comparator)
+            .dependingOnElements { arrayOf(it.time) }
+
+        mapToList(methodsForEpisode, comparator) { list, cmp ->
+            list.sortedWith(cmp)
+        }
     }
 
     override val loadingStatus: LoadingStatusCell = huntMethodStore.methodsStatus
