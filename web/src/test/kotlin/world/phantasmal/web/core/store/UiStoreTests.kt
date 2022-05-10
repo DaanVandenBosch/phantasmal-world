@@ -14,7 +14,7 @@ class UiStoreTests : WebTestSuite {
         val uiStore = disposer.add(UiStore(applicationUrl))
 
         assertEquals(PwToolType.Viewer, uiStore.currentTool.value)
-        assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.url.value)
+        assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.pathAndParams)
     }
 
     @Test
@@ -26,7 +26,7 @@ class UiStoreTests : WebTestSuite {
             uiStore.setCurrentTool(tool)
 
             assertEquals(tool, uiStore.currentTool.value)
-            assertEquals("/${tool.slug}", applicationUrl.url.value)
+            assertEquals("/${tool.slug}", applicationUrl.pathAndParams)
         }
     }
 
@@ -36,12 +36,12 @@ class UiStoreTests : WebTestSuite {
         val uiStore = disposer.add(UiStore(applicationUrl))
 
         assertEquals(PwToolType.Viewer, uiStore.currentTool.value)
-        assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.url.value)
+        assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.pathAndParams)
 
         listOf("/models", "/textures", "/animations").forEach { prefix ->
             uiStore.setPathPrefix(prefix, replace = false)
 
-            assertEquals("/${PwToolType.Viewer.slug}${prefix}", applicationUrl.url.value)
+            assertEquals("/${PwToolType.Viewer.slug}${prefix}", applicationUrl.pathAndParams)
         }
     }
 
@@ -52,7 +52,7 @@ class UiStoreTests : WebTestSuite {
 
         PwToolType.values().forEach { tool ->
             listOf("/a", "/b", "/c").forEach { path ->
-                applicationUrl.url.value = "/${tool.slug}$path"
+                applicationUrl.navigate("/${tool.slug}$path")
 
                 assertEquals(tool, uiStore.currentTool.value)
                 assertEquals(path, uiStore.path.value)
@@ -65,22 +65,22 @@ class UiStoreTests : WebTestSuite {
         val appUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(appUrl))
 
-        assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+        assertEquals("/${UiStore.DEFAULT_TOOL.slug}", appUrl.pathAndParams)
 
         uiStore.setCurrentTool(PwToolType.HuntOptimizer)
 
-        assertEquals("/${PwToolType.HuntOptimizer.slug}", appUrl.url.value)
+        assertEquals("/${PwToolType.HuntOptimizer.slug}", appUrl.pathAndParams)
 
         uiStore.setPathPrefix("/prefix", replace = true)
 
-        assertEquals("/${PwToolType.HuntOptimizer.slug}/prefix", appUrl.url.value)
+        assertEquals("/${PwToolType.HuntOptimizer.slug}/prefix", appUrl.pathAndParams)
 
         appUrl.back()
 
-        assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+        assertEquals("/${UiStore.DEFAULT_TOOL.slug}", appUrl.pathAndParams)
 
         appUrl.forward()
 
-        assertEquals("/${PwToolType.HuntOptimizer.slug}/prefix", appUrl.url.value)
+        assertEquals("/${PwToolType.HuntOptimizer.slug}/prefix", appUrl.pathAndParams)
     }
 }

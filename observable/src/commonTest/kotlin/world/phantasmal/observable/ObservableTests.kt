@@ -57,6 +57,6 @@ interface ObservableTests : DependencyTests {
     interface Provider : DependencyTests.Provider {
         val observable: Observable<*>
 
-        override val dependency: Dependency get() = observable
+        override val dependency: Dependency<*> get() = observable
     }
 }

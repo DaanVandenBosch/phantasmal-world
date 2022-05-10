@@ -2,17 +2,20 @@ package world.phantasmal.web.questEditor.stores
 
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import world.phantasmal.psolib.Episode
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.observable.cell.list.filtered
 import world.phantasmal.observable.cell.list.flatMapToList
+import world.phantasmal.observable.change
+import world.phantasmal.psolib.Episode
 import world.phantasmal.web.core.PwToolType
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.core.undo.UndoStack
+import world.phantasmal.web.externals.three.Euler
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.QuestRunner
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.*
@@ -74,9 +77,9 @@ class QuestEditorStore(
     val questEditingEnabled: Cell<Boolean> = currentQuest.isNotNull() and !runner.running
 
     val canUndo: Cell<Boolean> = questEditingEnabled and undoManager.canUndo
-    val firstUndo: Cell<Action?> = undoManager.firstUndo
+    val firstUndo: Cell<Command?> = undoManager.firstUndo
     val canRedo: Cell<Boolean> = questEditingEnabled and undoManager.canRedo
-    val firstRedo: Cell<Action?> = undoManager.firstRedo
+    val firstRedo: Cell<Command?> = undoManager.firstRedo
 
     /**
      * True if there have been changes since the last save.
@@ -97,22 +100,6 @@ class QuestEditorStore(
         observeNow(uiStore.currentTool) { tool ->
             if (tool == PwToolType.QuestEditor) {
                 makeMainUndoCurrent()
-            }
-        }
-
-        observeNow(currentQuest.flatMap { it?.npcs ?: emptyListCell() }) { npcs ->
-            val selected = selectedEntity.value
-
-            if (selected is QuestNpcModel && selected !in npcs) {
-                _selectedEntity.value = null
-            }
-        }
-
-        observeNow(currentQuest.flatMap { it?.objects ?: emptyListCell() }) { objects ->
-            val selected = selectedEntity.value
-
-            if (selected is QuestObjectModel && selected !in objects) {
-                _selectedEntity.value = null
             }
         }
 
@@ -166,6 +153,14 @@ class QuestEditorStore(
     suspend fun getDefaultQuest(episode: Episode): QuestModel =
         convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
 
+    fun <T> setQuestProperty(
+        quest: QuestModel,
+        setter: (QuestModel, T) -> Unit,
+        value: T,
+    ) {
+        setter(quest, value)
+    }
+
     fun setCurrentArea(area: AreaModel?) {
         val event = selectedEvent.value
 
@@ -176,6 +171,20 @@ class QuestEditorStore(
         _highlightedEntity.value = null
         _selectedEntity.value = null
         _currentArea.value = area
+    }
+
+    fun addEvent(quest: QuestModel, index: Int, event: QuestEventModel) {
+        change {
+            quest.addEvent(index, event)
+            setSelectedEvent(event)
+        }
+    }
+
+    fun removeEvent(quest: QuestModel, event: QuestEventModel) {
+        change {
+            setSelectedEvent(null)
+            quest.removeEvent(event)
+        }
     }
 
     fun setSelectedEvent(event: QuestEventModel?) {
@@ -204,6 +213,50 @@ class QuestEditorStore(
         _selectedEvent.value = event
     }
 
+    fun <T> setEventProperty(
+        event: QuestEventModel,
+        setter: (QuestEventModel, T) -> Unit,
+        value: T,
+    ) {
+        change {
+            setSelectedEvent(event)
+            setter(event, value)
+        }
+    }
+
+    fun addEventAction(event: QuestEventModel, action: QuestEventActionModel) {
+        change {
+            setSelectedEvent(event)
+            event.addAction(action)
+        }
+    }
+
+    fun addEventAction(event: QuestEventModel, index: Int, action: QuestEventActionModel) {
+        change {
+            setSelectedEvent(event)
+            event.addAction(index, action)
+        }
+    }
+
+    fun removeEventAction(event: QuestEventModel, action: QuestEventActionModel) {
+        change {
+            setSelectedEvent(event)
+            event.removeAction(action)
+        }
+    }
+
+    fun <Action : QuestEventActionModel, T> setEventActionProperty(
+        event: QuestEventModel,
+        action: Action,
+        setter: (Action, T) -> Unit,
+        value: T,
+    ) {
+        change {
+            setSelectedEvent(event)
+            setter(action, value)
+        }
+    }
+
     fun setHighlightedEntity(entity: QuestEntityModel<*, *>?) {
         _highlightedEntity.value = entity
     }
@@ -218,6 +271,63 @@ class QuestEditorStore(
         _selectedEntity.value = entity
     }
 
+    fun addEntity(quest: QuestModel, entity: QuestEntityModel<*, *>) {
+        change {
+            quest.addEntity(entity)
+            setSelectedEntity(entity)
+        }
+    }
+
+    fun removeEntity(quest: QuestModel, entity: QuestEntityModel<*, *>) {
+        change {
+            if (entity == _selectedEntity.value) {
+                _selectedEntity.value = null
+            }
+
+            quest.removeEntity(entity)
+        }
+    }
+
+    fun setEntityPosition(entity: QuestEntityModel<*, *>, sectionId: Int?, position: Vector3) {
+        change {
+            setSelectedEntity(entity)
+            sectionId?.let { setEntitySection(entity, it) }
+            entity.setPosition(position)
+        }
+    }
+
+    fun setEntityRotation(entity: QuestEntityModel<*, *>, rotation: Euler) {
+        change {
+            setSelectedEntity(entity)
+            entity.setRotation(rotation)
+        }
+    }
+
+    fun setEntityWorldRotation(entity: QuestEntityModel<*, *>, rotation: Euler) {
+        change {
+            setSelectedEntity(entity)
+            entity.setWorldRotation(rotation)
+        }
+    }
+
+    fun <Entity : QuestEntityModel<*, *>, T> setEntityProperty(
+        entity: Entity,
+        setter: (Entity, T) -> Unit,
+        value: T,
+    ) {
+        change {
+            setSelectedEntity(entity)
+            setter(entity, value)
+        }
+    }
+
+    fun setEntityProp(entity: QuestEntityModel<*, *>, prop: QuestEntityPropModel, value: Any) {
+        change {
+            setSelectedEntity(entity)
+            prop.setValue(value)
+        }
+    }
+
     suspend fun setMapDesignations(mapDesignations: Map<Int, Int>) {
         currentQuest.value?.let { quest ->
             quest.setMapDesignations(mapDesignations)
@@ -225,6 +335,24 @@ class QuestEditorStore(
         }
     }
 
+    fun setEntitySectionId(entity: QuestEntityModel<*, *>, sectionId: Int) {
+        change {
+            setSelectedEntity(entity)
+            entity.setSectionId(sectionId)
+        }
+    }
+
+    fun setEntitySection(entity: QuestEntityModel<*, *>, section: SectionModel) {
+        change {
+            setSelectedEntity(entity)
+            entity.setSection(section)
+        }
+    }
+
+    /**
+     * Sets [QuestEntityModel.sectionId] and [QuestEntityModel.section] if there's a section with
+     * [sectionId] as ID.
+     */
     fun setEntitySection(entity: QuestEntityModel<*, *>, sectionId: Int) {
         currentQuest.value?.let { quest ->
             val variant = quest.areaVariants.value.find { it.area.id == entity.areaId }
@@ -242,12 +370,12 @@ class QuestEditorStore(
         }
     }
 
-    fun executeAction(action: Action) {
-        pushAction(action)
-        action.execute()
+    fun executeAction(command: Command) {
+        pushAction(command)
+        command.execute()
     }
 
-    fun pushAction(action: Action) {
+    fun pushAction(command: Command) {
         require(questEditingEnabled.value) {
             val reason = when {
                 currentQuest.value == null -> " (no current quest)"
@@ -256,7 +384,7 @@ class QuestEditorStore(
             }
             "Quest editing is disabled at the moment$reason."
         }
-        mainUndo.push(action)
+        mainUndo.push(command)
     }
 
     fun setShowCollisionGeometry(show: Boolean) {

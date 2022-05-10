@@ -5,7 +5,7 @@ import kotlin.test.*
 class DisposerTests {
     @Test
     fun calling_add_or_addAll_increases_size_correctly() {
-        TrackedDisposable.checkNoLeaks {
+        DisposableTracking.checkNoLeaks {
             val disposer = Disposer()
             assertEquals(disposer.size, 0)
 
@@ -29,7 +29,7 @@ class DisposerTests {
 
     @Test
     fun disposes_all_its_disposables_when_disposed() {
-        TrackedDisposable.checkNoLeaks {
+        DisposableTracking.checkNoLeaks {
             val disposer = Disposer()
             var disposablesDisposed = 0
 
@@ -57,7 +57,7 @@ class DisposerTests {
 
     @Test
     fun disposeAll_disposes_all_disposables() {
-        TrackedDisposable.checkNoLeaks {
+        DisposableTracking.checkNoLeaks {
             val disposer = Disposer()
 
             var disposablesDisposed = 0
@@ -80,7 +80,7 @@ class DisposerTests {
 
     @Test
     fun size_and_is_empty_should_correctly_reflect_the_contained_disposables() {
-        TrackedDisposable.checkNoLeaks {
+        DisposableTracking.checkNoLeaks {
             val disposer = Disposer()
 
             assertEquals(disposer.size, 0)
@@ -102,7 +102,7 @@ class DisposerTests {
 
     @Test
     fun adding_disposables_after_being_disposed_throws() {
-        TrackedDisposable.checkNoLeaks {
+        DisposableTracking.checkNoLeaks {
             val disposer = Disposer()
             disposer.dispose()
 

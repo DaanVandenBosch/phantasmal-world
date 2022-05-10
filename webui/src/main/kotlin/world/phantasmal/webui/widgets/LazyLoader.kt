@@ -1,5 +1,6 @@
 package world.phantasmal.webui.widgets
 
+import kotlinx.browser.window
 import org.w3c.dom.Node
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.trueCell
@@ -19,7 +20,12 @@ class LazyLoader(
             observeNow(this@LazyLoader.visible) { v ->
                 if (v && !initialized) {
                     initialized = true
-                    addChild(createWidget())
+
+                    // TODO: Remove this hack.
+                    window.setTimeout({
+                        if (disposed) return@setTimeout
+                        addChild(createWidget())
+                    }, 0)
                 }
             }
         }

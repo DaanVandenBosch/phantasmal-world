@@ -68,6 +68,14 @@ fun <T1, T2, R> mapToList(
 ): ListCell<R> =
     DependentListCell(c1, c2) { transform(c1.value, c2.value) }
 
+fun <T1, T2, T3, R> mapToList(
+    c1: Cell<T1>,
+    c2: Cell<T2>,
+    c3: Cell<T3>,
+    transform: (T1, T2, T3) -> List<R>,
+): ListCell<R> =
+    DependentListCell(c1, c2, c3) { transform(c1.value, c2.value, c3.value) }
+
 fun <T, R> Cell<T>.flatMapToList(
     transform: (T) -> ListCell<R>,
 ): ListCell<R> =
@@ -79,3 +87,12 @@ fun <T1, T2, R> flatMapToList(
     transform: (T1, T2) -> ListCell<R>,
 ): ListCell<R> =
     FlatteningDependentListCell(c1, c2) { transform(c1.value, c2.value) }
+
+fun listCellToString(cell: ListCell<*>): String = buildString {
+    append(this::class.simpleName)
+    append('[')
+    cell.value.joinTo(this, limit = 20) {
+        if (it === this) "(this cell)" else it.toString()
+    }
+    append(']')
+}

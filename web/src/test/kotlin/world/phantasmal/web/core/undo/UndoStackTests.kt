@@ -1,6 +1,6 @@
 package world.phantasmal.web.core.undo
 
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.test.WebTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,9 +15,9 @@ class UndoStackTests : WebTestSuite {
         assertFalse(stack.canUndo.value)
         assertFalse(stack.canRedo.value)
 
-        stack.push(DummyAction())
-        stack.push(DummyAction())
-        stack.push(DummyAction())
+        stack.push(DummyCommand())
+        stack.push(DummyCommand())
+        stack.push(DummyCommand())
 
         assertTrue(stack.canUndo.value)
         assertFalse(stack.canRedo.value)
@@ -40,8 +40,8 @@ class UndoStackTests : WebTestSuite {
 
         var value = 3
 
-        stack.push(DummyAction(execute = { value = 7 }, undo = { value = 3 })).execute()
-        stack.push(DummyAction(execute = { value = 13 }, undo = { value = 7 })).execute()
+        stack.push(DummyCommand(execute = { value = 7 }, undo = { value = 3 })).execute()
+        stack.push(DummyCommand(execute = { value = 13 }, undo = { value = 7 })).execute()
 
         assertEquals(13, value)
 
@@ -61,8 +61,8 @@ class UndoStackTests : WebTestSuite {
 
         var value = 3
 
-        stack.push(DummyAction(execute = { value = 7 }, undo = { value = 3 })).execute()
-        stack.push(DummyAction(execute = { value = 13 }, undo = { value = 7 })).execute()
+        stack.push(DummyCommand(execute = { value = 7 }, undo = { value = 3 })).execute()
+        stack.push(DummyCommand(execute = { value = 13 }, undo = { value = 7 })).execute()
 
         stack.undo()
         stack.undo()
@@ -85,22 +85,22 @@ class UndoStackTests : WebTestSuite {
 
         var value = 3
 
-        stack.push(DummyAction(execute = { value = 7 }, undo = { value = 3 })).execute()
+        stack.push(DummyCommand(execute = { value = 7 }, undo = { value = 3 })).execute()
 
         stack.undo()
 
         assertEquals(3, value)
 
-        stack.push(DummyAction(execute = { value = 13 }, undo = { value = 7 })).execute()
+        stack.push(DummyCommand(execute = { value = 13 }, undo = { value = 7 })).execute()
 
         assertEquals(13, value)
     }
 
-    private class DummyAction(
+    private class DummyCommand(
         private val execute: () -> Unit = {},
         private val undo: () -> Unit = {},
-    ) : Action {
-        override val description: String = "Dummy action"
+    ) : Command {
+        override val description: String = "Dummy command"
 
         override fun execute() {
             execute.invoke()

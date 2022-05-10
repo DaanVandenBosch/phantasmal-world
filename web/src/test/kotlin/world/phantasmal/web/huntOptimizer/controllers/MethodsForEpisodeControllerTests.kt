@@ -33,6 +33,7 @@ class MethodsForEpisodeControllerTests : WebTestSuite {
 
             assertEquals(LoadingStatus.Ok, ctrl.loadingStatus.value)
 
+            assertTrue(ctrl.values.value.isNotEmpty())
             assertTrue(ctrl.values.value.all { it.episode == episode })
         }
     }

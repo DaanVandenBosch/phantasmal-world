@@ -3,7 +3,7 @@ package world.phantasmal.web.questEditor.controllers
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.listCell
-import world.phantasmal.web.questEditor.actions.*
+import world.phantasmal.web.questEditor.commands.*
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -48,8 +48,8 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
                 else quest.events.value.indexOf(selectedEvent) + 1
 
             store.executeAction(
-                CreateEventAction(
-                    ::selectEvent,
+                CreateEventCommand(
+                    store,
                     quest,
                     index,
                     QuestEventModel(
@@ -78,7 +78,7 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
 
             if (index != -1) {
                 store.executeAction(
-                    DeleteEventAction(::selectEvent, quest, index, event)
+                    DeleteEventCommand(store, quest, index, event)
                 )
             }
         }
@@ -86,11 +86,11 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
 
     fun setId(event: QuestEventModel, id: Int) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventPropertyCommand(
+                store,
                 "Edit ID of event ${event.id.value}",
-                ::selectEvent,
                 event,
-                event::setId,
+                QuestEventModel::setId,
                 id,
                 event.id.value,
             )
@@ -99,11 +99,11 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
 
     fun setSectionId(event: QuestEventModel, sectionId: Int) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventPropertyCommand(
+                store,
                 "Edit section of event ${event.id.value}",
-                ::selectEvent,
                 event,
-                event::setSectionId,
+                QuestEventModel::setSectionId,
                 sectionId,
                 event.sectionId.value,
             )
@@ -112,11 +112,11 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
 
     fun setWaveId(event: QuestEventModel, waveId: Int) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventPropertyCommand(
+                store,
                 "Edit wave of event ${event.id}",
-                ::selectEvent,
                 event,
-                event::setWaveId,
+                QuestEventModel::setWaveId,
                 waveId,
                 event.wave.value.id,
             )
@@ -125,11 +125,11 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
 
     fun setDelay(event: QuestEventModel, delay: Int) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventPropertyCommand(
+                store,
                 "Edit delay of event ${event.id}",
-                ::selectEvent,
                 event,
-                event::setDelay,
+                QuestEventModel::setDelay,
                 delay,
                 event.delay.value,
             )
@@ -145,12 +145,12 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
             else -> error("""Unknown action type "$type".""")
         }
 
-        store.executeAction(CreateEventActionAction(::selectEvent, event, action))
+        store.executeAction(CreateEventActionCommand(store, event, action))
     }
 
     fun removeAction(event: QuestEventModel, action: QuestEventActionModel) {
         val index = event.actions.value.indexOf(action)
-        store.executeAction(DeleteEventActionAction(::selectEvent, event, index, action))
+        store.executeAction(DeleteEventActionCommand(store, event, index, action))
     }
 
     fun canGoToEvent(eventId: Cell<Int>): Cell<Boolean> = store.canGoToEvent(eventId)
@@ -165,11 +165,11 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
         sectionId: Int,
     ) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventPropertyCommand(
+                store,
                 "Edit action section",
-                ::selectEvent,
                 event,
-                action::setSectionId,
+                QuestEventModel::setSectionId,
                 sectionId,
                 action.sectionId.value,
             )
@@ -182,11 +182,12 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
         appearFlag: Int,
     ) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventActionPropertyCommand(
+                store,
                 "Edit action appear flag",
-                ::selectEvent,
                 event,
-                action::setAppearFlag,
+                action,
+                QuestEventActionModel.SpawnNpcs::setAppearFlag,
                 appearFlag,
                 action.appearFlag.value,
             )
@@ -199,11 +200,12 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
         doorId: Int,
     ) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventActionPropertyCommand(
+                store,
                 "Edit action door",
-                ::selectEvent,
                 event,
-                action::setDoorId,
+                action,
+                QuestEventActionModel.Door::setDoorId,
                 doorId,
                 action.doorId.value,
             )
@@ -216,11 +218,12 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
         eventId: Int,
     ) {
         store.executeAction(
-            EditEventPropertyAction(
+            EditEventActionPropertyCommand(
+                store,
                 "Edit action event",
-                ::selectEvent,
                 event,
-                action::setEventId,
+                action,
+                QuestEventActionModel.TriggerEvent::setEventId,
                 eventId,
                 action.eventId.value,
             )

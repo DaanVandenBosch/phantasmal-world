@@ -1,12 +1,8 @@
 package world.phantasmal.observable.cell.list
 
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.DependentCell
-import world.phantasmal.observable.cell.ImmutableCell
+import world.phantasmal.observable.cell.*
 
-// TODO: A test suite that tests FilteredListCell while its predicate dependency is changing.
-// TODO: A test suite that tests FilteredListCell while the predicate results are changing.
-class FilteredListCellListDependencyEmitsTests : AbstractFilteredListCellTests {
+class FilteredListCellListDependencyEmitsTests : ListCellTests, CellWithDependenciesTests {
     override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
         private val dependencyCell =
             SimpleListCell(if (empty) mutableListOf(5) else mutableListOf(5, 10))
@@ -14,7 +10,7 @@ class FilteredListCellListDependencyEmitsTests : AbstractFilteredListCellTests {
         override val observable =
             FilteredListCell(
                 list = dependencyCell,
-                predicate = ImmutableCell { ImmutableCell(it % 2 == 0) },
+                predicate = cell { cell(it % 2 == 0) },
             )
 
         override fun addElement() {
@@ -28,14 +24,12 @@ class FilteredListCellListDependencyEmitsTests : AbstractFilteredListCellTests {
         dependency3: Cell<Int>,
     ) =
         FilteredListCell(
-            list = DependentListCell(dependency1, computeElements = {
-                listOf(dependency1.value)
-            }),
-            predicate = DependentCell(dependency2, compute = {
-                fun predicate(element: Int) =
-                    DependentCell(dependency3, compute = { element < dependency2.value })
+            list = dependency1.mapToList { listOf(it) },
+            predicate = dependency2.map { value2 ->
+                fun predicate(element: Int): Cell<Boolean> =
+                    dependency3.map { value3 -> (element % 2) == ((value2 + value3) % 2) }
 
                 ::predicate
-            }),
+            },
         )
 }

@@ -3,7 +3,9 @@ package world.phantasmal.observable.cell
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.Dependent
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 interface CellWithDependenciesTests : CellTests {
     fun createWithDependencies(
@@ -13,39 +15,26 @@ interface CellWithDependenciesTests : CellTests {
     ): Cell<Any>
 
     @Test
-    fun emits_precisely_once_when_all_of_its_dependencies_emit() = test {
+    fun emits_at_least_once_when_all_of_its_dependencies_emit() = test {
         val root = SimpleCell(5)
         val branch1 = DependentCell(root) { root.value * 2 }
         val branch2 = DependentCell(root) { root.value * 3 }
         val branch3 = DependentCell(root) { root.value * 4 }
         val leaf = createWithDependencies(branch1, branch2, branch3)
-        var dependencyMightChangeCalled = false
-        var dependencyChangedCalled = false
+        var dependencyInvalidatedCalled: Boolean
 
         leaf.addDependent(object : Dependent {
-            override fun dependencyMightChange() {
-                assertFalse(dependencyMightChangeCalled)
-                assertFalse(dependencyChangedCalled)
-                dependencyMightChangeCalled = true
-            }
-
-            override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
-                assertTrue(dependencyMightChangeCalled)
-                assertFalse(dependencyChangedCalled)
-                assertEquals(leaf, dependency)
-                assertNotNull(event)
-                dependencyChangedCalled = true
+            override fun dependencyInvalidated(dependency: Dependency<*>) {
+                dependencyInvalidatedCalled = true
             }
         })
 
         repeat(5) { index ->
-            dependencyMightChangeCalled = false
-            dependencyChangedCalled = false
+            dependencyInvalidatedCalled = false
 
             root.value += 1
 
-            assertTrue(dependencyMightChangeCalled, "repetition $index")
-            assertTrue(dependencyChangedCalled, "repetition $index")
+            assertTrue(dependencyInvalidatedCalled, "repetition $index")
         }
     }
 
@@ -91,10 +80,6 @@ interface CellWithDependenciesTests : CellTests {
         val publicDependents: List<Dependent> = dependents
 
         override val value: Int = 5
-
-        override fun emitDependencyChanged() {
-            // Not going to change.
-            throw NotImplementedError()
-        }
+        override val changeEvent: ChangeEvent<Int> = ChangeEvent(value)
     }
 }

@@ -70,7 +70,7 @@ interface MutableCellTests<T : Any> : CellTests {
     // TODO: Figure out change set bug and enable change sets again.
     /**
      * Modifying a mutable cell multiple times in one change set results in a single call to
-     * [Dependent.dependencyMightChange] and [Dependent.dependencyChanged].
+     * [Dependent.dependencyInvalidated] and [Dependent.dependencyChanged].
      */
 //    @Test
 //    fun multiple_changes_to_one_cell_in_change_set() = test {

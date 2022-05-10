@@ -23,6 +23,9 @@ import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.viewer.loading.AnimationAssetLoader
+import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
+import world.phantasmal.web.viewer.stores.ViewerStore
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -51,6 +54,14 @@ class TestComponents(private val ctx: TestContext) {
 
     var assetLoader: AssetLoader by default { AssetLoader(httpClient, basePath = "/assets") }
 
+    var characterClassAssetLoader: CharacterClassAssetLoader by default {
+        CharacterClassAssetLoader(assetLoader)
+    }
+
+    var animationAssetLoader: AnimationAssetLoader by default {
+        AnimationAssetLoader(assetLoader)
+    }
+
     var areaAssetLoader: AreaAssetLoader by default {
         AreaAssetLoader(assetLoader)
     }
@@ -73,12 +84,16 @@ class TestComponents(private val ctx: TestContext) {
 
     var areaStore: AreaStore by default { AreaStore(areaAssetLoader) }
 
-    var huntMethodStore: HuntMethodStore by default {
-        HuntMethodStore(uiStore, assetLoader, huntMethodPersister)
+    var viewerStore: ViewerStore by default {
+        ViewerStore(characterClassAssetLoader, animationAssetLoader, uiStore)
     }
 
     var questEditorStore: QuestEditorStore by default {
         QuestEditorStore(questLoader, uiStore, areaStore, undoManager, initializeNewQuest = false)
+    }
+
+    var huntMethodStore: HuntMethodStore by default {
+        HuntMethodStore(uiStore, assetLoader, huntMethodPersister)
     }
 
     // Rendering

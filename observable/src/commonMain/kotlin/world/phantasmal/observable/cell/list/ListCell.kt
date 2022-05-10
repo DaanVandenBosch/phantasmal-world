@@ -6,6 +6,8 @@ import world.phantasmal.observable.cell.Cell
 interface ListCell<out E> : Cell<List<E>> {
     override val value: List<E>
 
+    override val changeEvent: ListChangeEvent<E>?
+
     val size: Cell<Int>
 
     val empty: Cell<Boolean>

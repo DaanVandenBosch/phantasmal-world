@@ -5,12 +5,12 @@ import kotlinx.coroutines.launch
 import world.phantasmal.core.Severity
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.psolib.asm.assemble
-import world.phantasmal.psolib.asm.disassemble
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.psolib.asm.assemble
+import world.phantasmal.psolib.asm.disassemble
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.AsmAnalyser
@@ -111,43 +111,48 @@ class AsmStore(
     }
 
     private fun setTextModel(quest: QuestModel?, inlineStackArgs: Boolean) {
-        setBytecodeIrTimeout?.let { it ->
-            window.clearTimeout(it)
-            setBytecodeIrTimeout = null
-        }
-
-        modelDisposer.disposeAll()
-
-        quest ?: return
-
-        val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
-        asmAnalyser.setAsm(asm, inlineStackArgs)
-
-        _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
-            modelDisposer.add(disposable { model.dispose() })
-
-            model.onDidChangeContent { e ->
-                asmAnalyser.updateAsm(e.changes.map {
-                    AsmChange(
-                        AsmRange(
-                            it.range.startLineNumber,
-                            it.range.startColumn,
-                            it.range.endLineNumber,
-                            it.range.endColumn,
-                        ),
-                        it.text,
-                    )
-                })
-
-                setBytecodeIrTimeout?.let(window::clearTimeout)
-                setBytecodeIrTimeout = window.setTimeout(::setBytecodeIr, 1000)
-
-                // TODO: Update breakpoints.
+        // TODO: Remove this hack.
+        window.setTimeout({
+            setBytecodeIrTimeout?.let { it ->
+                window.clearTimeout(it)
+                setBytecodeIrTimeout = null
             }
-        }
+
+            modelDisposer.disposeAll()
+
+            quest ?: return@setTimeout
+
+            val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
+            asmAnalyser.setAsm(asm, inlineStackArgs)
+
+            _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
+                modelDisposer.add(disposable { model.dispose() })
+
+                model.onDidChangeContent { e ->
+                    asmAnalyser.updateAsm(e.changes.map {
+                        AsmChange(
+                            AsmRange(
+                                it.range.startLineNumber,
+                                it.range.startColumn,
+                                it.range.endLineNumber,
+                                it.range.endColumn,
+                            ),
+                            it.text,
+                        )
+                    })
+
+                    setBytecodeIrTimeout?.let(window::clearTimeout)
+                    setBytecodeIrTimeout = window.setTimeout(::setBytecodeIr, 1000)
+
+                    // TODO: Update breakpoints.
+                }
+            }
+        }, 0)
     }
 
     private fun setBytecodeIr() {
+        if (disposed) return
+
         setBytecodeIrTimeout = null
 
         val model = textModel.value ?: return

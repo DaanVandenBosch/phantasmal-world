@@ -203,7 +203,7 @@ fun <T> bindChildrenTo(
     parent: Element,
     list: ListCell<T>,
     createChild: Node.(T, index: Int) -> Node,
-    after: (ListChangeEvent<T>) -> Unit = {},
+    after: () -> Unit = {},
 ): Disposable =
     bindChildrenTo(
         parent,
@@ -219,7 +219,7 @@ fun <T> bindDisposableChildrenTo(
     parent: Element,
     list: ListCell<T>,
     createChild: Node.(T, index: Int) -> Pair<Node, Disposable>,
-    after: (ListChangeEvent<T>) -> Unit = {},
+    after: () -> Unit = {},
 ): Disposable {
     val disposer = Disposer()
 
@@ -274,7 +274,7 @@ private fun <T> bindChildrenTo(
     list: ListCell<T>,
     createChild: Node.(T, index: Int) -> Node,
     childrenRemoved: (index: Int, count: Int) -> Unit,
-    after: (ListChangeEvent<T>) -> Unit,
+    after: () -> Unit,
 ): Disposable {
     parent.innerHTML = ""
     val initialFrag = document.createDocumentFragment()
@@ -284,6 +284,8 @@ private fun <T> bindChildrenTo(
     }
 
     parent.appendChild(initialFrag)
+
+    after()
 
     return list.observeListChange { event: ListChangeEvent<T> ->
         for (change in event.changes) {
@@ -310,6 +312,6 @@ private fun <T> bindChildrenTo(
             }
         }
 
-        after(event)
+        after()
     }
 }

@@ -1,6 +1,9 @@
 package world.phantasmal.observable.cell
 
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * Test suite for all [Cell] implementations that aren't ListCells. There is a subclass of this
@@ -9,6 +12,7 @@ import kotlin.test.*
 interface RegularCellTests : CellTests {
     fun <T> createWithValue(value: T): Cell<T>
 
+    // TODO: Move this test to CellTests.
     @Test
     fun convenience_methods() = test {
         listOf(Any(), null).forEach { any ->
@@ -25,6 +29,7 @@ interface RegularCellTests : CellTests {
         }
     }
 
+    // TODO: Move this test to CellTests.
     @Test
     fun generic_extensions() = test {
         listOf(Any(), null).forEach { any ->
@@ -54,6 +59,9 @@ interface RegularCellTests : CellTests {
             assertEquals(a != b, (aCell ne bCell).value)
         }
 
+        testEqNe(null, null)
+        testEqNe(null, Unit)
+        testEqNe(Unit, Unit)
         testEqNe(10, 10)
         testEqNe(5, 99)
         testEqNe("a", "a")

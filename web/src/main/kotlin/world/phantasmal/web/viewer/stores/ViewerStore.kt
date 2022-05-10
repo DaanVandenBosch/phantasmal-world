@@ -3,12 +3,7 @@ package world.phantasmal.web.viewer.stores
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import world.phantasmal.core.enumValueOfOrNull
-import world.phantasmal.psolib.fileFormats.AreaGeometry
-import world.phantasmal.psolib.fileFormats.CollisionGeometry
-import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
-import world.phantasmal.psolib.fileFormats.ninja.NjMotion
-import world.phantasmal.psolib.fileFormats.ninja.NjObject
-import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
+import world.phantasmal.core.math.clamp
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.and
 import world.phantasmal.observable.cell.list.ListCell
@@ -16,8 +11,15 @@ import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.observable.cell.map
 import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.observable.change
+import world.phantasmal.psolib.fileFormats.AreaGeometry
+import world.phantasmal.psolib.fileFormats.CollisionGeometry
+import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
+import world.phantasmal.psolib.fileFormats.ninja.NjMotion
+import world.phantasmal.psolib.fileFormats.ninja.NjObject
+import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.rendering.conversion.PSO_FRAME_RATE
+import world.phantasmal.web.core.stores.Param
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.ViewerUrls
@@ -50,8 +52,13 @@ class ViewerStore(
         mutableCell<CharacterClass?>(CharacterClass.VALUES.random())
     private val _currentSectionId = mutableCell(SectionId.VALUES.random())
     private val _currentBody =
-        mutableCell((1.._currentCharacterClass.value!!.bodyStyleCount).random())
+        mutableCell((0 until _currentCharacterClass.value!!.bodyStyleCount).random())
     private val _currentAnimation = mutableCell<AnimationModel?>(null)
+
+    // Params.
+    private val characterClassParams = mutableListOf<Param>()
+    private val sectionIdParams = mutableListOf<Param>()
+    private val bodyParams = mutableListOf<Param>()
 
     // Settings.
     private val _applyTextures = mutableCell(true)
@@ -92,19 +99,11 @@ class ViewerStore(
 
     init {
         for (path in listOf(ViewerUrls.mesh, ViewerUrls.texture)) {
-            addDisposables(
+            val characterClassParam = addDisposable(
                 uiStore.registerParameter(
                     PwToolType.Viewer,
                     path,
                     MODEL_PARAM,
-                    setInitialValue = { initialValue ->
-                        if (uiStore.path.value.startsWith(path)) {
-                            CharacterClass.VALUES.find { it.slug == initialValue }?.let {
-                                _currentCharacterClass.value = it
-                            }
-                        }
-                    },
-                    value = currentCharacterClass.map { it?.slug },
                     onChange = { newValue ->
                         scope.launch {
                             setCurrentCharacterClass(
@@ -113,19 +112,14 @@ class ViewerStore(
                         }
                     },
                 ),
+            )
+            characterClassParams.add(characterClassParam)
 
+            val sectionIdParam = addDisposable(
                 uiStore.registerParameter(
                     PwToolType.Viewer,
                     path,
                     SECTION_ID_PARAM,
-                    setInitialValue = { initialValue ->
-                        if (uiStore.path.value.startsWith(path)) {
-                            initialValue?.let { enumValueOfOrNull<SectionId>(it) }?.let {
-                                _currentSectionId.value = it
-                            }
-                        }
-                    },
-                    value = currentSectionId.map { it.name },
                     onChange = { newValue ->
                         scope.launch {
                             setCurrentSectionId(
@@ -135,21 +129,14 @@ class ViewerStore(
                         }
                     },
                 ),
+            )
+            sectionIdParams.add(sectionIdParam)
 
+            val bodyParam = addDisposable(
                 uiStore.registerParameter(
                     PwToolType.Viewer,
                     path,
                     BODY_PARAM,
-                    setInitialValue = { initialValue ->
-                        if (uiStore.path.value.startsWith(path)) {
-                            val maxBody = _currentCharacterClass.value?.bodyStyleCount ?: 1
-
-                            initialValue?.toIntOrNull()?.takeIf { it <= maxBody }?.let {
-                                _currentBody.value = it - 1
-                            }
-                        }
-                    },
-                    value = currentBody.map { (it + 1).toString() },
                     onChange = { newValue ->
                         scope.launch {
                             setCurrentBody((newValue?.toIntOrNull() ?: 1) - 1)
@@ -157,7 +144,31 @@ class ViewerStore(
                     },
                 ),
             )
+            bodyParams.add(bodyParam)
+
+            // Try to initialize settings from parameters.
+            if (uiStore.currentTool.value == PwToolType.Viewer &&
+                uiStore.path.value == path
+            ) {
+                CharacterClass.VALUES.find { it.slug == characterClassParam.value }?.let {
+                    _currentCharacterClass.value = it
+                }
+
+                sectionIdParam.value?.let { enumValueOfOrNull<SectionId>(it) }?.let {
+                    _currentSectionId.value = it
+                }
+
+                val maxBody = _currentCharacterClass.value?.bodyStyleCount ?: 1
+                bodyParam.value?.toIntOrNull()?.let {
+                    _currentBody.value = clamp(it, 1, maxBody) - 1
+                }
+            }
         }
+
+        // Initialize parameters from settings.
+        setCurrentCharacterClassValue(_currentCharacterClass.value)
+        setCurrentSectionIdValue(_currentSectionId.value)
+        setCurrentBodyValue(_currentBody.value)
 
         scope.launch {
             loadCharacterClassNinjaObject(clearAnimation = true)
@@ -167,7 +178,7 @@ class ViewerStore(
     fun setCurrentNinjaGeometry(geometry: NinjaGeometry?) {
         change {
             if (_currentCharacterClass.value != null) {
-                _currentCharacterClass.value = null
+                setCurrentCharacterClassValue(null)
                 _currentTextures.clear()
             }
 
@@ -184,22 +195,22 @@ class ViewerStore(
     suspend fun setCurrentCharacterClass(char: CharacterClass?) {
         val clearAnimation = _currentCharacterClass.value == null
 
-        _currentCharacterClass.value = char
+        setCurrentCharacterClassValue(char)
 
         if (char != null && _currentBody.value >= char.bodyStyleCount) {
-            _currentBody.value = char.bodyStyleCount - 1
+            setCurrentBodyValue(char.bodyStyleCount - 1)
         }
 
         loadCharacterClassNinjaObject(clearAnimation)
     }
 
     suspend fun setCurrentSectionId(sectionId: SectionId) {
-        _currentSectionId.value = sectionId
+        setCurrentSectionIdValue(sectionId)
         loadCharacterClassNinjaObject(clearAnimation = false)
     }
 
     suspend fun setCurrentBody(body: Int) {
-        _currentBody.value = body
+        setCurrentBodyValue(body)
         loadCharacterClassNinjaObject(clearAnimation = false)
     }
 
@@ -294,9 +305,34 @@ class ViewerStore(
         }
     }
 
+    private fun setCurrentCharacterClassValue(char: CharacterClass?) {
+        _currentCharacterClass.value = char
+
+        for (param in characterClassParams) {
+            param.set(char?.slug)
+        }
+    }
+
+    private fun setCurrentSectionIdValue(sectionId: SectionId) {
+        _currentSectionId.value = sectionId
+
+        for (param in sectionIdParams) {
+            param.set(sectionId.name)
+        }
+    }
+
+    private fun setCurrentBodyValue(body: Int) {
+        _currentBody.value = body
+        val paramValue = (body + 1).toString()
+
+        for (param in bodyParams) {
+            param.set(paramValue)
+        }
+    }
+
     companion object {
-        private const val MODEL_PARAM = "model"
-        private const val BODY_PARAM = "body"
-        private const val SECTION_ID_PARAM = "section_id"
+        const val MODEL_PARAM = "model"
+        const val BODY_PARAM = "body"
+        const val SECTION_ID_PARAM = "section_id"
     }
 }

@@ -1,16 +1,18 @@
-package world.phantasmal.web.questEditor.actions
+package world.phantasmal.web.questEditor.commands
 
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.SectionModel
+import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
-class EditEntitySectionAction(
+class EditEntitySectionCommand(
+    private val questEditorStore: QuestEditorStore,
     private val entity: QuestEntityModel<*, *>,
     private val newSectionId: Int,
     private val newSection: SectionModel?,
     private val oldSectionId: Int,
     private val oldSection: SectionModel?,
-) : Action {
+) : Command {
     override val description: String = "Edit ${entity.type.simpleName} section"
 
     init {
@@ -20,17 +22,17 @@ class EditEntitySectionAction(
 
     override fun execute() {
         if (newSection != null) {
-            entity.setSection(newSection)
+            questEditorStore.setEntitySection(entity, newSection)
         } else {
-            entity.setSectionId(newSectionId)
+            questEditorStore.setEntitySectionId(entity, newSectionId)
         }
     }
 
     override fun undo() {
         if (oldSection != null) {
-            entity.setSection(oldSection)
+            questEditorStore.setEntitySection(entity, oldSection)
         } else {
-            entity.setSectionId(oldSectionId)
+            questEditorStore.setEntitySectionId(entity, oldSectionId)
         }
     }
 }

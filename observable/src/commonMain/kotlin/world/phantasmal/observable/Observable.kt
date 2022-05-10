@@ -2,7 +2,7 @@ package world.phantasmal.observable
 
 import world.phantasmal.core.disposable.Disposable
 
-interface Observable<out T> : Dependency {
+interface Observable<out T> : Dependency<T> {
     /**
      * [observer] will be called whenever this observable changes.
      */

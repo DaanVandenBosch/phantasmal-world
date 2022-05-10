@@ -5,3 +5,7 @@ inline fun assert(value: () -> Boolean) {
 }
 
 expect inline fun assert(value: () -> Boolean, lazyMessage: () -> Any)
+
+inline fun assertUnreachable(lazyMessage: () -> Any) {
+    assert({ true }, lazyMessage)
+}

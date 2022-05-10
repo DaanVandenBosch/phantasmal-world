@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.widgets
 
+import kotlinx.browser.window
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.web.externals.monacoEditor.*
@@ -62,20 +63,32 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
             // Undo/redo.
             observe(ctrl.didUndo) {
                 editor.focus()
-                editor.trigger(
-                    source = AsmEditorWidget::class.simpleName,
-                    handlerId = "undo",
-                    payload = undefined,
-                )
+
+                // TODO: Remove this hack.
+                window.setTimeout({
+                    if (disposed) return@setTimeout
+
+                    editor.trigger(
+                        source = AsmEditorWidget::class.simpleName,
+                        handlerId = "undo",
+                        payload = undefined,
+                    )
+                }, 0)
             }
 
             observe(ctrl.didRedo) {
                 editor.focus()
-                editor.trigger(
-                    source = AsmEditorWidget::class.simpleName,
-                    handlerId = "redo",
-                    payload = undefined,
-                )
+
+                // TODO: Remove this hack.
+                window.setTimeout({
+                    if (disposed) return@setTimeout
+
+                    editor.trigger(
+                        source = AsmEditorWidget::class.simpleName,
+                        handlerId = "redo",
+                        payload = undefined,
+                    )
+                }, 0)
             }
 
             editor.onDidFocusEditorWidget(ctrl::makeUndoCurrent)

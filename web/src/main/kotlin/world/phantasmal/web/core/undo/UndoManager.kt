@@ -3,7 +3,7 @@ package world.phantasmal.web.core.undo
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.fold
 import world.phantasmal.observable.cell.list.mutableListCell
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 
 class UndoManager {
     private val undos = mutableListCell<Undo>(NopUndo)
@@ -13,8 +13,8 @@ class UndoManager {
 
     val canUndo: Cell<Boolean> = current.flatMap { it.canUndo }
     val canRedo: Cell<Boolean> = current.flatMap { it.canRedo }
-    val firstUndo: Cell<Action?> = current.flatMap { it.firstUndo }
-    val firstRedo: Cell<Action?> = current.flatMap { it.firstRedo }
+    val firstUndo: Cell<Command?> = current.flatMap { it.firstUndo }
+    val firstRedo: Cell<Command?> = current.flatMap { it.firstRedo }
 
     /**
      * True if all undos are at the most recent save point. I.e., true if there are no changes to

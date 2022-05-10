@@ -1,21 +1,23 @@
 package world.phantasmal.observable.cell.list
 
 import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.DependentCell
-import world.phantasmal.observable.cell.ImmutableCell
+import world.phantasmal.observable.cell.CellWithDependenciesTests
+import world.phantasmal.observable.cell.cell
 
 /**
  * In these tests the list dependency of the [SimpleListCell] changes and the predicate
  * dependency does not.
  */
-class SimpleFilteredListCellListDependencyEmitsTests : AbstractFilteredListCellTests {
+class SimpleFilteredListCellListDependencyEmitsTests :
+    ListCellTests, CellWithDependenciesTests {
+
     override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
         private val dependencyCell =
             SimpleListCell(if (empty) mutableListOf(5) else mutableListOf(5, 10))
 
         override val observable = SimpleFilteredListCell(
             list = dependencyCell,
-            predicate = ImmutableCell { it % 2 == 0 },
+            predicate = cell { it % 2 == 0 },
         )
 
         override fun addElement() {
@@ -29,11 +31,9 @@ class SimpleFilteredListCellListDependencyEmitsTests : AbstractFilteredListCellT
         dependency3: Cell<Int>,
     ) =
         SimpleFilteredListCell(
-            list = DependentListCell(dependency1, dependency2) {
-                listOf(dependency1.value, dependency2.value)
+            list = mapToList(dependency1, dependency2, dependency3) { value1, value2, value3 ->
+                listOf(value1, value2, value3)
             },
-            predicate = DependentCell(dependency3) {
-                { it < dependency3.value }
-            },
+            predicate = cell { it % 2 == 0 },
         )
 }

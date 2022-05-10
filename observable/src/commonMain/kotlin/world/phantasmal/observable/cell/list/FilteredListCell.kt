@@ -1,6 +1,7 @@
 package world.phantasmal.observable.cell.list
 
 import world.phantasmal.core.assert
+import world.phantasmal.core.assertUnreachable
 import world.phantasmal.core.unsafe.unsafeCast
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Dependency
@@ -20,7 +21,7 @@ class FilteredListCell<E>(
 
     private val changedPredicateResults = mutableListOf<Mapping>()
 
-    override val predicateDependency: Dependency
+    override val predicateDependency: Dependency<*>
         get() = predicate
 
     override fun removeDependent(dependent: Dependent) {
@@ -33,8 +34,11 @@ class FilteredListCell<E>(
         }
     }
 
-    override fun otherDependencyChanged(dependency: Dependency) {
-        assert { dependency is FilteredListCell<*>.Mapping }
+    override fun otherDependencyInvalidated(dependency: Dependency<*>) {
+        assert(
+            { dependency is FilteredListCell<*>.Mapping },
+            { "Expected $dependency to be a mapping." },
+        )
 
         changedPredicateResults.add(unsafeCast(dependency))
     }
@@ -105,7 +109,8 @@ class FilteredListCell<E>(
         }
 
         // Can still contain changed mappings at this point if e.g. an element was removed after its
-        // predicate result changed.
+        // predicate result changed or a predicate result emitted multiple invalidation
+        // notifications.
         changedPredicateResults.clear()
     }
 
@@ -182,15 +187,17 @@ class FilteredListCell<E>(
          * pass the predicate.
          */
         var index: Int,
-    ) : Dependent, Dependency {
-        override fun dependencyMightChange() {
-            this@FilteredListCell.dependencyMightChange()
-        }
+    ) : Dependent, Dependency<Boolean> {
+        override val changeEvent: ChangeEvent<Boolean>?
+            get() {
+                assertUnreachable { "Change event is never computed." }
+                return null
+            }
 
-        override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
+        override fun dependencyInvalidated(dependency: Dependency<*>) {
             assert { dependency === predicateResult }
 
-            this@FilteredListCell.dependencyChanged(this, event)
+            this@FilteredListCell.dependencyInvalidated(this)
         }
 
         override fun addDependent(dependent: Dependent) {
@@ -203,10 +210,6 @@ class FilteredListCell<E>(
             assert { dependent === this@FilteredListCell }
 
             predicateResult.removeDependent(this)
-        }
-
-        override fun emitDependencyChanged() {
-            // Nothing to do.
         }
     }
 }

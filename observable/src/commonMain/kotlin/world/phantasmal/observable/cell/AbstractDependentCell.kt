@@ -1,45 +1,31 @@
 package world.phantasmal.observable.cell
 
+import world.phantasmal.core.unsafe.unsafeCast
 import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.Dependent
 
 abstract class AbstractDependentCell<T> : AbstractCell<T>(), Dependent {
-    private var changingDependencies = 0
-    private var dependenciesActuallyChanged = false
 
-    override fun dependencyMightChange() {
-        changingDependencies++
-        emitMightChange()
-    }
-
-    override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
-        if (event != null) {
-            dependenciesActuallyChanged = true
+    private var _value: T? = null
+    final override val value: T
+        get() {
+            computeValueAndEvent()
+            // We cast instead of asserting _value is non-null because T might actually be a
+            // nullable type.
+            return unsafeCast(_value)
         }
 
-        changingDependencies--
-
-        if (changingDependencies == 0) {
-            if (dependenciesActuallyChanged) {
-                dependenciesActuallyChanged = false
-
-                dependenciesFinishedChanging()
-            } else {
-                emitDependencyChangedEvent(null)
-            }
+    final override var changeEvent: ChangeEvent<T>? = null
+        get() {
+            computeValueAndEvent()
+            return field
         }
-    }
+        private set
 
-    override fun emitDependencyChanged() {
-        // Nothing to do because dependent cells emit dependencyChanged immediately. They don't
-        // defer this operation because they only change when there is no change set or the current
-        // change set is being completed.
-    }
+    protected abstract fun computeValueAndEvent()
 
-    /**
-     * Called after a wave of dependencyMightChange notifications followed by an equal amount of
-     * dependencyChanged notifications of which at least one signified an actual change.
-     */
-    protected abstract fun dependenciesFinishedChanging()
+    protected fun setValueAndEvent(value: T, changeEvent: ChangeEvent<T>?) {
+        _value = value
+        this.changeEvent = changeEvent
+    }
 }

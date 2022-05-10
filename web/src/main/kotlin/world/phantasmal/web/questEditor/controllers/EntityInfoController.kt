@@ -11,7 +11,7 @@ import world.phantasmal.psolib.fileFormats.quest.EntityPropType
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3
-import world.phantasmal.web.questEditor.actions.*
+import world.phantasmal.web.questEditor.commands.*
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestEntityPropModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
@@ -28,8 +28,8 @@ sealed class EntityInfoPropModel(
     protected fun setPropValue(prop: QuestEntityPropModel, value: Any) {
         store.selectedEntity.value?.let { entity ->
             store.executeAction(
-                EditEntityPropAction(
-                    setSelectedEntity = store::setSelectedEntity,
+                EditEntityPropCommand(
+                    store,
                     entity,
                     prop,
                     value,
@@ -142,7 +142,8 @@ class EntityInfoController(
                     sectionId,
                 )
                 questEditorStore.executeAction(
-                    EditEntitySectionAction(
+                    EditEntitySectionCommand(
+                        questEditorStore,
                         entity,
                         sectionId,
                         section,
@@ -157,9 +158,11 @@ class EntityInfoController(
     fun setWaveId(waveId: Int) {
         (questEditorStore.selectedEntity.value as? QuestNpcModel)?.let { npc ->
             questEditorStore.executeAction(
-                EditPropertyAction(
+                EditEntityPropertyCommand(
+                    questEditorStore,
                     "Edit ${npc.type.simpleName} wave",
-                    npc::setWaveId,
+                    npc,
+                    QuestNpcModel::setWaveId,
                     waveId,
                     npc.wave.value.id,
                 )
@@ -192,9 +195,8 @@ class EntityInfoController(
         if (!enabled.value) return
 
         questEditorStore.executeAction(
-            TranslateEntityAction(
-                setSelectedEntity = questEditorStore::setSelectedEntity,
-                setEntitySection = { /* Won't be called. */ },
+            TranslateEntityCommand(
+                questEditorStore,
                 entity,
                 newSection = null,
                 oldSection = null,
@@ -229,12 +231,12 @@ class EntityInfoController(
         if (!enabled.value) return
 
         questEditorStore.executeAction(
-            RotateEntityAction(
-                setSelectedEntity = questEditorStore::setSelectedEntity,
+            RotateEntityCommand(
+                questEditorStore,
                 entity,
                 euler(x, y, z),
                 entity.rotation.value,
-                false,
+                world = false,
             )
         )
     }

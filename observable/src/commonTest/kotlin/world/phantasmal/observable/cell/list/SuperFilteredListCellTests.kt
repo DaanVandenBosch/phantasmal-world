@@ -1,16 +1,21 @@
 package world.phantasmal.observable.cell.list
 
-import world.phantasmal.observable.ChangeManager
-import world.phantasmal.observable.cell.CellWithDependenciesTests
+import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.ImmutableCell
 import world.phantasmal.observable.cell.SimpleCell
+import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.*
 
-interface AbstractFilteredListCellTests : ListCellTests, CellWithDependenciesTests {
+/**
+ * Tests that apply to all filtered list implementations.
+ */
+interface SuperFilteredListCellTests : ObservableTestSuite {
+    fun <E> createFilteredListCell(list: ListCell<E>, predicate: Cell<(E) -> Boolean>): ListCell<E>
+
     @Test
     fun contains_only_values_that_match_the_predicate() = test {
         val dep = SimpleListCell(mutableListOf("a", "b"))
-        val list = SimpleFilteredListCell(dep, predicate = ImmutableCell { 'a' in it })
+        val list = createFilteredListCell(dep, predicate = ImmutableCell { 'a' in it })
 
         assertEquals(1, list.value.size)
         assertEquals("a", list.value[0])
@@ -34,7 +39,7 @@ interface AbstractFilteredListCellTests : ListCellTests, CellWithDependenciesTes
     @Test
     fun only_emits_when_necessary() = test {
         val dep = SimpleListCell<Int>(mutableListOf())
-        val list = SimpleFilteredListCell(dep, predicate = ImmutableCell { it % 2 == 0 })
+        val list = createFilteredListCell(dep, predicate = ImmutableCell { it % 2 == 0 })
         var changes = 0
         var listChanges = 0
 
@@ -63,7 +68,7 @@ interface AbstractFilteredListCellTests : ListCellTests, CellWithDependenciesTes
     @Test
     fun emits_correct_change_events() = test {
         val dep = SimpleListCell<Int>(mutableListOf())
-        val list = SimpleFilteredListCell(dep, predicate = ImmutableCell { it % 2 == 0 })
+        val list = createFilteredListCell(dep, predicate = ImmutableCell { it % 2 == 0 })
         var event: ListChangeEvent<Int>? = null
 
         disposer.add(list.observeListChange {
@@ -107,7 +112,7 @@ interface AbstractFilteredListCellTests : ListCellTests, CellWithDependenciesTes
     @Test
     fun value_changes_and_emits_when_predicate_changes() = test {
         val predicate: SimpleCell<(Int) -> Boolean> = SimpleCell { it % 2 == 0 }
-        val list = SimpleFilteredListCell(ImmutableListCell(listOf(1, 2, 3, 4, 5)), predicate)
+        val list = createFilteredListCell(ImmutableListCell(listOf(1, 2, 3, 4, 5)), predicate)
         var event: ListChangeEvent<Int>? = null
 
         disposer.add(list.observeListChange {
@@ -157,38 +162,31 @@ interface AbstractFilteredListCellTests : ListCellTests, CellWithDependenciesTes
     @Test
     fun emits_correctly_when_multiple_changes_happen_at_once() = test {
         val dependency = object : AbstractListCell<Int>() {
-            private val changes: MutableList<Pair<Int, Int>> = mutableListOf()
-            override val elements: MutableList<Int> = mutableListOf()
-            override val value = elements
-
-            override fun emitDependencyChanged() {
-                emitDependencyChangedEvent(ListChangeEvent(
-                    elementsWrapper,
-                    changes.map { (index, newElement) ->
-                        ListChange(
-                            index = index,
-                            prevSize = index,
-                            removed = emptyList(),
-                            inserted = listOf(newElement),
-                        )
-                    }
-                ))
-                changes.clear()
-            }
+            private val elements: MutableList<Int> = mutableListOf()
+            override val value: List<Int> get() = elements
+            override var changeEvent: ListChangeEvent<Int>? = null
+                private set
 
             fun makeChanges(newElements: List<Int>) {
-                emitMightChange()
+                applyChange {
+                    val changes: MutableList<ListChange<Int>> = mutableListOf()
 
-                for (newElement in newElements) {
-                    changes.add(Pair(elements.size, newElement))
-                    elements.add(newElement)
+                    for (newElement in newElements) {
+                        changes.add(ListChange(
+                            index = elements.size,
+                            prevSize = elements.size,
+                            removed = emptyList(),
+                            inserted = listOf(newElement),
+                        ))
+                        elements.add(newElement)
+                    }
+
+                    changeEvent = ListChangeEvent(elements.toList(), changes)
                 }
-
-                ChangeManager.changed(this)
             }
         }
 
-        val list = SimpleFilteredListCell(dependency, ImmutableCell { true })
+        val list = createFilteredListCell(dependency, ImmutableCell { true })
         var event: ListChangeEvent<Int>? = null
 
         disposer.add(list.observeListChange {
@@ -235,7 +233,7 @@ interface AbstractFilteredListCellTests : ListCellTests, CellWithDependenciesTes
         val y = "y"
         val z = "z"
         val dependency = SimpleListCell(mutableListOf(x, y, z, x, y, z))
-        val list = SimpleFilteredListCell(dependency, SimpleCell { it != y })
+        val list = createFilteredListCell(dependency, SimpleCell { it != y })
         var event: ListChangeEvent<String>? = null
 
         disposer.add(list.observeListChange {

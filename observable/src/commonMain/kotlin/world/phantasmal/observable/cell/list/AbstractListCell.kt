@@ -7,37 +7,38 @@ import world.phantasmal.observable.ChangeObserver
 import world.phantasmal.observable.cell.AbstractCell
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.DependentCell
-import world.phantasmal.observable.cell.not
 
 abstract class AbstractListCell<E> : AbstractCell<List<E>>(), ListCell<E> {
-    /**
-     * When [value] is accessed and this property is null, a new wrapper is created that points to
-     * [elements]. Before changes to [elements] are made, if there's a wrapper, the current
-     * wrapper's backing list is set to a copy of [elements] and this property is set to null. This
-     * way, accessing [value] acts like accessing a snapshot without making an actual copy
-     * everytime. This is necessary because the contract is that a cell's new value is always != to
-     * its old value whenever a change event was emitted.
-     */
-    // TODO: Optimize this by using a weak reference to avoid copying when nothing references the
-    //       wrapper.
-    private var _elementsWrapper: DelegatingList<E>? = null
-    protected val elementsWrapper: DelegatingList<E>
+
+    private var _size: Cell<Int>? = null
+    final override val size: Cell<Int>
         get() {
-            if (_elementsWrapper == null) {
-                _elementsWrapper = DelegatingList(elements)
+            if (_size == null) {
+                _size = DependentCell(this) { value.size }
             }
 
-            return unsafeAssertNotNull(_elementsWrapper)
+            return unsafeAssertNotNull(_size)
         }
 
-    protected abstract val elements: List<E>
+    private var _empty: Cell<Boolean>? = null
+    final override val empty: Cell<Boolean>
+        get() {
+            if (_empty == null) {
+                _empty = DependentCell(this) { value.isEmpty() }
+            }
 
-    @Suppress("LeakingThis")
-    final override val size: Cell<Int> = DependentCell(this) { value.size }
+            return unsafeAssertNotNull(_empty)
+        }
 
-    final override val empty: Cell<Boolean> = DependentCell(size) { size.value == 0 }
+    private var _notEmpty: Cell<Boolean>? = null
+    final override val notEmpty: Cell<Boolean>
+        get() {
+            if (_notEmpty == null) {
+                _notEmpty = DependentCell(this) { value.isNotEmpty() }
+            }
 
-    final override val notEmpty: Cell<Boolean> = !empty
+            return unsafeAssertNotNull(_notEmpty)
+        }
 
     final override fun observeChange(observer: ChangeObserver<List<E>>): Disposable =
         observeListChange(observer)
@@ -45,8 +46,5 @@ abstract class AbstractListCell<E> : AbstractCell<List<E>>(), ListCell<E> {
     override fun observeListChange(observer: ListChangeObserver<E>): Disposable =
         CallbackChangeObserver(this, observer)
 
-    protected fun copyAndResetWrapper() {
-        _elementsWrapper?.backingList = elements.toList()
-        _elementsWrapper = null
-    }
+    override fun toString(): String = listCellToString(this)
 }

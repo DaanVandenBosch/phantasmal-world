@@ -24,7 +24,7 @@ class PathAwareTabControllerTests : WebTestSuite {
         setup { ctrl, appUrl ->
             ctrl.setActiveTab(ctrl.tabs[2])
 
-            assertEquals("/${PwToolType.HuntOptimizer.slug}/c", appUrl.url.value)
+            assertEquals("/${PwToolType.HuntOptimizer.slug}/c", appUrl.pathAndParams)
             assertEquals(1, appUrl.historyEntries)
             assertFalse(appUrl.canGoForward)
         }
@@ -33,7 +33,7 @@ class PathAwareTabControllerTests : WebTestSuite {
     @Test
     fun activeTab_changes_when_applicationUrl_changes() = test {
         setup { ctrl, applicationUrl ->
-            applicationUrl.pushUrl("/${PwToolType.HuntOptimizer.slug}/c")
+            applicationUrl.navigate("/${PwToolType.HuntOptimizer.slug}/c")
 
             assertEquals("/c", ctrl.activeTab.value?.path)
         }
@@ -54,17 +54,17 @@ class PathAwareTabControllerTests : WebTestSuite {
 
         assertFalse(appUrl.canGoBack)
         assertFalse(appUrl.canGoForward)
-        assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+        assertEquals("/${UiStore.DEFAULT_TOOL.slug}", appUrl.pathAndParams)
 
         uiStore.setCurrentTool(PwToolType.HuntOptimizer)
 
         assertEquals(1, appUrl.historyEntries)
         assertFalse(appUrl.canGoForward)
-        assertEquals("/${PwToolType.HuntOptimizer.slug}", appUrl.url.value)
+        assertEquals("/${PwToolType.HuntOptimizer.slug}", appUrl.pathAndParams)
 
         appUrl.back()
 
-        assertEquals("/${uiStore.defaultTool.slug}", appUrl.url.value)
+        assertEquals("/${UiStore.DEFAULT_TOOL.slug}", appUrl.pathAndParams)
     }
 
     private fun TestContext.setup(

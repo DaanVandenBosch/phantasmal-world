@@ -1,27 +1,24 @@
 package world.phantasmal.observable.cell
 
 import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.ChangeManager
 
 class DelegatingCell<T>(
     private val getter: () -> T,
     private val setter: (T) -> Unit,
 ) : AbstractCell<T>(), MutableCell<T> {
-    override var value: T
-        get() = getter()
+    override var value: T = getter()
         set(value) {
-            val oldValue = getter()
+            setter(value)
+            val newValue = getter()
 
-            if (value != oldValue) {
-                emitMightChange()
-
-                setter(value)
-
-                ChangeManager.changed(this)
+            if (newValue != field) {
+                applyChange {
+                    field = newValue
+                    changeEvent = ChangeEvent(newValue)
+                }
             }
         }
 
-    override fun emitDependencyChanged() {
-        emitDependencyChangedEvent(ChangeEvent(value))
-    }
+    override var changeEvent: ChangeEvent<T>? = null
+        private set
 }

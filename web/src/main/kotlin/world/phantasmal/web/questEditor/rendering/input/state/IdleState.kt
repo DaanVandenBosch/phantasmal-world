@@ -35,7 +35,7 @@ class IdleState(
                     val entity = ctx.selectedEntity.value
 
                     if (quest != null && entity != null && event.key == "Delete") {
-                        ctx.deleteEntity(quest, entity)
+                        ctx.finalizeEntityDelete(quest, entity)
                     }
                 }
             }

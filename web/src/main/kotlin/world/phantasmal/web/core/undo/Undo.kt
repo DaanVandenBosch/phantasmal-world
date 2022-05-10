@@ -1,21 +1,21 @@
 package world.phantasmal.web.core.undo
 
 import world.phantasmal.observable.cell.Cell
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 
 interface Undo {
     val canUndo: Cell<Boolean>
     val canRedo: Cell<Boolean>
 
     /**
-     * The first action that will be undone when calling undo().
+     * The first command that will be undone when calling undo().
      */
-    val firstUndo: Cell<Action?>
+    val firstUndo: Cell<Command?>
 
     /**
-     * The first action that will be redone when calling redo().
+     * The first command that will be redone when calling redo().
      */
-    val firstRedo: Cell<Action?>
+    val firstRedo: Cell<Command?>
 
     /**
      * True if this undo is at the point in time where the last save happened. See [savePoint].

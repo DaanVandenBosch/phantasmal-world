@@ -2,17 +2,17 @@ package world.phantasmal.web.core.undo
 
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.mutableListCell
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 
 /**
  * Full-fledged linear undo/redo implementation.
  */
 class UndoStack(manager: UndoManager) : Undo {
-    private val stack = mutableListCell<Action>()
+    private val stack = mutableListCell<Command>()
 
     /**
-     * The index where new actions are inserted. If not equal to the [stack]'s size, points to the
-     * action that will be redone when calling [redo].
+     * The index where new commands are inserted. If not equal to the [stack]'s size, points to the
+     * command that will be redone when calling [redo].
      */
     private val index = mutableCell(0)
     private val savePointIndex = mutableCell(0)
@@ -22,9 +22,9 @@ class UndoStack(manager: UndoManager) : Undo {
 
     override val canRedo: Cell<Boolean> = map(stack, index) { stack, index -> index < stack.size }
 
-    override val firstUndo: Cell<Action?> = index.map { stack.value.getOrNull(it - 1) }
+    override val firstUndo: Cell<Command?> = index.map { stack.value.getOrNull(it - 1) }
 
-    override val firstRedo: Cell<Action?> = index.map { stack.value.getOrNull(it) }
+    override val firstRedo: Cell<Command?> = index.map { stack.value.getOrNull(it) }
 
     override val atSavePoint: Cell<Boolean> = index eq savePointIndex
 
@@ -32,13 +32,13 @@ class UndoStack(manager: UndoManager) : Undo {
         manager.addUndo(this)
     }
 
-    fun push(action: Action): Action {
+    fun push(command: Command): Command {
         if (!undoingOrRedoing) {
-            stack.splice(index.value, stack.value.size - index.value, action)
+            stack.splice(index.value, stack.value.size - index.value, command)
             index.value++
         }
 
-        return action
+        return command
     }
 
     override fun undo(): Boolean {

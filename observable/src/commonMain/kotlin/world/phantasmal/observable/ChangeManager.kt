@@ -1,57 +1,56 @@
 package world.phantasmal.observable
 
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
+import kotlin.contracts.contract
+
+// TODO: Throw exception by default when triggering early recomputation during change set. Allow to
+//       to turn this check off, because partial early recomputation might be useful in rare cases.
+//       Dependencies will need to partially apply ListChangeEvents etc. and remember which part of
+//       the event they've already applied (i.e. an index into the changes list).
+// TODO: Think about nested change sets. Initially don't allow nesting?
 object ChangeManager {
-    private var currentChangeSet: ChangeSet? = null
+    private val invalidatedLeaves = HashSet<LeafDependent>()
+
+    /** Whether a dependency's value is changing at the moment. */
+    private var dependencyChanging = false
 
     fun inChangeSet(block: () -> Unit) {
-        // TODO: Figure out change set bug and enable change sets again.
-//        val existingChangeSet = currentChangeSet
-//        val changeSet = existingChangeSet ?: ChangeSet().also {
-//            currentChangeSet = it
-//        }
-//
-//        try {
-            block()
-//        } finally {
-//            if (existingChangeSet == null) {
-//                // Set to null so changed calls are turned into emitDependencyChanged calls
-//                // immediately instead of being deferred.
-//                currentChangeSet = null
-//                changeSet.complete()
-//            }
-//        }
+        // TODO: Implement inChangeSet correctly.
+        block()
     }
 
-    fun changed(dependency: Dependency) {
-        val changeSet = currentChangeSet
+    fun invalidated(dependent: LeafDependent) {
+        invalidatedLeaves.add(dependent)
+    }
 
-        if (changeSet == null) {
-            dependency.emitDependencyChanged()
-        } else {
-            changeSet.changed(dependency)
+    inline fun changeDependency(block: () -> Unit) {
+        contract {
+            callsInPlace(block, EXACTLY_ONCE)
+        }
+
+        dependencyStartedChanging()
+
+        try {
+            block()
+        } finally {
+            dependencyFinishedChanging()
         }
     }
-}
 
-private class ChangeSet {
-    private var completing = false
-    private val changedDependencies: MutableList<Dependency> = mutableListOf()
+    fun dependencyStartedChanging() {
+        check(!dependencyChanging) { "An observable is already changing." }
 
-    fun changed(dependency: Dependency) {
-        check(!completing)
-
-        changedDependencies.add(dependency)
+        dependencyChanging = true
     }
 
-    fun complete() {
+    fun dependencyFinishedChanging() {
         try {
-            completing = true
-
-            for (dependency in changedDependencies) {
-                dependency.emitDependencyChanged()
+            for (dependent in invalidatedLeaves) {
+                dependent.pull()
             }
         } finally {
-            completing = false
+            dependencyChanging = false
+            invalidatedLeaves.clear()
         }
     }
 }

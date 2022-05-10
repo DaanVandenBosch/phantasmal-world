@@ -1,6 +1,7 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,12 +33,20 @@ abstract class Widget(
     private val _children = mutableListOf<Widget>()
     private val _size = HTMLElementSizeCell()
 
-    private val elementDelegate = lazy {
+    private val elementDelegate = lazy(LazyThreadSafetyMode.NONE) {
         val el = documentFragment().createElement()
 
         observeNow(visible) { visible ->
             el.hidden = !visible
-            children.forEach { setAncestorVisible(it, visible && ancestorVisible.value) }
+
+            // TODO: Remove this hack.
+            window.setTimeout({
+                if (disposed) return@setTimeout
+
+                for (child in children) {
+                    setAncestorVisible(child, visible && ancestorVisible.value)
+                }
+            }, 0)
         }
 
         observeNow(enabled) { enabled ->
@@ -58,13 +67,13 @@ abstract class Widget(
             }
         }
 
-        _size.element = el
+        _size.setElement(el)
 
         interceptElement(el)
         el
     }
 
-    protected val scope by lazy {
+    protected val scope by lazy(LazyThreadSafetyMode.NONE) {
         addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
     }
 
@@ -76,16 +85,16 @@ abstract class Widget(
     /**
      * True if this widget's ancestors are [visible], false otherwise.
      */
-    val ancestorVisible: Cell<Boolean> = _ancestorVisible
+    val ancestorVisible: Cell<Boolean> get() = _ancestorVisible
 
     /**
      * True if this widget and all of its ancestors are [visible], false otherwise.
      */
     val selfOrAncestorVisible: Cell<Boolean> = visible and ancestorVisible
 
-    val size: Cell<Size> = _size
+    val size: Cell<Size> get() = _size
 
-    val children: List<Widget> = _children
+    val children: List<Widget> get() = _children
 
     open fun focus() {
         element.focus()
@@ -209,7 +218,7 @@ abstract class Widget(
     }
 
     companion object {
-        private val STYLE_EL by lazy {
+        private val STYLE_EL by lazy(LazyThreadSafetyMode.NONE) {
             val el = document.createElement("style") as HTMLStyleElement
             el.id = "pw-widget-styles"
             document.head!!.append(el)

@@ -10,29 +10,37 @@ import world.phantasmal.observable.cell.AbstractCell
 
 data class Size(val width: Double, val height: Double)
 
-class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
+class HTMLElementSizeCell : AbstractCell<Size>() {
     private var resizeObserver: ResizeObserver? = null
 
+    private var element: HTMLElement? = null
+
     private var _value: Size? = null
-
-    var element: HTMLElement? = element
-        set(element) {
-            resizeObserver?.let { resizeObserver ->
-                field?.let(resizeObserver::unobserve)
-                element?.let(resizeObserver::observe)
-            }
-
-            field = element
-        }
-
     override val value: Size
         get() {
-            if (dependents.isEmpty()) {
-                _value = getSize()
-            }
-
+            computeValueAndEvent()
             return unsafeAssertNotNull(_value)
         }
+
+    override var changeEvent: ChangeEvent<Size>? = null
+        get() {
+            computeValueAndEvent()
+            return field
+        }
+        private set
+
+    private fun computeValueAndEvent() {
+        if (dependents.isEmpty()) {
+            setValueAndEvent()
+        }
+    }
+
+    fun setElement(element: HTMLElement) {
+        check(this.element == null) { "setElement should be called at most once." }
+
+        this.element = element
+        resizeObserver?.observe(element)
+    }
 
     override fun addDependent(dependent: Dependent) {
         if (dependents.isEmpty()) {
@@ -42,7 +50,7 @@ class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
 
             element?.let(unsafeAssertNotNull(resizeObserver)::observe)
 
-            _value = getSize()
+            setValueAndEvent()
         }
 
         super.addDependent(dependent)
@@ -56,23 +64,31 @@ class HTMLElementSizeCell(element: HTMLElement? = null) : AbstractCell<Size>() {
         }
     }
 
-    override fun emitDependencyChanged() {
-        error("HTMLElementSizeCell emits dependencyChanged immediately.")
+    private fun setValueAndEvent() {
+        val size = element
+            ?.let { Size(it.offsetWidth.toDouble(), it.offsetHeight.toDouble()) }
+            ?: ZERO_SIZE
+
+        _value = size
+        changeEvent = ChangeEvent(size)
     }
 
-    private fun getSize(): Size =
-        element
-            ?.let { Size(it.offsetWidth.toDouble(), it.offsetHeight.toDouble()) }
-            ?: Size(0.0, 0.0)
-
     private fun resizeCallback(entries: Array<ResizeObserverEntry>) {
+        val oldValue = _value
         val entry = entries.first()
-        val newValue = Size(entry.contentRect.width, entry.contentRect.height)
+        val width = entry.contentRect.width
+        val height = entry.contentRect.height
 
-        if (newValue != _value) {
-            emitMightChange()
-            _value = newValue
-            emitDependencyChangedEvent(ChangeEvent(newValue))
+        if (oldValue == null || width != oldValue.width || height != oldValue.height) {
+            applyChange {
+                val newValue = Size(width, height)
+                _value = newValue
+                changeEvent = ChangeEvent(newValue)
+            }
         }
+    }
+
+    companion object {
+        private val ZERO_SIZE = Size(0.0, 0.0)
     }
 }

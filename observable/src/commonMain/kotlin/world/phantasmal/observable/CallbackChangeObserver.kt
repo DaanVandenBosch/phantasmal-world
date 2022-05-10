@@ -7,11 +7,12 @@ import world.phantasmal.core.unsafe.unsafeCast
  * Calls [callback] when [dependency] changes.
  */
 class CallbackChangeObserver<T, E : ChangeEvent<T>>(
-    private val dependency: Dependency,
-    // We don't use Observer<T> because of type system limitations. It would break e.g.
+    private val dependency: Observable<T>,
+    // We don't use ChangeObserver<T> because of type system limitations. It would break e.g.
     // AbstractListCell.observeListChange.
     private val callback: (E) -> Unit,
-) : TrackedDisposable(), Dependent {
+) : TrackedDisposable(), Dependent, LeafDependent {
+
     init {
         dependency.addDependent(this)
     }
@@ -21,13 +22,12 @@ class CallbackChangeObserver<T, E : ChangeEvent<T>>(
         super.dispose()
     }
 
-    override fun dependencyMightChange() {
-        // Do nothing.
+    override fun dependencyInvalidated(dependency: Dependency<*>) {
+        ChangeManager.invalidated(this)
     }
 
-    override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
-        if (event != null) {
-            callback(unsafeCast(event))
-        }
+    override fun pull() {
+        // See comment above callback property to understand why this is safe.
+        dependency.changeEvent?.let(unsafeCast<(ChangeEvent<T>) -> Unit>(callback))
     }
 }

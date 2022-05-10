@@ -79,7 +79,7 @@ class CreationState(
 
             is EntityDragLeaveEvt -> {
                 event.showDragElement()
-                quest.removeEntity(entity)
+                ctx.removeEntity(quest, entity)
                 IdleState(ctx, entityManipulationEnabled = true)
             }
 
@@ -115,7 +115,7 @@ class CreationState(
     }
 
     override fun cancel() {
-        quest.removeEntity(entity)
+        ctx.removeEntity(quest, entity)
     }
 
     companion object {

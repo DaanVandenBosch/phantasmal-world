@@ -17,7 +17,8 @@ package world.phantasmal.core.unsafe
  *
  * 3. The values used do not require equals or hashCode to be called in JS.
  *    E.g. Int, String, objects which you consider equal if and only if they are the exact same
- *    instance.
+ *    instance. Note that some objects that compile to primitives on JVM, such as Long, compile to
+ *    an object in JS and thus will not behave the way you expect.
  */
 expect class UnsafeSet<T> {
     constructor()

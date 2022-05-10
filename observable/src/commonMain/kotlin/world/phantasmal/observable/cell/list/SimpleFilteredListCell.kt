@@ -1,5 +1,6 @@
 package world.phantasmal.observable.cell.list
 
+import world.phantasmal.core.assertUnreachable
 import world.phantasmal.observable.Dependency
 import world.phantasmal.observable.cell.Cell
 
@@ -17,12 +18,11 @@ class SimpleFilteredListCell<E>(
      */
     private val indexMap = mutableListOf<Int>()
 
-    override val predicateDependency: Dependency
+    override val predicateDependency: Dependency<*>
         get() = predicate
 
-    override fun otherDependencyChanged(dependency: Dependency) {
-        // Unreachable code path.
-        error("Unexpected dependency.")
+    override fun otherDependencyInvalidated(dependency: Dependency<*>) {
+        assertUnreachable { "Unexpected dependency $dependency." }
     }
 
     override fun ignoreOtherChanges() {

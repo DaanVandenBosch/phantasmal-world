@@ -3,11 +3,8 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.cell.list.emptyListCell
-import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 
@@ -24,8 +21,6 @@ class Select<T : Any>(
     private val selected: Cell<T?> = nullCell(),
     private val onSelect: (T) -> Unit = {},
 ) : LabelledControl(visible, enabled, tooltip, label, labelCell, preferredLabelPosition) {
-    private val buttonText = mutableCell(" ")
-
     private lateinit var menu: Menu<T>
     private val menuVisible = mutableCell(false)
     private var justOpened = false
@@ -36,12 +31,10 @@ class Select<T : Any>(
 
             this@Select.className?.let { classList.add(it) }
 
-            // Default to a single space so the inner text part won't be hidden.
-            observeNow(selected) { buttonText.value = it?.let(itemToString) ?: " " }
-
             addWidget(Button(
                 enabled = enabled,
-                textCell = buttonText,
+                // Default to a single space so the inner text part won't be hidden.
+                textCell = selected.map { it?.let(itemToString) ?: " " },
                 iconRight = Icon.TriangleDown,
                 onMouseDown = ::onButtonMouseDown,
                 onMouseUp = { onButtonMouseUp() },

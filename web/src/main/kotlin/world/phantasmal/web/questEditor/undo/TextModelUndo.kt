@@ -1,12 +1,13 @@
 package world.phantasmal.web.questEditor.undo
 
+import kotlinx.browser.window
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.emitter
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.core.undo.Undo
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.IDisposable
@@ -17,8 +18,8 @@ class TextModelUndo(
     private val description: String,
     model: Cell<ITextModel?>,
 ) : Undo, TrackedDisposable() {
-    private val action = object : Action {
-        override val description: String = this@TextModelUndo.description
+    private val command = object : Command {
+        override val description: String get() = this@TextModelUndo.description
 
         override fun execute() {
             _didRedo.emit(ChangeEvent(Unit))
@@ -43,8 +44,8 @@ class TextModelUndo(
     override val canUndo: Cell<Boolean> = _canUndo
     override val canRedo: Cell<Boolean> = _canRedo
 
-    override val firstUndo: Cell<Action?> = canUndo.map { if (it) action else null }
-    override val firstRedo: Cell<Action?> = canRedo.map { if (it) action else null }
+    override val firstUndo: Cell<Command?> = canUndo.map { if (it) command else null }
+    override val firstRedo: Cell<Command?> = canRedo.map { if (it) command else null }
 
     override val atSavePoint: Cell<Boolean> = savePointVersionId eq currentVersionId
 
@@ -63,56 +64,61 @@ class TextModelUndo(
     }
 
     private fun onModelChange(model: ITextModel?) {
-        modelChangeObserver?.dispose()
+        // TODO: Remove this hack.
+        window.setTimeout({
+            if (disposed) return@setTimeout
 
-        if (model == null) {
-            reset()
-            return
-        }
+            modelChangeObserver?.dispose()
 
-        _canUndo.value = false
-        _canRedo.value = false
-
-        val initialVersionId = model.getAlternativeVersionId()
-        currentVersionId.value = initialVersionId
-        savePointVersionId.value = initialVersionId
-        var lastVersionId = initialVersionId
-
-        modelChangeObserver = model.onDidChangeContent {
-            val versionId = model.getAlternativeVersionId()
-            val prevVersionId = currentVersionId.value!!
-
-            if (versionId < prevVersionId) {
-                // Undoing.
-                _canRedo.value = true
-
-                if (versionId == initialVersionId) {
-                    _canUndo.value = false
-                }
-            } else {
-                // Redoing.
-                if (versionId <= lastVersionId) {
-                    if (versionId == lastVersionId) {
-                        _canRedo.value = false
-                    }
-                } else {
-                    _canRedo.value = false
-
-                    if (prevVersionId > lastVersionId) {
-                        lastVersionId = prevVersionId
-                    }
-                }
-
-                _canUndo.value = true
+            if (model == null) {
+                reset()
+                return@setTimeout
             }
 
-            currentVersionId.value = versionId
-        }
+            _canUndo.value = false
+            _canRedo.value = false
+
+            val initialVersionId = model.getAlternativeVersionId()
+            currentVersionId.value = initialVersionId
+            savePointVersionId.value = initialVersionId
+            var lastVersionId = initialVersionId
+
+            modelChangeObserver = model.onDidChangeContent {
+                val versionId = model.getAlternativeVersionId()
+                val prevVersionId = currentVersionId.value!!
+
+                if (versionId < prevVersionId) {
+                    // Undoing.
+                    _canRedo.value = true
+
+                    if (versionId == initialVersionId) {
+                        _canUndo.value = false
+                    }
+                } else {
+                    if (versionId <= lastVersionId) {
+                        // Redoing.
+                        if (versionId == lastVersionId) {
+                            _canRedo.value = false
+                        }
+                    } else {
+                        _canRedo.value = false
+
+                        if (prevVersionId > lastVersionId) {
+                            lastVersionId = prevVersionId
+                        }
+                    }
+
+                    _canUndo.value = true
+                }
+
+                currentVersionId.value = versionId
+            }
+        }, 0)
     }
 
     override fun undo(): Boolean =
         if (canUndo.value) {
-            action.undo()
+            command.undo()
             true
         } else {
             false
@@ -120,7 +126,7 @@ class TextModelUndo(
 
     override fun redo(): Boolean =
         if (canRedo.value) {
-            action.execute()
+            command.execute()
             true
         } else {
             false

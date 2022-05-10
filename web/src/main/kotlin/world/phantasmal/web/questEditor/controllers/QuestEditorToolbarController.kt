@@ -3,10 +3,10 @@ package world.phantasmal.web.questEditor.controllers
 import kotlinx.coroutines.await
 import mu.KotlinLogging
 import world.phantasmal.core.*
+import world.phantasmal.observable.cell.*
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.*
-import world.phantasmal.observable.cell.*
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.files.writeBuffer
@@ -74,16 +74,17 @@ class QuestEditorToolbarController(
 
     // Undo
 
-    val undoTooltip: Cell<String> = questEditorStore.firstUndo.map { action ->
-        (action?.let { "Undo \"${action.description}\"" } ?: "Nothing to undo") + " (Ctrl-Z)"
+    val undoTooltip: Cell<String> = questEditorStore.firstUndo.map { command ->
+        (command?.let { "Undo \"${command.description}\"" } ?: "Nothing to undo") + " (Ctrl-Z)"
     }
 
     val undoEnabled: Cell<Boolean> = questEditorStore.canUndo
 
     // Redo
 
-    val redoTooltip: Cell<String> = questEditorStore.firstRedo.map { action ->
-        (action?.let { "Redo \"${action.description}\"" } ?: "Nothing to redo") + " (Ctrl-Shift-Z)"
+    val redoTooltip: Cell<String> = questEditorStore.firstRedo.map { command ->
+        (command?.let { "Redo \"${command.description}\"" } ?: "Nothing to redo") +
+                " (Ctrl-Shift-Z)"
     }
 
     val redoEnabled: Cell<Boolean> = questEditorStore.canRedo

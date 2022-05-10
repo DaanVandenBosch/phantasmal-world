@@ -42,9 +42,10 @@ fun <T> mutableCell(getter: () -> T, setter: (T) -> Unit): MutableCell<T> =
 fun <T> Cell<T>.observeNow(
     observer: (T) -> Unit,
 ): Disposable {
+    val disposable = observeChange { observer(it.value) }
+    // Call observer after observeChange to avoid double recomputation in most observables.
     observer(value)
-
-    return observeChange { observer(it.value) }
+    return disposable
 }
 
 fun <T1, T2> observeNow(
@@ -52,9 +53,10 @@ fun <T1, T2> observeNow(
     c2: Cell<T2>,
     observer: (T1, T2) -> Unit,
 ): Disposable {
+    val disposable = CallbackObserver(c1, c2) { observer(c1.value, c2.value) }
+    // Call observer after observeChange to avoid double recomputation in most observables.
     observer(c1.value, c2.value)
-
-    return CallbackObserver(c1, c2) { observer(c1.value, c2.value) }
+    return disposable
 }
 
 fun <T1, T2, T3> observeNow(
@@ -63,9 +65,10 @@ fun <T1, T2, T3> observeNow(
     c3: Cell<T3>,
     observer: (T1, T2, T3) -> Unit,
 ): Disposable {
+    val disposable = CallbackObserver(c1, c2, c3) { observer(c1.value, c2.value, c3.value) }
+    // Call observer after observeChange to avoid double recomputation in most observables.
     observer(c1.value, c2.value, c3.value)
-
-    return CallbackObserver(c1, c2, c3) { observer(c1.value, c2.value, c3.value) }
+    return disposable
 }
 
 fun <T1, T2, T3, T4> observeNow(
@@ -75,9 +78,11 @@ fun <T1, T2, T3, T4> observeNow(
     c4: Cell<T4>,
     observer: (T1, T2, T3, T4) -> Unit,
 ): Disposable {
+    val disposable =
+        CallbackObserver(c1, c2, c3, c4) { observer(c1.value, c2.value, c3.value, c4.value) }
+    // Call observer after observeChange to avoid double recomputation in most observables.
     observer(c1.value, c2.value, c3.value, c4.value)
-
-    return CallbackObserver(c1, c2, c3, c4) { observer(c1.value, c2.value, c3.value, c4.value) }
+    return disposable
 }
 
 fun <T1, T2, T3, T4, T5> observeNow(
@@ -88,11 +93,12 @@ fun <T1, T2, T3, T4, T5> observeNow(
     c5: Cell<T5>,
     observer: (T1, T2, T3, T4, T5) -> Unit,
 ): Disposable {
-    observer(c1.value, c2.value, c3.value, c4.value, c5.value)
-
-    return CallbackObserver(c1, c2, c3, c4, c5) {
+    val disposable = CallbackObserver(c1, c2, c3, c4, c5) {
         observer(c1.value, c2.value, c3.value, c4.value, c5.value)
     }
+    // Call observer after observeChange to avoid double recomputation in most observables.
+    observer(c1.value, c2.value, c3.value, c4.value, c5.value)
+    return disposable
 }
 
 /**
@@ -234,3 +240,9 @@ fun Cell<String>.isBlank(): Cell<Boolean> =
 
 fun Cell<String>.isNotBlank(): Cell<Boolean> =
     map { it.isNotBlank() }
+
+fun cellToString(cell: Cell<*>): String {
+    val className = cell::class.simpleName
+    val value = cell.value
+    return "$className{$value}"
+}

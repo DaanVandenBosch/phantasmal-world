@@ -1,5 +1,8 @@
 package world.phantasmal.web.core.controllers
 
+import kotlinx.browser.window
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.map
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Tab
@@ -12,33 +15,40 @@ interface PathAwareTab : Tab {
 open class PathAwareTabContainerController<T : PathAwareTab>(
     private val uiStore: UiStore,
     private val tool: PwToolType,
-    tabs: List<T>,
-) : TabContainerController<T>(tabs) {
-    init {
-        observeNow(uiStore.path) { path ->
-            if (uiStore.currentTool.value == tool) {
-                tabs.find { path.startsWith(it.path) }?.let {
-                    setActiveTab(it, replaceUrl = true)
-                }
+    final override val tabs: List<T>,
+) : TabContainerController<T>() {
+    final override val activeTab: Cell<T?> =
+        map(uiStore.currentTool, uiStore.path) { currentTool, path ->
+            if (currentTool == tool) {
+                tabs.find { path.startsWith(it.path) } ?: tabs.firstOrNull()
+            } else {
+                null
             }
         }
+
+    init {
+        setPathPrefix(activeTab.value, replace = true)
     }
 
-    override fun setActiveTab(tab: T?, replaceUrl: Boolean) {
-        if (tab != null && uiStore.currentTool.value == tool) {
-            uiStore.setPathPrefix(tab.path, replaceUrl)
-        }
-
-        super.setActiveTab(tab)
+    final override fun setActiveTab(tab: T?) {
+        setPathPrefix(tab, replace = false)
     }
 
-    override fun visibleChanged(visible: Boolean) {
+    final override fun visibleChanged(visible: Boolean) {
         super.visibleChanged(visible)
 
-        if (visible && uiStore.currentTool.value == tool) {
-            activeTab.value?.let {
-                uiStore.setPathPrefix(it.path, replace = true)
-            }
+        if (visible) {
+            // TODO: Remove this hack.
+            window.setTimeout({
+                if (disposed) return@setTimeout
+                setPathPrefix(activeTab.value, replace = true)
+            }, 0)
+        }
+    }
+
+    private fun setPathPrefix(tab: T?, replace: Boolean) {
+        if (tab != null && uiStore.currentTool.value == tool) {
+            uiStore.setPathPrefix(tab.path, replace)
         }
     }
 }

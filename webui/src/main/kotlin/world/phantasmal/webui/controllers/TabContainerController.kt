@@ -1,21 +1,17 @@
 package world.phantasmal.webui.controllers
 
 import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.MutableCell
-import world.phantasmal.observable.cell.mutableCell
 
 interface Tab {
     val title: String
 }
 
-open class TabContainerController<T : Tab>(val tabs: List<T>) : Controller() {
-    private val _activeTab: MutableCell<T?> = mutableCell(tabs.firstOrNull())
+abstract class TabContainerController<T : Tab> : Controller() {
+    abstract val tabs: List<T>
 
-    val activeTab: Cell<T?> = _activeTab
+    abstract val activeTab: Cell<T?>
 
-    open fun setActiveTab(tab: T?, replaceUrl: Boolean = false) {
-        _activeTab.value = tab
-    }
+    abstract fun setActiveTab(tab: T?)
 
     open fun visibleChanged(visible: Boolean) {}
 }

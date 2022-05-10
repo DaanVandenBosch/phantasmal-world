@@ -1,16 +1,14 @@
 package world.phantasmal.observable.cell.list
 
 import world.phantasmal.core.replaceAll
-import world.phantasmal.observable.ChangeManager
 
 /**
  * @param elements The backing list for this [ListCell].
  */
+// TODO: Support change sets by sometimes appending to changeEvent instead of always overwriting it.
 class SimpleListCell<E>(
     override val elements: MutableList<E>,
-) : AbstractListCell<E>(), MutableListCell<E> {
-
-    private var changes = mutableListOf<ListChange<E>>()
+) : AbstractElementsWrappingListCell<E>(), MutableListCell<E> {
 
     override var value: List<E>
         get() = elementsWrapper
@@ -18,50 +16,55 @@ class SimpleListCell<E>(
             replaceAll(value)
         }
 
+    override var changeEvent: ListChangeEvent<E>? = null
+        private set
+
     override operator fun get(index: Int): E =
         elements[index]
 
     override operator fun set(index: Int, element: E): E {
         checkIndex(index, elements.lastIndex)
-        emitMightChange()
 
-        copyAndResetWrapper()
-        val removed = elements.set(index, element)
+        applyChange {
+            copyAndResetWrapper()
+            val removed = elements.set(index, element)
 
-        finalizeChange(
-            index,
-            prevSize = elements.size,
-            removed = listOf(removed),
-            inserted = listOf(element),
-        )
+            finalizeChange(
+                index,
+                prevSize = elements.size,
+                removed = listOf(removed),
+                inserted = listOf(element),
+            )
 
-        return removed
+            return removed
+        }
     }
 
     override fun add(element: E) {
-        emitMightChange()
+        applyChange {
+            val index = elements.size
+            copyAndResetWrapper()
+            elements.add(element)
 
-        val index = elements.size
-        copyAndResetWrapper()
-        elements.add(element)
-
-        finalizeChange(
-            index,
-            prevSize = index,
-            removed = emptyList(),
-            inserted = listOf(element),
-        )
+            finalizeChange(
+                index,
+                prevSize = index,
+                removed = emptyList(),
+                inserted = listOf(element),
+            )
+        }
     }
 
     override fun add(index: Int, element: E) {
         val prevSize = elements.size
         checkIndex(index, prevSize)
-        emitMightChange()
 
-        copyAndResetWrapper()
-        elements.add(index, element)
+        applyChange {
+            copyAndResetWrapper()
+            elements.add(index, element)
 
-        finalizeChange(index, prevSize, removed = emptyList(), inserted = listOf(element))
+            finalizeChange(index, prevSize, removed = emptyList(), inserted = listOf(element))
+        }
     }
 
     override fun remove(element: E): Boolean {
@@ -77,99 +80,95 @@ class SimpleListCell<E>(
 
     override fun removeAt(index: Int): E {
         checkIndex(index, elements.lastIndex)
-        emitMightChange()
 
-        val prevSize = elements.size
+        applyChange {
+            val prevSize = elements.size
 
-        copyAndResetWrapper()
-        val removed = elements.removeAt(index)
+            copyAndResetWrapper()
+            val removed = elements.removeAt(index)
 
-        finalizeChange(index, prevSize, removed = listOf(removed), inserted = emptyList())
-        return removed
+            finalizeChange(index, prevSize, removed = listOf(removed), inserted = emptyList())
+            return removed
+        }
     }
 
     override fun replaceAll(elements: Iterable<E>) {
-        emitMightChange()
+        applyChange {
+            val prevSize = this.elements.size
+            val removed = elementsWrapper
 
-        val prevSize = this.elements.size
-        val removed = elementsWrapper
+            copyAndResetWrapper()
+            this.elements.replaceAll(elements)
 
-        copyAndResetWrapper()
-        this.elements.replaceAll(elements)
-
-        finalizeChange(index = 0, prevSize, removed, inserted = elementsWrapper)
+            finalizeChange(index = 0, prevSize, removed, inserted = elementsWrapper)
+        }
     }
 
     override fun replaceAll(elements: Sequence<E>) {
-        emitMightChange()
+        applyChange {
+            val prevSize = this.elements.size
+            val removed = elementsWrapper
 
-        val prevSize = this.elements.size
-        val removed = elementsWrapper
+            copyAndResetWrapper()
+            this.elements.replaceAll(elements)
 
-        copyAndResetWrapper()
-        this.elements.replaceAll(elements)
-
-        finalizeChange(index = 0, prevSize, removed, inserted = elementsWrapper)
+            finalizeChange(index = 0, prevSize, removed, inserted = elementsWrapper)
+        }
     }
 
     override fun splice(fromIndex: Int, removeCount: Int, newElement: E) {
         val prevSize = elements.size
         val removed = ArrayList<E>(removeCount)
 
+        // Do this loop outside applyChange because it will throw when any index is out of bounds.
         for (i in fromIndex until (fromIndex + removeCount)) {
             removed.add(elements[i])
         }
 
-        emitMightChange()
+        applyChange {
+            copyAndResetWrapper()
+            repeat(removeCount) { elements.removeAt(fromIndex) }
+            elements.add(fromIndex, newElement)
 
-        copyAndResetWrapper()
-        repeat(removeCount) { elements.removeAt(fromIndex) }
-        elements.add(fromIndex, newElement)
-
-        finalizeChange(fromIndex, prevSize, removed, inserted = listOf(newElement))
+            finalizeChange(fromIndex, prevSize, removed, inserted = listOf(newElement))
+        }
     }
 
     override fun clear() {
-        emitMightChange()
+        applyChange {
+            val prevSize = elements.size
+            val removed = elementsWrapper
 
-        val prevSize = elements.size
-        val removed = elementsWrapper
+            copyAndResetWrapper()
+            elements.clear()
 
-        copyAndResetWrapper()
-        elements.clear()
-
-        finalizeChange(index = 0, prevSize, removed, inserted = emptyList())
+            finalizeChange(index = 0, prevSize, removed, inserted = emptyList())
+        }
     }
 
     override fun sortWith(comparator: Comparator<E>) {
-        emitMightChange()
+        applyChange {
+            val removed = elementsWrapper
+            copyAndResetWrapper()
+            var throwable: Throwable? = null
 
-        val removed = elementsWrapper
-        copyAndResetWrapper()
-        var throwable: Throwable? = null
+            try {
+                elements.sortWith(comparator)
+            } catch (e: Throwable) {
+                throwable = e
+            }
 
-        try {
-            elements.sortWith(comparator)
-        } catch (e: Throwable) {
-            throwable = e
+            finalizeChange(
+                index = 0,
+                prevSize = elements.size,
+                removed,
+                inserted = elementsWrapper,
+            )
+
+            if (throwable != null) {
+                throw throwable
+            }
         }
-
-        finalizeChange(
-            index = 0,
-            prevSize = elements.size,
-            removed,
-            inserted = elementsWrapper,
-        )
-
-        if (throwable != null) {
-            throw throwable
-        }
-    }
-
-    override fun emitDependencyChanged() {
-        val currentChanges = changes
-        changes = mutableListOf()
-        emitDependencyChangedEvent(ListChangeEvent(elementsWrapper, currentChanges))
     }
 
     private fun checkIndex(index: Int, maxIndex: Int) {
@@ -186,7 +185,9 @@ class SimpleListCell<E>(
         removed: List<E>,
         inserted: List<E>,
     ) {
-        changes.add(ListChange(index, prevSize, removed, inserted))
-        ChangeManager.changed(this)
+        changeEvent = ListChangeEvent(
+            elementsWrapper,
+            listOf(ListChange(index, prevSize, removed, inserted)),
+        )
     }
 }

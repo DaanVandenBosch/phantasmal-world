@@ -48,7 +48,7 @@ class HuntMethodStore(
         val server = uiStore.server.value
 
         withContext(Dispatchers.Default) {
-            val quests = assetLoader.load<List<QuestDto>>("/quests.${server.slug}.json")
+            val quests: List<QuestDto> = assetLoader.load("/quests.${server.slug}.json")
 
             val methods = quests
                 .asSequence()
@@ -84,7 +84,7 @@ class HuntMethodStore(
                     }
 
                     val duration = when {
-                        quest.name.matches(Regex("""^\d-\d.*""")) ->
+                        quest.name.matches(GOVERNMENT_QUEST_NAME_REGEX) ->
                             DEFAULT_GOVERNMENT_TEST_DURATION
 
                         totalEnemyCount > 400 ->
@@ -117,6 +117,7 @@ class HuntMethodStore(
     }
 
     companion object {
+        private val GOVERNMENT_QUEST_NAME_REGEX = Regex("""^\d-\d.*""")
         private val DEFAULT_DURATION = Duration.minutes(30)
         private val DEFAULT_GOVERNMENT_TEST_DURATION = Duration.minutes(45)
         private val DEFAULT_LARGE_ENEMY_COUNT_DURATION = Duration.minutes(45)

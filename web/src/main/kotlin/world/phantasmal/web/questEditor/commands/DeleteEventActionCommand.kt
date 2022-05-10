@@ -1,33 +1,27 @@
-package world.phantasmal.web.questEditor.actions
+package world.phantasmal.web.questEditor.commands
 
-import world.phantasmal.observable.change
-import world.phantasmal.web.core.actions.Action
+import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
+import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 /**
  * Deletes a quest event action.
  */
-class DeleteEventActionAction(
-    private val setSelectedEvent: (QuestEventModel) -> Unit,
+class DeleteEventActionCommand(
+    private val questEditorStore: QuestEditorStore,
     private val event: QuestEventModel,
     private val index: Int,
     private val action: QuestEventActionModel,
-) : Action {
+) : Command {
     override val description: String =
         "Remove ${action.shortName} action from event ${event.id.value}"
 
     override fun execute() {
-        change {
-            setSelectedEvent(event)
-            event.removeAction(action)
-        }
+        questEditorStore.removeEventAction(event, action)
     }
 
     override fun undo() {
-        change {
-            setSelectedEvent(event)
-            event.addAction(index, action)
-        }
+        questEditorStore.addEventAction(event, index, action)
     }
 }

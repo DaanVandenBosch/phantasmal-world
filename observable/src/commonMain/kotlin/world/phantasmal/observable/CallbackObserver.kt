@@ -3,14 +3,12 @@ package world.phantasmal.observable
 import world.phantasmal.core.disposable.TrackedDisposable
 
 /**
- * Calls [callback] when one or more dependency in [dependencies] changes.
+ * Calls [callback] when one or more observable in [dependencies] changes.
  */
 class CallbackObserver(
-    private vararg val dependencies: Dependency,
+    private vararg val dependencies: Observable<*>,
     private val callback: () -> Unit,
-) : TrackedDisposable(), Dependent {
-    private var changingDependencies = 0
-    private var dependenciesActuallyChanged = false
+) : TrackedDisposable(), Dependent, LeafDependent {
 
     init {
         for (dependency in dependencies) {
@@ -26,20 +24,21 @@ class CallbackObserver(
         super.dispose()
     }
 
-    override fun dependencyMightChange() {
-        changingDependencies++
+    override fun dependencyInvalidated(dependency: Dependency<*>) {
+        ChangeManager.invalidated(this)
     }
 
-    override fun dependencyChanged(dependency: Dependency, event: ChangeEvent<*>?) {
-        if (event != null) {
-            dependenciesActuallyChanged = true
+    override fun pull() {
+        var changed = false
+
+        // We loop through all dependencies to ensure they're valid again.
+        for (dependency in dependencies) {
+            if (dependency.changeEvent != null) {
+                changed = true
+            }
         }
 
-        changingDependencies--
-
-        if (changingDependencies == 0 && dependenciesActuallyChanged) {
-            dependenciesActuallyChanged = false
-
+        if (changed) {
             callback()
         }
     }

@@ -84,7 +84,6 @@ class QuestInputManager(
         stateContext = StateContext(questEditorStore, renderContext, cameraInputManager)
         state = IdleState(stateContext, entityManipulationEnabled)
 
-        observeNow(questEditorStore.selectedEntity) { returnToIdleState() }
         observeNow(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
 
         pointerTrap.className = "pw-quest-editor-input-manager-pointer-trap"
@@ -176,6 +175,7 @@ class QuestInputManager(
                 renderContext.canvas.disposableListener("pointermove", ::onPointerMove)
 
             window.setTimeout({
+                if (disposed) return@setTimeout
                 if (!pointerDragging) {
                     pointerTrap.hidden = true
                     contextMenuListener?.dispose()

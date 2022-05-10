@@ -15,7 +15,6 @@ import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.web.application.Application
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.persistence.LocalStorageKeyValueStore
@@ -91,11 +90,21 @@ private fun createThreeRenderer(canvas: HTMLCanvasElement): DisposableThreeRende
 
 private class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
     private val path: String get() = window.location.pathname
+    private val popCallbacks = mutableListOf<(String) -> Unit>()
 
-    override val url = mutableCell(window.location.hash.substring(1))
+    override var pathAndParams = window.location.hash.substring(1)
+        private set
 
     private val popStateListener = window.disposableListener<PopStateEvent>("popstate", {
-        url.value = window.location.hash.substring(1)
+        val newPathAndParams = window.location.hash.substring(1)
+
+        if (newPathAndParams != pathAndParams) {
+            pathAndParams = newPathAndParams
+
+            for (callback in popCallbacks) {
+                callback(newPathAndParams)
+            }
+        }
     })
 
     override fun dispose() {
@@ -103,18 +112,19 @@ private class HistoryApplicationUrl : TrackedDisposable(), ApplicationUrl {
         super.dispose()
     }
 
-    override fun pushUrl(url: String) {
-        window.history.pushState(null, TITLE, "$path#$url")
-        // Do after pushState to avoid triggering observers that call pushUrl or replaceUrl before
-        // the current change has happened.
-        this.url.value = url
+    override fun pushPathAndParams(pathAndParams: String) {
+        this.pathAndParams = pathAndParams
+        window.history.pushState(null, TITLE, "$path#$pathAndParams")
     }
 
-    override fun replaceUrl(url: String) {
-        window.history.replaceState(null, TITLE, "$path#$url")
-        // Do after replaceState to avoid triggering observers that call pushUrl or replaceUrl
-        // before the current change has happened.
-        this.url.value = url
+    override fun replacePathAndParams(pathAndParams: String) {
+        this.pathAndParams = pathAndParams
+        window.history.replaceState(null, TITLE, "$path#$pathAndParams")
+    }
+
+    override fun onPopPathAndParams(callback: (String) -> Unit): Disposable {
+        popCallbacks.add(callback)
+        return disposable { popCallbacks.remove(callback) }
     }
 
     companion object {

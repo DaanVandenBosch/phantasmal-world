@@ -1,5 +1,7 @@
 package world.phantasmal.webui.widgets
 
+import kotlinx.browser.window
+import kotlinx.coroutines.await
 import org.w3c.dom.Node
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.falseCell
@@ -8,6 +10,7 @@ import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.test.WebuiTestSuite
+import kotlin.js.Promise
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -42,7 +45,7 @@ class WidgetTests : WebuiTestSuite {
     }
 
     @Test
-    fun ancestorVisible_and_selfOrAncestorVisible_update_when_visible_changes() = test {
+    fun ancestorVisible_and_selfOrAncestorVisible_update_when_visible_changes() = testAsync {
         val parentVisible = mutableCell(true)
         val childVisible = mutableCell(true)
         val grandChild = DummyWidget()
@@ -59,6 +62,7 @@ class WidgetTests : WebuiTestSuite {
         assertTrue(grandChild.selfOrAncestorVisible.value)
 
         parentVisible.value = false
+        setTimeoutHack()
 
         assertTrue(parent.ancestorVisible.value)
         assertFalse(parent.selfOrAncestorVisible.value)
@@ -69,6 +73,7 @@ class WidgetTests : WebuiTestSuite {
 
         childVisible.value = false
         parentVisible.value = true
+        setTimeoutHack()
 
         assertTrue(parent.ancestorVisible.value)
         assertTrue(parent.selfOrAncestorVisible.value)
@@ -76,6 +81,11 @@ class WidgetTests : WebuiTestSuite {
         assertFalse(child.selfOrAncestorVisible.value)
         assertFalse(grandChild.ancestorVisible.value)
         assertFalse(grandChild.selfOrAncestorVisible.value)
+    }
+
+    // TODO: Remove test setTimeout hack when setTimeout hack in Widget visible observer is removed.
+    private suspend fun setTimeoutHack() {
+        Promise<Unit> { resolve, _ -> window.setTimeout(resolve, 10) }.await()
     }
 
     @Test

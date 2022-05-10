@@ -11,10 +11,10 @@ import world.phantasmal.web.core.plusAssign
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
 import world.phantasmal.web.core.rendering.conversion.fingerPrint
 import world.phantasmal.web.externals.three.*
-import world.phantasmal.web.questEditor.actions.CreateEntityAction
-import world.phantasmal.web.questEditor.actions.DeleteEntityAction
-import world.phantasmal.web.questEditor.actions.RotateEntityAction
-import world.phantasmal.web.questEditor.actions.TranslateEntityAction
+import world.phantasmal.web.questEditor.commands.CreateEntityCommand
+import world.phantasmal.web.questEditor.commands.DeleteEntityCommand
+import world.phantasmal.web.questEditor.commands.RotateEntityCommand
+import world.phantasmal.web.questEditor.commands.TranslateEntityCommand
 import world.phantasmal.web.questEditor.loading.AreaUserData
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
@@ -128,9 +128,8 @@ class StateContext(
         newPosition: Vector3,
         oldPosition: Vector3,
     ) {
-        questEditorStore.executeAction(TranslateEntityAction(
-            ::setSelectedEntity,
-            { questEditorStore.setEntitySection(entity, it) },
+        questEditorStore.executeAction(TranslateEntityCommand(
+            questEditorStore,
             entity,
             newSection?.id,
             oldSection?.id,
@@ -186,8 +185,8 @@ class StateContext(
         newRotation: Euler,
         oldRotation: Euler,
     ) {
-        questEditorStore.executeAction(RotateEntityAction(
-            ::setSelectedEntity,
+        questEditorStore.executeAction(RotateEntityCommand(
+            questEditorStore,
             entity,
             newRotation,
             oldRotation,
@@ -196,16 +195,20 @@ class StateContext(
     }
 
     fun finalizeEntityCreation(quest: QuestModel, entity: QuestEntityModel<*, *>) {
-        questEditorStore.pushAction(CreateEntityAction(
-            ::setSelectedEntity,
+        questEditorStore.pushAction(CreateEntityCommand(
+            questEditorStore,
             quest,
             entity,
         ))
     }
 
-    fun deleteEntity(quest: QuestModel, entity: QuestEntityModel<*, *>) {
-        questEditorStore.executeAction(DeleteEntityAction(
-            ::setSelectedEntity,
+    fun removeEntity(quest: QuestModel, entity: QuestEntityModel<*, *>) {
+        questEditorStore.removeEntity(quest, entity)
+    }
+
+    fun finalizeEntityDelete(quest: QuestModel, entity: QuestEntityModel<*, *>) {
+        questEditorStore.executeAction(DeleteEntityCommand(
+            questEditorStore,
             quest,
             entity,
         ))
