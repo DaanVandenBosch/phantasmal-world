@@ -1,7 +1,5 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.browser.window
-import kotlinx.coroutines.await
 import org.w3c.dom.Node
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.falseCell
@@ -10,7 +8,6 @@ import world.phantasmal.observable.cell.mutableCell
 import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.test.WebuiTestSuite
-import kotlin.js.Promise
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -45,48 +42,42 @@ class WidgetTests : WebuiTestSuite {
     }
 
     @Test
-    fun ancestorVisible_and_selfOrAncestorVisible_update_when_visible_changes() = testAsync {
-        val parentVisible = mutableCell(true)
-        val childVisible = mutableCell(true)
-        val grandChild = DummyWidget()
-        val child = DummyWidget(childVisible, grandChild)
-        val parent = disposer.add(DummyWidget(parentVisible, child))
+    fun ancestorVisible_updates_and_selfAndAncestorsVisibleChanged_is_called_when_visible_changes() =
+        testAsync {
+            val parentVisible = mutableCell(true)
+            val childVisible = mutableCell(true)
+            val grandChild = DummyWidget()
+            val child = DummyWidget(childVisible, grandChild)
+            val parent = disposer.add(DummyWidget(parentVisible, child))
 
-        parent.element // Ensure widgets are fully initialized.
+            parent.element // Ensure widgets are fully initialized.
 
-        assertTrue(parent.ancestorVisible.value)
-        assertTrue(parent.selfOrAncestorVisible.value)
-        assertTrue(child.ancestorVisible.value)
-        assertTrue(child.selfOrAncestorVisible.value)
-        assertTrue(grandChild.ancestorVisible.value)
-        assertTrue(grandChild.selfOrAncestorVisible.value)
+            assertTrue(parent.publicAncestorsVisible)
+            assertEquals(true, parent.selfAndAncestorsVisible)
+            assertTrue(child.publicAncestorsVisible)
+            assertEquals(true, child.selfAndAncestorsVisible)
+            assertTrue(grandChild.publicAncestorsVisible)
+            assertEquals(true, grandChild.selfAndAncestorsVisible)
 
-        parentVisible.value = false
-        setTimeoutHack()
+            parentVisible.value = false
 
-        assertTrue(parent.ancestorVisible.value)
-        assertFalse(parent.selfOrAncestorVisible.value)
-        assertFalse(child.ancestorVisible.value)
-        assertFalse(child.selfOrAncestorVisible.value)
-        assertFalse(grandChild.ancestorVisible.value)
-        assertFalse(grandChild.selfOrAncestorVisible.value)
+            assertTrue(parent.publicAncestorsVisible)
+            assertEquals(false, parent.selfAndAncestorsVisible)
+            assertFalse(child.publicAncestorsVisible)
+            assertEquals(false, child.selfAndAncestorsVisible)
+            assertFalse(grandChild.publicAncestorsVisible)
+            assertEquals(false, grandChild.selfAndAncestorsVisible)
 
-        childVisible.value = false
-        parentVisible.value = true
-        setTimeoutHack()
+            childVisible.value = false
+            parentVisible.value = true
 
-        assertTrue(parent.ancestorVisible.value)
-        assertTrue(parent.selfOrAncestorVisible.value)
-        assertTrue(child.ancestorVisible.value)
-        assertFalse(child.selfOrAncestorVisible.value)
-        assertFalse(grandChild.ancestorVisible.value)
-        assertFalse(grandChild.selfOrAncestorVisible.value)
-    }
-
-    // TODO: Remove test setTimeout hack when setTimeout hack in Widget visible observer is removed.
-    private suspend fun setTimeoutHack() {
-        Promise<Unit> { resolve, _ -> window.setTimeout(resolve, 10) }.await()
-    }
+            assertTrue(parent.publicAncestorsVisible)
+            assertEquals(true, parent.selfAndAncestorsVisible)
+            assertTrue(child.publicAncestorsVisible)
+            assertEquals(false, child.selfAndAncestorsVisible)
+            assertFalse(grandChild.publicAncestorsVisible)
+            assertEquals(false, grandChild.selfAndAncestorsVisible)
+        }
 
     @Test
     fun added_child_widgets_have_ancestorVisible_and_selfOrAncestorVisible_set_correctly() =
@@ -94,10 +85,10 @@ class WidgetTests : WebuiTestSuite {
             val parent = disposer.add(DummyWidget(visible = falseCell()))
             val child = parent.addChild(DummyWidget())
 
-            assertTrue(parent.ancestorVisible.value)
-            assertFalse(parent.selfOrAncestorVisible.value)
-            assertFalse(child.ancestorVisible.value)
-            assertFalse(child.selfOrAncestorVisible.value)
+            assertTrue(parent.publicAncestorsVisible)
+            assertEquals(false, parent.selfAndAncestorsVisible)
+            assertFalse(child.publicAncestorsVisible)
+            assertEquals(false, child.selfAndAncestorsVisible)
         }
 
     @Test
@@ -149,6 +140,10 @@ class WidgetTests : WebuiTestSuite {
         visible: Cell<Boolean> = trueCell(),
         private val child: Widget? = null,
     ) : Widget(visible = visible) {
+        val publicAncestorsVisible: Boolean get() = ancestorsVisible
+        var selfAndAncestorsVisible: Boolean? = null
+            private set
+
         override fun Node.createElement() =
             div {
                 child?.let { addChild(it) }
@@ -156,5 +151,9 @@ class WidgetTests : WebuiTestSuite {
 
         fun <T : Widget> addChild(child: T): T =
             element.addChild(child)
+
+        override fun selfAndAncestorsVisibleChanged(visible: Boolean) {
+            selfAndAncestorsVisible = visible
+        }
     }
 }

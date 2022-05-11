@@ -1,6 +1,6 @@
 package world.phantasmal.observable.cell
 
-import world.phantasmal.observable.change
+import world.phantasmal.observable.mutate
 import world.phantasmal.observable.test.ObservableTestSuite
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +16,7 @@ class ChangeTests : ObservableTestSuite {
         disposer.add(dependent.observeChange { dependentObservedValue = it.value })
 
         assertFails {
-            change {
+            mutate {
                 dependency.value = 11
                 throw Exception()
             }
@@ -27,7 +27,7 @@ class ChangeTests : ObservableTestSuite {
         assertEquals(22, dependent.value)
 
         // The machinery behind change is still in a valid state.
-        change {
+        mutate {
             dependency.value = 13
         }
 

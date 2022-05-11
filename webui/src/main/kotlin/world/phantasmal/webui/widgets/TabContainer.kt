@@ -54,8 +54,8 @@ class TabContainer<T : Tab>(
             }
         }
 
-    init {
-        observeNow(selfOrAncestorVisible, ctrl::visibleChanged)
+    override fun selfAndAncestorsVisibleChanged(visible: Boolean) {
+        ctrl.visibleChanged(visible)
     }
 
     companion object {

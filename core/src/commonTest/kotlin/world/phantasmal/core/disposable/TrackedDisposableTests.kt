@@ -9,12 +9,12 @@ class TrackedDisposableTests {
     @Test
     fun is_correctly_tracked() {
         assertFails {
-            checkNoDisposableLeaks {
+            DisposableTracking.checkNoLeaks {
                 object : TrackedDisposable() {}
             }
         }
 
-        checkNoDisposableLeaks {
+        DisposableTracking.checkNoLeaks {
             val disposable = object : TrackedDisposable() {}
             disposable.dispose()
         }

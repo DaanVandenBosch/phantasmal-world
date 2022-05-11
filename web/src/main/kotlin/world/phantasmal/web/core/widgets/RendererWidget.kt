@@ -12,20 +12,20 @@ class RendererWidget(
         div {
             className = "pw-core-renderer"
 
-            observeNow(selfOrAncestorVisible) { visible ->
-                if (visible) {
-                    renderer.startRendering()
-                } else {
-                    renderer.stopRendering()
-                }
-            }
-
             addDisposable(size.observeChange { (size) ->
                 renderer.setSize(size.width.toInt(), size.height.toInt())
             })
 
             append(renderer.canvas)
         }
+
+    override fun selfAndAncestorsVisibleChanged(visible: Boolean) {
+        if (visible) {
+            renderer.startRendering()
+        } else {
+            renderer.stopRendering()
+        }
+    }
 
     companion object {
         init {

@@ -1,9 +1,9 @@
 package world.phantasmal.webui.widgets
 
-import kotlinx.browser.window
 import org.w3c.dom.Node
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.observable.mutateDeferred
 import world.phantasmal.webui.dom.div
 
 class LazyLoader(
@@ -21,11 +21,11 @@ class LazyLoader(
                 if (v && !initialized) {
                     initialized = true
 
-                    // TODO: Remove this hack.
-                    window.setTimeout({
-                        if (disposed) return@setTimeout
-                        addChild(createWidget())
-                    }, 0)
+                    mutateDeferred {
+                        if (!disposed) {
+                            addChild(createWidget())
+                        }
+                    }
                 }
             }
         }

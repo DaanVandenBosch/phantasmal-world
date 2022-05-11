@@ -7,7 +7,7 @@ import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.emptyListCell
 import world.phantasmal.observable.cell.list.filtered
 import world.phantasmal.observable.cell.list.flatMapToList
-import world.phantasmal.observable.change
+import world.phantasmal.observable.mutate
 import world.phantasmal.psolib.Episode
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.commands.Command
@@ -174,14 +174,14 @@ class QuestEditorStore(
     }
 
     fun addEvent(quest: QuestModel, index: Int, event: QuestEventModel) {
-        change {
+        mutate {
             quest.addEvent(index, event)
             setSelectedEvent(event)
         }
     }
 
     fun removeEvent(quest: QuestModel, event: QuestEventModel) {
-        change {
+        mutate {
             setSelectedEvent(null)
             quest.removeEvent(event)
         }
@@ -218,28 +218,28 @@ class QuestEditorStore(
         setter: (QuestEventModel, T) -> Unit,
         value: T,
     ) {
-        change {
+        mutate {
             setSelectedEvent(event)
             setter(event, value)
         }
     }
 
     fun addEventAction(event: QuestEventModel, action: QuestEventActionModel) {
-        change {
+        mutate {
             setSelectedEvent(event)
             event.addAction(action)
         }
     }
 
     fun addEventAction(event: QuestEventModel, index: Int, action: QuestEventActionModel) {
-        change {
+        mutate {
             setSelectedEvent(event)
             event.addAction(index, action)
         }
     }
 
     fun removeEventAction(event: QuestEventModel, action: QuestEventActionModel) {
-        change {
+        mutate {
             setSelectedEvent(event)
             event.removeAction(action)
         }
@@ -251,7 +251,7 @@ class QuestEditorStore(
         setter: (Action, T) -> Unit,
         value: T,
     ) {
-        change {
+        mutate {
             setSelectedEvent(event)
             setter(action, value)
         }
@@ -272,14 +272,14 @@ class QuestEditorStore(
     }
 
     fun addEntity(quest: QuestModel, entity: QuestEntityModel<*, *>) {
-        change {
+        mutate {
             quest.addEntity(entity)
             setSelectedEntity(entity)
         }
     }
 
     fun removeEntity(quest: QuestModel, entity: QuestEntityModel<*, *>) {
-        change {
+        mutate {
             if (entity == _selectedEntity.value) {
                 _selectedEntity.value = null
             }
@@ -289,7 +289,7 @@ class QuestEditorStore(
     }
 
     fun setEntityPosition(entity: QuestEntityModel<*, *>, sectionId: Int?, position: Vector3) {
-        change {
+        mutate {
             setSelectedEntity(entity)
             sectionId?.let { setEntitySection(entity, it) }
             entity.setPosition(position)
@@ -297,14 +297,14 @@ class QuestEditorStore(
     }
 
     fun setEntityRotation(entity: QuestEntityModel<*, *>, rotation: Euler) {
-        change {
+        mutate {
             setSelectedEntity(entity)
             entity.setRotation(rotation)
         }
     }
 
     fun setEntityWorldRotation(entity: QuestEntityModel<*, *>, rotation: Euler) {
-        change {
+        mutate {
             setSelectedEntity(entity)
             entity.setWorldRotation(rotation)
         }
@@ -315,14 +315,14 @@ class QuestEditorStore(
         setter: (Entity, T) -> Unit,
         value: T,
     ) {
-        change {
+        mutate {
             setSelectedEntity(entity)
             setter(entity, value)
         }
     }
 
     fun setEntityProp(entity: QuestEntityModel<*, *>, prop: QuestEntityPropModel, value: Any) {
-        change {
+        mutate {
             setSelectedEntity(entity)
             prop.setValue(value)
         }
@@ -336,14 +336,14 @@ class QuestEditorStore(
     }
 
     fun setEntitySectionId(entity: QuestEntityModel<*, *>, sectionId: Int) {
-        change {
+        mutate {
             setSelectedEntity(entity)
             entity.setSectionId(sectionId)
         }
     }
 
     fun setEntitySection(entity: QuestEntityModel<*, *>, section: SectionModel) {
-        change {
+        mutate {
             setSelectedEntity(entity)
             entity.setSection(section)
         }

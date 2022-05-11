@@ -25,7 +25,7 @@ class CallbackObserver(
     }
 
     override fun dependencyInvalidated(dependency: Dependency<*>) {
-        ChangeManager.invalidated(this)
+        MutationManager.invalidated(this)
     }
 
     override fun pull() {

@@ -1,8 +1,8 @@
 package world.phantasmal.web.questEditor.widgets
 
-import kotlinx.browser.window
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
+import world.phantasmal.observable.mutateDeferred
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.monaco.EditorHistory
 import world.phantasmal.web.questEditor.controllers.AsmEditorController
@@ -64,31 +64,29 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
             observe(ctrl.didUndo) {
                 editor.focus()
 
-                // TODO: Remove this hack.
-                window.setTimeout({
-                    if (disposed) return@setTimeout
-
-                    editor.trigger(
-                        source = AsmEditorWidget::class.simpleName,
-                        handlerId = "undo",
-                        payload = undefined,
-                    )
-                }, 0)
+                mutateDeferred {
+                    if (!disposed) {
+                        editor.trigger(
+                            source = AsmEditorWidget::class.simpleName,
+                            handlerId = "undo",
+                            payload = undefined,
+                        )
+                    }
+                }
             }
 
             observe(ctrl.didRedo) {
                 editor.focus()
 
-                // TODO: Remove this hack.
-                window.setTimeout({
-                    if (disposed) return@setTimeout
-
-                    editor.trigger(
-                        source = AsmEditorWidget::class.simpleName,
-                        handlerId = "redo",
-                        payload = undefined,
-                    )
-                }, 0)
+                mutateDeferred {
+                    if (!disposed) {
+                        editor.trigger(
+                            source = AsmEditorWidget::class.simpleName,
+                            handlerId = "redo",
+                            payload = undefined,
+                        )
+                    }
+                }
             }
 
             editor.onDidFocusEditorWidget(ctrl::makeUndoCurrent)

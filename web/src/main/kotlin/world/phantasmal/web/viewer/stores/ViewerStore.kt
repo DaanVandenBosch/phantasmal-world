@@ -10,7 +10,7 @@ import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.mutableListCell
 import world.phantasmal.observable.cell.map
 import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.change
+import world.phantasmal.observable.mutate
 import world.phantasmal.psolib.fileFormats.AreaGeometry
 import world.phantasmal.psolib.fileFormats.CollisionGeometry
 import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
@@ -176,7 +176,7 @@ class ViewerStore(
     }
 
     fun setCurrentNinjaGeometry(geometry: NinjaGeometry?) {
-        change {
+        mutate {
             if (_currentCharacterClass.value != null) {
                 setCurrentCharacterClassValue(null)
                 _currentTextures.clear()
@@ -215,7 +215,7 @@ class ViewerStore(
     }
 
     fun setCurrentNinjaMotion(njm: NjMotion) {
-        change {
+        mutate {
             _currentNinjaMotion.value = njm
             _animationPlaying.value = true
         }
@@ -267,7 +267,7 @@ class ViewerStore(
             val ninjaObject = characterClassAssetLoader.loadNinjaObject(char)
             val textures = characterClassAssetLoader.loadXvrTextures(char, sectionId, body)
 
-            change {
+            mutate {
                 if (clearAnimation) {
                     _currentAnimation.value = null
                     _currentNinjaMotion.value = null
@@ -279,7 +279,7 @@ class ViewerStore(
         } catch (e: Exception) {
             logger.error(e) { "Couldn't load Ninja model for $char." }
 
-            change {
+            mutate {
                 _currentAnimation.value = null
                 _currentNinjaMotion.value = null
                 _currentNinjaGeometry.value = null
@@ -292,7 +292,7 @@ class ViewerStore(
         try {
             val ninjaMotion = animationAssetLoader.loadAnimation(animation.filePath)
 
-            change {
+            mutate {
                 _currentNinjaMotion.value = ninjaMotion
                 _animationPlaying.value = true
             }

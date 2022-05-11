@@ -20,19 +20,21 @@ abstract class Renderer : DisposableContainer() {
     private var animationFrameHandle: Int = 0
 
     fun startRendering() {
-        logger.trace { "${this::class.simpleName} - start rendering." }
-
         if (!rendering) {
+            logger.trace { "${this::class.simpleName} - start rendering." }
+
             rendering = true
             renderLoop()
         }
     }
 
     fun stopRendering() {
-        logger.trace { "${this::class.simpleName} - stop rendering." }
+        if (rendering) {
+            logger.trace { "${this::class.simpleName} - stop rendering." }
 
-        rendering = false
-        window.cancelAnimationFrame(animationFrameHandle)
+            rendering = false
+            window.cancelAnimationFrame(animationFrameHandle)
+        }
     }
 
     open fun setSize(width: Int, height: Int) {

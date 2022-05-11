@@ -23,6 +23,7 @@ import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.web.viewer.loading.AnimationAssetLoader
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.stores.ViewerStore
@@ -37,9 +38,7 @@ class TestComponents(private val ctx: TestContext) {
     var httpClient: HttpClient by default {
         HttpClient {
             install(JsonFeature) {
-                serializer = KotlinxSerializer(kotlinx.serialization.json.Json {
-                    ignoreUnknownKeys = true
-                })
+                serializer = KotlinxSerializer(JSON_FORMAT)
             }
         }.also {
             ctx.disposer.add(disposable { it.cancel() })

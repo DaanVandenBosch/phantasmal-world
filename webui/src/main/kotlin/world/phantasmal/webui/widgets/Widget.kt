@@ -1,7 +1,6 @@
 package world.phantasmal.webui.widgets
 
 import kotlinx.browser.document
-import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,7 +12,9 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.cell.*
+import world.phantasmal.observable.cell.Cell
+import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.observable.cell.trueCell
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.*
 
@@ -29,7 +30,9 @@ abstract class Widget(
     val enabled: Cell<Boolean> = trueCell(),
     val tooltip: Cell<String?> = nullCell(),
 ) : DisposableContainer() {
-    private val _ancestorVisible = mutableCell(true)
+    protected var ancestorsVisible = true
+        private set
+
     private val _children = mutableListOf<Widget>()
     private val _size = HTMLElementSizeCell()
 
@@ -39,14 +42,13 @@ abstract class Widget(
         observeNow(visible) { visible ->
             el.hidden = !visible
 
-            // TODO: Remove this hack.
-            window.setTimeout({
-                if (disposed) return@setTimeout
+            val selfAndAncestorsVisible = visible && ancestorsVisible
 
-                for (child in children) {
-                    setAncestorVisible(child, visible && ancestorVisible.value)
-                }
-            }, 0)
+            selfAndAncestorsVisibleChanged(selfAndAncestorsVisible)
+
+            for (child in children) {
+                setAncestorsVisible(child, selfAndAncestorsVisible)
+            }
         }
 
         observeNow(enabled) { enabled ->
@@ -81,16 +83,6 @@ abstract class Widget(
      * This widget's outermost DOM element.
      */
     val element: HTMLElement by elementDelegate
-
-    /**
-     * True if this widget's ancestors are [visible], false otherwise.
-     */
-    val ancestorVisible: Cell<Boolean> get() = _ancestorVisible
-
-    /**
-     * True if this widget and all of its ancestors are [visible], false otherwise.
-     */
-    val selfOrAncestorVisible: Cell<Boolean> = visible and ancestorVisible
 
     val size: Cell<Size> get() = _size
 
@@ -155,7 +147,7 @@ abstract class Widget(
         }
 
         _children.add(child)
-        setAncestorVisible(child, selfOrAncestorVisible.value)
+        setAncestorsVisible(child, visible.value && ancestorsVisible)
         appendChild(child.element)
         return child
     }
@@ -205,7 +197,11 @@ abstract class Widget(
         addDisposable(bindDisposableChildrenTo(this, list, create))
     }
 
-    fun Element.onDrag(
+    protected open fun selfAndAncestorsVisibleChanged(visible: Boolean) {
+        // Do nothing.
+    }
+
+    protected fun Element.onDrag(
         onPointerDown: (e: PointerEvent) -> Boolean,
         onPointerMove: (movedX: Int, movedY: Int, e: PointerEvent) -> Boolean,
         onPointerUp: (e: PointerEvent) -> Unit = {},
@@ -229,13 +225,15 @@ abstract class Widget(
             STYLE_EL.append(style)
         }
 
-        protected fun setAncestorVisible(widget: Widget, visible: Boolean) {
-            widget._ancestorVisible.value = visible
+        protected fun setAncestorsVisible(widget: Widget, ancestorsVisible: Boolean) {
+            widget.ancestorsVisible = ancestorsVisible
 
             if (!widget.visible.value) return
 
-            widget.children.forEach {
-                setAncestorVisible(it, widget.selfOrAncestorVisible.value)
+            widget.selfAndAncestorsVisibleChanged(ancestorsVisible)
+
+            for (child in widget.children) {
+                setAncestorsVisible(child, ancestorsVisible)
             }
         }
     }

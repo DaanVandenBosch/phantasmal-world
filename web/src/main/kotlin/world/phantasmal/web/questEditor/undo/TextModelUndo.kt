@@ -1,12 +1,12 @@
 package world.phantasmal.web.questEditor.undo
 
-import kotlinx.browser.window
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Observable
 import world.phantasmal.observable.cell.*
 import world.phantasmal.observable.emitter
+import world.phantasmal.observable.mutateDeferred
 import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.core.undo.Undo
 import world.phantasmal.web.core.undo.UndoManager
@@ -64,15 +64,14 @@ class TextModelUndo(
     }
 
     private fun onModelChange(model: ITextModel?) {
-        // TODO: Remove this hack.
-        window.setTimeout({
-            if (disposed) return@setTimeout
+        mutateDeferred {
+            if (disposed) return@mutateDeferred
 
             modelChangeObserver?.dispose()
 
             if (model == null) {
                 reset()
-                return@setTimeout
+                return@mutateDeferred
             }
 
             _canUndo.value = false
@@ -113,7 +112,7 @@ class TextModelUndo(
 
                 currentVersionId.value = versionId
             }
-        }, 0)
+        }
     }
 
     override fun undo(): Boolean =

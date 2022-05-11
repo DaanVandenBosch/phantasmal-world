@@ -1,8 +1,8 @@
 package world.phantasmal.web.core.controllers
 
-import kotlinx.browser.window
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.map
+import world.phantasmal.observable.mutateDeferred
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Tab
@@ -38,11 +38,11 @@ open class PathAwareTabContainerController<T : PathAwareTab>(
         super.visibleChanged(visible)
 
         if (visible) {
-            // TODO: Remove this hack.
-            window.setTimeout({
-                if (disposed) return@setTimeout
-                setPathPrefix(activeTab.value, replace = true)
-            }, 0)
+            mutateDeferred {
+                if (!disposed) {
+                    setPathPrefix(activeTab.value, replace = true)
+                }
+            }
         }
     }
 

@@ -8,15 +8,30 @@ import kotlin.contracts.contract
 //       Dependencies will need to partially apply ListChangeEvents etc. and remember which part of
 //       the event they've already applied (i.e. an index into the changes list).
 // TODO: Think about nested change sets. Initially don't allow nesting?
-object ChangeManager {
+object MutationManager {
     private val invalidatedLeaves = HashSet<LeafDependent>()
 
     /** Whether a dependency's value is changing at the moment. */
     private var dependencyChanging = false
 
-    fun inChangeSet(block: () -> Unit) {
-        // TODO: Implement inChangeSet correctly.
+    private val deferredMutations: MutableList<() -> Unit> = mutableListOf()
+    private var applyingDeferredMutations = false
+
+    inline fun mutate(block: () -> Unit) {
+        contract {
+            callsInPlace(block, EXACTLY_ONCE)
+        }
+
+        // TODO: Implement mutate correctly.
         block()
+    }
+
+    fun mutateDeferred(block: () -> Unit) {
+        if (dependencyChanging) {
+            deferredMutations.add(block)
+        } else {
+            block()
+        }
     }
 
     fun invalidated(dependent: LeafDependent) {
@@ -51,6 +66,21 @@ object ChangeManager {
         } finally {
             dependencyChanging = false
             invalidatedLeaves.clear()
+
+            if (!applyingDeferredMutations) {
+                try {
+                    applyingDeferredMutations = true
+                    var i = 0
+
+                    while (i < deferredMutations.size) {
+                        deferredMutations[i]()
+                        i++
+                    }
+                } finally {
+                    applyingDeferredMutations = false
+                    deferredMutations.clear()
+                }
+            }
         }
     }
 }

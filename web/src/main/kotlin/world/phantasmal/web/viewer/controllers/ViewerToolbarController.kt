@@ -17,7 +17,7 @@ import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.isNotNull
 import world.phantasmal.observable.cell.map
 import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.change
+import world.phantasmal.observable.mutate
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore
@@ -166,7 +166,7 @@ class ViewerToolbarController(private val store: ViewerStore) : Controller() {
             result.addProblem(Severity.Error, "Couldn't parse files.", cause = e)
         }
 
-        change {
+        mutate {
             ninjaGeometry?.let(store::setCurrentNinjaGeometry)
             textures?.let(store::setCurrentTextures)
             ninjaMotion?.let(store::setCurrentNinjaMotion)

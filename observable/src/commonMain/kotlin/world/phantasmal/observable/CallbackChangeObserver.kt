@@ -23,7 +23,7 @@ class CallbackChangeObserver<T, E : ChangeEvent<T>>(
     }
 
     override fun dependencyInvalidated(dependency: Dependency<*>) {
-        ChangeManager.invalidated(this)
+        MutationManager.invalidated(this)
     }
 
     override fun pull() {

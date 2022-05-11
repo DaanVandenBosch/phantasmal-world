@@ -9,6 +9,7 @@ import world.phantasmal.observable.Observable
 import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.observable.mutateDeferred
 import world.phantasmal.psolib.asm.assemble
 import world.phantasmal.psolib.asm.disassemble
 import world.phantasmal.web.core.undo.UndoManager
@@ -111,8 +112,7 @@ class AsmStore(
     }
 
     private fun setTextModel(quest: QuestModel?, inlineStackArgs: Boolean) {
-        // TODO: Remove this hack.
-        window.setTimeout({
+        mutateDeferred {
             setBytecodeIrTimeout?.let { it ->
                 window.clearTimeout(it)
                 setBytecodeIrTimeout = null
@@ -120,7 +120,7 @@ class AsmStore(
 
             modelDisposer.disposeAll()
 
-            quest ?: return@setTimeout
+            quest ?: return@mutateDeferred
 
             val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
             asmAnalyser.setAsm(asm, inlineStackArgs)
@@ -147,7 +147,7 @@ class AsmStore(
                     // TODO: Update breakpoints.
                 }
             }
-        }, 0)
+        }
     }
 
     private fun setBytecodeIr() {

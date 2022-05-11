@@ -6,7 +6,7 @@ import world.phantasmal.observable.cell.Cell
 import world.phantasmal.observable.cell.list.ListCell
 import world.phantasmal.observable.cell.list.listCell
 import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.change
+import world.phantasmal.observable.mutate
 import world.phantasmal.web.core.minus
 import world.phantasmal.web.core.rendering.conversion.vec3ToEuler
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree
@@ -60,7 +60,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     })
 
     open fun setSectionId(sectionId: Int) {
-        change {
+        mutate {
             entity.sectionId = sectionId.toShort()
             _sectionId.value = sectionId
 
@@ -83,7 +83,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
             "Quest entities can't be moved across areas."
         }
 
-        change {
+        mutate {
             entity.sectionId = section.id.toShort()
             _sectionId.value = section.id
 
@@ -106,7 +106,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     }
 
     fun setPosition(pos: Vector3) {
-        change {
+        mutate {
             entity.setPosition(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())
 
             _position.value = pos
@@ -120,7 +120,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     }
 
     fun setWorldPosition(pos: Vector3) {
-        change {
+        mutate {
             val section = section.value
 
             val relPos =
@@ -135,7 +135,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     }
 
     fun setRotation(rot: Euler) {
-        change {
+        mutate {
             floorModEuler(rot)
 
             entity.setRotation(rot.x.toFloat(), rot.y.toFloat(), rot.z.toFloat())
@@ -155,7 +155,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
     }
 
     fun setWorldRotation(rot: Euler) {
-        change {
+        mutate {
             floorModEuler(rot)
 
             val section = section.value

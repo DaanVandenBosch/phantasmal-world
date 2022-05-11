@@ -25,7 +25,7 @@ abstract class AbstractDependency<T> : Dependency<T> {
             callsInPlace(block, InvocationKind.EXACTLY_ONCE)
         }
 
-        ChangeManager.changeDependency {
+        MutationManager.changeDependency {
             emitDependencyInvalidated()
             block()
         }
