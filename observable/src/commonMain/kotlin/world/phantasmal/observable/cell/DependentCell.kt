@@ -11,7 +11,7 @@ import world.phantasmal.observable.Observable
 class DependentCell<T>(
     private vararg val dependencies: Observable<*>,
     private val compute: () -> T,
-) : AbstractDependentCell<T>() {
+) : AbstractDependentCell<T, ChangeEvent<T>>() {
 
     private var valid = false
 
@@ -21,7 +21,8 @@ class DependentCell<T>(
         // when they change.
         if (!valid) {
             val newValue = compute()
-            setValueAndEvent(newValue, ChangeEvent(newValue))
+            _value = newValue
+            changeEvent = ChangeEvent(newValue)
             valid = dependents.isNotEmpty()
         }
     }

@@ -4,9 +4,9 @@ import world.phantasmal.core.unsafe.unsafeCast
 import world.phantasmal.observable.ChangeEvent
 import world.phantasmal.observable.Dependent
 
-abstract class AbstractDependentCell<T> : AbstractCell<T>(), Dependent {
+abstract class AbstractDependentCell<T, Event : ChangeEvent<T>> : AbstractCell<T>(), Dependent {
 
-    private var _value: T? = null
+    protected var _value: T? = null
     final override val value: T
         get() {
             computeValueAndEvent()
@@ -15,17 +15,12 @@ abstract class AbstractDependentCell<T> : AbstractCell<T>(), Dependent {
             return unsafeCast(_value)
         }
 
-    final override var changeEvent: ChangeEvent<T>? = null
+    final override var changeEvent: Event? = null
         get() {
             computeValueAndEvent()
             return field
         }
-        private set
+        protected set
 
     protected abstract fun computeValueAndEvent()
-
-    protected fun setValueAndEvent(value: T, changeEvent: ChangeEvent<T>?) {
-        _value = value
-        this.changeEvent = changeEvent
-    }
 }
