@@ -1,18 +1,44 @@
 package world.phantasmal.cell
 
+import world.phantasmal.cell.test.CellTestSuite
 import world.phantasmal.core.disposable.use
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Test suite for all [Cell] implementations. There is a subclass of this suite for every [Cell]
  * implementation.
  */
-interface CellTests : DependencyTests {
-    override fun createProvider(): Provider
+interface CellTests : CellTestSuite {
+    fun createProvider(): Provider
+
+    /**
+     * Tests low level [Dependency] implementation.
+     */
+    @Test
+    fun correctly_emits_invalidation_notifications_to_its_dependents() = test {
+        val p = createProvider()
+        var dependencyInvalidatedCalled: Boolean
+
+        p.cell.addDependent(object : Dependent {
+            override fun dependencyInvalidated(dependency: Dependency<*>) {
+                assertEquals(p.cell, dependency)
+                dependencyInvalidatedCalled = true
+            }
+        })
+
+        repeat(5) { index ->
+            dependencyInvalidatedCalled = false
+
+            p.emit()
+
+            assertTrue(dependencyInvalidatedCalled, "repetition $index")
+        }
+    }
 
     @Test
     fun value_is_accessible_without_observers() = test {
@@ -202,10 +228,13 @@ interface CellTests : DependencyTests {
         assertEquals(mapped.value, observedValue)
     }
 
-    interface Provider : DependencyTests.Provider {
+    interface Provider {
         val cell: Cell<Any>
 
-        override val dependency: Dependency<*> get() = cell
+        /**
+         * Makes [cell] emit a change.
+         */
+        fun emit()
     }
 }
 
