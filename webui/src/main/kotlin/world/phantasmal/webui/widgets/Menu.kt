@@ -6,10 +6,10 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.list.emptyListCell
-import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.emptyListCell
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj

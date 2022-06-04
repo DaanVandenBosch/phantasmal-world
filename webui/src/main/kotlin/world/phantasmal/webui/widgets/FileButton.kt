@@ -2,9 +2,9 @@ package world.phantasmal.webui.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLElement
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.files.FileHandle
 import world.phantasmal.webui.files.FileType

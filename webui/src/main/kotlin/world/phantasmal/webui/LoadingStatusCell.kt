@@ -2,8 +2,8 @@ package world.phantasmal.webui
 
 import kotlinx.coroutines.*
 import mu.KotlinLogging
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.SimpleCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.SimpleCell
 import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}

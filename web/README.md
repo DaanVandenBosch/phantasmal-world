@@ -46,7 +46,7 @@ controller has no knowledge of the GUI layer.
 
 ### models
 
-The models package contains observable model objects. Models expose read-only observable properties
+The models package contains observable model objects. Models expose read-only cell properties
 and allow their properties to be changed via setters which validate their inputs.
 
 ### stores

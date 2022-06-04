@@ -2,9 +2,9 @@ package world.phantasmal.web.huntOptimizer.models
 
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.NpcType
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.cell.orElse
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.cell.orElse
 import kotlin.time.Duration
 
 class HuntMethodModel(

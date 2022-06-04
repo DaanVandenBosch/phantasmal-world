@@ -1,9 +1,9 @@
 package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.label

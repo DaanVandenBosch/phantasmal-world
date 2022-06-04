@@ -1,6 +1,6 @@
 package world.phantasmal.webui.widgets
 
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.cell.Cell
 
 enum class LabelPosition {
     Before,

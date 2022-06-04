@@ -1,6 +1,6 @@
 package world.phantasmal.webui.widgets
 
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.cell.Cell
 
 /**
  * Represents all widgets that allow for user interaction such as buttons, text inputs, combo boxes,

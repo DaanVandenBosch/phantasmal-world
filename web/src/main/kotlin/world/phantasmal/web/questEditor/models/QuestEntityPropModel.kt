@@ -4,9 +4,9 @@ import world.phantasmal.psolib.fileFormats.ninja.angleToRad
 import world.phantasmal.psolib.fileFormats.ninja.radToAngle
 import world.phantasmal.psolib.fileFormats.quest.EntityProp
 import world.phantasmal.psolib.fileFormats.quest.EntityPropType
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.MutableCell
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.MutableCell
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.web.externals.three.Vector3
 
 class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: EntityProp) {

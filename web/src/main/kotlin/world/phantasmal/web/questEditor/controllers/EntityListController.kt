@@ -4,8 +4,8 @@ import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.psolib.fileFormats.quest.ObjectType
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.map
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.map
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 

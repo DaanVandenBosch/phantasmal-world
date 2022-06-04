@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.widgets
 
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.mutateDeferred
+import world.phantasmal.cell.mutateDeferred
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.monaco.EditorHistory
 import world.phantasmal.web.questEditor.controllers.AsmEditorController
@@ -61,7 +61,7 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
             })
 
             // Undo/redo.
-            observe(ctrl.didUndo) {
+            addDisposable(ctrl.didUndo.observe {
                 editor.focus()
 
                 mutateDeferred {
@@ -73,9 +73,9 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
                         )
                     }
                 }
-            }
+            })
 
-            observe(ctrl.didRedo) {
+            addDisposable(ctrl.didRedo.observe {
                 editor.focus()
 
                 mutateDeferred {
@@ -87,7 +87,7 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
                         )
                     }
                 }
-            }
+            })
 
             editor.onDidFocusEditorWidget(ctrl::makeUndoCurrent)
 
@@ -129,7 +129,8 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
                 .pw-quest-editor-asm-editor .editor-widget {
                     z-index: 30;
                 }
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
     }
 }

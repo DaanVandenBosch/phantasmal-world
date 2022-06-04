@@ -4,9 +4,9 @@ import org.w3c.dom.HTMLElement
 import world.phantasmal.core.ResizeObserver
 import world.phantasmal.core.ResizeObserverEntry
 import world.phantasmal.core.unsafe.unsafeAssertNotNull
-import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.Dependent
-import world.phantasmal.observable.cell.AbstractCell
+import world.phantasmal.cell.ChangeEvent
+import world.phantasmal.cell.Dependent
+import world.phantasmal.cell.AbstractCell
 
 data class Size(val width: Double, val height: Double)
 

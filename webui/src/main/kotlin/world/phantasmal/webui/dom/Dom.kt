@@ -12,9 +12,9 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.core.unsafe.UnsafeMap
 import world.phantasmal.core.unsafe.getOrPut
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.ListChangeEvent
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.ListCell
+import world.phantasmal.cell.list.ListChangeEvent
 import world.phantasmal.webui.externals.fontawesome.IconDefinition
 import world.phantasmal.webui.externals.fontawesome.freeBrandsSvgIcons.faGithub
 import world.phantasmal.webui.externals.fontawesome.freeRegularSvgIcons.faCaretSquareRight

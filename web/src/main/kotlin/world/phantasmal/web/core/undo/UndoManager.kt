@@ -1,8 +1,15 @@
 package world.phantasmal.web.core.undo
 
-import world.phantasmal.observable.cell.*
-import world.phantasmal.observable.cell.list.fold
-import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.and
+import world.phantasmal.cell.falseCell
+import world.phantasmal.cell.flatMap
+import world.phantasmal.cell.flatten
+import world.phantasmal.cell.list.fold
+import world.phantasmal.cell.list.mutableListCell
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.web.core.commands.Command
 
 class UndoManager {

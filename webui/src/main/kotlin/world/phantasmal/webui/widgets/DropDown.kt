@@ -3,11 +3,11 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.list.emptyListCell
-import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.emptyListCell
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
 

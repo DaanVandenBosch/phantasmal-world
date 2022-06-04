@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.widgets
 
 import org.w3c.dom.*
-import world.phantasmal.observable.cell.map
+import world.phantasmal.cell.map
 import world.phantasmal.web.questEditor.controllers.EventsController
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.webui.dom.*

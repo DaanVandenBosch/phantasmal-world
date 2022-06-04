@@ -2,9 +2,9 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.psolib.fileFormats.quest.QuestNpc
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.map
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.map
+import world.phantasmal.cell.mutableCell
 
 class QuestNpcModel(npc: QuestNpc, waveId: Int) : QuestEntityModel<NpcType, QuestNpc>(npc) {
     private val _waveId = mutableCell(waveId)

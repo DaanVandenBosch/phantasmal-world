@@ -5,9 +5,9 @@ import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.cell
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.cell
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
 import world.phantasmal.web.questEditor.controllers.EntityInfoPropModel

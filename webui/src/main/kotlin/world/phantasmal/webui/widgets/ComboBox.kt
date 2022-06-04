@@ -4,8 +4,12 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.events.MouseEvent
-import world.phantasmal.observable.cell.*
-import world.phantasmal.observable.cell.list.emptyListCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.emptyListCell
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.cell.not
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.dom.*
 
 class ComboBox<T : Any>(

@@ -5,7 +5,7 @@ import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.observable.cell.observeNow
+import world.phantasmal.cell.observeNow
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*

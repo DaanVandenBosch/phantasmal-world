@@ -1,8 +1,8 @@
 package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.core.requireNonNegative
-import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.mutableListCell
+import world.phantasmal.cell.list.ListCell
+import world.phantasmal.cell.list.mutableListCell
 
 class AreaVariantModel(val id: Int, val area: AreaModel) {
     private val _sections = mutableListCell<SectionModel>()

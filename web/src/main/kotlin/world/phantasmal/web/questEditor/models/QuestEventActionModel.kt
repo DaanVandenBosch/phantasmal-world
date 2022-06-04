@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.mutableCell
 
 sealed class QuestEventActionModel {
     abstract val shortName: String

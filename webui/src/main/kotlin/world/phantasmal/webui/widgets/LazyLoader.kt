@@ -1,9 +1,9 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.trueCell
-import world.phantasmal.observable.mutateDeferred
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.trueCell
+import world.phantasmal.cell.mutateDeferred
 import world.phantasmal.webui.dom.div
 
 class LazyLoader(

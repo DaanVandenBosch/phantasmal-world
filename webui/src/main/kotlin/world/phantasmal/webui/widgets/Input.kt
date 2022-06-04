@@ -2,7 +2,7 @@ package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.cell.Cell
 import world.phantasmal.webui.dom.input
 import world.phantasmal.webui.dom.span
 

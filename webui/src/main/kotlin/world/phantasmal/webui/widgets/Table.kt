@@ -3,9 +3,9 @@ package world.phantasmal.webui.widgets
 import org.w3c.dom.*
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.observeNow
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.observeNow
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.LoadingStatus
 import world.phantasmal.webui.controllers.Column
 import world.phantasmal.webui.controllers.TableController

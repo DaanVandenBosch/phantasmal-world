@@ -1,8 +1,8 @@
 package world.phantasmal.web.viewer.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.eq
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.eq
 import world.phantasmal.webui.dom.li
 import world.phantasmal.webui.dom.ul
 import world.phantasmal.webui.widgets.Widget

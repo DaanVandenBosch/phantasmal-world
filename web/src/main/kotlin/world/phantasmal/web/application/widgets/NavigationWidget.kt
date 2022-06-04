@@ -1,9 +1,9 @@
 package world.phantasmal.web.application.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.cell
-import world.phantasmal.observable.cell.falseCell
-import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.cell.cell
+import world.phantasmal.cell.falseCell
+import world.phantasmal.cell.list.listCell
 import world.phantasmal.web.application.controllers.NavigationController
 import world.phantasmal.web.core.dom.externalLink
 import world.phantasmal.web.core.models.Server

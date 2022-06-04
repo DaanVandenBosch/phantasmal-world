@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor
 
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.falseCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.falseCell
 
 /**
  * Orchestrates everything related to emulating a quest run. Drives a VirtualMachine and

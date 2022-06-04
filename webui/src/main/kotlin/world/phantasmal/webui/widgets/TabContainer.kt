@@ -1,9 +1,9 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.eq
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.eq
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.controllers.Tab
 import world.phantasmal.webui.controllers.TabContainerController
 import world.phantasmal.webui.dom.div

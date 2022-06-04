@@ -7,10 +7,10 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.get
 import org.w3c.dom.pointerevents.PointerEvent
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.emptyStringCell
-import world.phantasmal.observable.cell.isEmpty
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.emptyStringCell
+import world.phantasmal.cell.isEmpty
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.dom
 import world.phantasmal.webui.dom.h1

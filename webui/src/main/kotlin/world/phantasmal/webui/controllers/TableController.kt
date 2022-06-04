@@ -1,8 +1,8 @@
 package world.phantasmal.webui.controllers
 
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.nullCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.ListCell
+import world.phantasmal.cell.nullCell
 import world.phantasmal.webui.LoadingStatusCell
 
 class Column<T>(

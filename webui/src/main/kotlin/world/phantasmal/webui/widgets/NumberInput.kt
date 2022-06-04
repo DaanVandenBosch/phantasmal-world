@@ -1,7 +1,7 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.cell.Cell
 
 abstract class NumberInput<T : Number>(
     visible: Cell<Boolean>,

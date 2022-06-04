@@ -3,7 +3,7 @@ rootProject.name = "phantasmal-world"
 include(
     ":core",
     ":psolib",
-    ":observable",
+    ":cell",
     ":psoserv",
     ":test-utils",
     ":web",

@@ -1,8 +1,8 @@
 package world.phantasmal.web.core.controllers
 
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.map
-import world.phantasmal.observable.mutateDeferred
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.map
+import world.phantasmal.cell.mutateDeferred
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Tab

@@ -2,8 +2,8 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.psolib.fileFormats.quest.ObjectType
 import world.phantasmal.psolib.fileFormats.quest.QuestObject
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree
 import world.phantasmal.web.externals.three.Vector3
 

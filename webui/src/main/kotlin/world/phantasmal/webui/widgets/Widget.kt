@@ -12,9 +12,9 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.*
 

@@ -2,7 +2,7 @@ package world.phantasmal.web.viewer.widgets
 
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.cell
+import world.phantasmal.cell.cell
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.controllers.CharacterClassOptionsController
 import world.phantasmal.webui.dom.div

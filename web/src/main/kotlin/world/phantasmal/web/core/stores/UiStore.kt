@@ -6,9 +6,9 @@ import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.disposable.disposable
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.eq
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.eq
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.webui.DisposableContainer

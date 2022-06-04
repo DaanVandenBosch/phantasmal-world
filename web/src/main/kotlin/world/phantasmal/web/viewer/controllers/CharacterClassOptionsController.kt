@@ -1,9 +1,9 @@
 package world.phantasmal.web.viewer.controllers
 
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.isNotNull
-import world.phantasmal.observable.cell.map
-import world.phantasmal.observable.cell.plus
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.isNotNull
+import world.phantasmal.cell.map
+import world.phantasmal.cell.plus
 import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.webui.controllers.Controller

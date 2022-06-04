@@ -1,6 +1,6 @@
 package world.phantasmal.web.viewer.controllers
 
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.cell.Cell
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.controllers.PathAwareTab
 import world.phantasmal.web.core.controllers.PathAwareTabContainerController

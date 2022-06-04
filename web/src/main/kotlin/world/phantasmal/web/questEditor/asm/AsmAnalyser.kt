@@ -9,13 +9,25 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.w3c.dom.Worker
-import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.Observable
-import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.mutableListCell
-import world.phantasmal.observable.emitter
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.MutableCell
+import world.phantasmal.cell.list.ListCell
+import world.phantasmal.cell.list.mutableListCell
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.web.shared.JSON_FORMAT
-import world.phantasmal.web.shared.messages.*
+import world.phantasmal.web.shared.messages.AsmChange
+import world.phantasmal.web.shared.messages.AsmRange
+import world.phantasmal.web.shared.messages.AssemblyProblem
+import world.phantasmal.web.shared.messages.ClientMessage
+import world.phantasmal.web.shared.messages.ClientNotification
+import world.phantasmal.web.shared.messages.CompletionItem
+import world.phantasmal.web.shared.messages.Hover
+import world.phantasmal.web.shared.messages.Label
+import world.phantasmal.web.shared.messages.Request
+import world.phantasmal.web.shared.messages.Response
+import world.phantasmal.web.shared.messages.ServerMessage
+import world.phantasmal.web.shared.messages.ServerNotification
+import world.phantasmal.web.shared.messages.SignatureHelp
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
@@ -23,7 +35,7 @@ private val logger = KotlinLogging.logger {}
 
 class AsmAnalyser {
     private var inlineStackArgs: Boolean = true
-    private var _mapDesignations = emitter<Map<Int, Int>>()
+    private var _mapDesignations: MutableCell<Map<Int, Int>> = mutableCell(emptyMap())
     private val _problems = mutableListCell<AssemblyProblem>()
 
     private val worker = Worker("/assembly-worker.js")
@@ -34,7 +46,7 @@ class AsmAnalyser {
      */
     private val inFlightRequests = mutableMapOf<Int, CancellableContinuation<*>>()
 
-    val mapDesignations: Observable<Map<Int, Int>> = _mapDesignations
+    val mapDesignations: Cell<Map<Int, Int>> = _mapDesignations
     val problems: ListCell<AssemblyProblem> = _problems
 
     init {
@@ -96,7 +108,7 @@ class AsmAnalyser {
     private fun receiveMessage(message: ServerMessage) =
         when (message) {
             is ServerNotification.MapDesignations -> {
-                _mapDesignations.emit(ChangeEvent(message.mapDesignations))
+                _mapDesignations.value = message.mapDesignations
             }
 
             is ServerNotification.Problems -> {

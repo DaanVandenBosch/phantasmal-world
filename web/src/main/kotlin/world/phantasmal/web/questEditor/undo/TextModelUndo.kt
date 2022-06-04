@@ -2,12 +2,16 @@ package world.phantasmal.web.questEditor.undo
 
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.TrackedDisposable
-import world.phantasmal.observable.ChangeEvent
-import world.phantasmal.observable.Observable
-import world.phantasmal.observable.cell.*
-import world.phantasmal.observable.emitter
-import world.phantasmal.observable.mutateDeferred
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.MutableCell
+import world.phantasmal.cell.eq
+import world.phantasmal.cell.map
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.cell.observeNow
+import world.phantasmal.cell.mutateDeferred
 import world.phantasmal.web.core.commands.Command
+import world.phantasmal.web.core.observable.Observable
+import world.phantasmal.web.core.observable.emitter
 import world.phantasmal.web.core.undo.Undo
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.IDisposable
@@ -22,11 +26,11 @@ class TextModelUndo(
         override val description: String get() = this@TextModelUndo.description
 
         override fun execute() {
-            _didRedo.emit(ChangeEvent(Unit))
+            _didRedo.emit(Unit)
         }
 
         override fun undo() {
-            _didUndo.emit(ChangeEvent(Unit))
+            _didUndo.emit(Unit)
         }
     }
 

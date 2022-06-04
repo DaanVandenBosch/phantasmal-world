@@ -3,8 +3,8 @@ package world.phantasmal.web.core.widgets
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.trueCell
 import world.phantasmal.web.core.controllers.*
 import world.phantasmal.web.externals.goldenLayout.GoldenLayout
 import world.phantasmal.webui.dom.div

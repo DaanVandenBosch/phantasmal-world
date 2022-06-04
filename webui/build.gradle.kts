@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     api(project(":core"))
-    api(project(":observable"))
+    api(project(":cell"))
     implementation(npm("@fortawesome/fontawesome-svg-core", "^1.2.36"))
     implementation(npm("@fortawesome/free-regular-svg-icons", "^5.15.4"))
     implementation(npm("@fortawesome/free-solid-svg-icons", "^5.15.4"))

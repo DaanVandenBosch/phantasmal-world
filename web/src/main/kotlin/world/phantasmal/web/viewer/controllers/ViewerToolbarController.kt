@@ -13,11 +13,11 @@ import world.phantasmal.psolib.fileFormats.ninja.*
 import world.phantasmal.psolib.fileFormats.parseAfs
 import world.phantasmal.psolib.fileFormats.parseAreaCollisionGeometry
 import world.phantasmal.psolib.fileFormats.parseAreaRenderGeometry
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.isNotNull
-import world.phantasmal.observable.cell.map
-import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.mutate
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.isNotNull
+import world.phantasmal.cell.map
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.cell.mutate
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore

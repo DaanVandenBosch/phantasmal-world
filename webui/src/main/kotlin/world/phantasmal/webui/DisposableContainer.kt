@@ -3,10 +3,9 @@ package world.phantasmal.webui
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
-import world.phantasmal.observable.Observable
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.observeNow
-import world.phantasmal.observable.observe
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.observe
+import world.phantasmal.cell.observeNow
 
 abstract class DisposableContainer : TrackedDisposable() {
     private val disposer = Disposer()
@@ -31,10 +30,10 @@ abstract class DisposableContainer : TrackedDisposable() {
     }
 
     protected fun <T> observe(
-        o1: Observable<T>,
+        c1: Cell<T>,
         observer: (T) -> Unit,
     ) {
-        addDisposable(o1.observe(observer))
+        addDisposable(c1.observe(observer))
     }
 
     protected fun <T> observeNow(
@@ -49,7 +48,7 @@ abstract class DisposableContainer : TrackedDisposable() {
         c2: Cell<T2>,
         observer: (T1, T2) -> Unit,
     ) {
-        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, observer))
+        addDisposable(world.phantasmal.cell.observeNow(c1, c2, observer))
     }
 
     protected fun <T1, T2, T3> observeNow(
@@ -58,7 +57,7 @@ abstract class DisposableContainer : TrackedDisposable() {
         c3: Cell<T3>,
         observer: (T1, T2, T3) -> Unit,
     ) {
-        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, c3, observer))
+        addDisposable(world.phantasmal.cell.observeNow(c1, c2, c3, observer))
     }
 
     protected fun <T1, T2, T3, T4> observeNow(
@@ -68,7 +67,7 @@ abstract class DisposableContainer : TrackedDisposable() {
         c4: Cell<T4>,
         observer: (T1, T2, T3, T4) -> Unit,
     ) {
-        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, c3, c4, observer))
+        addDisposable(world.phantasmal.cell.observeNow(c1, c2, c3, c4, observer))
     }
 
     protected fun <T1, T2, T3, T4, T5> observeNow(
@@ -79,6 +78,6 @@ abstract class DisposableContainer : TrackedDisposable() {
         c5: Cell<T5>,
         observer: (T1, T2, T3, T4, T5) -> Unit,
     ) {
-        addDisposable(world.phantasmal.observable.cell.observeNow(c1, c2, c3, c4, c5, observer))
+        addDisposable(world.phantasmal.cell.observeNow(c1, c2, c3, c4, c5, observer))
     }
 }

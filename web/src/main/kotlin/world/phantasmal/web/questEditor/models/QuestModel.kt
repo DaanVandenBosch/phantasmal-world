@@ -3,13 +3,13 @@ package world.phantasmal.web.questEditor.models
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.BytecodeIr
 import world.phantasmal.psolib.fileFormats.quest.DatUnknown
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.SimpleListCell
-import world.phantasmal.observable.cell.list.flatMapToList
-import world.phantasmal.observable.cell.list.listCell
-import world.phantasmal.observable.cell.map
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.ListCell
+import world.phantasmal.cell.list.SimpleListCell
+import world.phantasmal.cell.list.flatMapToList
+import world.phantasmal.cell.list.listCell
+import world.phantasmal.cell.map
+import world.phantasmal.cell.mutableCell
 
 class QuestModel(
     id: Int,

@@ -1,10 +1,10 @@
 package world.phantasmal.webui.widgets
 
 import org.w3c.dom.HTMLInputElement
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.cell
-import world.phantasmal.observable.cell.nullCell
-import world.phantasmal.observable.cell.trueCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.cell
+import world.phantasmal.cell.nullCell
+import world.phantasmal.cell.trueCell
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.round

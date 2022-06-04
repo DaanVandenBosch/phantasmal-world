@@ -1,7 +1,7 @@
 package world.phantasmal.web.questEditor.widgets
 
 import org.w3c.dom.Node
-import world.phantasmal.observable.cell.cell
+import world.phantasmal.cell.cell
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EventsController
 import world.phantasmal.webui.dom.Icon

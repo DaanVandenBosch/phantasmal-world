@@ -1,6 +1,6 @@
 package world.phantasmal.web.core.undo
 
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.cell.Cell
 import world.phantasmal.web.core.commands.Command
 
 interface Undo {

@@ -1,7 +1,7 @@
 package world.phantasmal.web.huntOptimizer.models
 
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.mutableCell
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.web.shared.dto.ItemType
 
 class WantedItemModel(val itemType: ItemType, amount: Int) {

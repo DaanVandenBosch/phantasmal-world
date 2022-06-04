@@ -1,6 +1,6 @@
 package world.phantasmal.webui.controllers
 
-import world.phantasmal.observable.cell.Cell
+import world.phantasmal.cell.Cell
 
 interface Tab {
     val title: String

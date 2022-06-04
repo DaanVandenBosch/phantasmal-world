@@ -2,11 +2,11 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.psolib.fileFormats.quest.QuestEntity
-import world.phantasmal.observable.cell.Cell
-import world.phantasmal.observable.cell.list.ListCell
-import world.phantasmal.observable.cell.list.listCell
-import world.phantasmal.observable.cell.mutableCell
-import world.phantasmal.observable.mutate
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.ListCell
+import world.phantasmal.cell.list.listCell
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.cell.mutate
 import world.phantasmal.web.core.minus
 import world.phantasmal.web.core.rendering.conversion.vec3ToEuler
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree

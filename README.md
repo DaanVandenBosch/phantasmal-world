@@ -1,7 +1,7 @@
 # Phantasmal World
 
 Phantasmal World is a collection of software for Phantasy Star Online.
-The [web aplication](https://www.phantasmal.world/) has a model viewer, quest editor and hunt
+The [web application](https://www.phantasmal.world/) has a model viewer, quest editor and hunt
 optimizer. There is also a work-in-progress [PSO server](psoserv/README.md).
 
 ## Developers
@@ -70,7 +70,7 @@ assembler/disassembler and a work-in-progress script engine/VM. It also has a mo
 scripting bytecode and data flow analysis for it. This subproject can be used as a library in other
 projects.
 
-#### observable
+#### cell
 
 A full-fledged multiplatform implementation of the observer pattern.
 

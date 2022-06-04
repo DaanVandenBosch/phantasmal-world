@@ -5,8 +5,8 @@ import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.Version
-import world.phantasmal.observable.cell.cell
-import world.phantasmal.observable.cell.list.listCell
+import world.phantasmal.cell.cell
+import world.phantasmal.cell.list.listCell
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
