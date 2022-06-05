@@ -1,6 +1,8 @@
 package world.phantasmal.cell
 
 import world.phantasmal.cell.test.CellTestSuite
+import world.phantasmal.cell.test.Snapshot
+import world.phantasmal.cell.test.snapshot
 import world.phantasmal.core.disposable.use
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -228,6 +230,109 @@ interface CellTests : CellTestSuite {
         assertEquals(mapped.value, observedValue)
     }
 
+    //
+    // Mutation tests.
+    //
+
+    @Test
+    fun changes_during_a_mutation_are_deferred() = test {
+        val p = createProvider()
+        var changes = 0
+
+        disposer.add(
+            p.cell.observeChange {
+                changes++
+            }
+        )
+
+        mutate {
+            repeat(5) {
+                p.emit()
+
+                // Change should be deferred until this lambda returns.
+                assertEquals(0, changes)
+            }
+        }
+
+        // All changes to the same cell should be collapsed to a single change.
+        assertEquals(1, changes)
+    }
+
+    @Test
+    fun value_can_be_accessed_during_a_mutation() = test {
+        val p = createProvider()
+
+        // Change will be observed exactly once.
+        var observedValue: Snapshot? = null
+
+        disposer.add(
+            p.cell.observeChange {
+                assertNull(observedValue)
+                observedValue = it.value.snapshot()
+            }
+        )
+
+        val v1 = p.cell.value.snapshot()
+        var v3: Snapshot? = null
+
+        mutate {
+            val v2 = p.cell.value.snapshot()
+
+            assertEquals(v1, v2)
+
+            p.emit()
+            v3 = p.cell.value.snapshot()
+
+            assertNotEquals(v2, v3)
+
+            p.emit()
+        }
+
+        val v4 = p.cell.value.snapshot()
+
+        assertNotNull(v3)
+        assertNotEquals(v3, v4)
+        assertEquals(v4, observedValue)
+    }
+
+    @Test
+    fun mutations_can_be_nested() = test {
+        // 3 Cells.
+        val ps = Array(3) { createProvider() }
+        val observedChanges = IntArray(3)
+
+        // Observe each cell.
+        repeat(3) { idx ->
+            disposer.add(
+                ps[idx].cell.observeChange {
+                    assertEquals(0, observedChanges[idx])
+                    observedChanges[idx]++
+                }
+            )
+        }
+
+        mutate {
+            ps[0].emit()
+
+            repeat(3) {
+                mutate {
+                    ps[1].emit()
+
+                    mutate {
+                        ps[2].emit()
+                    }
+
+                    assertTrue(observedChanges.all { it == 0 })
+                }
+
+                assertTrue(observedChanges.all { it == 0 })
+            }
+        }
+
+        // At this point all 3 observers should be called exactly once.
+        assertTrue(observedChanges.all { it == 1 })
+    }
+
     interface Provider {
         val cell: Cell<Any>
 
@@ -237,16 +342,3 @@ interface CellTests : CellTestSuite {
         fun emit()
     }
 }
-
-/** See [snapshot]. */
-private typealias Snapshot = String
-
-/**
- * We use toString to create "snapshots" of values throughout the tests. Most of the time cells will
- * actually have a new value after emitting a change event, but this is not always the case with
- * more complex cells or cells that point to complex values. So instead of keeping references to
- * values and comparing them with == (or using e.g. assertEquals), we compare snapshots.
- *
- * This of course assumes that all values have sensible toString implementations.
- */
-private fun Any?.snapshot(): Snapshot = toString()

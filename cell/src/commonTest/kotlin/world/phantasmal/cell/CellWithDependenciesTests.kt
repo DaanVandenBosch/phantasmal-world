@@ -62,19 +62,19 @@ interface CellWithDependenciesTests : CellTests {
 
         val cell = createWithDependencies(dependency1, dependency2, dependency3)
 
-        assertTrue(dependency1.publicDependents.isEmpty())
-        assertTrue(dependency2.publicDependents.isEmpty())
-        assertTrue(dependency3.publicDependents.isEmpty())
+        assertEquals(0, dependency1.dependentCount)
+        assertEquals(0, dependency2.dependentCount)
+        assertEquals(0, dependency3.dependentCount)
 
         disposer.add(cell.observeChange { })
 
-        assertEquals(1, dependency1.publicDependents.size)
-        assertEquals(1, dependency2.publicDependents.size)
-        assertEquals(1, dependency3.publicDependents.size)
+        assertEquals(1, dependency1.dependentCount)
+        assertEquals(1, dependency2.dependentCount)
+        assertEquals(1, dependency3.dependentCount)
     }
 
     private class TestCell : AbstractCell<Int>() {
-        val publicDependents: List<Dependent> = dependents
+        val dependentCount: Int get() = dependents.size
 
         override val value: Int = 5
         override val changeEvent: ChangeEvent<Int> = ChangeEvent(value)

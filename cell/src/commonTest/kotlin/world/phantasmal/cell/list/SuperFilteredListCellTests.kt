@@ -235,7 +235,7 @@ interface SuperFilteredListCellTests : CellTestSuite {
         val y = "y"
         val z = "z"
         val dependency = SimpleListCell(mutableListOf(x, y, z, x, y, z))
-        val list = createFilteredListCell(dependency, SimpleCell { it != y })
+        val list = createFilteredListCell(dependency, ImmutableCell { it != y })
         var event: ListChangeEvent<String>? = null
 
         disposer.add(list.observeListChange {
