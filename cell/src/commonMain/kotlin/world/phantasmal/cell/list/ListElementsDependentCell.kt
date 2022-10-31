@@ -36,8 +36,8 @@ class ListElementsDependentCell<E>(
     private fun updateElementDependenciesAndEvent() {
         if (!valid) {
             if (listInvalidated) {
-                // At this point we can remove this dependent from the removed elements' dependencies
-                // and add it to the newly inserted elements' dependencies.
+                // At this point we can remove this dependent from the removed elements'
+                // dependencies and add it to the newly inserted elements' dependencies.
                 list.changeEvent?.let { listChangeEvent ->
                     for (change in listChangeEvent.changes) {
                         for (i in change.index until (change.index + change.removed.size)) {

@@ -4,12 +4,16 @@ import world.phantasmal.cell.Cell
 import world.phantasmal.cell.ImmutableCell
 import world.phantasmal.cell.SimpleCell
 import world.phantasmal.cell.test.CellTestSuite
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Tests that apply to all filtered list implementations.
  */
-interface SuperFilteredListCellTests : CellTestSuite {
+interface AbstractFilteredListCellTests : CellTestSuite {
     fun <E> createFilteredListCell(list: ListCell<E>, predicate: Cell<(E) -> Boolean>): ListCell<E>
 
     @Test
@@ -174,11 +178,11 @@ interface SuperFilteredListCellTests : CellTestSuite {
                     for (newElement in newElements) {
                         changes.add(
                             ListChange(
-                            index = elements.size,
-                            prevSize = elements.size,
-                            removed = emptyList(),
-                            inserted = listOf(newElement),
-                        )
+                                index = elements.size,
+                                prevSize = elements.size,
+                                removed = emptyList(),
+                                inserted = listOf(newElement),
+                            )
                         )
                         elements.add(newElement)
                     }

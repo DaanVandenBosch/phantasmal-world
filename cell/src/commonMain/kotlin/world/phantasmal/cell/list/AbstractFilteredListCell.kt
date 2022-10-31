@@ -2,6 +2,8 @@ package world.phantasmal.cell.list
 
 import world.phantasmal.cell.Dependency
 import world.phantasmal.cell.Dependent
+import world.phantasmal.cell.MutationManager
+import world.phantasmal.core.unsafe.unsafeCast
 
 abstract class AbstractFilteredListCell<E>(
     protected val list: ListCell<E>,
@@ -9,6 +11,10 @@ abstract class AbstractFilteredListCell<E>(
 
     /** Set during a change wave when [list] changes. */
     private var listInvalidated = false
+
+    /** Mutation ID during which the current list of changes was created. */
+    private var changesMutationId: Long = -1
+    private var listChangeIndex = 0
 
     /** Set during a change wave when [predicateDependency] changes. */
     private var predicateInvalidated = false
@@ -25,12 +31,12 @@ abstract class AbstractFilteredListCell<E>(
             return elementsWrapper
         }
 
-    final override var changeEvent: ListChangeEvent<E>? = null
+    private var _changeEvent: ListChangeEvent<E>? = null
+    final override val changeEvent: ListChangeEvent<E>?
         get() {
             computeValueAndEvent()
-            return field
+            return _changeEvent
         }
-        private set
 
     private fun computeValueAndEvent() {
         if (!valid) {
@@ -43,93 +49,106 @@ abstract class AbstractFilteredListCell<E>(
                 ignoreOtherChanges()
                 recompute()
 
-                changeEvent = ListChangeEvent(
+                _changeEvent = ListChangeEvent(
                     elementsWrapper,
                     listOf(ListChange(0, removed.size, removed, elementsWrapper)),
                 )
             } else {
                 // TODO: Conditionally copyAndResetWrapper?
                 copyAndResetWrapper()
-                val filteredChanges = mutableListOf<ListChange<E>>()
 
-                if (listInvalidated) {
-                    list.changeEvent?.let { listChangeEvent ->
-                        for (change in listChangeEvent.changes) {
-                            val prevSize = elements.size
-                            // Map the incoming change index to an index into our own elements list.
-                            // TODO: Avoid this loop by storing the index where an element "would"
-                            //       be if it passed the predicate.
-                            var eventIndex = prevSize
+                // Reuse the same list of changes during a mutation.
+                val event = _changeEvent
+                val filteredChanges: MutableList<ListChange<E>> =
+                    if (event == null || changesMutationId != MutationManager.currentMutationId) {
+                        changesMutationId = MutationManager.currentMutationId
+                        listChangeIndex = 0
+                        mutableListOf()
+                    } else {
+                        // This cast is safe because we know we always instantiate our change event with a mutable list.
+                        unsafeCast(event.changes)
+                    }
 
-                            for (index in change.index..maxDepIndex()) {
-                                val i = mapIndex(index)
+                val listChangeEvent = list.changeEvent
 
-                                if (i != -1) {
-                                    eventIndex = i
-                                    break
-                                }
-                            }
+                if (listInvalidated && listChangeEvent != null) {
+                    for (change in listChangeEvent.changes.listIterator(listChangeIndex)) {
+                        val prevSize = elements.size
+                        // Map the incoming change index to an index into our own elements list.
+                        // TODO: Avoid this loop by storing the index where an element "would"
+                        //       be if it passed the predicate?
+                        var eventIndex = prevSize
 
-                            // Process removals.
-                            val removed = mutableListOf<E>()
+                        for (index in change.index..maxDepIndex()) {
+                            val i = mapIndex(index)
 
-                            for (element in change.removed) {
-                                val index = removeIndexMapping(change.index)
-
-                                if (index != -1) {
-                                    elements.removeAt(eventIndex)
-                                    removed.add(element)
-                                }
-                            }
-
-                            // Process insertions.
-                            val inserted = mutableListOf<E>()
-                            var insertionIndex = eventIndex
-
-                            for ((i, element) in change.inserted.withIndex()) {
-                                if (applyPredicate(element)) {
-                                    insertIndexMapping(change.index + i, insertionIndex, element)
-                                    elements.add(insertionIndex, element)
-                                    inserted.add(element)
-                                    insertionIndex++
-                                } else {
-                                    insertIndexMapping(change.index + i, -1, element)
-                                }
-                            }
-
-                            // Shift mapped indices by a certain amount. This amount can be
-                            // positive, negative or zero.
-                            val diff = inserted.size - removed.size
-
-                            if (diff != 0) {
-                                // Indices before the change index stay the same. Newly inserted
-                                // indices are already correct. So we only need to shift everything
-                                // after the new indices.
-                                val startIndex = change.index + change.inserted.size
-
-                                for (index in startIndex..maxDepIndex()) {
-                                    shiftIndexMapping(index, diff)
-                                }
-                            }
-
-                            // Add a list change if something actually changed.
-                            if (removed.isNotEmpty() || inserted.isNotEmpty()) {
-                                filteredChanges.add(
-                                    ListChange(
-                                        eventIndex,
-                                        prevSize,
-                                        removed,
-                                        inserted,
-                                    )
-                                )
+                            if (i != -1) {
+                                eventIndex = i
+                                break
                             }
                         }
+
+                        // Process removals.
+                        val removed = mutableListOf<E>()
+
+                        for (element in change.removed) {
+                            val index = removeIndexMapping(change.index)
+
+                            if (index != -1) {
+                                elements.removeAt(eventIndex)
+                                removed.add(element)
+                            }
+                        }
+
+                        // Process insertions.
+                        val inserted = mutableListOf<E>()
+                        var insertionIndex = eventIndex
+
+                        for ((i, element) in change.inserted.withIndex()) {
+                            if (applyPredicate(element)) {
+                                insertIndexMapping(change.index + i, insertionIndex, element)
+                                elements.add(insertionIndex, element)
+                                inserted.add(element)
+                                insertionIndex++
+                            } else {
+                                insertIndexMapping(change.index + i, -1, element)
+                            }
+                        }
+
+                        // Shift mapped indices by a certain amount. This amount can be
+                        // positive, negative or zero.
+                        val diff = inserted.size - removed.size
+
+                        if (diff != 0) {
+                            // Indices before the change index stay the same. Newly inserted
+                            // indices are already correct. So we only need to shift everything
+                            // after the new indices.
+                            val startIndex = change.index + change.inserted.size
+
+                            for (index in startIndex..maxDepIndex()) {
+                                shiftIndexMapping(index, diff)
+                            }
+                        }
+
+                        // Add a list change if something actually changed.
+                        if (removed.isNotEmpty() || inserted.isNotEmpty()) {
+                            filteredChanges.add(
+                                ListChange(
+                                    eventIndex,
+                                    prevSize,
+                                    removed,
+                                    inserted,
+                                )
+                            )
+                        }
                     }
+
+                    listChangeIndex = listChangeEvent.changes.size
                 }
 
                 processOtherChanges(filteredChanges)
 
-                changeEvent =
+                _changeEvent =
                     if (filteredChanges.isEmpty()) {
                         null
                     } else {

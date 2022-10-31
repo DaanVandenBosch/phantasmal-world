@@ -1,11 +1,12 @@
 package world.phantasmal.cell.list
 
+import world.phantasmal.cell.MutationManager
 import world.phantasmal.core.replaceAll
+import world.phantasmal.core.unsafe.unsafeCast
 
 /**
  * @param elements The backing list for this [ListCell].
  */
-// TODO: Support change sets by sometimes appending to changeEvent instead of always overwriting it.
 class SimpleListCell<E>(
     override val elements: MutableList<E>,
 ) : AbstractElementsWrappingListCell<E>(), MutableListCell<E> {
@@ -18,6 +19,9 @@ class SimpleListCell<E>(
 
     override var changeEvent: ListChangeEvent<E>? = null
         private set
+
+    /** Mutation ID during which the current list of changes was created. */
+    private var changesMutationId: Long = -1
 
     override operator fun get(index: Int): E =
         elements[index]
@@ -135,6 +139,10 @@ class SimpleListCell<E>(
     }
 
     override fun clear() {
+        if (elements.isEmpty()) {
+            return
+        }
+
         applyChange {
             val prevSize = elements.size
             val removed = elementsWrapper
@@ -185,9 +193,19 @@ class SimpleListCell<E>(
         removed: List<E>,
         inserted: List<E>,
     ) {
-        changeEvent = ListChangeEvent(
-            elementsWrapper,
-            listOf(ListChange(index, prevSize, removed, inserted)),
-        )
+        val event = changeEvent
+
+        // Reuse the same list of changes during a mutation.
+        val changes: MutableList<ListChange<E>> =
+            if (event == null || changesMutationId != MutationManager.currentMutationId) {
+                changesMutationId = MutationManager.currentMutationId
+                mutableListOf()
+            } else {
+                // This cast is safe because we know we always instantiate our change event with a mutable list.
+                unsafeCast(event.changes)
+            }
+
+        changes.add(ListChange(index, prevSize, removed, inserted))
+        changeEvent = ListChangeEvent(elementsWrapper, changes)
     }
 }

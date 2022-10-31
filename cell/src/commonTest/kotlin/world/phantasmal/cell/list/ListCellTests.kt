@@ -1,7 +1,14 @@
 package world.phantasmal.cell.list
 
 import world.phantasmal.cell.CellTests
-import kotlin.test.*
+import world.phantasmal.cell.mutate
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * Test suite for all [ListCell] implementations. There is a subclass of this suite for every
@@ -213,6 +220,56 @@ interface ListCellTests : CellTests {
             assertNotNull(firstOrNull.value)
             // Observer may or may not be called when adding elements at the end of the list.
             assertTrue(observedValue == null || observedValue == firstOrNull.value)
+        }
+    }
+
+    /**
+     * The same as [value_can_be_accessed_during_a_mutation], except that it also checks expected
+     * list sizes.
+     */
+    @Test
+    fun list_cell_value_can_be_accessed_during_a_mutation() = test {
+        val p = createProvider()
+
+        var observedValue: List<Any>? = null
+
+        disposer.add(
+            p.cell.observeChange {
+                // Change will be observed exactly once every loop iteration.
+                assertNull(observedValue)
+                observedValue = it.value.toList()
+            }
+        )
+
+        // Repeat 3 times to check that temporary state is always reset.
+        repeat(3) {
+            observedValue = null
+
+            val v1 = p.cell.value.toList()
+            var v3: List<Any>? = null
+
+            mutate {
+                val v2 = p.cell.value.toList()
+
+                assertEquals(v1, v2)
+
+                p.addElement()
+                v3 = p.cell.value.toList()
+
+                assertNotEquals(v2, v3)
+                assertEquals(v2.size + 1, v3!!.size)
+
+                p.addElement()
+
+                assertNull(observedValue)
+            }
+
+            val v4 = p.cell.value.toList()
+
+            assertNotNull(v3)
+            assertNotEquals(v3, v4)
+            assertEquals(v3!!.size + 1, v4.size)
+            assertEquals(v4, observedValue)
         }
     }
 

@@ -8,7 +8,7 @@ import world.phantasmal.cell.map
 // TODO: A test suite that tests FilteredListCell while the predicate results are changing.
 // TODO: A test suite that tests FilteredListCell while all 3 types of dependencies are changing.
 @Suppress("unused")
-class FilteredListCellTests : SuperFilteredListCellTests {
+class FilteredListCellTests : AbstractFilteredListCellTests {
     override fun <E> createFilteredListCell(list: ListCell<E>, predicate: Cell<(E) -> Boolean>) =
         FilteredListCell(list, predicate.map { p -> { cell(p(it)) } })
 }

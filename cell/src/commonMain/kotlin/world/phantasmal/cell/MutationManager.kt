@@ -4,18 +4,27 @@ import world.phantasmal.core.assert
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 
-// TODO: Throw exception by default when triggering early recomputation during change set. Allow to
-//       to turn this check off, because partial, early recomputation might be useful in rare cases.
-//       Dependents will need to partially apply ListChangeEvents etc. and remember which part of
-//       the event they've already applied (i.e. an index into the changes list).
 object MutationManager {
     private val invalidatedLeaves = HashSet<LeafDependent>()
 
     /** Non-zero when a mutation is active. */
-    private var mutationNestingLevel = 0
+    private var mutationNestingLevel: Int = 0
 
-    /** Whether a dependency's value is changing at the moment. */
+    /**
+     * ID of the current outermost mutation. Meaningless when not in a mutation. Nested mutations
+     * don't have IDs at the moment.
+     */
+    var currentMutationId: Long = -1
+        private set
+
+    /**
+     * Set to true when a mutation was automatically started by changing a cell without first
+     * manually starting a mutation.
+     */
+    private var artificialMutation = false
+
     private var dependencyChanging = false
+    private var pulling = false
 
     private val deferredMutations: MutableList<() -> Unit> = mutableListOf()
     private var applyingDeferredMutations = false
@@ -35,7 +44,7 @@ object MutationManager {
     }
 
     fun mutateDeferred(block: () -> Unit) {
-        if (dependencyChanging || mutationNestingLevel > 0) {
+        if (mutationNestingLevel > 0) {
             deferredMutations.add(block)
         } else {
             block()
@@ -43,23 +52,38 @@ object MutationManager {
     }
 
     fun mutationStart() {
+        assert(!dependencyChanging) { "Can't start a mutation while a dependency is changing." }
+        assert(!pulling) { "Can't start a mutation while pulling." }
+
+        if (mutationNestingLevel == 0) {
+            currentMutationId++
+        }
+
         mutationNestingLevel++
     }
 
     fun mutationEnd() {
         assert(mutationNestingLevel > 0) { "No mutation was started." }
 
-        mutationNestingLevel--
+        if (mutationNestingLevel == 1) {
+            assert(!pulling) { "Already pulling." }
 
-        if (mutationNestingLevel == 0) {
             try {
+                pulling = true
+
                 for (dependent in invalidatedLeaves) {
                     dependent.pull()
                 }
             } finally {
+                dependencyChanging = false
+                pulling = false
+                mutationNestingLevel--
                 invalidatedLeaves.clear()
                 applyDeferredMutations()
             }
+        } else {
+            dependencyChanging = false
+            mutationNestingLevel--
         }
     }
 
@@ -79,23 +103,20 @@ object MutationManager {
 
     fun dependencyChangeStart() {
         check(!dependencyChanging) { "A cell is already changing." }
+        assert(!pulling) { "Can't change a cell while pulling." }
+
+        if (mutationNestingLevel == 0) {
+            mutationStart()
+            artificialMutation = true
+        }
 
         dependencyChanging = true
     }
 
     fun dependencyChangeEnd() {
-        assert(dependencyChanging) { "No cell was changing." }
-
-        if (mutationNestingLevel == 0) {
-            try {
-                for (dependent in invalidatedLeaves) {
-                    dependent.pull()
-                }
-            } finally {
-                dependencyChanging = false
-                invalidatedLeaves.clear()
-                applyDeferredMutations()
-            }
+        if (artificialMutation) {
+            artificialMutation = false
+            mutationEnd()
         } else {
             dependencyChanging = false
         }
@@ -114,9 +135,7 @@ object MutationManager {
                 var idx = 0
 
                 while (idx < deferredMutations.size) {
-                    mutate {
-                        deferredMutations[idx]()
-                    }
+                    mutate(deferredMutations[idx])
 
                     idx++
                 }

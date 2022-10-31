@@ -9,7 +9,7 @@ import world.phantasmal.cell.Cell
  * [SimpleFilteredListCellPredicateDependencyEmitsTests].
  */
 @Suppress("unused")
-class SimpleFilteredListCellTests : SuperFilteredListCellTests {
+class SimpleFilteredListCellTests : AbstractFilteredListCellTests {
     override fun <E> createFilteredListCell(list: ListCell<E>, predicate: Cell<(E) -> Boolean>) =
         SimpleFilteredListCell(list, predicate)
 }
