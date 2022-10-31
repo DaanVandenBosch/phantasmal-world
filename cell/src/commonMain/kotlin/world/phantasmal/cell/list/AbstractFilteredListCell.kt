@@ -7,7 +7,7 @@ import world.phantasmal.core.unsafe.unsafeCast
 
 abstract class AbstractFilteredListCell<E>(
     protected val list: ListCell<E>,
-) : AbstractElementsWrappingListCell<E>(), Dependent {
+) : AbstractListCell<E>(), Dependent {
 
     /** Set during a change wave when [list] changes. */
     private var listInvalidated = false
@@ -21,14 +21,14 @@ abstract class AbstractFilteredListCell<E>(
 
     private var valid = false
 
-    final override val elements = mutableListOf<E>()
+    protected val elements = mutableListOf<E>()
 
     protected abstract val predicateDependency: Dependency<*>
 
     final override val value: List<E>
         get() {
             computeValueAndEvent()
-            return elementsWrapper
+            return elements
         }
 
     private var _changeEvent: ListChangeEvent<E>? = null
@@ -44,30 +44,30 @@ abstract class AbstractFilteredListCell<E>(
 
             if (predicateInvalidated || !hasDependents) {
                 // Simply assume the entire list changes and recompute.
-                val removed = elementsWrapper
+                val removed = elements.toList()
 
                 ignoreOtherChanges()
                 recompute()
 
                 _changeEvent = ListChangeEvent(
-                    elementsWrapper,
-                    listOf(ListChange(0, removed.size, removed, elementsWrapper)),
+                    elements,
+                    listOf(ListChange(index = 0, prevSize = removed.size, removed, elements)),
                 )
             } else {
-                // TODO: Conditionally copyAndResetWrapper?
-                copyAndResetWrapper()
-
                 // Reuse the same list of changes during a mutation.
                 val event = _changeEvent
-                val filteredChanges: MutableList<ListChange<E>> =
-                    if (event == null || changesMutationId != MutationManager.currentMutationId) {
-                        changesMutationId = MutationManager.currentMutationId
-                        listChangeIndex = 0
-                        mutableListOf()
-                    } else {
-                        // This cast is safe because we know we always instantiate our change event with a mutable list.
-                        unsafeCast(event.changes)
-                    }
+                val filteredChanges: MutableList<ListChange<E>>
+
+                if (event == null || changesMutationId != MutationManager.currentMutationId) {
+                    changesMutationId = MutationManager.currentMutationId
+                    listChangeIndex = 0
+                    filteredChanges = mutableListOf()
+                    _changeEvent = ListChangeEvent(elements, filteredChanges)
+                } else {
+                    // This cast is safe because we know we always instantiate our change event
+                    // with a mutable list.
+                    filteredChanges = unsafeCast(event.changes)
+                }
 
                 val listChangeEvent = list.changeEvent
 
@@ -148,12 +148,11 @@ abstract class AbstractFilteredListCell<E>(
 
                 processOtherChanges(filteredChanges)
 
-                _changeEvent =
-                    if (filteredChanges.isEmpty()) {
-                        null
-                    } else {
-                        ListChangeEvent(elementsWrapper, filteredChanges)
-                    }
+                if (filteredChanges.isEmpty()) {
+                    _changeEvent = null
+                } else {
+                    // Keep the previous change event, it has been changed internally.
+                }
             }
 
             // Reset for next change wave.

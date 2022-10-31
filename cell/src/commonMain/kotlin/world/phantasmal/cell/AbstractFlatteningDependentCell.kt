@@ -38,13 +38,15 @@ abstract class AbstractFlatteningDependentCell<T, ComputedCell : Cell<T>, Event 
                 computedCell = unsafeAssertNotNull(this.computedCell)
             }
 
-            val newValue = computedCell.value
+            val newValue = transformNewValue(computedCell.value)
             _value = newValue
             changeEvent = createEvent(oldValue, newValue)
             // We stay invalid if we have no dependents to ensure our value is always recomputed.
             valid = hasDependents
         }
     }
+
+    protected abstract fun transformNewValue(value: T): T
 
     protected abstract fun createEvent(oldValue: T?, newValue: T): Event
 

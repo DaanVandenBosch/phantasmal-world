@@ -1,16 +1,14 @@
 package world.phantasmal.cell.list
 
+import world.phantasmal.cell.*
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.unsafe.unsafeAssertNotNull
-import world.phantasmal.cell.CallbackChangeObserver
-import world.phantasmal.cell.ChangeObserver
-import world.phantasmal.cell.AbstractFlatteningDependentCell
-import world.phantasmal.cell.Cell
-import world.phantasmal.cell.DependentCell
 
 /**
  * Similar to [DependentListCell], except that this cell's computeElements returns a [ListCell].
  */
+// TODO: Improve performance when transitive cell changes. At the moment a change event is generated
+//       that just pretends the whole list has changed.
 class FlatteningDependentListCell<E>(
     vararg dependencies: Cell<*>,
     computeElements: () -> ListCell<E>,
@@ -58,6 +56,10 @@ class FlatteningDependentListCell<E>(
         CallbackChangeObserver(this, observer)
 
     override fun toString(): String = listCellToString(this)
+
+    override fun transformNewValue(value: List<E>): List<E> =
+        // Make a copy because this value is later used as the "removed" field of a list change.
+        value.toList()
 
     override fun createEvent(oldValue: List<E>?, newValue: List<E>): ListChangeEvent<E> {
         val old = oldValue ?: emptyList()

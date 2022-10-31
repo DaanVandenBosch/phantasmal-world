@@ -148,7 +148,6 @@ class FilteredListCell<E>(
     }
 
     override fun recompute() {
-        copyAndResetWrapper()
         elements.clear()
 
         for (mapping in indexMap) {

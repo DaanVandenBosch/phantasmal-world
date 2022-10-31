@@ -1,18 +1,17 @@
 package world.phantasmal.cell.list
 
 import world.phantasmal.cell.MutationManager
-import world.phantasmal.core.replaceAll
 import world.phantasmal.core.unsafe.unsafeCast
 
 /**
  * @param elements The backing list for this [ListCell].
  */
 class SimpleListCell<E>(
-    override val elements: MutableList<E>,
-) : AbstractElementsWrappingListCell<E>(), MutableListCell<E> {
+    private var elements: MutableList<E>,
+) : AbstractListCell<E>(), MutableListCell<E> {
 
     override var value: List<E>
-        get() = elementsWrapper
+        get() = elements
         set(value) {
             replaceAll(value)
         }
@@ -30,7 +29,6 @@ class SimpleListCell<E>(
         checkIndex(index, elements.lastIndex)
 
         applyChange {
-            copyAndResetWrapper()
             val removed = elements.set(index, element)
 
             finalizeChange(
@@ -47,7 +45,6 @@ class SimpleListCell<E>(
     override fun add(element: E) {
         applyChange {
             val index = elements.size
-            copyAndResetWrapper()
             elements.add(element)
 
             finalizeChange(
@@ -64,7 +61,6 @@ class SimpleListCell<E>(
         checkIndex(index, prevSize)
 
         applyChange {
-            copyAndResetWrapper()
             elements.add(index, element)
 
             finalizeChange(index, prevSize, removed = emptyList(), inserted = listOf(element))
@@ -87,8 +83,6 @@ class SimpleListCell<E>(
 
         applyChange {
             val prevSize = elements.size
-
-            copyAndResetWrapper()
             val removed = elements.removeAt(index)
 
             finalizeChange(index, prevSize, removed = listOf(removed), inserted = emptyList())
@@ -98,25 +92,21 @@ class SimpleListCell<E>(
 
     override fun replaceAll(elements: Iterable<E>) {
         applyChange {
-            val prevSize = this.elements.size
-            val removed = elementsWrapper
+            val removed = this.elements
 
-            copyAndResetWrapper()
-            this.elements.replaceAll(elements)
+            this.elements = elements.toMutableList()
 
-            finalizeChange(index = 0, prevSize, removed, inserted = elementsWrapper)
+            finalizeChange(index = 0, prevSize = removed.size, removed, inserted = this.elements)
         }
     }
 
     override fun replaceAll(elements: Sequence<E>) {
         applyChange {
-            val prevSize = this.elements.size
-            val removed = elementsWrapper
+            val removed = this.elements
 
-            copyAndResetWrapper()
-            this.elements.replaceAll(elements)
+            this.elements = elements.toMutableList()
 
-            finalizeChange(index = 0, prevSize, removed, inserted = elementsWrapper)
+            finalizeChange(index = 0, prevSize = removed.size, removed, inserted = this.elements)
         }
     }
 
@@ -130,7 +120,6 @@ class SimpleListCell<E>(
         }
 
         applyChange {
-            copyAndResetWrapper()
             repeat(removeCount) { elements.removeAt(fromIndex) }
             elements.add(fromIndex, newElement)
 
@@ -144,20 +133,17 @@ class SimpleListCell<E>(
         }
 
         applyChange {
-            val prevSize = elements.size
-            val removed = elementsWrapper
+            val removed = elements
 
-            copyAndResetWrapper()
-            elements.clear()
+            elements = mutableListOf()
 
-            finalizeChange(index = 0, prevSize, removed, inserted = emptyList())
+            finalizeChange(index = 0, prevSize = removed.size, removed, inserted = emptyList())
         }
     }
 
     override fun sortWith(comparator: Comparator<E>) {
         applyChange {
-            val removed = elementsWrapper
-            copyAndResetWrapper()
+            val removed = elements.toList()
             var throwable: Throwable? = null
 
             try {
@@ -170,7 +156,7 @@ class SimpleListCell<E>(
                 index = 0,
                 prevSize = elements.size,
                 removed,
-                inserted = elementsWrapper,
+                inserted = elements,
             )
 
             if (throwable != null) {
@@ -194,18 +180,16 @@ class SimpleListCell<E>(
         inserted: List<E>,
     ) {
         val event = changeEvent
+        val listChange = ListChange(index, prevSize, removed, inserted)
 
-        // Reuse the same list of changes during a mutation.
-        val changes: MutableList<ListChange<E>> =
-            if (event == null || changesMutationId != MutationManager.currentMutationId) {
-                changesMutationId = MutationManager.currentMutationId
-                mutableListOf()
-            } else {
-                // This cast is safe because we know we always instantiate our change event with a mutable list.
-                unsafeCast(event.changes)
-            }
-
-        changes.add(ListChange(index, prevSize, removed, inserted))
-        changeEvent = ListChangeEvent(elementsWrapper, changes)
+        if (event == null || changesMutationId != MutationManager.currentMutationId) {
+            changesMutationId = MutationManager.currentMutationId
+            changeEvent = ListChangeEvent(elements, mutableListOf(listChange))
+        } else {
+            // Reuse the same list of changes during a mutation.
+            // This cast is safe because we know we always instantiate our change event with a
+            // mutable list.
+            unsafeCast<MutableList<ListChange<E>>>(event.changes).add(listChange)
+        }
     }
 }

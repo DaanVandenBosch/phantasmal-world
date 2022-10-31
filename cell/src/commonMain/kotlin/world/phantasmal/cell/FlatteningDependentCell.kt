@@ -7,6 +7,7 @@ class FlatteningDependentCell<T>(
     vararg dependencies: Cell<*>,
     compute: () -> Cell<T>,
 ) : AbstractFlatteningDependentCell<T, Cell<T>, ChangeEvent<T>>(dependencies, compute) {
+    override fun transformNewValue(value: T): T = value
 
     override fun createEvent(oldValue: T?, newValue: T): ChangeEvent<T> =
         ChangeEvent(newValue)

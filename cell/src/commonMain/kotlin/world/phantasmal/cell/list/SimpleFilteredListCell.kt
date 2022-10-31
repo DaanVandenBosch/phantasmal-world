@@ -58,7 +58,6 @@ class SimpleFilteredListCell<E>(
     }
 
     override fun recompute() {
-        copyAndResetWrapper()
         elements.clear()
         indexMap.clear()
 

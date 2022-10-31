@@ -86,11 +86,12 @@ fun <T1, T2, R> flatMapToList(
 ): ListCell<R> =
     FlatteningDependentListCell(c1, c2) { transform(c1.value, c2.value) }
 
-fun listCellToString(cell: ListCell<*>): String = buildString {
-    append(this::class.simpleName)
-    append('[')
-    cell.value.joinTo(this, limit = 20) {
-        if (it === this) "(this cell)" else it.toString()
+fun listCellToString(cell: ListCell<*>): String =
+    buildString {
+        append(cell::class.simpleName)
+        append('[')
+        cell.value.joinTo(this, limit = 20) {
+            if (it === cell) "(this cell)" else it.toString()
+        }
+        append(']')
     }
-    append(']')
-}
