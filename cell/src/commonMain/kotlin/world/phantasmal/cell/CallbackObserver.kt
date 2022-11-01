@@ -8,7 +8,7 @@ import world.phantasmal.core.disposable.TrackedDisposable
 class CallbackObserver(
     private vararg val dependencies: Cell<*>,
     private val callback: () -> Unit,
-) : TrackedDisposable(), Dependent, LeafDependent {
+) : TrackedDisposable(), LeafDependent {
 
     init {
         for (dependency in dependencies) {
@@ -28,7 +28,7 @@ class CallbackObserver(
         MutationManager.invalidated(this)
     }
 
-    override fun pull() {
+    override fun dependenciesChanged() {
         var changed = false
 
         // We loop through all dependencies to ensure they're valid again.

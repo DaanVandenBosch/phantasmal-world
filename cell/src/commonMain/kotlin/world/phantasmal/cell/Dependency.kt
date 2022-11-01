@@ -1,7 +1,13 @@
 package world.phantasmal.cell
 
+/**
+ * This interface is not meant to be implemented by typical application code.
+ */
 interface Dependency<out T> {
-    // TODO: Docs.
+    /**
+     * This property is not meant to be accessed from typical application code. The current change
+     * event for this dependency. Only valid during a mutation.
+     */
     val changeEvent: ChangeEvent<T>?
 
     /**

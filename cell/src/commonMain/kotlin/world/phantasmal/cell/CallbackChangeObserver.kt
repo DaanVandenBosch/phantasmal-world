@@ -11,7 +11,7 @@ class CallbackChangeObserver<T, E : ChangeEvent<T>>(
     // We don't use ChangeObserver<T> because of type system limitations. It would break e.g.
     // AbstractListCell.observeListChange.
     private val callback: (E) -> Unit,
-) : TrackedDisposable(), Dependent, LeafDependent {
+) : TrackedDisposable(), LeafDependent {
 
     init {
         dependency.addDependent(this)
@@ -26,7 +26,7 @@ class CallbackChangeObserver<T, E : ChangeEvent<T>>(
         MutationManager.invalidated(this)
     }
 
-    override fun pull() {
+    override fun dependenciesChanged() {
         // See comment above callback property to understand why this is safe.
         dependency.changeEvent?.let(unsafeCast<(ChangeEvent<T>) -> Unit>(callback))
     }

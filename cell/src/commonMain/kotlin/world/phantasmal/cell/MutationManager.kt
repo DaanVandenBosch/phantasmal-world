@@ -24,7 +24,7 @@ object MutationManager {
     private var artificialMutation = false
 
     private var dependencyChanging = false
-    private var pulling = false
+    private var notifyingLeavesOfChanges = false
 
     private val deferredMutations: MutableList<() -> Unit> = mutableListOf()
     private var applyingDeferredMutations = false
@@ -53,7 +53,9 @@ object MutationManager {
 
     fun mutationStart() {
         assert(!dependencyChanging) { "Can't start a mutation while a dependency is changing." }
-        assert(!pulling) { "Can't start a mutation while pulling." }
+        assert(!notifyingLeavesOfChanges) {
+            "Can't start a mutation while notifying leaf dependents of changes."
+        }
 
         if (mutationNestingLevel == 0) {
             currentMutationId++
@@ -66,17 +68,17 @@ object MutationManager {
         assert(mutationNestingLevel > 0) { "No mutation was started." }
 
         if (mutationNestingLevel == 1) {
-            assert(!pulling) { "Already pulling." }
+            assert(!notifyingLeavesOfChanges) { "Already notifying leaf dependents of changes." }
 
             try {
-                pulling = true
+                notifyingLeavesOfChanges = true
 
                 for (dependent in invalidatedLeaves) {
-                    dependent.pull()
+                    dependent.dependenciesChanged()
                 }
             } finally {
                 dependencyChanging = false
-                pulling = false
+                notifyingLeavesOfChanges = false
                 mutationNestingLevel--
                 invalidatedLeaves.clear()
                 applyDeferredMutations()
@@ -103,7 +105,9 @@ object MutationManager {
 
     fun dependencyChangeStart() {
         check(!dependencyChanging) { "A cell is already changing." }
-        assert(!pulling) { "Can't change a cell while pulling." }
+        assert(!notifyingLeavesOfChanges) {
+            "Can't change a cell while  notifying leaf dependents of changes."
+        }
 
         if (mutationNestingLevel == 0) {
             mutationStart()
