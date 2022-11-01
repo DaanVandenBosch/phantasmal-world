@@ -47,9 +47,9 @@ interface CellWithDependenciesTests : CellTests {
 
         disposer.add(leaf.observeChange { observedChanges++ })
 
-        // Change root, which results in both branches changing and thus two dependencies of leaf
+        // Change root, which results in all branches changing and thus three dependencies of leaf
         // changing.
-        root.value = 7
+        root.value++
 
         assertEquals(1, observedChanges)
     }

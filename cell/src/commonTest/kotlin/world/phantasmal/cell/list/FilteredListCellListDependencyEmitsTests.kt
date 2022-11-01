@@ -5,15 +5,20 @@ import world.phantasmal.cell.CellWithDependenciesTests
 import world.phantasmal.cell.cell
 import world.phantasmal.cell.map
 
+/**
+ * In these tests the list dependency of the [FilteredListCell] changes.
+ */
 @Suppress("unused")
 class FilteredListCellListDependencyEmitsTests : ListCellTests, CellWithDependenciesTests {
     override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
+        // The list cell changes.
         private val dependencyCell =
             SimpleListCell(if (empty) mutableListOf(5) else mutableListOf(5, 10))
 
         override val cell =
             FilteredListCell(
                 list = dependencyCell,
+                // Neither the predicate cell nor the predicate results change.
                 predicate = cell { cell(it % 2 == 0) },
             )
 
