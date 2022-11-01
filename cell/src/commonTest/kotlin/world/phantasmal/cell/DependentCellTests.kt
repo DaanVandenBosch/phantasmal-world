@@ -1,13 +1,8 @@
 package world.phantasmal.cell
 
 @Suppress("unused")
-class DependentCellTests : RegularCellTests, CellWithDependenciesTests {
+class DependentCellTests : CellWithDependenciesTests {
     override fun createProvider() = Provider()
-
-    override fun <T> createWithValue(value: T): Cell<T> {
-        val dependency = SimpleCell(value)
-        return DependentCell(dependency) { dependency.value }
-    }
 
     override fun createWithDependencies(
         dependency1: Cell<Int>,

@@ -1,7 +1,7 @@
 package world.phantasmal.cell
 
 @Suppress("unused")
-class DelegatingCellTests : RegularCellTests, MutableCellTests<Int> {
+class DelegatingCellTests : MutableCellTests<Int> {
     override fun createProvider() = object : MutableCellTests.Provider<Int> {
         private var v = 17
 
@@ -12,10 +12,5 @@ class DelegatingCellTests : RegularCellTests, MutableCellTests<Int> {
         }
 
         override fun createValue(): Int = v + 1
-    }
-
-    override fun <T> createWithValue(value: T): Cell<T> {
-        var v = value
-        return DelegatingCell({ v }, { v = it })
     }
 }

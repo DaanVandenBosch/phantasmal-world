@@ -1,12 +1,17 @@
+@file:JvmName("Cells")
+
 package world.phantasmal.cell
 
 import world.phantasmal.core.disposable.Disposable
+import kotlin.jvm.JvmName
 
 private val TRUE_CELL: Cell<Boolean> = ImmutableCell(true)
 private val FALSE_CELL: Cell<Boolean> = ImmutableCell(false)
 private val NULL_CELL: Cell<Nothing?> = ImmutableCell(null)
 private val ZERO_INT_CELL: Cell<Int> = ImmutableCell(0)
 private val EMPTY_STRING_CELL: Cell<String> = ImmutableCell("")
+
+// Factory methods.
 
 /** Returns an immutable cell containing [value]. */
 fun <T> cell(value: T): Cell<T> = ImmutableCell(value)
@@ -37,6 +42,8 @@ fun <T> mutableCell(value: T): MutableCell<T> = SimpleCell(value)
  */
 fun <T> mutableCell(getter: () -> T, setter: (T) -> Unit): MutableCell<T> =
     DelegatingCell(getter, setter)
+
+// Observation extensions.
 
 fun <T> Cell<T>.observe(observer: (T) -> Unit): Disposable =
     observeChange { observer(it.value) }
@@ -102,6 +109,8 @@ fun <T1, T2, T3, T4, T5> observeNow(
     observer(c1.value, c2.value, c3.value, c4.value, c5.value)
     return disposable
 }
+
+// Generic extensions.
 
 /**
  * Map a transformation function over this cell.
@@ -189,17 +198,27 @@ infix fun <T> Cell<T>.ne(other: Cell<T>): Cell<Boolean> =
 fun <T> Cell<T?>.orElse(defaultValue: () -> T): Cell<T> =
     map { it ?: defaultValue() }
 
-infix fun <T : Comparable<T>> Cell<T>.gt(value: T): Cell<Boolean> =
-    map { it > value }
+// Comparable extensions.
 
 infix fun <T : Comparable<T>> Cell<T>.gt(other: Cell<T>): Cell<Boolean> =
     map(this, other) { a, b -> a > b }
 
-infix fun <T : Comparable<T>> Cell<T>.lt(value: T): Cell<Boolean> =
-    map { it < value }
+infix fun <T : Comparable<T>> Cell<T>.gt(value: T): Cell<Boolean> =
+    map { it > value }
+
+infix fun <T : Comparable<T>> T.gt(other: Cell<T>): Cell<Boolean> =
+    other.map { this > it }
 
 infix fun <T : Comparable<T>> Cell<T>.lt(other: Cell<T>): Cell<Boolean> =
     map(this, other) { a, b -> a < b }
+
+infix fun <T : Comparable<T>> Cell<T>.lt(value: T): Cell<Boolean> =
+    map { it < value }
+
+infix fun <T : Comparable<T>> T.lt(other: Cell<T>): Cell<Boolean> =
+    other.map { this < it }
+
+// Boolean extensions.
 
 infix fun Cell<Boolean>.and(other: Cell<Boolean>): Cell<Boolean> =
     map(this, other) { a, b -> a && b }
@@ -223,13 +242,15 @@ infix fun Cell<Boolean>.xor(other: Cell<Boolean>): Cell<Boolean> =
     // Use != because of https://youtrack.jetbrains.com/issue/KT-31277.
     map(this, other) { a, b -> a != b }
 
+infix fun Cell<Boolean>.xor(other: Boolean): Cell<Boolean> =
+    if (other) !this else this
+
+infix fun Boolean.xor(other: Cell<Boolean>): Cell<Boolean> =
+    if (this) !other else other
+
 operator fun Cell<Boolean>.not(): Cell<Boolean> = map { !it }
 
-operator fun Cell<Int>.plus(value: Int): Cell<Int> =
-    map { it + value }
-
-operator fun Cell<Int>.minus(value: Int): Cell<Int> =
-    map { it - value }
+// String extensions.
 
 fun Cell<String>.isEmpty(): Cell<Boolean> =
     map { it.isEmpty() }
@@ -242,6 +263,8 @@ fun Cell<String>.isBlank(): Cell<Boolean> =
 
 fun Cell<String>.isNotBlank(): Cell<Boolean> =
     map { it.isNotBlank() }
+
+// Other utilities.
 
 fun cellToString(cell: Cell<*>): String {
     val className = cell::class.simpleName

@@ -4,16 +4,9 @@ package world.phantasmal.cell
  * In these tests the dependency of the [FlatteningDependentCell]'s direct dependency changes.
  */
 @Suppress("unused")
-class FlatteningDependentCellTransitiveDependencyEmitsTests :
-    RegularCellTests,
-    CellWithDependenciesTests {
+class FlatteningDependentCellTransitiveDependencyEmitsTests : CellWithDependenciesTests {
 
     override fun createProvider() = Provider()
-
-    override fun <T> createWithValue(value: T): Cell<T> {
-        val dependency = ImmutableCell(ImmutableCell(value))
-        return FlatteningDependentCell(dependency) { dependency.value }
-    }
 
     override fun createWithDependencies(
         dependency1: Cell<Int>,

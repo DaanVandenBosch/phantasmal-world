@@ -1,8 +1,11 @@
+@file:JvmName("ListCells")
+
 package world.phantasmal.cell.list
 
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.DependentCell
 import world.phantasmal.cell.ImmutableCell
+import kotlin.jvm.JvmName
 
 private val EMPTY_LIST_CELL = ImmutableListCell<Nothing>(emptyList())
 
