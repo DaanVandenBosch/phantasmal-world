@@ -2,12 +2,7 @@ package world.phantasmal.cell
 
 import world.phantasmal.cell.test.CellTestSuite
 import world.phantasmal.core.disposable.use
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Test suite for all [Cell] implementations. There is a subclass of this suite for every [Cell]
@@ -243,7 +238,7 @@ interface CellTests : CellTestSuite {
             }
         )
 
-        // Repeat 3 times to check if temporary state is always reset.
+        // Repeat 3 times to check that temporary state is always reset.
         repeat(3) {
             changes = 0
 
@@ -258,6 +253,37 @@ interface CellTests : CellTestSuite {
 
             // All changes to the same cell should be collapsed to a single change.
             assertEquals(1, changes)
+        }
+    }
+
+    /**
+     * When two dependencies of an observer are changed in a single mutation, the observer is called
+     * just once.
+     */
+    @Test
+    fun changing_two_dependencies_during_a_mutation_results_in_one_callback_call() = test {
+        val p1 = createProvider()
+        val p2 = createProvider()
+        var callbackCalled = 0
+
+        disposer.add(
+            observe(p1.cell, p2.cell) { _, _ -> callbackCalled++ }
+        )
+
+        // Repeat 3 times to check that temporary state is always reset.
+        repeat(3) {
+            callbackCalled = 0
+
+            mutate {
+                p1.emit()
+                p2.emit()
+
+                // Change should be deferred until this mutation finishes.
+                assertEquals(0, callbackCalled)
+            }
+
+            // All changes should result in a single callback call.
+            assertEquals(1, callbackCalled)
         }
     }
 
