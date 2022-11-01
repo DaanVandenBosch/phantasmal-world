@@ -31,6 +31,7 @@ class MeshRenderer(
     private var animation: Animation? = null
     private var updateAnimationTime = true
     private var charClassActive = false
+    private var resetCamera = true
 
     override val context = addDisposable(
         RenderContext(
@@ -56,9 +57,11 @@ class MeshRenderer(
     )
 
     init {
-        observeNow(viewerStore.currentNinjaGeometry) { rebuildMesh(resetCamera = true) }
-        observeNow(viewerStore.currentTextures) { rebuildMesh(resetCamera = true) }
-        observeNow(viewerStore.applyTextures) { rebuildMesh(resetCamera = false) }
+        observeNow(viewerStore.currentNinjaGeometry, viewerStore.currentTextures) { _, _ ->
+            resetCamera = true
+            rebuildMesh()
+        }
+        observeNow(viewerStore.applyTextures) { rebuildMesh() }
         observeNow(viewerStore.currentNinjaMotion, ::ninjaMotionChanged)
         observeNow(viewerStore.showSkeleton) { skeletonHelper?.visible = it }
         observeNow(viewerStore.animationPlaying, ::animationPlayingChanged)
@@ -87,7 +90,7 @@ class MeshRenderer(
         }
     }
 
-    private fun rebuildMesh(resetCamera: Boolean) {
+    private fun rebuildMesh() {
         throttleRebuildMesh {
             // Remove the previous mesh.
             obj3d?.let { mesh ->
@@ -149,6 +152,7 @@ class MeshRenderer(
                         1.5 / tan(degToRad((context.camera as PerspectiveCamera).fov) / 2)
                     val cameraPos = CAMERA_POS * (bSphere.radius * cameraDistFactor)
                     inputManager.lookAt(cameraPos, bSphere.center)
+                    resetCamera = false
                 }
 
                 context.scene.add(obj3d)
