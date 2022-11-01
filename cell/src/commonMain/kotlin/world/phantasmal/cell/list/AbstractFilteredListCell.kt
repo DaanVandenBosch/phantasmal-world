@@ -40,6 +40,21 @@ abstract class AbstractFilteredListCell<E>(
 
     private fun computeValueAndEvent() {
         if (!valid) {
+            // Reuse the same list of changes during a mutation.
+            val event = _changeEvent
+            val filteredChanges: MutableList<ListChange<E>>
+
+            if (event == null || changesMutationId != MutationManager.currentMutationId) {
+                changesMutationId = MutationManager.currentMutationId
+                listChangeIndex = 0
+                filteredChanges = mutableListOf()
+                _changeEvent = ListChangeEvent(elements, filteredChanges)
+            } else {
+                // This cast is safe because we know we always instantiate our change event
+                // with a mutable list.
+                filteredChanges = unsafeCast(event.changes)
+            }
+
             val hasDependents = dependents.isNotEmpty()
 
             if (predicateInvalidated || !hasDependents) {
@@ -49,26 +64,10 @@ abstract class AbstractFilteredListCell<E>(
                 ignoreOtherChanges()
                 recompute()
 
-                _changeEvent = ListChangeEvent(
-                    elements,
-                    listOf(ListChange(index = 0, prevSize = removed.size, removed, elements)),
+                filteredChanges.add(
+                    ListChange(index = 0, prevSize = removed.size, removed, elements),
                 )
             } else {
-                // Reuse the same list of changes during a mutation.
-                val event = _changeEvent
-                val filteredChanges: MutableList<ListChange<E>>
-
-                if (event == null || changesMutationId != MutationManager.currentMutationId) {
-                    changesMutationId = MutationManager.currentMutationId
-                    listChangeIndex = 0
-                    filteredChanges = mutableListOf()
-                    _changeEvent = ListChangeEvent(elements, filteredChanges)
-                } else {
-                    // This cast is safe because we know we always instantiate our change event
-                    // with a mutable list.
-                    filteredChanges = unsafeCast(event.changes)
-                }
-
                 val listChangeEvent = list.changeEvent
 
                 if (listInvalidated && listChangeEvent != null) {

@@ -3,12 +3,9 @@ package world.phantasmal.cell.list
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.ImmutableCell
 import world.phantasmal.cell.SimpleCell
+import world.phantasmal.cell.mutate
 import world.phantasmal.cell.test.CellTestSuite
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Tests that apply to all filtered list implementations.
@@ -306,5 +303,64 @@ interface AbstractFilteredListCellTests : CellTestSuite {
             assertEquals(listOf(z), c.removed)
             assertTrue(c.inserted.isEmpty())
         }
+    }
+
+    /**
+     * This tests the short-circuit path where a filtered list's predicate changes.
+     */
+    @Test
+    fun dependent_filtered_list_value_changes_and_emits_correctly_when_predicate_changes() = test {
+        val list = mutableListCell(1, 2, 3, 4, 5, 6)
+        val predicate: SimpleCell<(Int) -> Boolean> = SimpleCell { it % 2 == 0 }
+        val filteredList = createFilteredListCell(list, predicate)
+        val dependentList = filteredList.filtered { true }
+
+        var event: ListChangeEvent<Int>? = null
+
+        disposer.add(dependentList.observeListChange {
+            assertNull(event)
+            event = it
+        })
+
+        assertEquals(listOf(2, 4, 6), dependentList.value)
+
+        mutate {
+            // Trigger long path.
+            list.add(10)
+            dependentList.value
+
+            // Trigger long path again.
+            list.add(20)
+            dependentList.value
+
+            // Trigger short path.
+            predicate.value = { it % 2 != 0 }
+        }
+
+        assertEquals(listOf(1, 3, 5), dependentList.value)
+
+        val e = event
+        assertNotNull(e)
+        assertEquals(listOf(1, 3, 5), e.value)
+
+        assertEquals(3, e.changes.size)
+
+        val c0 = e.changes[0]
+        assertEquals(3, c0.index)
+        assertEquals(3, c0.prevSize)
+        assertEquals(emptyList(), c0.removed)
+        assertEquals(listOf(10), c0.inserted)
+
+        val c1 = e.changes[1]
+        assertEquals(4, c1.index)
+        assertEquals(4, c1.prevSize)
+        assertEquals(emptyList(), c1.removed)
+        assertEquals(listOf(20), c1.inserted)
+
+        val c2 = e.changes[2]
+        assertEquals(0, c2.index)
+        assertEquals(5, c2.prevSize)
+        assertEquals(listOf(2, 4, 6, 10, 20), c2.removed)
+        assertEquals(listOf(1, 3, 5), c2.inserted)
     }
 }

@@ -14,4 +14,7 @@ open class ChangeEvent<out T>(
     val value: T,
 ) {
     operator fun component1() = value
+
+    override fun toString(): String =
+        "ChangeEvent($value)"
 }
