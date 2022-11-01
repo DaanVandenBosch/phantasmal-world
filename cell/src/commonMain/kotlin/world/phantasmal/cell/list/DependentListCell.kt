@@ -7,7 +7,7 @@ import world.phantasmal.cell.Cell
 /**
  * ListCell of which the value depends on 0 or more other cells.
  */
-class DependentListCell<E>(
+internal class DependentListCell<E>(
     private vararg val dependencies: Cell<*>,
     private val computeElements: () -> List<E>,
 ) : AbstractListCell<E>(), Dependent {

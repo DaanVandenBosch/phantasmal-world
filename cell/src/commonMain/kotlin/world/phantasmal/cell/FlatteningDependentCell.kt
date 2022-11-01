@@ -3,7 +3,7 @@ package world.phantasmal.cell
 /**
  * Similar to [DependentCell], except that this cell's [compute] returns a cell.
  */
-class FlatteningDependentCell<T>(
+internal class FlatteningDependentCell<T>(
     vararg dependencies: Cell<*>,
     compute: () -> Cell<T>,
 ) : AbstractFlatteningDependentCell<T, Cell<T>, ChangeEvent<T>>(dependencies, compute) {

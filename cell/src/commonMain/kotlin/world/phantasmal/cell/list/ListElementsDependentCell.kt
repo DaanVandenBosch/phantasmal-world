@@ -10,7 +10,7 @@ import world.phantasmal.cell.Cell
 /**
  * Depends on a [ListCell] and zero or more cells per element in the list.
  */
-class ListElementsDependentCell<E>(
+internal class ListElementsDependentCell<E>(
     private val list: ListCell<E>,
     private val extractCells: (element: E) -> Array<out Cell<*>>,
 ) : AbstractCell<List<E>>(), Dependent {

@@ -31,7 +31,7 @@ class FilteredListCellPredicateResultDependenciesEmitTests : ListCellTests,
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ): FilteredListCell<Int> {
+    ): Cell<Any> {
         val deps = listOf(dependency1, dependency2, dependency3)
 
         return FilteredListCell(

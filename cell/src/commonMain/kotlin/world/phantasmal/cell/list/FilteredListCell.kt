@@ -8,7 +8,7 @@ import world.phantasmal.core.assert
 import world.phantasmal.core.assertUnreachable
 import world.phantasmal.core.unsafe.unsafeCast
 
-class FilteredListCell<E>(
+internal class FilteredListCell<E>(
     list: ListCell<E>,
     private val predicate: Cell<(E) -> Cell<Boolean>>,
 ) : AbstractFilteredListCell<E>(list) {

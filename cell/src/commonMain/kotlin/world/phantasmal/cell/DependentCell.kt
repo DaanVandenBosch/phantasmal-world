@@ -3,7 +3,7 @@ package world.phantasmal.cell
 /**
  * Cell of which the value depends on 0 or more dependencies.
  */
-class DependentCell<T>(
+internal class DependentCell<T>(
     private vararg val dependencies: Cell<*>,
     private val compute: () -> T,
 ) : AbstractDependentCell<T, ChangeEvent<T>>() {

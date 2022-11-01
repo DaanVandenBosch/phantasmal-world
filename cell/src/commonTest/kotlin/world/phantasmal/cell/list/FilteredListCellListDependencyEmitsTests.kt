@@ -31,7 +31,7 @@ class FilteredListCellListDependencyEmitsTests : ListCellTests, CellWithDependen
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         FilteredListCell(
             list = dependency1.mapToList { listOf(it) },
             predicate = dependency2.map { value2 ->

@@ -30,7 +30,7 @@ class SimpleFilteredListCellListDependencyEmitsTests :
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         SimpleFilteredListCell(
             list = mapToList(dependency1, dependency2, dependency3) { value1, value2, value3 ->
                 listOf(value1, value2, value3)

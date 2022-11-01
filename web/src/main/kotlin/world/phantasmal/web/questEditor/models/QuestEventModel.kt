@@ -2,7 +2,7 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.list.ListCell
-import world.phantasmal.cell.list.SimpleListCell
+import world.phantasmal.cell.list.mutableListCell
 import world.phantasmal.cell.map
 import world.phantasmal.cell.mutableCell
 
@@ -19,7 +19,7 @@ class QuestEventModel(
     private val _sectionId = mutableCell(sectionId)
     private val _waveId = mutableCell(waveId)
     private val _delay = mutableCell(delay)
-    private val _actions = SimpleListCell(actions)
+    private val _actions = mutableListCell(actions)
 
     val id: Cell<Int> = _id
     val sectionId: Cell<Int> = _sectionId

@@ -1,6 +1,6 @@
 package world.phantasmal.cell
 
-class SimpleCell<T>(value: T) : AbstractCell<T>(), MutableCell<T> {
+internal class SimpleCell<T>(value: T) : AbstractCell<T>(), MutableCell<T> {
     override var value: T = value
         set(value) {
             if (value != field) {

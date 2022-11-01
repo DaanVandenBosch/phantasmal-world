@@ -21,7 +21,7 @@ class FlatteningDependentListCellTransitiveDependencyEmitsTests :
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         FlatteningDependentListCell(dependency1, dependency2, dependency3) {
             ImmutableListCell(listOf(dependency1.value, dependency2.value, dependency3.value))
         }
@@ -34,7 +34,7 @@ class FlatteningDependentListCellTransitiveDependencyEmitsTests :
         // The direct dependency of the list under test can't change.
         private val directDependency = ImmutableCell<ListCell<Int>>(transitiveDependency)
 
-        override val cell =
+        override val cell: ListCell<Any> =
             FlatteningDependentListCell(directDependency) { directDependency.value }
 
         override fun addElement() {

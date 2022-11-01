@@ -2,7 +2,7 @@ package world.phantasmal.cell
 
 import world.phantasmal.core.unsafe.unsafeAssertNotNull
 
-abstract class AbstractFlatteningDependentCell<T, ComputedCell : Cell<T>, Event : ChangeEvent<T>>(
+internal abstract class AbstractFlatteningDependentCell<T, ComputedCell : Cell<T>, Event : ChangeEvent<T>>(
     private val dependencies: Array<out Cell<*>>,
     private val compute: () -> ComputedCell,
 ) : AbstractDependentCell<T, Event>() {

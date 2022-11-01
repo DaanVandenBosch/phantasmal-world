@@ -12,5 +12,5 @@ class SimpleCellTests : RegularCellTests, MutableCellTests<Int> {
         override fun createValue(): Int = cell.value + 1
     }
 
-    override fun <T> createWithValue(value: T) = SimpleCell(value)
+    override fun <T> createWithValue(value: T): Cell<T> = SimpleCell(value)
 }

@@ -22,7 +22,7 @@ class FlatteningDependentCellDirectDependencyEmitsTests : RegularCellTests {
         }
     }
 
-    override fun <T> createWithValue(value: T): FlatteningDependentCell<T> {
+    override fun <T> createWithValue(value: T): Cell<T> {
         val v = ImmutableCell(ImmutableCell(value))
         return FlatteningDependentCell(v) { v.value }
     }

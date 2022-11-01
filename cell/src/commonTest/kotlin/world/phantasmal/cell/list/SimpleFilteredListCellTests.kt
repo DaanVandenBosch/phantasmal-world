@@ -10,6 +10,9 @@ import world.phantasmal.cell.Cell
  */
 @Suppress("unused")
 class SimpleFilteredListCellTests : AbstractFilteredListCellTests {
-    override fun <E> createFilteredListCell(list: ListCell<E>, predicate: Cell<(E) -> Boolean>) =
+    override fun <E> createFilteredListCell(
+        list: ListCell<E>,
+        predicate: Cell<(E) -> Boolean>,
+    ): ListCell<E> =
         SimpleFilteredListCell(list, predicate)
 }

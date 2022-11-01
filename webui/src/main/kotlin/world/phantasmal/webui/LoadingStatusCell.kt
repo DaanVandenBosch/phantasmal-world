@@ -3,7 +3,8 @@ package world.phantasmal.webui
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import world.phantasmal.cell.Cell
-import world.phantasmal.cell.SimpleCell
+import world.phantasmal.cell.MutableCell
+import world.phantasmal.cell.mutableCell
 import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
@@ -26,14 +27,14 @@ class LoadingStatusCellImpl private constructor(
     private val dataName: String,
     /** Will be called with [Dispatchers.Main] context. */
     private val loadData: suspend () -> Unit,
-    private val cellDelegate: SimpleCell<LoadingStatus>,
+    private val cellDelegate: MutableCell<LoadingStatus>,
 ) : LoadingStatusCell, Cell<LoadingStatus> by cellDelegate {
 
     constructor(
         scope: CoroutineScope,
         dataName: String,
         loadData: suspend () -> Unit,
-    ) : this(scope, dataName, loadData, SimpleCell(LoadingStatus.Uninitialized))
+    ) : this(scope, dataName, loadData, mutableCell(LoadingStatus.Uninitialized))
 
     private var currentJob: Job? = null
 

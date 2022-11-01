@@ -8,7 +8,7 @@ import world.phantasmal.cell.AbstractCell
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.DependentCell
 
-abstract class AbstractListCell<E> : AbstractCell<List<E>>(), ListCell<E> {
+internal abstract class AbstractListCell<E> : AbstractCell<List<E>>(), ListCell<E> {
 
     private var _size: Cell<Int>? = null
     final override val size: Cell<Int>

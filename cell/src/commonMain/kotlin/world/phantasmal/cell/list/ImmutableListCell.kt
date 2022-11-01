@@ -1,16 +1,13 @@
 package world.phantasmal.cell.list
 
+import world.phantasmal.cell.*
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.nopDisposable
-import world.phantasmal.cell.ChangeObserver
-import world.phantasmal.cell.Dependency
-import world.phantasmal.cell.Dependent
-import world.phantasmal.cell.Cell
-import world.phantasmal.cell.cell
-import world.phantasmal.cell.falseCell
-import world.phantasmal.cell.trueCell
 
-class ImmutableListCell<E>(private val elements: List<E>) : Dependency<List<E>>, ListCell<E> {
+internal class ImmutableListCell<E>(
+    private val elements: List<E>,
+) : Dependency<List<E>>, ListCell<E> {
+
     override val size: Cell<Int> = cell(elements.size)
     override val empty: Cell<Boolean> = if (elements.isEmpty()) trueCell() else falseCell()
     override val notEmpty: Cell<Boolean> = if (elements.isNotEmpty()) trueCell() else falseCell()

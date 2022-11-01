@@ -4,7 +4,7 @@ package world.phantasmal.cell
 class DependentCellTests : RegularCellTests, CellWithDependenciesTests {
     override fun createProvider() = Provider()
 
-    override fun <T> createWithValue(value: T): DependentCell<T> {
+    override fun <T> createWithValue(value: T): Cell<T> {
         val dependency = SimpleCell(value)
         return DependentCell(dependency) { dependency.value }
     }
@@ -13,7 +13,7 @@ class DependentCellTests : RegularCellTests, CellWithDependenciesTests {
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         DependentCell(dependency1, dependency2, dependency3) {
             dependency1.value + dependency2.value + dependency3.value
         }
@@ -21,7 +21,7 @@ class DependentCellTests : RegularCellTests, CellWithDependenciesTests {
     class Provider : CellTests.Provider {
         private val dependencyCell = SimpleCell(1)
 
-        override val cell = DependentCell(dependencyCell) { 2 * dependencyCell.value }
+        override val cell: Cell<Any> = DependentCell(dependencyCell) { 2 * dependencyCell.value }
 
         override fun emit() {
             dependencyCell.value += 2

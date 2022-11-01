@@ -33,7 +33,7 @@ class SimpleFilteredListCellPredicateDependencyEmitsTests :
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         SimpleFilteredListCell(
             list = listCell(1, 2, 3, 4, 5, 6, 7, 8, 9),
             predicate = map(dependency1, dependency2, dependency3) { value1, value2, value3 ->

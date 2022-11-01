@@ -14,7 +14,7 @@ class DelegatingCellTests : RegularCellTests, MutableCellTests<Int> {
         override fun createValue(): Int = v + 1
     }
 
-    override fun <T> createWithValue(value: T): DelegatingCell<T> {
+    override fun <T> createWithValue(value: T): Cell<T> {
         var v = value
         return DelegatingCell({ v }, { v = it })
     }

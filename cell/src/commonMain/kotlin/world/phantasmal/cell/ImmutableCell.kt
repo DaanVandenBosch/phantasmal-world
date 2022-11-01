@@ -3,7 +3,7 @@ package world.phantasmal.cell
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.nopDisposable
 
-class ImmutableCell<T>(override val value: T) : Dependency<T>, Cell<T> {
+internal class ImmutableCell<T>(override val value: T) : Dependency<T>, Cell<T> {
     override val changeEvent: ChangeEvent<T>? get() = null
 
     override fun addDependent(dependent: Dependent) {

@@ -2,7 +2,7 @@ package world.phantasmal.cell
 
 import world.phantasmal.core.unsafe.unsafeCast
 
-abstract class AbstractDependentCell<T, Event : ChangeEvent<T>> : AbstractCell<T>(), Dependent {
+internal abstract class AbstractDependentCell<T, Event : ChangeEvent<T>> : AbstractCell<T>(), Dependent {
 
     protected var _value: T? = null
     final override val value: T

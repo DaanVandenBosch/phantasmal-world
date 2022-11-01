@@ -13,7 +13,7 @@ class DependentListCellTests : ListCellTests, CellWithDependenciesTests {
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         DependentListCell(dependency1, dependency2, dependency3) {
             listOf(dependency1.value, dependency2.value, dependency3.value)
         }
@@ -22,7 +22,7 @@ class DependentListCellTests : ListCellTests, CellWithDependenciesTests {
         private val dependencyCell =
             SimpleListCell(if (empty) mutableListOf() else mutableListOf(5))
 
-        override val cell =
+        override val cell: ListCell<Any> =
             DependentListCell(dependencyCell) { dependencyCell.value.map { 2 * it } }
 
         override fun addElement() {

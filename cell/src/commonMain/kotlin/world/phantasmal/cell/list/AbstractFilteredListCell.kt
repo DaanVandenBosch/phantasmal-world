@@ -5,7 +5,7 @@ import world.phantasmal.cell.Dependent
 import world.phantasmal.cell.MutationManager
 import world.phantasmal.core.unsafe.unsafeCast
 
-abstract class AbstractFilteredListCell<E>(
+internal abstract class AbstractFilteredListCell<E>(
     protected val list: ListCell<E>,
 ) : AbstractListCell<E>(), Dependent {
 

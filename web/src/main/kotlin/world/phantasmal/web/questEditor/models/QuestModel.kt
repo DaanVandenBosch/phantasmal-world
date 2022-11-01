@@ -1,15 +1,15 @@
 package world.phantasmal.web.questEditor.models
 
+import world.phantasmal.cell.Cell
+import world.phantasmal.cell.list.ListCell
+import world.phantasmal.cell.list.flatMapToList
+import world.phantasmal.cell.list.listCell
+import world.phantasmal.cell.list.mutableListCell
+import world.phantasmal.cell.map
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.BytecodeIr
 import world.phantasmal.psolib.fileFormats.quest.DatUnknown
-import world.phantasmal.cell.Cell
-import world.phantasmal.cell.list.ListCell
-import world.phantasmal.cell.list.SimpleListCell
-import world.phantasmal.cell.list.flatMapToList
-import world.phantasmal.cell.list.listCell
-import world.phantasmal.cell.map
-import world.phantasmal.cell.mutableCell
 
 class QuestModel(
     id: Int,
@@ -36,9 +36,9 @@ class QuestModel(
     private val _shortDescription = mutableCell("")
     private val _longDescription = mutableCell("")
     private val _mapDesignations = mutableCell(mapDesignations)
-    private val _npcs = SimpleListCell(npcs)
-    private val _objects = SimpleListCell(objects)
-    private val _events = SimpleListCell(events)
+    private val _npcs = mutableListCell(npcs)
+    private val _objects = mutableListCell(objects)
+    private val _events = mutableListCell(events)
 
     val id: Cell<Int> = _id
     val language: Cell<Int> = _language

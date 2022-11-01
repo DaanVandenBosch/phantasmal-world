@@ -9,7 +9,7 @@ import world.phantasmal.core.unsafe.unsafeAssertNotNull
  */
 // TODO: Improve performance when transitive cell changes. At the moment a change event is generated
 //       that just pretends the whole list has changed.
-class FlatteningDependentListCell<E>(
+internal class FlatteningDependentListCell<E>(
     vararg dependencies: Cell<*>,
     computeElements: () -> ListCell<E>,
 ) :

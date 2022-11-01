@@ -12,7 +12,7 @@ class FlatteningDependentCellDirectAndTransitiveDependencyEmitTests : CellTests 
         // This cell is both the direct and transitive dependency.
         private val dependencyCell = SimpleCell('a')
 
-        override val cell = FlatteningDependentCell(dependencyCell) { dependencyCell }
+        override val cell: Cell<Any> = FlatteningDependentCell(dependencyCell) { dependencyCell }
 
         override fun emit() {
             dependencyCell.value += 1

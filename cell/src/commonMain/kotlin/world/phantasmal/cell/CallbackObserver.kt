@@ -5,7 +5,7 @@ import world.phantasmal.core.disposable.TrackedDisposable
 /**
  * Calls [callback] when one or more cells in [dependencies] change.
  */
-class CallbackObserver(
+internal class CallbackObserver(
     private vararg val dependencies: Cell<*>,
     private val callback: () -> Unit,
 ) : TrackedDisposable(), LeafDependent {

@@ -9,6 +9,7 @@ import world.phantasmal.cell.*
 class FilteredListCellPredicateDependencyEmitsTests : ListCellTests, CellWithDependenciesTests {
     override fun createListProvider(empty: Boolean) = object : ListCellTests.Provider {
         private var maxValue = if (empty) 0 else 1
+
         // The predicate cell changes, the predicate results don't.
         private val predicateCell = SimpleCell<(Int) -> Cell<Boolean>> { cell(it <= maxValue) }
 
@@ -30,7 +31,7 @@ class FilteredListCellPredicateDependencyEmitsTests : ListCellTests, CellWithDep
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         FilteredListCell(
             list = listCell(1, 2, 3, 4, 5, 6, 7, 8, 9),
             predicate = map(dependency1, dependency2, dependency3) { value1, value2, value3 ->

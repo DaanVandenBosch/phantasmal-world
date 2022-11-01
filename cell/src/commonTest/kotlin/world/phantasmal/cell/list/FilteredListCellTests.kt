@@ -12,6 +12,9 @@ import world.phantasmal.cell.map
  */
 @Suppress("unused")
 class FilteredListCellTests : AbstractFilteredListCellTests {
-    override fun <E> createFilteredListCell(list: ListCell<E>, predicate: Cell<(E) -> Boolean>) =
+    override fun <E> createFilteredListCell(
+        list: ListCell<E>,
+        predicate: Cell<(E) -> Boolean>,
+    ): ListCell<E> =
         FilteredListCell(list, predicate.map { p -> { cell(p(it)) } })
 }

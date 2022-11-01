@@ -4,7 +4,7 @@ import world.phantasmal.core.assertUnreachable
 import world.phantasmal.cell.Dependency
 import world.phantasmal.cell.Cell
 
-class SimpleFilteredListCell<E>(
+internal class SimpleFilteredListCell<E>(
     list: ListCell<E>,
     private val predicate: Cell<(E) -> Boolean>,
 ) : AbstractFilteredListCell<E>(list) {

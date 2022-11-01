@@ -1,6 +1,6 @@
 package world.phantasmal.cell
 
-class DelegatingCell<T>(
+internal class DelegatingCell<T>(
     private val getter: () -> T,
     private val setter: (T) -> Unit,
 ) : AbstractCell<T>(), MutableCell<T> {

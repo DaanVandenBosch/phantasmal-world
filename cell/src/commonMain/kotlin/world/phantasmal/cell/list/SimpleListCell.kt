@@ -6,7 +6,7 @@ import world.phantasmal.core.unsafe.unsafeCast
 /**
  * @param elements The backing list for this [ListCell].
  */
-class SimpleListCell<E>(
+internal class SimpleListCell<E>(
     private var elements: MutableList<E>,
 ) : AbstractListCell<E>(), MutableListCell<E> {
 

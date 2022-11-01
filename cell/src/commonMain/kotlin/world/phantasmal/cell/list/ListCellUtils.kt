@@ -9,12 +9,20 @@ private val EMPTY_LIST_CELL = ImmutableListCell<Nothing>(emptyList())
 /** Returns an immutable list cell containing [elements]. */
 fun <E> listCell(vararg elements: E): ListCell<E> = ImmutableListCell(elements.toList())
 
+/** Returns a list cell backed by [elements]. */
+fun <E> listCell(elements: List<E>): ListCell<E> =
+    ImmutableListCell(elements)
+
 /** Returns a singleton empty immutable cell. */
 fun <E> emptyListCell(): ListCell<E> = EMPTY_LIST_CELL
 
 /** Returns a mutable list cell containing [elements]. */
 fun <E> mutableListCell(vararg elements: E): MutableListCell<E> =
     SimpleListCell(mutableListOf(*elements))
+
+/** Returns a mutable list cell initially backed by [elements]. */
+fun <E> mutableListCell(elements: MutableList<E>): MutableListCell<E> =
+    SimpleListCell(elements)
 
 /**
  * Returns a cell that changes whenever this list cell is structurally changed or when its

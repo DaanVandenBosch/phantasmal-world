@@ -9,7 +9,7 @@ class DependentCellWithSimpleListCellTests : CellTests {
     class Provider : CellTests.Provider {
         private val dependencyCell = SimpleListCell(mutableListOf("a", "b", "c"))
 
-        override val cell = DependentCell(dependencyCell) { dependencyCell.value }
+        override val cell: Cell<Any> = DependentCell(dependencyCell) { dependencyCell.value }
 
         override fun emit() {
             dependencyCell.add("x")

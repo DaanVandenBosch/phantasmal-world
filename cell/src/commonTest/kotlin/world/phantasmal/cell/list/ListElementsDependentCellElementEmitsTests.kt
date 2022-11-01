@@ -1,11 +1,6 @@
 package world.phantasmal.cell.list
 
-import world.phantasmal.cell.Cell
-import world.phantasmal.cell.CellTests
-import world.phantasmal.cell.CellWithDependenciesTests
-import world.phantasmal.cell.DependentCell
-import world.phantasmal.cell.MutableCell
-import world.phantasmal.cell.SimpleCell
+import world.phantasmal.cell.*
 
 /**
  * In these tests, the direct list cell dependency of the [ListElementsDependentCell] doesn't
@@ -33,7 +28,7 @@ class ListElementsDependentCellElementEmitsTests : CellWithDependenciesTests {
         dependency1: Cell<Int>,
         dependency2: Cell<Int>,
         dependency3: Cell<Int>,
-    ) =
+    ): Cell<Any> =
         ListElementsDependentCell(
             ImmutableListCell(listOf(dependency1, dependency2, dependency3))
         ) { arrayOf(it) }
