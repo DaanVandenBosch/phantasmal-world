@@ -8,11 +8,40 @@ import world.phantasmal.core.asArray
 import world.phantasmal.core.isBitSet
 import world.phantasmal.core.jsArrayOf
 import world.phantasmal.core.unsafe.UnsafeMap
-import world.phantasmal.psolib.fileFormats.*
-import world.phantasmal.psolib.fileFormats.ninja.*
+import world.phantasmal.psolib.fileFormats.AreaGeometry
+import world.phantasmal.psolib.fileFormats.AreaObject
+import world.phantasmal.psolib.fileFormats.AreaSection
+import world.phantasmal.psolib.fileFormats.CollisionGeometry
+import world.phantasmal.psolib.fileFormats.CollisionTriangle
+import world.phantasmal.psolib.fileFormats.ninja.NinjaModel
+import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
+import world.phantasmal.psolib.fileFormats.ninja.NjModel
+import world.phantasmal.psolib.fileFormats.ninja.NjObject
+import world.phantasmal.psolib.fileFormats.ninja.XjModel
+import world.phantasmal.psolib.fileFormats.ninja.XjObject
+import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.toQuaternion
-import world.phantasmal.web.externals.three.*
+import world.phantasmal.web.externals.three.Bone
+import world.phantasmal.web.externals.three.BufferGeometry
+import world.phantasmal.web.externals.three.Color
+import world.phantasmal.web.externals.three.DoubleSide
+import world.phantasmal.web.externals.three.Euler
+import world.phantasmal.web.externals.three.Float32BufferAttribute
+import world.phantasmal.web.externals.three.Group
+import world.phantasmal.web.externals.three.InstancedMesh
+import world.phantasmal.web.externals.three.Material
+import world.phantasmal.web.externals.three.Matrix3
+import world.phantasmal.web.externals.three.Matrix4
+import world.phantasmal.web.externals.three.Mesh
+import world.phantasmal.web.externals.three.MeshBasicMaterial
+import world.phantasmal.web.externals.three.MeshLambertMaterial
+import world.phantasmal.web.externals.three.Quaternion
+import world.phantasmal.web.externals.three.SkinnedMesh
+import world.phantasmal.web.externals.three.Texture
+import world.phantasmal.web.externals.three.Uint16BufferAttribute
+import world.phantasmal.web.externals.three.Vector2
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.webui.obj
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -86,8 +115,9 @@ fun ninjaObjectToMesh(
     textures: List<XvrTexture?>,
     defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
+    anisotropy: Int = 1,
 ): Mesh {
-    val builder = MeshBuilder(textures)
+    val builder = MeshBuilder(textures, anisotropy = anisotropy)
     defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
     ninjaObjectToMeshBuilder(ninjaObject, builder)
     return builder.buildMesh(boundingVolumes)
@@ -99,8 +129,9 @@ fun ninjaObjectToInstancedMesh(
     maxInstances: Int,
     defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
+    anisotropy: Int = 1,
 ): InstancedMesh {
-    val builder = MeshBuilder(textures)
+    val builder = MeshBuilder(textures, anisotropy = anisotropy)
     defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
     ninjaObjectToMeshBuilder(ninjaObject, builder)
     return builder.buildInstancedMesh(maxInstances, boundingVolumes)
@@ -111,8 +142,9 @@ fun ninjaObjectToSkinnedMesh(
     textures: List<XvrTexture?>,
     defaultMaterial: Material? = null,
     boundingVolumes: Boolean = false,
+    anisotropy: Int = 1,
 ): SkinnedMesh {
-    val builder = MeshBuilder(textures)
+    val builder = MeshBuilder(textures, anisotropy = anisotropy)
     defaultMaterial?.let { builder.defaultMaterial(defaultMaterial) }
     ninjaObjectToMeshBuilder(ninjaObject, builder)
     return builder.buildSkinnedMesh(boundingVolumes)
@@ -129,6 +161,7 @@ fun ninjaObjectToMeshBuilder(
 fun renderGeometryToGroup(
     renderGeometry: AreaGeometry,
     textures: List<XvrTexture?>,
+    anisotropy: Int = 1,
     processMesh: (AreaSection, AreaObject, Mesh) -> Unit = { _, _, _ -> },
 ): Group {
     val group = Group()
@@ -145,6 +178,7 @@ fun renderGeometryToGroup(
                     section,
                     sectionIndex,
                     areaObj,
+                    anisotropy,
                     processMesh,
                 )
             )
@@ -159,6 +193,7 @@ fun renderGeometryToGroup(
                     section,
                     sectionIndex,
                     areaObj,
+                    anisotropy,
                     processMesh,
                 )
             )
@@ -214,13 +249,14 @@ private fun areaObjectToMesh(
     section: AreaSection,
     sectionIndex: Int,
     areaObj: AreaObject,
+    anisotropy: Int,
     processMesh: (AreaSection, AreaObject, Mesh) -> Unit,
 ): Mesh {
     val cachedMesh = meshCache.get(areaObj.xjObject)
     val mesh: Mesh
 
     if (cachedMesh == null) {
-        val builder = MeshBuilder(textures, textureCache)
+        val builder = MeshBuilder(textures, textureCache, anisotropy)
         ninjaObjectToMeshBuilder(areaObj.xjObject, builder)
 
         builder.defaultMaterial(MeshLambertMaterial(obj {

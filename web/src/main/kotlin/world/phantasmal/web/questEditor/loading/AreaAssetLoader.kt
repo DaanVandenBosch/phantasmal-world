@@ -174,6 +174,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         val fix = MANUAL_FIXES[Pair(episode, areaVariant.area.id)]
         val sections = mutableMapOf<Int, SectionModel>()
 
+        // TODO: Pass anisotropy parameter.
         val group =
             renderGeometryToGroup(renderGeometry, textures) { renderSection, areaObj, mesh ->
                 if (fix != null) {

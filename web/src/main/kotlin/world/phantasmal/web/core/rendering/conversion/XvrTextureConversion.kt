@@ -6,11 +6,32 @@ import org.khronos.webgl.get
 import org.khronos.webgl.set
 import world.phantasmal.psolib.cursor.cursor
 import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
-import world.phantasmal.web.externals.three.*
+import world.phantasmal.web.externals.three.CompressedPixelFormat
+import world.phantasmal.web.externals.three.CompressedTexture
+import world.phantasmal.web.externals.three.DataTexture
+import world.phantasmal.web.externals.three.LinearFilter
+import world.phantasmal.web.externals.three.Mipmap
+import world.phantasmal.web.externals.three.MirroredRepeatWrapping
+import world.phantasmal.web.externals.three.PixelFormat
+import world.phantasmal.web.externals.three.RGBAFormat
+import world.phantasmal.web.externals.three.RGBA_S3TC_DXT1_Format
+import world.phantasmal.web.externals.three.RGBA_S3TC_DXT3_Format
+import world.phantasmal.web.externals.three.RGBFormat
+import world.phantasmal.web.externals.three.Texture
+import world.phantasmal.web.externals.three.TextureDataType
+import world.phantasmal.web.externals.three.TextureFilter
+import world.phantasmal.web.externals.three.UnsignedShort5551Type
+import world.phantasmal.web.externals.three.UnsignedShort565Type
 import world.phantasmal.webui.obj
 import kotlin.math.roundToInt
 
-fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Texture =
+fun xvrTextureToThree(
+    xvr: XvrTexture,
+    magFilter: TextureFilter = LinearFilter,
+    // TODO: Use LinearMipmapLinearFilter once we figure out mipmapping.
+    minFilter: TextureFilter = LinearFilter,
+    anisotropy: Int = 1,
+): Texture =
     when (xvr.format.second) {
         // D3DFMT_R5G6B5
         2 -> createDataTexture(
@@ -19,7 +40,9 @@ fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Te
             xvr.height,
             RGBFormat,
             UnsignedShort565Type,
-            filter,
+            magFilter,
+            minFilter,
+            anisotropy,
         )
         // D3DFMT_A1R5G5B5
         3 -> {
@@ -38,26 +61,84 @@ fun xvrTextureToThree(xvr: XvrTexture, filter: TextureFilter = LinearFilter): Te
                 xvr.height,
                 RGBAFormat,
                 UnsignedShort5551Type,
-                filter,
+                magFilter,
+                minFilter,
+                anisotropy,
             )
         }
         // D3DFMT_DXT1
-        6 -> createCompressedTexture(
-            Uint8Array(xvr.data.arrayBuffer, 0, (xvr.width * xvr.height) / 2),
-            xvr.width,
-            xvr.height,
-            RGBA_S3TC_DXT1_Format,
-            filter,
-        )
+        6 -> {
+            val mipmaps = mutableListOf<Mipmap>()
+            var byteOffset = 0
+            var width = xvr.width
+            var height = xvr.height
+
+            while (byteOffset < xvr.data.size && width * height > 0) {
+                val byteSize = (width * height) / 2
+
+                mipmaps.add(obj {
+                    this.data = Uint8Array(xvr.data.arrayBuffer, byteOffset, byteSize)
+                    this.width = width
+                    this.height = height
+                })
+
+                byteOffset += byteSize
+                width /= 2
+                height /= 2
+
+                // TODO: Figure out what the problem with mipmaps is and remove this break.
+                //       Do we interpret the XVR format incorrectly or is there a problem with
+                //       Three.js/WebGL?
+                break
+            }
+
+            createCompressedTexture(
+                mipmaps.toTypedArray(),
+                xvr.width,
+                xvr.height,
+                RGBA_S3TC_DXT1_Format,
+                magFilter,
+                minFilter,
+                anisotropy,
+            )
+        }
         // D3DFMT_DXT2
         // TODO: Correctly interpret this (DXT2 is basically DXT3 with premultiplied alpha).
-        7 -> createCompressedTexture(
-            Uint8Array(xvr.data.arrayBuffer, 0, xvr.width * xvr.height),
-            xvr.width,
-            xvr.height,
-            RGBA_S3TC_DXT3_Format,
-            filter,
-        )
+        7 -> {
+            val mipmaps = mutableListOf<Mipmap>()
+            var byteOffset = 0
+            var width = xvr.width
+            var height = xvr.height
+
+            while (byteOffset < xvr.data.size && width * height > 0) {
+                val byteSize = width * height
+
+                mipmaps.add(obj {
+                    this.data = Uint8Array(xvr.data.arrayBuffer, byteOffset, byteSize)
+                    this.width = width
+                    this.height = height
+                })
+
+                byteOffset += byteSize
+                width /= 2
+                height /= 2
+
+                // TODO: Figure out what the problem with mipmaps is and remove this break.
+                //       Do we interpret the XVR format incorrectly or is there a problem with
+                //       Three.js/WebGL?
+                break
+            }
+
+            createCompressedTexture(
+                mipmaps.toTypedArray(),
+                xvr.width,
+                xvr.height,
+                RGBA_S3TC_DXT3_Format,
+                magFilter,
+                minFilter,
+                anisotropy,
+            )
+        }
         // 1 -> D3DFMT_A8R8G8B8
         // 4 -> D3DFMT_A4R4G4B4
         // 5 -> D3DFMT_P8
@@ -83,7 +164,9 @@ private fun createDataTexture(
     height: Int,
     format: PixelFormat,
     type: TextureDataType,
-    filter: TextureFilter,
+    magFilter: TextureFilter,
+    minFilter: TextureFilter,
+    anisotropy: Int,
 ): DataTexture =
     DataTexture(
         data,
@@ -93,30 +176,30 @@ private fun createDataTexture(
         type,
         wrapS = MirroredRepeatWrapping,
         wrapT = MirroredRepeatWrapping,
-        magFilter = filter,
-        minFilter = filter,
+        magFilter = magFilter,
+        minFilter = minFilter,
+        anisotropy = anisotropy,
     )
 
 private fun createCompressedTexture(
-    data: Uint8Array,
+    mipmaps: Array<Mipmap>,
     width: Int,
     height: Int,
     format: CompressedPixelFormat,
-    filter: TextureFilter,
+    magFilter: TextureFilter,
+    minFilter: TextureFilter,
+    anisotropy: Int,
 ): CompressedTexture {
     val texture = CompressedTexture(
-        arrayOf(obj {
-            this.data = data
-            this.width = width
-            this.height = height
-        }),
+        mipmaps,
         width,
         height,
         format,
         wrapS = MirroredRepeatWrapping,
         wrapT = MirroredRepeatWrapping,
-        magFilter = filter,
-        minFilter = filter,
+        magFilter = magFilter,
+        minFilter = minFilter,
+        anisotropy = anisotropy,
     )
     texture.needsUpdate = true
     return texture
@@ -165,12 +248,14 @@ private fun xvrTextureToUint8Array(xvr: XvrTexture): Uint8Array {
                     b = c0b
                     a = 1.0
                 }
+
                 1 -> {
                     r = c1r
                     g = c1g
                     b = c1b
                     a = 1.0
                 }
+
                 2 -> {
                     if (c0 > c1) {
                         r = (2 * c0r + c1r) / 3
@@ -184,6 +269,7 @@ private fun xvrTextureToUint8Array(xvr: XvrTexture): Uint8Array {
                         a = 1.0
                     }
                 }
+
                 3 -> {
                     if (c0 > c1) {
                         r = (c0r + 2 * c1r) / 3

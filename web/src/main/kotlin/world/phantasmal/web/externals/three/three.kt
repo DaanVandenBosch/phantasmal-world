@@ -7,6 +7,7 @@ package world.phantasmal.web.externals.three
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Int32Array
 import org.khronos.webgl.Uint16Array
+import org.khronos.webgl.Uint8Array
 import org.w3c.dom.HTMLCanvasElement
 
 external interface Vector
@@ -235,6 +236,7 @@ open external class WebGLRenderer(
 
     var autoClearColor: Boolean
     var debug: WebGLDebug
+    var capabilities: WebGLCapabilities
 
     override fun render(scene: Object3D, camera: Camera)
 
@@ -251,6 +253,10 @@ open external class WebGLRenderer(
 
 external interface WebGLDebug {
     var checkShaderErrors: Boolean
+}
+
+external interface WebGLCapabilities {
+    fun getMaxAnisotropy(): Int
 }
 
 open external class Object3D {
@@ -686,7 +692,7 @@ external class DataTexture(
     wrapT: Wrapping = definedExternally,
     magFilter: TextureFilter = definedExternally,
     minFilter: TextureFilter = definedExternally,
-    anisotropy: Double = definedExternally,
+    anisotropy: Int = definedExternally,
     encoding: TextureEncoding = definedExternally,
 ) : Texture
 
@@ -707,14 +713,10 @@ external object MirroredRepeatWrapping : Wrapping
 external interface TextureFilter
 external object NearestFilter : TextureFilter
 external object NearestMipmapNearestFilter : TextureFilter
-external object NearestMipMapNearestFilter : TextureFilter
 external object NearestMipmapLinearFilter : TextureFilter
-external object NearestMipMapLinearFilter : TextureFilter
 external object LinearFilter : TextureFilter
 external object LinearMipmapNearestFilter : TextureFilter
-external object LinearMipMapNearestFilter : TextureFilter
 external object LinearMipmapLinearFilter : TextureFilter
-external object LinearMipMapLinearFilter : TextureFilter
 
 external interface TextureDataType
 external object UnsignedByteType : TextureDataType
@@ -764,7 +766,7 @@ external object RGBM16Encoding : TextureEncoding
 external object RGBDEncoding : TextureEncoding
 
 external class CompressedTexture(
-    mipmaps: Array<dynamic>, /* Should have data, height and width. */
+    mipmaps: Array<Mipmap>,
     width: Int,
     height: Int,
     format: CompressedPixelFormat = definedExternally,
@@ -774,9 +776,15 @@ external class CompressedTexture(
     wrapT: Wrapping = definedExternally,
     magFilter: TextureFilter = definedExternally,
     minFilter: TextureFilter = definedExternally,
-    anisotropy: Double = definedExternally,
+    anisotropy: Int = definedExternally,
     encoding: TextureEncoding = definedExternally,
 ) : Texture
+
+external interface Mipmap {
+    var data: Uint8Array
+    var width: Int
+    var height: Int
+}
 
 external enum class MOUSE {
     LEFT,

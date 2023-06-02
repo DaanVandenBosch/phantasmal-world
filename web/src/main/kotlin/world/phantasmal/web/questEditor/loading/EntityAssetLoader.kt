@@ -7,14 +7,22 @@ import world.phantasmal.core.Success
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
-import world.phantasmal.psolib.fileFormats.ninja.*
+import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
+import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
+import world.phantasmal.psolib.fileFormats.ninja.parseNj
+import world.phantasmal.psolib.fileFormats.ninja.parseXj
+import world.phantasmal.psolib.fileFormats.ninja.parseXvm
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.psolib.fileFormats.quest.ObjectType
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToInstancedMesh
 import world.phantasmal.web.core.rendering.disposeObject3DResources
-import world.phantasmal.web.externals.three.*
+import world.phantasmal.web.externals.three.Color
+import world.phantasmal.web.externals.three.CylinderGeometry
+import world.phantasmal.web.externals.three.DoubleSide
+import world.phantasmal.web.externals.three.InstancedMesh
+import world.phantasmal.web.externals.three.MeshLambertMaterial
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.obj
 
@@ -56,6 +64,7 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
 
         val textures = loadTextures(type, model)
 
+        // TODO: Pass anisotropy parameter.
         return ninjaObjectToInstancedMesh(
             ninjaObject,
             textures,
@@ -226,6 +235,7 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
                 else -> GeomFormat.Nj
             }
         }
+
         is ObjectType -> {
             when (type) {
                 ObjectType.EasterEgg,
@@ -249,6 +259,7 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
                 else -> GeomFormat.Xj
             }
         }
+
         else -> {
             error("$type not supported.")
         }
@@ -272,6 +283,7 @@ private fun entityTypeToPath(
             GeomFormat.Nj -> "nj"
             GeomFormat.Xj -> "xj"
         }
+
         AssetType.Texture -> "xvm"
     }
 
@@ -296,26 +308,37 @@ private fun entityTypeToPath(
 
                 NpcType.Hildebear2 ->
                     entityTypeToPath(NpcType.Hildebear, assetType, suffix, model, geomFormat)
+
                 NpcType.Hildeblue2 ->
                     entityTypeToPath(NpcType.Hildeblue, assetType, suffix, model, geomFormat)
+
                 NpcType.RagRappy2 ->
                     entityTypeToPath(NpcType.RagRappy, assetType, suffix, model, geomFormat)
+
                 NpcType.Monest2 ->
                     entityTypeToPath(NpcType.Monest, assetType, suffix, model, geomFormat)
+
                 NpcType.Mothmant2 ->
                     entityTypeToPath(NpcType.Mothmant, assetType, suffix, model, geomFormat)
+
                 NpcType.PoisonLily2 ->
                     entityTypeToPath(NpcType.PoisonLily, assetType, suffix, model, geomFormat)
+
                 NpcType.NarLily2 ->
                     entityTypeToPath(NpcType.NarLily, assetType, suffix, model, geomFormat)
+
                 NpcType.GrassAssassin2 ->
                     entityTypeToPath(NpcType.GrassAssassin, assetType, suffix, model, geomFormat)
+
                 NpcType.Dimenian2 ->
                     entityTypeToPath(NpcType.Dimenian, assetType, suffix, model, geomFormat)
+
                 NpcType.LaDimenian2 ->
                     entityTypeToPath(NpcType.LaDimenian, assetType, suffix, model, geomFormat)
+
                 NpcType.SoDimenian2 ->
                     entityTypeToPath(NpcType.SoDimenian, assetType, suffix, model, geomFormat)
+
                 NpcType.DarkBelra2 ->
                     entityTypeToPath(NpcType.DarkBelra, assetType, suffix, model, geomFormat)
 
@@ -323,26 +346,35 @@ private fun entityTypeToPath(
 
                 NpcType.SavageWolf2 ->
                     entityTypeToPath(NpcType.SavageWolf, assetType, suffix, model, geomFormat)
+
                 NpcType.BarbarousWolf2 ->
                     entityTypeToPath(NpcType.BarbarousWolf, assetType, suffix, model, geomFormat)
+
                 NpcType.PanArms2 ->
                     entityTypeToPath(NpcType.PanArms, assetType, suffix, model, geomFormat)
+
                 NpcType.Dubchic2 ->
                     entityTypeToPath(NpcType.Dubchic, assetType, suffix, model, geomFormat)
+
                 NpcType.Gilchic2 ->
                     entityTypeToPath(NpcType.Gilchic, assetType, suffix, model, geomFormat)
+
                 NpcType.Garanz2 ->
                     entityTypeToPath(NpcType.Garanz, assetType, suffix, model, geomFormat)
+
                 NpcType.Dubswitch2 ->
                     entityTypeToPath(NpcType.Dubswitch, assetType, suffix, model, geomFormat)
+
                 NpcType.Delsaber2 ->
                     entityTypeToPath(NpcType.Delsaber, assetType, suffix, model, geomFormat)
+
                 NpcType.ChaosSorcerer2 ->
                     entityTypeToPath(NpcType.ChaosSorcerer, assetType, suffix, model, geomFormat)
 
                 else -> "/npcs/${type.name}${fullSuffix}.$extension"
             }
         }
+
         is ObjectType -> {
             when (type) {
                 // We don't have a model for these objects.
@@ -431,6 +463,7 @@ private fun entityTypeToPath(
                 }
             }
         }
+
         else -> {
             error("$type not supported.")
         }

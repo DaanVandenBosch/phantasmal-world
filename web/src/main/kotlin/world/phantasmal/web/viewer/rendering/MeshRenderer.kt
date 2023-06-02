@@ -8,11 +8,27 @@ import world.phantasmal.psolib.fileFormats.ninja.NjMotion
 import world.phantasmal.psolib.fileFormats.ninja.NjObject
 import world.phantasmal.web.core.boundingSphere
 import world.phantasmal.web.core.isSkinnedMesh
-import world.phantasmal.web.core.rendering.*
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
+import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
+import world.phantasmal.web.core.rendering.RenderContext
 import world.phantasmal.web.core.rendering.Renderer
-import world.phantasmal.web.core.rendering.conversion.*
+import world.phantasmal.web.core.rendering.conversion.PSO_FRAME_RATE_DOUBLE
+import world.phantasmal.web.core.rendering.conversion.collisionGeometryToGroup
+import world.phantasmal.web.core.rendering.conversion.createAnimationClip
+import world.phantasmal.web.core.rendering.conversion.ninjaObjectToMesh
+import world.phantasmal.web.core.rendering.conversion.ninjaObjectToSkinnedMesh
+import world.phantasmal.web.core.rendering.conversion.renderGeometryToGroup
+import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.core.times
-import world.phantasmal.web.externals.three.*
+import world.phantasmal.web.externals.three.AnimationAction
+import world.phantasmal.web.externals.three.AnimationClip
+import world.phantasmal.web.externals.three.AnimationMixer
+import world.phantasmal.web.externals.three.Clock
+import world.phantasmal.web.externals.three.LineBasicMaterial
+import world.phantasmal.web.externals.three.Object3D
+import world.phantasmal.web.externals.three.PerspectiveCamera
+import world.phantasmal.web.externals.three.SkeletonHelper
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.shared.Throttle
 import world.phantasmal.web.viewer.stores.NinjaGeometry
 import world.phantasmal.web.viewer.stores.ViewerStore
@@ -125,15 +141,26 @@ class MeshRenderer(
                         val obj = ninjaGeometry.obj
 
                         if (obj is NjObject) {
-                            ninjaObjectToSkinnedMesh(obj, textures, boundingVolumes = true)
+                            ninjaObjectToSkinnedMesh(
+                                obj,
+                                textures,
+                                boundingVolumes = true,
+                                anisotropy = threeRenderer.capabilities.getMaxAnisotropy() / 2,
+                            )
                         } else {
-                            ninjaObjectToMesh(obj, textures, boundingVolumes = true)
+                            ninjaObjectToMesh(
+                                obj,
+                                textures,
+                                boundingVolumes = true,
+                                anisotropy = threeRenderer.capabilities.getMaxAnisotropy() / 2,
+                            )
                         }
                     }
 
                     is NinjaGeometry.Render -> renderGeometryToGroup(
                         ninjaGeometry.geometry,
-                        textures
+                        textures,
+                        anisotropy = threeRenderer.capabilities.getMaxAnisotropy() / 2,
                     )
 
                     is NinjaGeometry.Collision -> collisionGeometryToGroup(ninjaGeometry.geometry)

@@ -5,10 +5,21 @@ import org.khronos.webgl.Float32Array
 import org.khronos.webgl.Uint16Array
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
-import world.phantasmal.web.core.rendering.*
+import world.phantasmal.web.core.rendering.DisposableThreeRenderer
+import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
+import world.phantasmal.web.core.rendering.RenderContext
 import world.phantasmal.web.core.rendering.Renderer
 import world.phantasmal.web.core.rendering.conversion.xvrTextureToThree
-import world.phantasmal.web.externals.three.*
+import world.phantasmal.web.core.rendering.disposeObject3DResources
+import world.phantasmal.web.externals.three.BufferGeometry
+import world.phantasmal.web.externals.three.Color
+import world.phantasmal.web.externals.three.Float32BufferAttribute
+import world.phantasmal.web.externals.three.Mesh
+import world.phantasmal.web.externals.three.MeshBasicMaterial
+import world.phantasmal.web.externals.three.NearestFilter
+import world.phantasmal.web.externals.three.OrthographicCamera
+import world.phantasmal.web.externals.three.Uint16BufferAttribute
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.viewer.stores.ViewerStore
 import world.phantasmal.webui.obj
 import kotlin.math.ceil
@@ -23,27 +34,31 @@ class TextureRenderer(
 ) : Renderer() {
     private var meshes = listOf<Mesh>()
 
-    override val context = addDisposable(RenderContext(
-        createCanvas(),
-        OrthographicCamera(
-            left = -400.0,
-            right = 400.0,
-            top = 300.0,
-            bottom = -300.0,
-            near = 1.0,
-            far = 10.0,
+    override val context = addDisposable(
+        RenderContext(
+            createCanvas(),
+            OrthographicCamera(
+                left = -400.0,
+                right = 400.0,
+                top = 300.0,
+                bottom = -300.0,
+                near = 1.0,
+                far = 10.0,
+            )
         )
-    ))
+    )
 
     override val threeRenderer = addDisposable(createThreeRenderer(context.canvas)).renderer
 
-    override val inputManager = addDisposable(OrbitalCameraInputManager(
-        context.canvas,
-        context.camera,
-        Vector3(0.0, 0.0, 5.0),
-        screenSpacePanning = true,
-        enableRotate = false,
-    ))
+    override val inputManager = addDisposable(
+        OrbitalCameraInputManager(
+            context.canvas,
+            context.camera,
+            Vector3(0.0, 0.0, 5.0),
+            screenSpacePanning = true,
+            enableRotate = false,
+        )
+    )
 
     init {
         observeNow(store.currentTextures) {
@@ -81,7 +96,7 @@ class TextureRenderer(
         meshes = textures.map { xvr ->
             val texture =
                 try {
-                    xvrTextureToThree(xvr, filter = NearestFilter)
+                    xvrTextureToThree(xvr, magFilter = NearestFilter, minFilter = NearestFilter)
                 } catch (e: Exception) {
                     logger.error(e) { "Couldn't convert XVR texture." }
                     null
@@ -120,46 +135,56 @@ class TextureRenderer(
         geom.setAttribute(
             "position",
             Float32BufferAttribute(
-                Float32Array(arrayOf(
-                    -halfWidth, -halfHeight, 0f,
-                    -halfWidth, halfHeight, 0f,
-                    halfWidth, halfHeight, 0f,
-                    halfWidth, -halfHeight, 0f,
-                )),
+                Float32Array(
+                    arrayOf(
+                        -halfWidth, -halfHeight, 0f,
+                        -halfWidth, halfHeight, 0f,
+                        halfWidth, halfHeight, 0f,
+                        halfWidth, -halfHeight, 0f,
+                    )
+                ),
                 3,
             ),
         )
         geom.setAttribute(
             "normal",
             Float32BufferAttribute(
-                Float32Array(arrayOf(
-                    0f, 0f, 1f,
-                    0f, 0f, 1f,
-                    0f, 0f, 1f,
-                    0f, 0f, 1f,
-                )),
+                Float32Array(
+                    arrayOf(
+                        0f, 0f, 1f,
+                        0f, 0f, 1f,
+                        0f, 0f, 1f,
+                        0f, 0f, 1f,
+                    )
+                ),
                 3,
             ),
         )
         geom.setAttribute(
             "uv",
             Float32BufferAttribute(
-                Float32Array(arrayOf(
-                    0f, 1f,
-                    0f, 0f,
-                    1f, 0f,
-                    1f, 1f,
-                )),
+                Float32Array(
+                    arrayOf(
+                        0f, 1f,
+                        0f, 0f,
+                        1f, 0f,
+                        1f, 1f,
+                    )
+                ),
                 2,
             ),
         )
-        geom.setIndex(Uint16BufferAttribute(
-            Uint16Array(arrayOf(
-                0, 2, 1,
-                2, 0, 3,
-            )),
-            1,
-        ))
+        geom.setIndex(
+            Uint16BufferAttribute(
+                Uint16Array(
+                    arrayOf(
+                        0, 2, 1,
+                        2, 0, 3,
+                    )
+                ),
+                1,
+            )
+        )
 
         geom.translate(x.toDouble(), y.toDouble(), -5.0)
 

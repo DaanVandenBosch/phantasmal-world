@@ -13,6 +13,7 @@ import world.phantasmal.webui.obj
 class MeshBuilder(
     private val textures: List<XvrTexture?> = emptyList(),
     private val textureCache: UnsafeMap<Int, Texture?> = UnsafeMap(),
+    private val anisotropy: Int = 1,
 ) {
     private val positions = mutableListOf<Vector3>()
     private val normals = mutableListOf<Vector3>()
@@ -197,7 +198,7 @@ class MeshBuilder(
 
                 if (tex == null) {
                     tex = textures.getOrNull(group.textureIndex)?.let { xvm ->
-                        xvrTextureToThree(xvm)
+                        xvrTextureToThree(xvm, anisotropy = anisotropy)
                     }
                     textureCache.set(group.textureIndex, tex)
                 }
