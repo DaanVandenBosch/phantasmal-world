@@ -302,6 +302,14 @@ class QuestEditorStore(
         }
     }
 
+    fun setEntityWorldPosition(entity: QuestEntityModel<*, *>, sectionId: Int?, position: Vector3) {
+        mutate {
+            setSelectedEntity(entity)
+            sectionId?.let { setEntitySection(entity, it) }
+            entity.setWorldPosition(position)
+        }
+    }
+
     fun setEntityRotation(entity: QuestEntityModel<*, *>, rotation: Euler) {
         mutate {
             setSelectedEntity(entity)
@@ -359,7 +367,7 @@ class QuestEditorStore(
      * Sets [QuestEntityModel.sectionId] and [QuestEntityModel.section] if there's a section with
      * [sectionId] as ID.
      */
-    fun setEntitySection(entity: QuestEntityModel<*, *>, sectionId: Int) {
+    private fun setEntitySection(entity: QuestEntityModel<*, *>, sectionId: Int) {
         currentQuest.value?.let { quest ->
             val variant = quest.areaVariants.value.find { it.area.id == entity.areaId }
 

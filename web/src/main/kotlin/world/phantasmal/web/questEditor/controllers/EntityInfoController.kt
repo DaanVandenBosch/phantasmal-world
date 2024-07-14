@@ -117,6 +117,12 @@ class EntityInfoController(
     val posY: Cell<Double> = pos.map { it.y }
     val posZ: Cell<Double> = pos.map { it.z }
 
+    private val worldPos: Cell<Vector3> =
+        questEditorStore.selectedEntity.flatMap { it?.worldPosition ?: DEFAULT_POSITION }
+    val worldPosX: Cell<Double> = worldPos.map { it.x }
+    val worldPosY: Cell<Double> = worldPos.map { it.y }
+    val worldPosZ: Cell<Double> = worldPos.map { it.z }
+
     private val rot: Cell<Euler> =
         questEditorStore.selectedEntity.flatMap { it?.rotation ?: DEFAULT_ROTATION }
     val rotX: Cell<Double> = rot.map { radToDeg(it.x) }
@@ -207,6 +213,44 @@ class EntityInfoController(
                 oldSection = null,
                 newPosition = Vector3(x, y, z),
                 oldPosition = entity.position.value,
+                world = false,
+            )
+        )
+    }
+
+    fun setWorldPosX(x: Double) {
+        questEditorStore.selectedEntity.value?.let { entity ->
+            val pos = entity.worldPosition.value
+            setWorldPos(entity, x, pos.y, pos.z)
+        }
+    }
+
+    fun setWorldPosY(y: Double) {
+        questEditorStore.selectedEntity.value?.let { entity ->
+            val pos = entity.worldPosition.value
+            setWorldPos(entity, pos.x, y, pos.z)
+        }
+    }
+
+    fun setWorldPosZ(z: Double) {
+        questEditorStore.selectedEntity.value?.let { entity ->
+            val pos = entity.worldPosition.value
+            setWorldPos(entity, pos.x, pos.y, z)
+        }
+    }
+
+    private fun setWorldPos(entity: QuestEntityModel<*, *>, x: Double, y: Double, z: Double) {
+        if (!enabled.value) return
+
+        questEditorStore.executeAction(
+            TranslateEntityCommand(
+                questEditorStore,
+                entity,
+                newSection = null,
+                oldSection = null,
+                newPosition = Vector3(x, y, z),
+                oldPosition = entity.worldPosition.value,
+                world = true,
             )
         )
     }

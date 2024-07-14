@@ -12,14 +12,23 @@ class TranslateEntityCommand(
     private val oldSection: Int?,
     private val newPosition: Vector3,
     private val oldPosition: Vector3,
+    private val world: Boolean,
 ) : Command {
     override val description: String = "Move ${entity.type.simpleName}"
 
     override fun execute() {
-        questEditorStore.setEntityPosition(entity, newSection, newPosition)
+        if (world) {
+            questEditorStore.setEntityWorldPosition(entity, newSection, newPosition)
+        } else {
+            questEditorStore.setEntityPosition(entity, newSection, newPosition)
+        }
     }
 
     override fun undo() {
-        questEditorStore.setEntityPosition(entity, oldSection, oldPosition)
+        if (world) {
+            questEditorStore.setEntityWorldPosition(entity, oldSection, oldPosition)
+        } else {
+            questEditorStore.setEntityPosition(entity, oldSection, oldPosition)
+        }
     }
 }

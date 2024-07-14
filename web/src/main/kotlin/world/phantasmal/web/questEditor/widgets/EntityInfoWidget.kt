@@ -69,6 +69,12 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 createCoordRow("Y:", ctrl.posY, ctrl::setPosY)
                 createCoordRow("Z:", ctrl.posZ, ctrl::setPosZ)
                 tr {
+                    th { colSpan = 2; textContent = "World Position:" }
+                }
+                createCoordRow("X:", ctrl.worldPosX, ctrl::setWorldPosX)
+                createCoordRow("Y:", ctrl.worldPosY, ctrl::setWorldPosY)
+                createCoordRow("Z:", ctrl.worldPosZ, ctrl::setWorldPosZ)
+                tr {
                     th { colSpan = 2; textContent = "Rotation:" }
                 }
                 createCoordRow("X:", ctrl.rotX, ctrl::setRotX)
