@@ -13,3 +13,6 @@ karma.config.generated.js
 
 # Config
 /psoserv/psoserv.conf
+
+# Kotlin
+/.kotlin

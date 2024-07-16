@@ -4,16 +4,20 @@ plugins {
 
 kotlin {
     js {
-        compilations.configureEach {
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-        }
-
         binaries.executable()
     }
-}
 
-dependencies {
-    api(project(":web:shared"))
+    sourceSets {
+        getByName("jsMain") {
+            dependencies {
+                api(project(":web:shared"))
+            }
+        }
 
-    testImplementation(project(":test-utils"))
+        getByName("jsTest") {
+            dependencies {
+                implementation(project(":test-utils"))
+            }
+        }
+    }
 }

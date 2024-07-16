@@ -11,7 +11,8 @@ class FilteredListCellPredicateDependencyEmitsTests : ListCellTests, CellWithDep
         private var maxValue = if (empty) 0 else 1
 
         // The predicate cell changes, the predicate results don't.
-        private val predicateCell = SimpleCell<(Int) -> Cell<Boolean>> { cell(it <= maxValue) }
+        private val predicateCell: SimpleCell<(Int) -> Cell<Boolean>> =
+            SimpleCell { cell(it <= maxValue) }
 
         override val cell =
             FilteredListCell(

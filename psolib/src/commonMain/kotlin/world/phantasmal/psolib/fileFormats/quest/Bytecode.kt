@@ -300,6 +300,8 @@ private fun findAndParseSegments(
                                 }
                             }
                         }
+
+                        else -> {}
                     }
 
                     i++
@@ -819,16 +821,20 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                                         cursor.writeShort(a.coerceInt().toShort())
                                     }
                                 }
+
                                 is LabelType -> cursor.writeShort(arg.coerceInt().toShort())
+
                                 StringType -> {
                                     val str = arg.coerceString()
 
                                     if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
                                     else cursor.writeStringUtf16(str, 2 * str.length + 2)
                                 }
+
                                 is RegType -> {
                                     cursor.writeByte(arg.coerceInt().toByte())
                                 }
+
                                 RegVarType -> {
                                     cursor.writeByte(args.size.toByte())
 
@@ -836,6 +842,7 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                                         cursor.writeByte(a.coerceInt().toByte())
                                     }
                                 }
+
                                 else -> error(
                                     "Parameter type ${param.type::class.simpleName} not supported."
                                 )

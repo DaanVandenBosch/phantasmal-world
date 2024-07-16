@@ -4,7 +4,6 @@ import world.phantasmal.psolib.buffer.Buffer
 
 // TODO: set properties of friendly NPCs based on episode.
 internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
-    @Suppress("NON_EXHAUSTIVE_WHEN")
     when (type) {
         NpcType.FemaleFat -> {
             view.setShort(2, 2)
@@ -13,6 +12,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -16432)
             view.setShort(70, 1834)
         }
+
         NpcType.FemaleMacho -> {
             view.setShort(2, 2)
             view.setShort(4, 1876)
@@ -20,12 +20,14 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -12528)
             view.setShort(70, 1834)
         }
+
         NpcType.FemaleTall -> {
             view.setShort(2, 2)
             view.setShort(4, 1883)
             view.setShort(68, -5504)
             view.setShort(70, 1834)
         }
+
         NpcType.MaleDwarf -> {
             view.setShort(2, 2)
             view.setShort(4, 1873)
@@ -33,6 +35,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -15456)
             view.setShort(70, 1834)
         }
+
         NpcType.MaleFat -> {
             view.setShort(2, 2)
             view.setShort(4, 1882)
@@ -40,6 +43,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -6528)
             view.setShort(70, 1834)
         }
+
         NpcType.MaleMacho -> {
             view.setShort(2, 2)
             view.setShort(4, 1880)
@@ -47,6 +51,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -8576)
             view.setShort(70, 1834)
         }
+
         NpcType.MaleOld -> {
             view.setShort(2, 2)
             view.setShort(4, 1878)
@@ -54,6 +59,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -10576)
             view.setShort(70, 1834)
         }
+
         NpcType.BlueSoldier -> {
             view.setShort(2, 2)
             view.setShort(4, 1875)
@@ -61,6 +67,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -13504)
             view.setShort(70, 1834)
         }
+
         NpcType.RedSoldier -> {
             view.setShort(2, 2)
             view.setShort(4, 1874)
@@ -68,12 +75,14 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -14480)
             view.setShort(70, 1834)
         }
+
         NpcType.Principal -> {
             view.setShort(4, 1888)
             view.setShort(10, 5985)
             view.setShort(68, -384)
             view.setShort(70, 1834)
         }
+
         NpcType.Tekker -> {
             view.setShort(2, 2)
             view.setShort(4, 1879)
@@ -81,6 +90,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -9600)
             view.setShort(70, 1834)
         }
+
         NpcType.GuildLady -> {
             view.setShort(2, 2)
             view.setShort(4, 1891)
@@ -88,6 +98,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 11584)
             view.setShort(70, 1835)
         }
+
         NpcType.Scientist -> {
             view.setShort(2, 2)
             view.setShort(4, 1877)
@@ -95,6 +106,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -11552)
             view.setShort(70, 1834)
         }
+
         NpcType.Nurse -> {
             view.setShort(2, 2)
             view.setShort(4, 1884)
@@ -102,24 +114,28 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -4480)
             view.setShort(70, 1834)
         }
+
         NpcType.Irene -> {
             view.setShort(4, 1889)
             view.setShort(10, 5986)
             view.setShort(68, 640)
             view.setShort(70, 1835)
         }
+
         NpcType.ItemShop -> {
             view.setShort(4, 8)
             view.setShort(10, 6453)
             view.setShort(68, 16560)
             view.setShort(70, 1176)
         }
+
         NpcType.Nurse2 -> {
             view.setShort(4, 2330)
             view.setShort(10, 6496)
             view.setShort(68, -13280)
             view.setShort(70, 1200)
         }
+
         NpcType.Hildebear -> {
             view.setShort(4, -1)
             view.setShort(8, 2)
@@ -128,16 +144,19 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 29968)
             view.setShort(70, -29446)
         }
+
         NpcType.RagRappy -> {
             view.setShort(8, 1)
             view.setShort(10, -1)
             view.setShort(68, 1072)
             view.setShort(70, -29444)
         }
+
         NpcType.Monest -> {
             view.setFloat(48, 5.000000953674316f) // Start number
             view.setFloat(52, 10.000004768371582f) // Total number
         }
+
         NpcType.BarbarousWolf -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -145,10 +164,12 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 8576)
             view.setShort(70, -29445)
         }
+
         NpcType.Booma -> {
             view.setFloat(44, 0.30000001192092896f) // Scale x
             view.setFloat(48, 40.00001907348633f) // Idle distance
         }
+
         NpcType.Gobooma -> {
             view.setShort(8, 1)
             view.setShort(10, -1)
@@ -157,6 +178,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 11600)
             view.setShort(70, -29444)
         }
+
         NpcType.Gigobooma -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -164,6 +186,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -4000)
             view.setShort(70, -29446)
         }
+
         NpcType.Dragon -> {
             view.setShort(4, 1173)
             view.setShort(8, 11)
@@ -171,6 +194,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 24624)
             view.setShort(70, -29446)
         }
+
         NpcType.GrassAssassin -> view.setShort(8, 4)
         NpcType.PoisonLily -> view.setShort(8, 4)
         NpcType.NanoDragon -> view.setShort(8, 3)
@@ -187,6 +211,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -11088)
             view.setShort(70, -29445)
         }
+
         NpcType.Dubchic -> {
             view.setShort(4, 2626)
             view.setShort(8, 7)
@@ -194,6 +219,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -25504)
             view.setShort(70, 561)
         }
+
         NpcType.Gilchic -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -202,6 +228,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 5968)
             view.setShort(70, -29444)
         }
+
         NpcType.Garanz -> {
             view.setShort(4, -1)
             view.setShort(8, 7)
@@ -209,6 +236,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26128)
             view.setShort(70, 561)
         }
+
         NpcType.SinowBeat -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -216,6 +244,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 6288)
             view.setShort(70, -29444)
         }
+
         NpcType.SinowGold -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -224,6 +253,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 8048)
             view.setShort(70, -29444)
         }
+
         NpcType.Canadine -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -231,6 +261,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 8496)
             view.setShort(70, -29444)
         }
+
         NpcType.Canane -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -238,6 +269,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 7264)
             view.setShort(70, -29444)
         }
+
         NpcType.Dubswitch -> {
             view.setShort(4, 2626)
             view.setShort(8, 7)
@@ -245,6 +277,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -16736)
             view.setShort(70, 561)
         }
+
         NpcType.VolOptPart1 -> view.setShort(6, 35) // Clone count
         NpcType.VolOptPart2 -> view.setShort(8, 13)
         NpcType.DarkFalz -> {
@@ -254,6 +287,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 25008)
             view.setShort(70, -29446)
         }
+
         NpcType.Hildebear2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -262,6 +296,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, -32759)
         }
+
         NpcType.RagRappy2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -269,6 +304,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, 8201)
         }
+
         NpcType.Monest2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -278,6 +314,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, -12252)
         }
+
         NpcType.PoisonLily2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -285,6 +322,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, 8230)
         }
+
         NpcType.GrassAssassin2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -292,6 +330,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, 24595)
         }
+
         NpcType.Dimenian2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -299,6 +338,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, -4086)
         }
+
         NpcType.LaDimenian2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -306,6 +346,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, -16367)
         }
+
         NpcType.SoDimenian2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -314,6 +355,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7040)
             view.setShort(70, 8372)
         }
+
         NpcType.DarkBelra2 -> {
             view.setShort(4, -1)
             view.setShort(8, 1)
@@ -321,6 +363,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7040)
             view.setShort(70, -32642)
         }
+
         NpcType.BarbaRay -> {
             view.setShort(4, -1)
             view.setShort(8, 14)
@@ -328,6 +371,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -2688)
             view.setShort(70, 24576)
         }
+
         NpcType.SavageWolf2 -> {
             view.setShort(4, 11785)
             view.setShort(8, 3)
@@ -335,6 +379,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 8250)
         }
+
         NpcType.BarbarousWolf2 -> {
             view.setShort(4, -1)
             view.setShort(8, 3)
@@ -342,6 +387,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -32650)
         }
+
         NpcType.PanArms2 -> {
             view.setShort(4, -1)
             view.setShort(8, 3)
@@ -349,6 +395,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -16251)
         }
+
         NpcType.Dubchic2 -> {
             view.setShort(4, -1)
             view.setShort(8, 3)
@@ -356,6 +403,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 16513)
         }
+
         NpcType.Gilchic2 -> {
             view.setShort(4, -1)
             view.setShort(8, 3)
@@ -363,6 +411,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -32654)
         }
+
         NpcType.Garanz2 -> {
             view.setShort(4, 27144)
             view.setShort(8, 3)
@@ -370,6 +419,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 24683)
         }
+
         NpcType.Dubswitch2 -> {
             view.setShort(4, -1)
             view.setShort(8, 3)
@@ -377,6 +427,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -20363)
         }
+
         NpcType.Delsaber2 -> {
             view.setShort(4, -1)
             view.setShort(8, 3)
@@ -384,6 +435,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 16513)
         }
+
         NpcType.ChaosSorcerer2 -> {
             view.setShort(4, -1)
             view.setShort(8, 4)
@@ -391,6 +443,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7296)
             view.setShort(70, -7963)
         }
+
         NpcType.GolDragon -> {
             view.setShort(4, -19963)
             view.setShort(8, 15)
@@ -398,6 +451,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -3712)
             view.setShort(70, 16555)
         }
+
         NpcType.SinowBerill -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -407,6 +461,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 47)
         }
+
         NpcType.SinowSpigell -> {
             view.setShort(4, 880)
             view.setShort(8, 5)
@@ -414,6 +469,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -11584)
             view.setShort(70, 1163)
         }
+
         NpcType.Merillia -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -423,6 +479,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 16456)
         }
+
         NpcType.Meriltas -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -432,6 +489,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 16456)
         }
+
         NpcType.Mericarol -> {
             view.setShort(4, -1)
             view.setShort(8, 17)
@@ -441,6 +499,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -4016)
         }
+
         NpcType.Mericus -> {
             view.setShort(4, 32010)
             view.setShort(8, 17)
@@ -450,6 +509,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 28762)
         }
+
         NpcType.Merikle -> {
             view.setShort(4, 32010)
             view.setShort(8, 17)
@@ -459,6 +519,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -3997)
         }
+
         NpcType.UlGibbon -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -467,6 +528,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 20554)
         }
+
         NpcType.ZolGibbon -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -474,6 +536,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26688)
             view.setShort(70, 565)
         }
+
         NpcType.Gibbles -> {
             view.setShort(4, -1)
             view.setShort(8, 17)
@@ -483,6 +546,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -12210)
         }
+
         NpcType.Gee -> {
             view.setShort(4, -1)
             view.setShort(8, 6)
@@ -490,6 +554,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -4024)
         }
+
         NpcType.GiGue -> {
             view.setShort(4, 32010)
             view.setShort(8, 17)
@@ -499,6 +564,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 12374)
         }
+
         NpcType.IllGill -> {
             view.setShort(4, 4104)
             view.setShort(8, 17)
@@ -506,6 +572,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 24639)
         }
+
         NpcType.DelLily -> {
             view.setShort(4, -1)
             view.setShort(8, 17)
@@ -513,6 +580,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26576)
             view.setShort(70, 564)
         }
+
         NpcType.Epsilon -> {
             view.setShort(4, -1)
             view.setShort(8, 17)
@@ -520,6 +588,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -4224)
             view.setShort(70, -16379)
         }
+
         NpcType.GalGryphon -> {
             view.setShort(4, 1173)
             view.setShort(8, 11)
@@ -527,6 +596,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 24624)
             view.setShort(70, -29446)
         }
+
         NpcType.Deldepth -> {
             view.setShort(4, 2095)
             view.setShort(8, 11)
@@ -534,6 +604,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26352)
             view.setShort(70, 665)
         }
+
         NpcType.Delbiter -> {
             view.setShort(4, -1)
             view.setShort(8, 11)
@@ -545,6 +616,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 24639)
         }
+
         NpcType.Dolmolm -> {
             view.setShort(4, -1)
             view.setShort(8, 11)
@@ -553,6 +625,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, 12370)
         }
+
         NpcType.Dolmdarl -> {
             view.setShort(4, -1)
             view.setShort(8, 11)
@@ -561,6 +634,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -7552)
             view.setShort(70, -4001)
         }
+
         NpcType.Morfos -> {
             view.setShort(4, 1993)
             view.setShort(8, 11)
@@ -568,6 +642,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -25424)
             view.setShort(70, 561)
         }
+
         NpcType.Recobox -> {
             view.setShort(4, -1)
             view.setShort(8, 11)
@@ -575,6 +650,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26160)
             view.setShort(70, 686)
         }
+
         NpcType.SinowZoa -> {
             view.setShort(4, 2634)
             view.setShort(8, 11)
@@ -583,6 +659,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -19488)
             view.setShort(70, 665)
         }
+
         NpcType.SinowZele -> {
             view.setShort(4, 2634)
             view.setShort(8, 11)
@@ -590,6 +667,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -25152)
             view.setShort(70, 665)
         }
+
         NpcType.OlgaFlow -> {
             view.setShort(4, -1)
             view.setShort(8, 13)
@@ -597,6 +675,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -4480)
             view.setShort(70, -28572)
         }
+
         NpcType.SandRappy -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -604,6 +683,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -27344)
             view.setShort(70, 616)
         }
+
         NpcType.DelRappy -> {
             view.setShort(4, -1)
             view.setShort(8, 3)
@@ -611,6 +691,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -17168)
             view.setShort(70, 410)
         }
+
         NpcType.Astark -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -618,6 +699,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26896)
             view.setShort(70, 616)
         }
+
         NpcType.SatelliteLizard -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -625,6 +707,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -27088)
             view.setShort(70, 616)
         }
+
         NpcType.Yowie -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -633,6 +716,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -25872)
             view.setShort(70, 616)
         }
+
         NpcType.MerissaA -> {
             view.setShort(4, -1)
             view.setShort(8, 7)
@@ -640,6 +724,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -16512)
             view.setShort(70, 542)
         }
+
         NpcType.MerissaAA -> {
             view.setShort(4, -1)
             view.setShort(8, 8)
@@ -647,6 +732,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -27328)
             view.setShort(70, 1230)
         }
+
         NpcType.Girtablulu -> {
             view.setShort(4, -1)
             view.setShort(8, 7)
@@ -654,6 +740,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26256)
             view.setShort(70, 459)
         }
+
         NpcType.Zu -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -661,6 +748,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -28304)
             view.setShort(70, 616)
         }
+
         NpcType.Pazuzu -> {
             view.setShort(4, 937)
             view.setShort(8, 3)
@@ -668,6 +756,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -15216)
             view.setShort(70, 410)
         }
+
         NpcType.Boota -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -675,6 +764,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -27216)
             view.setShort(70, 616)
         }
+
         NpcType.ZeBoota -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -682,6 +772,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -20304)
             view.setShort(70, 616)
         }
+
         NpcType.BaBoota -> {
             view.setShort(4, -1)
             view.setShort(8, 5)
@@ -689,6 +780,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -14800)
             view.setShort(70, 616)
         }
+
         NpcType.Dorphon -> {
             view.setShort(4, 2308)
             view.setShort(8, 5)
@@ -696,6 +788,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -26480)
             view.setShort(70, 616)
         }
+
         NpcType.DorphonEclair -> {
             view.setShort(4, 951)
             view.setShort(8, 3)
@@ -703,6 +796,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -30064)
             view.setShort(70, 410)
         }
+
         NpcType.Goran -> {
             view.setShort(4, -1)
             view.setShort(8, 8)
@@ -710,6 +804,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -27216)
             view.setShort(70, 610)
         }
+
         NpcType.PyroGoran -> {
             view.setShort(4, -1)
             view.setShort(8, 7)
@@ -717,6 +812,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -16384)
             view.setShort(70, 542)
         }
+
         NpcType.GoranDetonator -> {
             view.setShort(4, -1)
             view.setShort(8, 7)
@@ -724,6 +820,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, -16384)
             view.setShort(70, 542)
         }
+
         NpcType.SaintMilion -> {
             view.setShort(4, 1297)
             view.setShort(6, 24) // Clone count
@@ -732,6 +829,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 28144)
             view.setShort(70, 673)
         }
+
         NpcType.Shambertin -> {
             view.setShort(4, 1362)
             view.setShort(6, 24) // Clone count
@@ -741,5 +839,7 @@ internal fun setNpcDefaultData(type: NpcType, view: Buffer) {
             view.setShort(68, 31280)
             view.setShort(70, 491)
         }
+
+        else -> {}
     }
 }

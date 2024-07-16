@@ -2,9 +2,14 @@ package world.phantasmal.core
 
 // Char.isWhitespace is very slow in JS, use this until
 // https://youtrack.jetbrains.com/issue/KT-43216 lands.
-expect inline fun Char.fastIsWhitespace(): Boolean
+@Suppress("NOTHING_TO_INLINE")
+inline fun Char.fastIsWhitespace(): Boolean =
+    code == 0x20 || (code in 0x09..0x0D)
 
-expect inline fun Char.isDigit(): Boolean
+// This is optimized for KJS. Last checked with Kotlin 1.6.
+@Suppress("NOTHING_TO_INLINE")
+inline fun Char.isDigit(): Boolean =
+    code in 0x30..0x39
 
 /**
  * Returns true if the bit at the given position is set. Bits are indexed from lowest-order

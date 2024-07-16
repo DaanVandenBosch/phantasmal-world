@@ -32,7 +32,7 @@ Then, for the web application:
 
 1. `cd` to the project directory
 2. Launch webpack server on [http://localhost:1623/](http://localhost:1623/)
-   with `./gradlew :web:run --continuous`
+   with `./gradlew :web:jsBrowserDevelopmentRun --continuous`
 3. [web/src/main/kotlin/world/phantasmal/web/Main.kt](web/src/main/kotlin/world/phantasmal/web/Main.kt)
    is the application's entry point
 
@@ -95,6 +95,8 @@ Work-in-progress PSO server and fully functional PSO proxy server.
 Run the unit tests with `./gradlew check`. JS tests are run with Karma and Mocha, JVM tests with
 Junit 5. Tests can also be run per project with e.g. `./gradlew :psolib:check`.
 
+TODO: Figure out why `./gradlew check` runs the cell tests twice since upgrade to Gradle 8.9.
+
 ### Code Style and Formatting
 
 The Kotlin [coding conventions](https://kotlinlang.org/docs/coding-conventions.html) are used.
@@ -103,7 +105,7 @@ The Kotlin [coding conventions](https://kotlinlang.org/docs/coding-conventions.h
 
 #### Web Application
 
-Create an optimized production build with `./gradlew :web:browserDistribution`.
+Create an optimized production build with `./gradlew :web:jsBrowserDistribution`.
 
 #### PSO Server
 

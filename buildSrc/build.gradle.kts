@@ -7,6 +7,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31")
-    implementation("org.jetbrains.kotlin:kotlin-serialization:1.5.31")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
+    implementation("org.jetbrains.kotlin:kotlin-serialization:1.9.24")
 }

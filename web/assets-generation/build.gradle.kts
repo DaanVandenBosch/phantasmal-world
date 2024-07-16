@@ -15,7 +15,7 @@ dependencies {
 }
 
 tasks.register<JavaExec>("generateAssets") {
-    val outputFile = File(buildDir, "generatedAssets")
+    val outputFile = layout.buildDirectory.get().asFile.resolve("generatedAssets")
     outputs.dir(outputFile)
 
     classpath = sourceSets.main.get().runtimeClasspath

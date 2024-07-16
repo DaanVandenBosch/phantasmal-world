@@ -28,7 +28,11 @@ internal class SimpleListCell<E>(
     override operator fun set(index: Int, element: E): E {
         checkIndex(index, elements.lastIndex)
 
-        applyChange {
+        // TODO: Use applyChange instead of MutationManager.changeDependency, once
+        //       https://youtrack.jetbrains.com/issue/KT-69964 is fixed.
+        MutationManager.changeDependency {
+            emitDependencyInvalidated()
+
             val removed = elements.set(index, element)
 
             finalizeChange(
@@ -81,7 +85,11 @@ internal class SimpleListCell<E>(
     override fun removeAt(index: Int): E {
         checkIndex(index, elements.lastIndex)
 
-        applyChange {
+        // TODO: Use applyChange instead of MutationManager.changeDependency, once
+        //       https://youtrack.jetbrains.com/issue/KT-69964 is fixed.
+        MutationManager.changeDependency {
+            emitDependencyInvalidated()
+
             val prevSize = elements.size
             val removed = elements.removeAt(index)
 

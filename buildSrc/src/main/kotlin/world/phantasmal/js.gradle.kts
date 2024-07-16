@@ -1,16 +1,13 @@
 package world.phantasmal
 
 plugins {
-    kotlin("js")
+    kotlin("multiplatform")
     id("world.phantasmal.common")
     id("world.phantasmal.karma-resources")
 }
 
 kotlin {
     js {
-        compilations.configureEach {
-            EXPERIMENTAL_ANNOTATIONS.forEach(languageSettings::optIn)
-        }
         browser {
             testTask {
                 useKarma {
@@ -19,8 +16,12 @@ kotlin {
             }
         }
     }
-}
 
-dependencies {
-    testImplementation(kotlin("test-js"))
+    sourceSets {
+        commonTest {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+    }
 }

@@ -1,6 +1,6 @@
 package world.phantasmal.cell
 
-import kotlin.contracts.InvocationKind
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 
 abstract class AbstractDependency<T> : Dependency<T> {
@@ -22,7 +22,7 @@ abstract class AbstractDependency<T> : Dependency<T> {
 
     protected inline fun applyChange(block: () -> Unit) {
         contract {
-            callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+            callsInPlace(block, EXACTLY_ONCE)
         }
 
         MutationManager.changeDependency {
