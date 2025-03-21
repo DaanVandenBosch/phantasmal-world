@@ -24,8 +24,8 @@ See [features](./FEATURES.md) for a list of features, planned features and bugs.
 
 ### Getting Started
 
-1. Install Java 11+ ([GraalVM](https://www.graalvm.org/downloads/) is recommended, and necessary if
-   you want to produce native builds of the PSO server)
+1. Install Java 17 ([Temurin](https://adoptium.net/temurin/releases/?version=17&package=jdk) is
+   recommended)
 2. Ensure the JAVA_HOME environment variable is set to JDK's location
 
 Then, for the web application:
@@ -94,8 +94,6 @@ Work-in-progress PSO server and fully functional PSO proxy server.
 
 Run the unit tests with `./gradlew check`. JS tests are run with Karma and Mocha, JVM tests with
 Junit 5. Tests can also be run per project with e.g. `./gradlew :psolib:check`.
-
-TODO: Figure out why `./gradlew check` runs the cell tests twice since upgrade to Gradle 8.9.
 
 ### Code Style and Formatting
 

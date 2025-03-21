@@ -1,14 +1,10 @@
 package world.phantasmal.web.test
 
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.*
-import kotlinx.coroutines.cancel
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 import kotlinx.datetime.Clock
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.disposable
 import world.phantasmal.testUtils.TestContext
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.persistence.KeyValueStore
@@ -24,35 +20,22 @@ import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
-import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.web.viewer.loading.AnimationAssetLoader
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.stores.ViewerStore
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 /**
  * Assigning a disposable to any of the properties in this class will add the assigned value to
  * [ctx]'s disposer.
  */
 class TestComponents(private val ctx: TestContext) {
-    var httpClient: HttpClient by default {
-        HttpClient {
-            install(ContentNegotiation) {
-                serialization(ContentType.Application.Json, JSON_FORMAT)
-            }
-        }.also {
-            ctx.disposer.add(disposable { it.cancel() })
-        }
-    }
-
     var clock: Clock by default { StubClock() }
 
     var applicationUrl: ApplicationUrl by default { TestApplicationUrl("") }
 
     // Asset Loaders
 
-    var assetLoader: AssetLoader by default { AssetLoader(httpClient, basePath = "/assets") }
+    var assetLoader: AssetLoader by default { AssetLoader(basePath = "/assets") }
 
     var characterClassAssetLoader: CharacterClassAssetLoader by default {
         CharacterClassAssetLoader(assetLoader)

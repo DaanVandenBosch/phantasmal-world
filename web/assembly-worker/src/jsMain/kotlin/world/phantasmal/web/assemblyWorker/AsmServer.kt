@@ -63,10 +63,6 @@ class AsmServer(
 
                             is ClientNotification.UpdateAsm ->
                                 asmAnalyser.updateAsm(message.changes)
-
-                            else ->
-                                // Should be processed by processMessage.
-                                logger.error { "Unexpected ${message::class.simpleName}." }
                         }
                     }
 

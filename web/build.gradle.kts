@@ -1,8 +1,9 @@
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+
 plugins {
     id("world.phantasmal.js")
 }
 
-val ktorVersion: String by project.extra
 val serializationVersion: String by project.extra
 
 kotlin {
@@ -26,13 +27,11 @@ kotlin {
     sourceSets {
         getByName("jsMain") {
             dependencies {
+                implementation(kotlin("reflect"))
                 implementation(project(":psolib"))
                 implementation(project(":webui"))
                 implementation(project(":web:shared"))
 
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
                 implementation(npm("golden-layout", "^1.5.9"))
@@ -54,7 +53,7 @@ kotlin {
 }
 
 val copyAssemblyWorkerJsTask = tasks.register<Copy>("copyAssemblyWorkerJs") {
-    dependsOn(":web:assembly-worker:build")
+    dependsOn(":web:assembly-worker:jsBrowserDistribution")
 
     val workerDist =
         project(":web:assembly-worker").layout.buildDirectory.get().asFile.resolve("dist/js/productionExecutable")

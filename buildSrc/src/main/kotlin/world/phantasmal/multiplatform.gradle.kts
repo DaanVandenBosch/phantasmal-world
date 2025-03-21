@@ -11,7 +11,7 @@ val kotlinLoggingVersion: String by project.extra
 val log4jVersion: String by project.extra
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 
     jvm {}
 

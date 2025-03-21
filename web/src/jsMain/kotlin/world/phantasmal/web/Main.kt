@@ -1,12 +1,7 @@
 package world.phantasmal.web
 
-import io.ktor.client.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.*
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.cancel
 import kotlinx.datetime.Clock
 import mu.KotlinLoggingConfiguration
 import mu.KotlinLoggingLevel
@@ -22,7 +17,6 @@ import world.phantasmal.web.core.persistence.LocalStorageKeyValueStore
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer
 import world.phantasmal.web.core.stores.ApplicationUrl
 import world.phantasmal.web.externals.three.WebGLRenderer
-import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.web.shared.logging.LogAppender
 import world.phantasmal.web.shared.logging.LogFormatter
 import world.phantasmal.webui.dom.disposableListener
@@ -49,18 +43,11 @@ private fun init(): Disposable {
 
     val rootElement = document.body!!.root()
 
-    val httpClient = HttpClient {
-        install(ContentNegotiation) {
-            serialization(ContentType.Application.Json, JSON_FORMAT)
-        }
-    }
-    disposer.add(disposable { httpClient.cancel() })
-
     disposer.add(
         Application(
             rootElement,
             LocalStorageKeyValueStore(),
-            AssetLoader(httpClient),
+            AssetLoader(),
             disposer.add(HistoryApplicationUrl()),
             ::createThreeRenderer,
             Clock.System,
