@@ -143,6 +143,11 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             areaVariantId = areaId - 1
         }
 
+        // Exception for Lobby variant 0, use variant 1 texture.
+        if (episode == Episode.I && areaId == 15 && areaVariantId == 0 && type == AssetType.Texture) {
+            areaVariantId = 1
+        }
+
         val episodeBaseNames = AREA_BASE_NAMES.getValue(episode)
 
         require(areaId in episodeBaseNames.indices) {
@@ -151,7 +156,7 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
 
         val (baseName, addVariant) = episodeBaseNames[areaId]
 
-        val variant = if (addVariant && type != AssetType.Texture) {
+        val variant = if (addVariant && (type != AssetType.Texture || (episode == Episode.I && areaId == 15))) {
             "_" + areaVariantId.toString().padStart(2, '0')
         } else {
             ""
@@ -297,6 +302,9 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                 Pair("boss02", false),
                 Pair("boss03", false),
                 Pair("darkfalz00", false),
+                Pair("lobby", true),
+                Pair("vs01", true),
+                Pair("vs02", true),
             ),
             Episode.II to listOf(
                 Pair("labo00", true),

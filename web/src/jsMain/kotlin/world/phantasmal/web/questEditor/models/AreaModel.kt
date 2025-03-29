@@ -8,6 +8,7 @@ class AreaModel(
      */
     val id: Int,
     val name: String,
+    val bossArea: Boolean,
     val order: Int,
     val areaVariants: List<AreaVariantModel>,
 ) {

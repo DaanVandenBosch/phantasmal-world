@@ -3,10 +3,10 @@ package world.phantasmal.web.questEditor.widgets
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
-import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.Version
 import world.phantasmal.cell.cell
 import world.phantasmal.cell.list.listCell
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.Version
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
@@ -22,7 +22,7 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                     Dropdown(
                         text = "New quest",
                         iconLeft = Icon.NewFile,
-                        items = listCell(Episode.I),
+                        items = listCell(Episode.I, Episode.II, Episode.IV),
                         itemToString = { "Episode $it" },
                         onSelect = { scope.launch { ctrl.createNewQuest(it) } },
                     ),
@@ -76,7 +76,50 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         ),
                         checked = ctrl.showCollisionGeometry,
                         onChange = ctrl::setShowCollisionGeometry,
-                    )
+                    ),
+                    Checkbox(
+                        label = "Section IDs",
+                        tooltip = cell(
+                            "Whether to show section ID numbers in each section",
+                        ),
+                        checked = ctrl.showSectionIds,
+                        onChange = ctrl::setShowSectionIds,
+                    ),
+                    Checkbox(
+                        label = "Spawn Ground",
+                        tooltip = cell(
+                            "Whether monsters should spawn directly at ground level (section height)",
+                        ),
+                        checked = ctrl.spawnMonstersOnGround,
+                        onChange = ctrl::setSpawnMonstersOnGround,
+                    ),
+                    Checkbox(
+                        label = "Pos(0,0,0)",
+                        tooltip = cell(
+                            "Show the world coordinate origin point at position (0,0,0)",
+                        ),
+                        checked = ctrl.showOriginPoint,
+                        onChange = ctrl::setShowOriginPoint,
+                    ),
+                    Select(
+                        label = "Goto Section:",
+                        enabled = ctrl.gotoSectionEnabled,
+                        items = ctrl.availableSections,
+                        itemToString = { "Section ${it.id}" },
+                        selected = ctrl.selectedSection,
+                        onSelect = { section ->
+                            ctrl.setSelectedSection(section)
+                            ctrl.goToSelectedSection()
+                        },
+                    ).apply {
+                        // Trigger section loading when user clicks the dropdown
+                        element.addEventListener("focus", { 
+                            ctrl.ensureSectionsLoaded() 
+                        })
+                        element.addEventListener("click", { 
+                            ctrl.ensureSectionsLoaded() 
+                        })
+                    }
                 )
             ))
 

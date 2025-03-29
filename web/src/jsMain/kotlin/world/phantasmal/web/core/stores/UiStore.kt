@@ -3,12 +3,12 @@ package world.phantasmal.web.core.stores
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import org.w3c.dom.events.KeyboardEvent
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.TrackedDisposable
-import world.phantasmal.core.disposable.disposable
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.eq
 import world.phantasmal.cell.mutableCell
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.TrackedDisposable
+import world.phantasmal.core.disposable.disposable
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.models.Server
 import world.phantasmal.webui.DisposableContainer
@@ -113,7 +113,7 @@ class UiStore(applicationUrl: ApplicationUrl) : Store() {
     private fun dispatchGlobalKeyDown(e: KeyboardEvent) {
         val bindingParts = mutableListOf<String>()
 
-        if (e.ctrlKey) bindingParts.add("Ctrl")
+        if (e.ctrlKey || e.metaKey) bindingParts.add("Ctrl")  // Map both Ctrl and Cmd to "Ctrl" for compatibility
         if (e.altKey) bindingParts.add("Alt")
         if (e.shiftKey) bindingParts.add("Shift")
         bindingParts.add(e.key.uppercase())

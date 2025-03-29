@@ -5,6 +5,7 @@ import world.phantasmal.cell.and
 import world.phantasmal.cell.eq
 import world.phantasmal.cell.isNotNull
 import world.phantasmal.cell.isNull
+import world.phantasmal.cell.map
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.listCell
 import world.phantasmal.web.questEditor.commands.*
@@ -37,8 +38,31 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
     fun isSelected(event: QuestEventModel): Cell<Boolean> =
         store.selectedEvent eq event
 
-    fun selectEvent(event: QuestEventModel?) {
-        store.setSelectedEvent(event)
+    fun isMultiSelected(event: QuestEventModel): Cell<Boolean> =
+        store.selectedEvents.map { selectedEvents -> event in selectedEvents }
+
+    fun selectEvent(event: QuestEventModel?, ctrlKey: Boolean = false) {
+        if (ctrlKey && event != null) {
+            // Only toggle multi-selection, don't call setSelectedEvent
+            store.toggleEventSelection(event)
+        } else {
+            // Clear multi-selection and set single selection
+            store.setSelectedEvent(event)
+
+            // Also select the section associated with this event
+            if (event != null) {
+                val currentAreaVariant = store.currentAreaVariant.value
+                if (currentAreaVariant != null) {
+                    val sections = currentAreaVariant.sections.value
+                    val eventSection = sections.find { it.id == event.sectionId.value }
+                    store.setSelectedSection(eventSection)
+                } else {
+                    store.setSelectedSection(null)
+                }
+            } else {
+                store.setSelectedSection(null)
+            }
+        }
     }
 
     fun addEvent() {
@@ -161,6 +185,19 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
 
     fun goToEvent(eventId: Int) {
         store.goToEvent(eventId)
+    }
+
+    fun goToEventSection(event: QuestEventModel) {
+        store.goToEventSection(event)
+        // TODO: Add camera navigation implementation here
+        // This will need access to the camera/renderer which is not currently available
+        console.log("goToEventSection called for event ${event.id.value} in section ${event.sectionId.value}")
+    }
+
+    fun goToSection(sectionId: Int) {
+        store.goToSection(sectionId)
+        // TODO: Add camera navigation implementation here
+        console.log("goToSection called for section $sectionId")
     }
 
     fun setActionSectionId(

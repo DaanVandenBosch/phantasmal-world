@@ -2567,6 +2567,6 @@ enum class ObjectType(
         /**
          * Use this instead of [values] to avoid unnecessary copying.
          */
-        val VALUES: Array<ObjectType> = values()
+        val VALUES: Array<ObjectType> = entries.toTypedArray()
     }
 }
