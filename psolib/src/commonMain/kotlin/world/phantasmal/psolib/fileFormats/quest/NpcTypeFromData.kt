@@ -104,8 +104,8 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         }
         0x0D6 -> when (skin % 3) {
             0 -> NpcType.Mericarol
-            1 -> NpcType.Mericus
-            else -> NpcType.Merikle
+            1 -> NpcType.Merikle
+            else -> NpcType.Mericus
         }
         0x0D7 -> when (skin % 2) {
             0 -> NpcType.UlGibbon
