@@ -1071,8 +1071,8 @@ enum class NpcType(
         skin = 0,
         special = false,
     ),
-    Mericus(
-        uniqueName = "Mericus",
+    Merikle(
+        uniqueName = "Merikle",
         episode = Episode.II,
         enemy = true,
         areaIds = listOf(5, 6, 7, 8, 9, 16, 17),
@@ -1080,8 +1080,8 @@ enum class NpcType(
         skin = 1,
         special = false,
     ),
-    Merikle(
-        uniqueName = "Merikle",
+    Mericus(
+        uniqueName = "Mericus",
         episode = Episode.II,
         enemy = true,
         areaIds = listOf(5, 6, 7, 8, 9, 16, 17),
@@ -1490,6 +1490,6 @@ enum class NpcType(
         /**
          * Use this instead of [values] to avoid unnecessary copying.
          */
-        val VALUES: Array<NpcType> = values()
+        val VALUES: Array<NpcType> = entries.toTypedArray()
     }
 }
