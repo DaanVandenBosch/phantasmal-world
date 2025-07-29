@@ -21,3 +21,11 @@ kotlin {
         }
     }
 }
+
+tasks.named("jsBrowserProductionWebpack") {
+    dependsOn("jsDevelopmentExecutableCompileSync")
+}
+
+tasks.named("jsBrowserDevelopmentRun") {
+    dependsOn("jsProductionExecutableCompileSync")
+}
