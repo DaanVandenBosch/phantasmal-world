@@ -12,6 +12,7 @@ import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.files.writeBuffer
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.questEditor.models.AreaModel
+import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -98,11 +99,36 @@ class QuestEditorToolbarController(
             map(quest.entitiesPerArea, quest.areaVariants) { entitiesPerArea, variants ->
                 areaStore.getAreasForEpisode(quest.episode).map { area ->
                     val entityCount = entitiesPerArea[area.id]
-                    val name = variants.firstOrNull { it.area == area }?.name ?: area.name
-                    AreaAndLabel(area, name + (entityCount?.let { " ($it)" } ?: ""))
+                    val variant = findAreaVariant(area, variants)
+                    val displayName = buildDisplayName(area, variant, entityCount)
+
+                    AreaAndLabel(area, displayName)
                 }
             }
         } ?: cell(emptyList())
+    }
+
+    private fun findAreaVariant(area: AreaModel, variants: List<AreaVariantModel>): AreaVariantModel? {
+        return variants.firstOrNull { it.area == area }
+    }
+
+    private fun buildDisplayName(area: AreaModel, variant: AreaVariantModel?, entityCount: Int?): String {
+        val baseName = variant?.name ?: area.name
+        val mapSuffix = createMapSuffix(area.id, variant?.id, entityCount)
+        val countSuffix = createCountSuffix(entityCount)
+
+        return baseName + mapSuffix + countSuffix
+    }
+
+    private fun createMapSuffix(areaId: Int, variantId: Int?, entityCount: Int?): String {
+        return when {
+            entityCount == null || areaId <= 0 -> ""
+            else -> " - map ${(variantId ?: 0) + 1}"
+        }
+    }
+
+    private fun createCountSuffix(entityCount: Int?): String {
+        return entityCount?.let { " ($it)" } ?: ""
     }
 
     val currentArea: Cell<AreaAndLabel?> = map(areas, questEditorStore.currentArea) { areas, area ->

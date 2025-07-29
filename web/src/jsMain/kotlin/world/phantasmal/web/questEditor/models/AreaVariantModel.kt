@@ -8,7 +8,7 @@ class AreaVariantModel(val id: Int, val area: AreaModel) {
     private val _sections = mutableListCell<SectionModel>()
 
     // Tower has 5 variants. PW4 and LHB use variant 1. ID 0 is Seaside Area at Night.
-    val name: String = if (area.id == 16 && id in 1..5) "West Tower" else area.name
+    val name: String = if (area.id == 16 && id in 1..4) "Tower" else area.name
 
     val sections: ListCell<SectionModel> = _sections
 

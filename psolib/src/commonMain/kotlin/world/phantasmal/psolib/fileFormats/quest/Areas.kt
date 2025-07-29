@@ -64,7 +64,7 @@ private val AREAS by lazy {
         createArea(11, "Seabed Lower Levels", order++, 3),
         createArea(13, "Test Subject Disposal Area", order++, 1),
         createArea(16, "Seaside Area at Night", order++, 2),
-        createArea(17, "Control Tower", order++, 5),
+        createArea(17, "Tower", order++, 5),
     )
 
     order = 0
