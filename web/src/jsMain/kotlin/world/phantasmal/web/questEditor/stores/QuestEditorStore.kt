@@ -37,7 +37,7 @@ class QuestEditorStore(
     initializeNewQuest: Boolean,
 ) : Store() {
     private val _devMode = mutableCell(false)
-    private val _showRoomIds = mutableCell(true) // Room ID display toggle
+    private val _showRoomIds = mutableCell(false) // Room ID display toggle
     private val _currentQuest = mutableCell<QuestModel?>(null)
     private val _currentArea = mutableCell<AreaModel?>(null)
     private val _selectedEvent = mutableCell<QuestEventModel?>(null)
