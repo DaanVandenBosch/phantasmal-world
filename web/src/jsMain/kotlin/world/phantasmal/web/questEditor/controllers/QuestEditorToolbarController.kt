@@ -140,6 +140,7 @@ class QuestEditorToolbarController(
     // Settings
 
     val showCollisionGeometry: Cell<Boolean> = questEditorStore.showCollisionGeometry
+    val showRoomIds: Cell<Boolean> = questEditorStore.showRoomIds
 
     init {
         addDisposables(
@@ -376,6 +377,10 @@ class QuestEditorToolbarController(
 
     fun setShowCollisionGeometry(show: Boolean) {
         questEditorStore.setShowCollisionGeometry(show)
+    }
+
+    fun setShowRoomIds(show: Boolean) {
+        questEditorStore.setShowRoomIds(show)
     }
 
     private fun setFileHolder(fileHolder: FileHolder?) {

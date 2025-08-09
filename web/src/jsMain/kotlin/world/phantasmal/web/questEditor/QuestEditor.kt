@@ -82,6 +82,7 @@ class QuestEditor(
                 areaAssetLoader,
                 entityAssetLoader,
                 questEditorStore,
+                areaStore,
                 createThreeRenderer,
             )
         )

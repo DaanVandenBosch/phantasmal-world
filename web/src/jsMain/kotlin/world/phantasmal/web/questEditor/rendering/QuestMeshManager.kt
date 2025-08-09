@@ -13,6 +13,7 @@ import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
+import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.DisposableContainer
 
@@ -23,15 +24,16 @@ abstract class QuestMeshManager protected constructor(
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
     questEditorStore: QuestEditorStore,
+    areaStore: AreaStore,
     renderContext: QuestRenderContext,
 ) : DisposableContainer() {
     private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Default))
     private val areaMeshManager = AreaMeshManager(renderContext, areaAssetLoader)
     private val npcMeshManager = addDisposable(
-        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader)
+        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader, areaStore, enableRoomLabels = true) // Only NPC manager handles room labels
     )
     private val objectMeshManager = addDisposable(
-        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader)
+        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader, areaStore, enableRoomLabels = false) // Object manager doesn't handle room labels
     )
 
     private var areaLoadJob: Job? = null

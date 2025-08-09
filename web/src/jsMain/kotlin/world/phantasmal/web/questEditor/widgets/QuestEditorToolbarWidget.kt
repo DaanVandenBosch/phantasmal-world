@@ -76,6 +76,14 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         ),
                         checked = ctrl.showCollisionGeometry,
                         onChange = ctrl::setShowCollisionGeometry,
+                    ),
+                    Checkbox(
+                        label = "Show room IDs",
+                        tooltip = cell(
+                            "Whether to show room ID numbers in each section",
+                        ),
+                        checked = ctrl.showRoomIds,
+                        onChange = ctrl::setShowRoomIds,
                     )
                 )
             ))

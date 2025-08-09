@@ -8,14 +8,16 @@ import world.phantasmal.cell.list.filteredCell
 import world.phantasmal.cell.or
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
+import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestEditorMeshManager(
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
     questEditorStore: QuestEditorStore,
+    areaStore: AreaStore,
     renderContext: QuestRenderContext,
-) : QuestMeshManager(areaAssetLoader, entityAssetLoader, questEditorStore, renderContext) {
+) : QuestMeshManager(areaAssetLoader, entityAssetLoader, questEditorStore, areaStore, renderContext) {
     init {
         observeNow(
             questEditorStore.currentQuest,

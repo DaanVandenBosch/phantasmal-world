@@ -6,14 +6,19 @@ import org.khronos.webgl.Float32Array
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.cell.observeNow
+import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.psolib.fileFormats.quest.ObjectType
 import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.core.loading.LoadingCache
+import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
+import world.phantasmal.web.questEditor.models.QuestModel
+import world.phantasmal.web.questEditor.models.SectionModel
+import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.obj
@@ -24,9 +29,13 @@ class EntityMeshManager(
     private val questEditorStore: QuestEditorStore,
     private val renderContext: QuestRenderContext,
     private val entityAssetLoader: EntityAssetLoader,
+    private val areaStore: AreaStore,
+    private val enableRoomLabels: Boolean = false, // Only enable room labels for one manager
 ) : DisposableContainer() {
     private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
     private val rangeCircleRenderer = RangeCircleRenderer()
+    private val roomIdRenderer = RoomIdRenderer()
+    private val roomCenterCalculator = RoomCenterCalculator()
 
     /**
      * Contains one [EntityInstanceContainer] per [EntityType] and model.
@@ -85,6 +94,16 @@ class EntityMeshManager(
      */
     private var rangeCircleObserverDisposer = addDisposable(Disposer())
 
+    /**
+     * Room ID labels currently being displayed.
+     */
+    private val roomIdLabels = mutableMapOf<Int, Group>()
+    
+    /**
+     * Disposer for room ID label observers.
+     */
+    private var roomIdObserverDisposer = addDisposable(Disposer())
+
     private var highlightedEntityInstance: EntityInstance? = null
     private var selectedEntityInstance: EntityInstance? = null
 
@@ -119,6 +138,19 @@ class EntityMeshManager(
             // Update range circle for selected entity
             updateSelectedEntityRangeCircle(entity)
         }
+        
+        // Initialize room ID labels when quest, area, or show setting changes (only for enabled managers)
+        if (enableRoomLabels) {
+            observeNow(questEditorStore.currentQuest) { quest ->
+                updateRoomIdLabels()
+            }
+            observeNow(questEditorStore.currentAreaVariant) { areaVariant ->
+                updateRoomIdLabels()
+            }
+            observeNow(questEditorStore.showRoomIds) { showRoomIds ->
+                updateRoomIdLabels()
+            }
+        }
     }
 
     override fun dispose() {
@@ -127,6 +159,10 @@ class EntityMeshManager(
         disposeObject3DResources(warpLines)
         // Dispose selected entity range circle
         clearSelectedEntityRangeCircle()
+        // Dispose room ID labels (only for enabled managers)
+        if (enableRoomLabels) {
+            clearRoomIdLabels()
+        }
         super.dispose()
     }
 
@@ -369,6 +405,182 @@ class EntityMeshManager(
         if (radius > 0) {
             createAndDisplayRangeCircle(entity, radius)
         }
+    }
+
+    /**
+     * Updates room ID labels for the current area and sections.
+     * Uses fixed map geometry data, independent of quest files.
+     */
+    private fun updateRoomIdLabels() {
+        // Always clear existing labels first
+        clearRoomIdLabels()
+        
+        // Check if room IDs should be shown
+        if (!questEditorStore.showRoomIds.value) {
+            return // Don't create any labels if room IDs are disabled
+        }
+        
+        val currentAreaVariant = questEditorStore.currentAreaVariant.value ?: return
+        val currentQuest = questEditorStore.currentQuest.value
+        
+        // Determine episode: use quest episode if available, otherwise default to Episode.I
+        val episode = currentQuest?.episode ?: Episode.I
+        
+        // Check if the area variant already has sections loaded (from geometry)
+        val sections = currentAreaVariant.sections.value
+        if (sections.isNotEmpty()) {
+            // Use already loaded sections immediately (synchronous)
+            createRoomLabelsForSections(sections, currentAreaVariant, currentQuest)
+        } else {
+            // Sections not loaded yet, need to load them directly from area store
+            scope.launch {
+                try {
+                    // Check if we're still on the same area variant when the coroutine executes
+                    if (questEditorStore.currentAreaVariant.value != currentAreaVariant) {
+                        return@launch
+                    }
+                    
+                    // Load sections directly from area store - this is independent of quest files
+                    val loadedSections = areaStore.getSections(episode, currentAreaVariant)
+                    
+                    // Double check we're still on the same area variant after loading
+                    if (questEditorStore.currentAreaVariant.value != currentAreaVariant) {
+                        return@launch
+                    }
+                    
+                    // Update the area variant with the loaded sections
+                    currentAreaVariant.setSections(loadedSections)
+                    
+                    // Create room labels with the loaded sections
+                    if (loadedSections.isNotEmpty()) {
+                        createRoomLabelsForSections(loadedSections, currentAreaVariant, currentQuest)
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to load sections for area variant ${currentAreaVariant.area.name}" }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Creates room labels for a list of sections.
+     * Uses stable section data from map geometry.
+     */
+    private fun createRoomLabelsForSections(
+        sections: List<SectionModel>, 
+        areaVariant: AreaVariantModel,
+        quest: QuestModel?
+    ) {
+        for (section in sections) {
+            // Always use section position from map geometry - this is the stable, fixed position
+            val roomCenter = section.position
+            
+            // Use a unique key combining area variant and section for proper tracking
+            val uniqueKey = "${areaVariant.area.id}_${areaVariant.id}_${section.id}".hashCode()
+            
+            // Display the section ID as it appears within this area
+            createRoomIdLabelForSection(
+                uniqueKey,
+                section.id,  // Use the actual section ID within this area
+                roomCenter.x.toFloat(),
+                roomCenter.y.toFloat(),
+                roomCenter.z.toFloat()
+            )
+        }
+    }
+    
+    /**
+     * Creates and displays a room ID label with text.
+     */
+    private fun createRoomIdLabelWithText(roomIdText: String, centerX: Float, centerY: Float, centerZ: Float) {
+        val label = roomIdRenderer.createRoomIdLabelWithText(centerX, centerY, centerZ, roomIdText)
+        renderContext.helpers.add(label)
+        roomIdLabels[roomIdText.hashCode()] = label
+    }
+
+    /**
+     * Creates and displays a room ID label.
+     */
+    private fun createRoomIdLabel(roomId: Int, centerX: Float, centerY: Float, centerZ: Float) {
+        val label = roomIdRenderer.createRoomIdLabel(centerX, centerY, centerZ, roomId)
+        renderContext.helpers.add(label)
+        roomIdLabels[roomId] = label
+    }
+    
+    /**
+     * Creates and displays a room ID label for a specific section with unique tracking.
+     */
+    private fun createRoomIdLabelForSection(uniqueKey: Int, roomId: Int, centerX: Float, centerY: Float, centerZ: Float) {
+        val label = roomIdRenderer.createRoomIdLabel(centerX, centerY, centerZ, roomId)
+        renderContext.helpers.add(label)
+        roomIdLabels[uniqueKey] = label
+    }
+    
+    /**
+     * Calculates the room center for objects in a specific area variant and section.
+     */
+    private fun calculateRoomCenterForAreaVariantSection(
+        quest: QuestModel,
+        areaVariant: AreaVariantModel,
+        section: SectionModel
+    ): Vector3? {
+        // Find all objects in this specific area variant and section
+        val sectionObjects = quest.objects.value.filter { obj ->
+            // Match objects that belong to this area and section
+            obj.areaId == areaVariant.area.id && obj.sectionId.value == section.id &&
+            // Exclude objects that don't define room content
+            obj.type != ObjectType.PlayerSet && obj.type != ObjectType.ObjRoomID
+        }
+        
+        if (sectionObjects.isEmpty()) {
+            // Fallback to section position if no objects found
+            return section.position
+        }
+        
+        // Calculate geometric center from the objects
+        var totalX = 0.0
+        var totalY = 0.0
+        var totalZ = 0.0
+        
+        for (obj in sectionObjects) {
+            val pos = obj.worldPosition.value
+            totalX += pos.x
+            totalY += pos.y
+            totalZ += pos.z
+        }
+        
+        return Vector3(
+            totalX / sectionObjects.size,
+            totalY / sectionObjects.size,
+            totalZ / sectionObjects.size
+        )
+    }
+    
+    /**
+     * Clears all room ID labels and their observers.
+     */
+    private fun clearRoomIdLabels() {
+        // Clear our tracked labels
+        for (label in roomIdLabels.values) {
+            renderContext.helpers.remove(label)
+            renderContext.scene.remove(label)
+            disposeObject3DResources(label)
+        }
+        roomIdLabels.clear()
+        
+        // Additional cleanup: remove any remaining room ID labels by name pattern
+        val toRemove = mutableListOf<Object3D>()
+        renderContext.helpers.children.forEach { child ->
+            if (child.name.startsWith("RoomIdLabel_")) {
+                toRemove.add(child)
+            }
+        }
+        for (obj in toRemove) {
+            renderContext.helpers.remove(obj)
+            disposeObject3DResources(obj)
+        }
+        
+        roomIdObserverDisposer.disposeAll()
     }
 
     private data class TypeAndModel(val type: EntityType, val model: Int?)
