@@ -167,16 +167,4 @@ class RoomIdRenderer {
             frustumCulled = false
         }
     }
-    
-    /**
-     * Updates the position of a room ID label.
-     */
-    fun updateRoomIdLabel(
-        label: Group,
-        centerX: Float,
-        centerY: Float,
-        centerZ: Float
-    ) {
-        label.position.set(centerX.toDouble(), (centerY + 20.0f).toDouble(), centerZ.toDouble())
-    }
 }

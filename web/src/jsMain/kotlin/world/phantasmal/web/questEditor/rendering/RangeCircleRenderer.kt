@@ -67,7 +67,6 @@ class RangeCircleRenderer {
         centerX: Float,
         centerY: Float,
         centerZ: Float,
-        radius: Float
     ) {
         circle.position.set(centerX.toDouble(), centerY.toDouble(), centerZ.toDouble())
         // Note: Radius updates are complex with the current ThreeJS bindings.

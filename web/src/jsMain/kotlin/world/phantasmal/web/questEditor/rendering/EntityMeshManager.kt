@@ -16,7 +16,6 @@ import world.phantasmal.web.core.loading.LoadingCache
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
-import world.phantasmal.web.questEditor.models.QuestModel
 import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -140,13 +139,13 @@ class EntityMeshManager(
         
         // Initialize room ID labels when quest, area, or show setting changes (only for enabled managers)
         if (enableRoomLabels) {
-            observeNow(questEditorStore.currentQuest) { quest ->
+            observeNow(questEditorStore.currentQuest) { _ ->
                 updateRoomIdLabels()
             }
-            observeNow(questEditorStore.currentAreaVariant) { areaVariant ->
+            observeNow(questEditorStore.currentAreaVariant) { _ ->
                 updateRoomIdLabels()
             }
-            observeNow(questEditorStore.showRoomIds) { showRoomIds ->
+            observeNow(questEditorStore.showRoomIds) { _ ->
                 updateRoomIdLabels()
             }
         }
@@ -364,8 +363,7 @@ class EntityMeshManager(
                                 selectedEntityRangeCircle!!,
                                 newPosition.x.toFloat(),
                                 newPosition.y.toFloat(),
-                                newPosition.z.toFloat(),
-                                currentRadius
+                                newPosition.z.toFloat()
                             )
                         }
                     }
@@ -429,7 +427,7 @@ class EntityMeshManager(
         val sections = currentAreaVariant.sections.value
         if (sections.isNotEmpty()) {
             // Use already loaded sections immediately (synchronous)
-            createRoomLabelsForSections(sections, currentAreaVariant, currentQuest)
+            createRoomLabelsForSections(sections, currentAreaVariant)
         } else {
             // Sections not loaded yet, need to load them directly from area store
             scope.launch {
@@ -452,7 +450,7 @@ class EntityMeshManager(
                     
                     // Create room labels with the loaded sections
                     if (loadedSections.isNotEmpty()) {
-                        createRoomLabelsForSections(loadedSections, currentAreaVariant, currentQuest)
+                        createRoomLabelsForSections(loadedSections, currentAreaVariant)
                     }
                 } catch (e: Exception) {
                     logger.error(e) { "Failed to load sections for area variant ${currentAreaVariant.area.name}" }
@@ -468,7 +466,6 @@ class EntityMeshManager(
     private fun createRoomLabelsForSections(
         sections: List<SectionModel>, 
         areaVariant: AreaVariantModel,
-        quest: QuestModel?
     ) {
         for (section in sections) {
             // Always use section position from map geometry - this is the stable, fixed position
@@ -489,70 +486,12 @@ class EntityMeshManager(
     }
     
     /**
-     * Creates and displays a room ID label with text.
-     */
-    private fun createRoomIdLabelWithText(roomIdText: String, centerX: Float, centerY: Float, centerZ: Float) {
-        val label = roomIdRenderer.createRoomIdLabelWithText(centerX, centerY, centerZ, roomIdText)
-        renderContext.helpers.add(label)
-        roomIdLabels[roomIdText.hashCode()] = label
-    }
-
-    /**
-     * Creates and displays a room ID label.
-     */
-    private fun createRoomIdLabel(roomId: Int, centerX: Float, centerY: Float, centerZ: Float) {
-        val label = roomIdRenderer.createRoomIdLabel(centerX, centerY, centerZ, roomId)
-        renderContext.helpers.add(label)
-        roomIdLabels[roomId] = label
-    }
-    
-    /**
      * Creates and displays a room ID label for a specific section with unique tracking.
      */
     private fun createRoomIdLabelForSection(uniqueKey: Int, roomId: Int, centerX: Float, centerY: Float, centerZ: Float) {
         val label = roomIdRenderer.createRoomIdLabel(centerX, centerY, centerZ, roomId)
         renderContext.helpers.add(label)
         roomIdLabels[uniqueKey] = label
-    }
-    
-    /**
-     * Calculates the room center for objects in a specific area variant and section.
-     */
-    private fun calculateRoomCenterForAreaVariantSection(
-        quest: QuestModel,
-        areaVariant: AreaVariantModel,
-        section: SectionModel
-    ): Vector3? {
-        // Find all objects in this specific area variant and section
-        val sectionObjects = quest.objects.value.filter { obj ->
-            // Match objects that belong to this area and section
-            obj.areaId == areaVariant.area.id && obj.sectionId.value == section.id &&
-            // Exclude objects that don't define room content
-            obj.type != ObjectType.PlayerSet && obj.type != ObjectType.ObjRoomID
-        }
-        
-        if (sectionObjects.isEmpty()) {
-            // Fallback to section position if no objects found
-            return section.position
-        }
-        
-        // Calculate geometric center from the objects
-        var totalX = 0.0
-        var totalY = 0.0
-        var totalZ = 0.0
-        
-        for (obj in sectionObjects) {
-            val pos = obj.worldPosition.value
-            totalX += pos.x
-            totalY += pos.y
-            totalZ += pos.z
-        }
-        
-        return Vector3(
-            totalX / sectionObjects.size,
-            totalY / sectionObjects.size,
-            totalZ / sectionObjects.size
-        )
     }
     
     /**
