@@ -35,7 +35,6 @@ class EntityMeshManager(
     private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Main))
     private val rangeCircleRenderer = RangeCircleRenderer()
     private val roomIdRenderer = RoomIdRenderer()
-    private val roomCenterCalculator = RoomCenterCalculator()
 
     /**
      * Contains one [EntityInstanceContainer] per [EntityType] and model.
