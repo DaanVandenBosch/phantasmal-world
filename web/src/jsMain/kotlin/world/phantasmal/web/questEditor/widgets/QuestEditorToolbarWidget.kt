@@ -3,10 +3,10 @@ package world.phantasmal.web.questEditor.widgets
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
-import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.Version
 import world.phantasmal.cell.cell
 import world.phantasmal.cell.list.listCell
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.Version
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
 import world.phantasmal.webui.dom.Icon
 import world.phantasmal.webui.dom.div
@@ -84,6 +84,14 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         ),
                         checked = ctrl.showRoomIds,
                         onChange = ctrl::setShowRoomIds,
+                    ),
+                    Checkbox(
+                        label = "Spawn monsters on ground",
+                        tooltip = cell(
+                            "Whether monsters should spawn directly at ground level (section height)",
+                        ),
+                        checked = ctrl.spawnMonstersOnGround,
+                        onChange = ctrl::setSpawnMonstersOnGround,
                     )
                 )
             ))

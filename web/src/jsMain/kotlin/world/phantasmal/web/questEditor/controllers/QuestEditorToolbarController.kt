@@ -141,6 +141,7 @@ class QuestEditorToolbarController(
 
     val showCollisionGeometry: Cell<Boolean> = questEditorStore.showCollisionGeometry
     val showRoomIds: Cell<Boolean> = questEditorStore.showRoomIds
+    val spawnMonstersOnGround: Cell<Boolean> = questEditorStore.spawnMonstersOnGround
 
     init {
         addDisposables(
@@ -381,6 +382,10 @@ class QuestEditorToolbarController(
 
     fun setShowRoomIds(show: Boolean) {
         questEditorStore.setShowRoomIds(show)
+    }
+
+    fun setSpawnMonstersOnGround(spawn: Boolean) {
+        questEditorStore.setSpawnMonstersOnGround(spawn)
     }
 
     private fun setFileHolder(fileHolder: FileHolder?) {

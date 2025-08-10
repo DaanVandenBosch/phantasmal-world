@@ -3,20 +3,17 @@ package world.phantasmal.web.questEditor.rendering
 import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.khronos.webgl.Float32Array
+import world.phantasmal.cell.observeNow
 import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.core.disposable.Disposer
-import world.phantasmal.cell.observeNow
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.psolib.fileFormats.quest.ObjectType
+import world.phantasmal.web.core.loading.LoadingCache
 import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
-import world.phantasmal.web.core.loading.LoadingCache
-import world.phantasmal.web.questEditor.models.AreaVariantModel
-import world.phantasmal.web.questEditor.models.QuestEntityModel
-import world.phantasmal.web.questEditor.models.QuestObjectModel
-import world.phantasmal.web.questEditor.models.SectionModel
+import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.DisposableContainer
@@ -122,6 +119,11 @@ class EntityMeshManager(
     }
 
     init {
+        // Set up ground height calculator for NPCs
+        QuestNpcModel.setGroundHeightCalculator { x, z, section ->
+            calculateGroundHeight(x, z)
+        }
+        
         observeNow(questEditorStore.highlightedEntity) { entity ->
             // getEntityInstance can return null at this point because the entity mesh might not be
             // loaded yet.
@@ -519,6 +521,26 @@ class EntityMeshManager(
         }
         
         roomIdObserverDisposer.disposeAll()
+    }
+
+    private fun calculateGroundHeight(x: Double, z: Double): Double {
+        // Create a raycaster from above the position downward to find ground
+        val raycaster = Raycaster()
+        val startHeight = 1000.0  // Start from high above
+        val origin = Vector3(x, startHeight, z)
+        val direction = Vector3(0.0, -1.0, 0.0)  // Downward
+
+        raycaster.set(origin, direction)
+        val intersections = arrayOf<Intersection>()
+        raycaster.intersectObject(renderContext.collisionGeometry, recursive = true, intersections)
+
+        // Find the first valid ground intersection
+        val groundIntersection = intersections.find { intersection ->
+            // Same logic as pickGround - don't allow steep terrain
+            intersection.face?.normal?.let { n -> n.y > 0.75 } ?: false
+        }
+
+        return groundIntersection?.point?.y ?: 0.0
     }
 
     private data class TypeAndModel(val type: EntityType, val model: Int?)

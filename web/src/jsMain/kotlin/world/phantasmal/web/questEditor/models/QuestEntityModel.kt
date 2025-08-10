@@ -1,12 +1,12 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.psolib.fileFormats.quest.EntityType
-import world.phantasmal.psolib.fileFormats.quest.QuestEntity
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.listCell
 import world.phantasmal.cell.mutableCell
 import world.phantasmal.cell.mutate
+import world.phantasmal.psolib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.QuestEntity
 import world.phantasmal.web.core.minus
 import world.phantasmal.web.core.rendering.conversion.vec3ToEuler
 import world.phantasmal.web.core.rendering.conversion.vec3ToThree
@@ -46,7 +46,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
      */
     val position: Cell<Vector3> = _position
 
-    val worldPosition: Cell<Vector3> = _worldPosition
+    open val worldPosition: Cell<Vector3> = _worldPosition
 
     /**
      * Section-relative rotation
