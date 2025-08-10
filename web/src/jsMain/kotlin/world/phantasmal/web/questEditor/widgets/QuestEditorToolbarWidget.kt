@@ -5,6 +5,7 @@ import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.cell.cell
 import world.phantasmal.cell.list.listCell
+import world.phantasmal.cell.map
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.Version
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
@@ -92,7 +93,20 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         ),
                         checked = ctrl.spawnMonstersOnGround,
                         onChange = ctrl::setSpawnMonstersOnGround,
-                    )
+                    ),
+                    Label(
+                        textCell = ctrl.mouseWorldPosition.map { position ->
+                            if (position != null) {
+                                "World: (${position.x.asDynamic().toFixed(1)}, ${
+                                    position.y.asDynamic().toFixed(1)
+                                }, ${position.z.asDynamic().toFixed(1)})"
+                            } else {
+                                "World: (--, --, --)"
+                            }
+                        }
+                    ).apply {
+                        element.className += " pw-quest-editor-mouse-coordinates"
+                    }
                 )
             ))
 
@@ -172,6 +186,17 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
 
                 .pw-quest-editor-toolbar-save-as .pw-input {
                     margin: 1px;
+                }
+
+                .pw-quest-editor-mouse-coordinates {
+                    font-family: monospace;
+                    font-size: 12px;
+                    color: #888;
+                    white-space: nowrap;
+                    margin-left: 8px;
+                    padding: 2px 4px;
+                    background: rgba(0, 0, 0, 0.1);
+                    border-radius: 3px;
                 }
             """.trimIndent())
         }

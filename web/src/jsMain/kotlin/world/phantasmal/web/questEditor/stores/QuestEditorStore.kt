@@ -39,6 +39,7 @@ class QuestEditorStore(
     private val _selectedEntity = mutableCell<QuestEntityModel<*, *>?>(null)
     private val mainUndo = UndoStack(undoManager)
     private val _showCollisionGeometry = mutableCell(true)
+    private val _mouseWorldPosition = mutableCell<Vector3?>(null)
 
     val devMode: Cell<Boolean> = _devMode
 
@@ -90,6 +91,7 @@ class QuestEditorStore(
     val canSaveChanges: Cell<Boolean> = !undoManager.allAtSavePoint
 
     val showCollisionGeometry: Cell<Boolean> = _showCollisionGeometry
+    val mouseWorldPosition: Cell<Vector3?> = _mouseWorldPosition
 
     init {
         addDisposables(
@@ -409,6 +411,10 @@ class QuestEditorStore(
     fun setSpawnMonstersOnGround(spawn: Boolean) {
         _spawnMonstersOnGround.value = spawn
         QuestNpcModel.setSpawnOnGround(spawn)
+    }
+
+    fun setMouseWorldPosition(position: Vector3?) {
+        _mouseWorldPosition.value = position
     }
 
     fun questSaved() {

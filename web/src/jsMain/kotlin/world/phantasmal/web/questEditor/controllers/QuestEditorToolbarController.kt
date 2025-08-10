@@ -11,6 +11,7 @@ import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.files.writeBuffer
 import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestModel
@@ -142,6 +143,7 @@ class QuestEditorToolbarController(
     val showCollisionGeometry: Cell<Boolean> = questEditorStore.showCollisionGeometry
     val showRoomIds: Cell<Boolean> = questEditorStore.showRoomIds
     val spawnMonstersOnGround: Cell<Boolean> = questEditorStore.spawnMonstersOnGround
+    val mouseWorldPosition: Cell<Vector3?> = questEditorStore.mouseWorldPosition
 
     init {
         addDisposables(

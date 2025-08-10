@@ -10,6 +10,8 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.web.core.rendering.InputManager
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
+import world.phantasmal.web.externals.three.Plane
+import world.phantasmal.web.externals.three.Raycaster
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
@@ -40,6 +42,9 @@ class QuestInputManager(
      * Prevents events from triggering while dragging the pointer.
      */
     private val pointerTrap = document.createElement("div") as HTMLElement
+
+    private val raycaster = Raycaster()
+    private val groundPlane = Plane(Vector3(0.0, 1.0, 0.0), 0.0) // Y = 0 plane
 
     private val cameraInputManager: OrbitalCameraInputManager
 
@@ -202,6 +207,9 @@ class QuestInputManager(
     private fun onPointerOut(e: PointerEvent) {
         processPointerEvent(type = null, e.clientX, e.clientY)
 
+        // Clear mouse world position when pointer leaves canvas
+        questEditorStore.setMouseWorldPosition(null)
+
         state = state.processEvent(
             PointerOutEvt(
                 e.buttons.toInt(),
@@ -264,6 +272,9 @@ class QuestInputManager(
         pointerDevicePosition.copy(pointerPosition)
         renderContext.pointerPosToDeviceCoords(pointerDevicePosition)
 
+        // Calculate world position using raycaster
+        updateMouseWorldPosition()
+
         when (type) {
             "pointerdown" -> {
                 movedSinceLastPointerDown = false
@@ -276,6 +287,26 @@ class QuestInputManager(
         }
 
         lastPointerPosition.copy(pointerPosition)
+    }
+
+    private fun updateMouseWorldPosition() {
+        try {
+            // Set up raycaster from camera through mouse position
+            raycaster.setFromCamera(pointerDevicePosition, renderContext.camera)
+
+            // Intersect with ground plane (Y = 0)
+            val intersectionPoint = Vector3()
+            val intersected = raycaster.ray.intersectPlane(groundPlane, intersectionPoint)
+
+            if (intersected != null) {
+                questEditorStore.setMouseWorldPosition(intersected)
+            } else {
+                questEditorStore.setMouseWorldPosition(null)
+            }
+        } catch (e: Exception) {
+            // If there's any error, clear the position
+            questEditorStore.setMouseWorldPosition(null)
+        }
     }
 
     private fun returnToIdleState() {
