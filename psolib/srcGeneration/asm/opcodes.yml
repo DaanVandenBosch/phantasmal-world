@@ -1449,8 +1449,14 @@ opcodes:
     mnemonic: map_designate
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
+            read: true
+          - type: int
+            read: true
+          - type: int
+            read: true
+          - type: int
             read: true
 
   - code: 0xc5
