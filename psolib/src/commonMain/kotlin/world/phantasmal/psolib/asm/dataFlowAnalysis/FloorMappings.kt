@@ -5,6 +5,9 @@ import world.phantasmal.psolib.asm.*
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Represents a mapping of a floor to a specific map and area.
+ */
 data class FloorMapping(
     // Floor id to place the map on.
     val floorId: Int,
@@ -16,6 +19,10 @@ data class FloorMapping(
     val variantId: Int
 )
 
+/**
+ * Extract map designations from function 0 bytecode instructions.
+ * Returns a map of area IDs to sets of variant IDs.
+ */
 fun getMapDesignations(
     func0Segment: InstructionSegment,
     createCfg: () -> ControlFlowGraph,
@@ -34,6 +41,8 @@ fun getMapDesignations(
 
                 // These opcodes read consecutive registers starting from the given register
                 val baseRegister = (inst.args[0] as IntArg).value
+
+                // Get floor ID from base register
                 val floorIdValues = getRegisterValue(cfg, inst, baseRegister)
                 if (floorIdValues.size > 1) {
                     logger.warn { "Could not determine floor ID from register for ${inst.opcode.mnemonic}" }
@@ -47,6 +56,7 @@ fun getMapDesignations(
                     continue
                 }
 
+                // For OP_MAP_DESIGNATE, map ID is same as floor ID
                 if (inst.opcode == OP_MAP_DESIGNATE) {
                     mapIdValues.setValue(floorIdValues[0]!!)
                 }
@@ -130,6 +140,8 @@ fun getFloorMappings(
                         logger.warn { "Could not determine map ID from register R${baseRegister + 1} for ${inst.opcode.mnemonic}" }
                         continue
                     }
+
+                    // For OP_MAP_DESIGNATE, map ID is same as floor ID
                     if (inst.opcode == OP_MAP_DESIGNATE) {
                         mapIdValues.setValue(floorIdValues[0]!!)
                     }
@@ -142,13 +154,13 @@ fun getFloorMappings(
                         continue
                     }
 
-                    val rawFloorId = floorIdValues[0]!!
+                    val floorId = floorIdValues[0]!!
                     val mapId = mapIdValues[0]!!
                     val areaId = getAreaIdByMapId(mapId)
                     val variantId = variantIdValues[0]!!
 
                     logger.info {
-                        "${inst.opcode.mnemonic}: RawFloor=$rawFloorId, MapId=$mapId (0x${
+                        "${inst.opcode.mnemonic}: FloorId=$floorId, MapId=$mapId (0x${
                             mapId.toString(16).uppercase()
                         }), " +
                                 "AreaId=$areaId, Variant=$variantId, BaseReg=R$baseRegister"
@@ -156,8 +168,7 @@ fun getFloorMappings(
 
                     if (areaId != null) {
                         // map_designate/map_designate_ex have higher priority than set_floor_handler
-                        floorMappings[rawFloorId] = FloorMapping(rawFloorId, mapId, areaId, variantId)
-                        logger.info { "Added floor mapping: Floor $rawFloorId -> Area $areaId, Variant $variantId" }
+                        floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId)
                     } else {
                         logger.warn {
                             "Could not map ${inst.opcode.mnemonic} mapId 0x${
@@ -168,7 +179,7 @@ fun getFloorMappings(
                 }
 
                 OP_BB_MAP_DESIGNATE -> {
-                    val rawFloorId = (inst.args[0] as IntArg).value  // floor id
+                    val floorId = (inst.args[0] as IntArg).value  // floor id
                     val mapId = (inst.args[1] as IntArg).value   // map id
                     val variantId = (inst.args[2] as IntArg).value // variant (3rd parameter)
 
@@ -177,10 +188,10 @@ fun getFloorMappings(
 
                     if (areaId != null) {
                         // bb_map_designate has higher priority than set_floor_handler, can override existing mappings
-                        floorMappings[rawFloorId] = FloorMapping(rawFloorId, mapId, areaId, variantId)
+                        floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId)
                     } else {
                         logger.warn {
-                            "Could not map BB mapId 0x${
+                            "Could not map BB_MAP_DESIGNATE mapId 0x${
                                 mapId.toString(16).uppercase()
                             } to areaId"
                         }
@@ -227,6 +238,10 @@ fun getFloorMappings(
  */
 fun getAreaIdByMapId(mapId: Int): Int? = GameArea.findByMapId(mapId)?.areaId
 
+/**
+ * Extract episode number from function 0 segment.
+ * Returns 0 if no set_episode instruction is found.
+ */
 fun getEpisode(func0Segment: InstructionSegment): Int {
     return when (val setEpisode = func0Segment.instructions.find {
         it.opcode == OP_SET_EPISODE
