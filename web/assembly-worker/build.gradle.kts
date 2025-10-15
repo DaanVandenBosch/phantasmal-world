@@ -21,3 +21,15 @@ kotlin {
         }
     }
 }
+
+tasks.named("jsBrowserDevelopmentRun") {
+    // Not sure why this dependency is necessary, maybe because :web:copyAssemblyWorkerJs depends on
+    // :web:assembly-worker:jsBrowserDistribution.
+    dependsOn("jsProductionExecutableCompileSync")
+}
+
+tasks.named("jsBrowserProductionWebpack") {
+    // Not sure why this dependency is necessary, maybe because :web:copyAssemblyWorkerJs depends on
+    // :web:assembly-worker:jsBrowserDistribution.
+    dependsOn("jsDevelopmentExecutableCompileSync")
+}

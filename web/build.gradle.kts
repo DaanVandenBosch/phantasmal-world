@@ -69,11 +69,3 @@ tasks.register<Copy>("generateAssets") {
     from("assets-generation/build/generatedAssets")
     into("src/main/resources/assets")
 }
-
-tasks.named("jsBrowserDevelopmentRun") {
-    dependsOn("jsDevelopmentExecutableCompileSync")
-}
-
-tasks.named("jsBrowserProductionWebpack") {
-    dependsOn("jsProductionExecutableCompileSync")
-}
