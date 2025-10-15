@@ -1,7 +1,6 @@
 package world.phantasmal.psolib.fileFormats.quest
 
 import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.NpcType.values
 
 enum class ObjectType(
     override val uniqueName: String,
@@ -2568,5 +2567,14 @@ enum class ObjectType(
          * Use this instead of [values] to avoid unnecessary copying.
          */
         val VALUES: Array<ObjectType> = entries.toTypedArray()
+
+        init {
+            // Validate that no ObjectType has empty lists in its areaIds map
+            VALUES.forEach { objectType ->
+                require(objectType.areaIds.values.none { it.isEmpty() }) {
+                    "ObjectType '${objectType.uniqueName}' has empty area ID list(s). Remove empty lists from the areaIds map."
+                }
+            }
+        }
     }
 }
