@@ -62,8 +62,7 @@ class QuestModel(
     val areaVariants: ListCell<AreaVariantModel>
 
     /**
-     * For bb_map_designate quests, maps floor ID to area variant.
-     * For regular quests, this is empty.
+     * Map floor ID to area variant, for regular quests, this is empty.
      */
     val floorToVariantMap: Map<Int, AreaVariantModel>
 
@@ -87,8 +86,6 @@ class QuestModel(
         entitiesPerArea = map(this.npcs, this.objects) { ns, os ->
             val map = mutableMapOf<Int, Int>()
 
-            // For both bb_map_designate and regular quests, use areaId directly
-            // In bb_map_designate, areaId is floor ID, which ensures floor uniqueness
             for (npc in ns) {
                 map[npc.areaId] = (map[npc.areaId] ?: 0) + 1
             }
@@ -100,20 +97,15 @@ class QuestModel(
             map
         }
 
-
-        // Calculate area variants once and cache them to prevent Assembly interference
         val variants = mutableMapOf<Int, AreaVariantModel>()
 
         if (floorMappings.isNotEmpty()) {
-            // For bb_map_designate quests, ONLY use floor mappings - no extra variants
             for (mapping in floorMappings) {
                 getVariant(episode, mapping.areaId, mapping.variantId)?.let { variant ->
-                    // Use floor ID as key since that's what mapDesignations uses
                     variants[mapping.floorId] = variant
                 }
             }
         } else {
-            // For regular quests, use map designations
             for ((areaId, variantIds) in mapDesignations) {
                 for (variantId in variantIds) {
                     getVariant(episode, areaId, variantId)?.let { variant ->
@@ -142,7 +134,6 @@ class QuestModel(
             }
         }
 
-        // Store floor to variant mapping for bb_map_designate quests
         floorToVariantMap = if (floorMappings.isNotEmpty()) {
             variants.toMap()
         } else {

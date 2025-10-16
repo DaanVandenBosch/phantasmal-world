@@ -7,7 +7,6 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.FocusEvent
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.pointerevents.PointerEvent
-import world.phantasmal.cell.observeNow
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.web.core.rendering.InputManager
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
@@ -96,8 +95,6 @@ class QuestInputManager(
         // Observe target camera position for navigation - preserves current zoom level
         observeNow(questEditorStore.targetCameraPosition) { targetPosition ->
             targetPosition?.let { position ->
-                console.log("Navigating camera to section at position: ${position.x}, ${position.y}, ${position.z}")
-
                 // Check if camera has been initialized (not at default position)
                 val currentDistance = renderContext.camera.position.distanceTo(cameraInputManager.controls.target)
                 val isInitialState = currentDistance > 1400.0 // Initial distance is ~1200
@@ -110,11 +107,8 @@ class QuestInputManager(
                     cameraInputManager.lookAt(cameraPosition, position)
                 } else {
                     // For subsequent navigations, preserve the current viewpoint (camera position and orientation)
-                    console.log("Preserving current viewpoint during navigation")
-
                     // Get current floor ID from quest and area variant
                     val currentFloorId = getCurrentFloorId()
-
                     cameraInputManager.lookAtPreservingViewpoint(position, currentFloorId)
                 }
 
@@ -358,7 +352,6 @@ class QuestInputManager(
             return floorMapping?.floorId
         }
 
-        // For regular quests without floor mappings, use area ID as floor ID
         return currentVariant.area.id
     }
 

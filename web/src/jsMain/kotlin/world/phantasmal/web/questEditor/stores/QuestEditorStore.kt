@@ -72,7 +72,6 @@ class QuestEditorStore(
                         .toSet()
                     quest.events.filtered { event -> event.areaId in relevantFloorIds }
                 } else {
-                    // For regular quests, use direct area ID matching
                     quest.events.filtered { it.areaId == area.id }
                 }
             } else {
@@ -214,7 +213,6 @@ class QuestEditorStore(
                     }
                 }
             } else {
-                // For regular quests, use area 0 with variant 0
                 _currentArea.value = areaStore.getArea(quest.episode, 0)
                 areaStore.getArea(quest.episode, 0)?.areaVariants?.getOrNull(0)
             }
@@ -383,7 +381,6 @@ class QuestEditorStore(
                         _currentArea.value = newArea
                     }
                 } else {
-                    // For regular quests, use entity's area directly
                     val newArea = areaStore.getArea(quest.episode, entity.areaId)
                     _currentArea.value = newArea
                 }
@@ -626,11 +623,9 @@ class QuestEditorStore(
 
         entities.forEach { entity ->
             val shouldProcessEntity = if (quest.floorMappings.isNotEmpty()) {
-                // For bb_map_designate quests, check if this entity's floor ID corresponds to this variant
                 val floorMapping = quest.floorMappings.find { it.floorId == entity.areaId }
                 floorMapping?.areaId == variant.area.id && floorMapping.variantId == variant.id
             } else {
-                // For regular quests, use the original logic
                 entity.areaId == variant.area.id
             }
 

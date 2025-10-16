@@ -79,8 +79,6 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
      * world transform. Otherwise keep its world transform and update its relative transform.
      */
     fun setSection(section: SectionModel, keepRelativeTransform: Boolean = false) {
-        // For bb_map_designate quests, entity areaId is floor ID, so we can't do simple area ID comparison
-        // We'll allow the section assignment and let the higher-level logic handle the validation
         val isAreaMatch = section.areaVariant.area.id == areaId
         val couldBeBbMapDesignate = areaId != section.areaVariant.area.id && areaId < 100
 

@@ -102,7 +102,6 @@ class QuestEditorToolbarController(
                 val result = mutableListOf<AreaAndLabel>()
 
                 if (quest.floorMappings.isNotEmpty()) {
-                    // For bb_map_designate quests, maintain episode area order:
                     // For each area in episode order, either show floor mappings or simple entry
 
                     // Group floor mappings by area ID for easy lookup
@@ -130,7 +129,6 @@ class QuestEditorToolbarController(
                         }
                     }
                 } else {
-                    // For regular quests, use the original logic
                     for (area in areaStore.getAreasForEpisode(quest.episode)) {
                         val entityCount = getEntityCountForArea(entitiesPerArea, area)
                         val areaVariants = getAreaVariants(area, variants)
@@ -442,7 +440,6 @@ class QuestEditorToolbarController(
         // Store the selected AreaAndLabel to preserve variant information
         _selectedAreaAndLabel.value = areaAndLabel
         questEditorStore.setCurrentArea(areaAndLabel.area)
-        // Set the specific variant for bb_map_designate quests
         questEditorStore.setCurrentAreaVariant(areaAndLabel.variant)
     }
 

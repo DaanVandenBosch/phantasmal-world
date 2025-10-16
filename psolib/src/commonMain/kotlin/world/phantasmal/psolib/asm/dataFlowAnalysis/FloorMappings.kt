@@ -11,7 +11,7 @@ private val logger = KotlinLogging.logger {}
 data class FloorMapping(
     // Floor id to place the map on.
     val floorId: Int,
-    // Area id to place on that floor.
+    // Map id to place on that floor.
     val mapId: Int,
     // Area id corresponding to the mapId.
     val areaId: Int,
@@ -159,7 +159,7 @@ fun getFloorMappings(
                     val areaId = getAreaIdByMapId(mapId)
                     val variantId = variantIdValues[0]!!
 
-                    logger.info {
+                    logger.debug {
                         "${inst.opcode.mnemonic}: FloorId=$floorId, MapId=$mapId (0x${
                             mapId.toString(16).uppercase()
                         }), " +

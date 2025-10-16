@@ -29,20 +29,14 @@ class EventWidget(
                 e.stopPropagation()
                 // Check for multi-select modifier key: Ctrl on Windows/Linux, Cmd on macOS
                 val isMultiSelectKey = e.ctrlKey || e.metaKey
-                console.log("Event clicked: ${event.id.value}, sectionId: ${event.sectionId.value}, multiSelectKey: $isMultiSelectKey")
 
                 if (isMultiSelectKey) {
-                    // Ctrl+click (Windows/Linux) or Cmd+click (macOS) for multi-selection
-                    console.log("Multi-select key pressed for event ${event.id.value}")
                     ctrl.selectEvent(event, true)
                 } else {
-                    // Regular click: select event and navigate to section
-                    console.log("Regular click: selecting event ${event.id.value}")
                     ctrl.selectEvent(event, false)
 
                     // Navigate to event's section with delayed execution to avoid cell dependency issues
                     window.setTimeout({
-                        console.log("Navigating to section ${event.sectionId.value}")
                         ctrl.goToEventSection(event)
                     }, 100)
                 }

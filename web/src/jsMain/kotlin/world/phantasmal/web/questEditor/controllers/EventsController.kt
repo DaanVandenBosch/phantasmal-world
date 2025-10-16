@@ -1,11 +1,6 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.cell.Cell
-import world.phantasmal.cell.and
-import world.phantasmal.cell.eq
-import world.phantasmal.cell.isNotNull
-import world.phantasmal.cell.isNull
-import world.phantasmal.cell.map
+import world.phantasmal.cell.*
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.listCell
 import world.phantasmal.web.questEditor.commands.*
@@ -189,9 +184,6 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
 
     fun goToEventSection(event: QuestEventModel) {
         store.goToEventSection(event)
-        // TODO: Add camera navigation implementation here
-        // This will need access to the camera/renderer which is not currently available
-        console.log("goToEventSection called for event ${event.id.value} in section ${event.sectionId.value}")
     }
 
     fun goToSection(sectionId: Int) {

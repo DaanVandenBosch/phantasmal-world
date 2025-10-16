@@ -46,11 +46,9 @@ class QuestEditorMeshManager(
                     quest.npcs.filteredCell {
                         val entityBelongsToCurrentAreaVariant =
                             if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
-                                // For bb_map_designate quests, check if entity's floor ID corresponds to current area+variant
                                 val floorMapping = quest.floorMappings.find { mapping -> mapping.floorId == it.areaId }
                                 floorMapping?.areaId == area.id && floorMapping.variantId == areaVariant.id
                             } else {
-                                // For regular quests (including areas without variants like Lab, Pioneer2), use the original logic
                                 it.areaId == area.id
                             }
 
@@ -84,11 +82,9 @@ class QuestEditorMeshManager(
                     quest.objects.filteredCell {
                         val entityBelongsToCurrentAreaVariant =
                             if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
-                                // For bb_map_designate quests, check if entity's floor ID corresponds to current area+variant
                                 val floorMapping = quest.floorMappings.find { mapping -> mapping.floorId == it.areaId }
                                 floorMapping?.areaId == area.id && floorMapping.variantId == areaVariant.id
                             } else {
-                                // For regular quests (including areas without variants like Lab, Pioneer2), use the original logic
                                 it.areaId == area.id
                             }
 
