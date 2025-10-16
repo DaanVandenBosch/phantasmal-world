@@ -7,6 +7,60 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * Represents a mapping of a floor to a specific map and area.
+ *
+ * <p>This mapping now uses <code>areaId(1)</code> → <code>variant(N)</code>
+ * instead of the previous <code>floor(1)</code> → <code>variant(N)</code> relationship,
+ * in order to correctly handle multi-variant map parsing.</p>
+ *
+ * <p><b>Why switch from floor-variant to areaId-variant mapping?</b></p>
+ *
+ * <p>Let’s take <b>Phantasmal World #4</b> as an example. The label 0 of this quest looks like this:</p>
+ *
+ * <pre>{@code
+ * 0:
+ *     set_episode 1
+ *     set_floor_handler 0, 300
+ *     set_floor_handler 17, 310
+ *     set_floor_handler 16, 320
+ *     set_qt_success 308
+ *     set_qt_failure 701
+ *     get_difficulty_level2 r252
+ *     get_slotnumber r250
+ *     initial_floor 0
+ *     bb_map_designate 0, 18, 0, 0
+ *     bb_map_designate 17, 35, 0, 0
+ *     bb_map_designate 16, 35, 1, 0
+ *     gset 79
+ * }</pre>
+ *
+ * <p>This is an <b>Episode 2</b> quest. The key instruction here is <code>bb_map_designate</code>:</p>
+ *
+ * <pre>{@code
+ * Lab_Ep2        = 00000012
+ * Seaside_Night  = 00000022
+ * Tower          = 00000023
+ * }</pre>
+ *
+ * <p>Let’s look at the first three <code>bb_map_designate</code> lines:</p>
+ *
+ * <ol>
+ *   <li><b>Floor 0</b>: map = <b>Lab (0x12 = 18)</b>, variant = <b>0</b> (Lab/City maps each have only one variant).</li>
+ *   <li><b>Floor 17</b>: map = <b>Tower (0x23 = 35)</b>, variant = <b>0</b> (Tower has five variants).</li>
+ *   <li><b>Floor 16</b>: map = <b>Tower (0x23 = 35)</b>, variant = <b>1</b> (Tower has five variants).</li>
+ * </ol>
+ *
+ * <p>Previously, the system used a <code>floor(1)</code> → <code>variant(N)</code> mapping.
+ * This caused parsing issues for maps with multiple variants under the same <code>mapId</code>.
+ * For example, in <b>Phantasmal World #4</b>, the old logic incorrectly produced:</p>
+ *
+ * <blockquote>Lab0, Tower0, and Seaside_Night1</blockquote>
+ *
+ * <p>The correct mapping should be:</p>
+ *
+ * <blockquote>Lab0, Tower0, and Tower1</blockquote>
+ *
+ * <p>By switching to an <code>areaId(1)</code> ↔ <code>variant(N)</code> mapping,
+ * the <b>FloorMapping</b> design now correctly resolves multi-variant maps under the same <code>mapId</code>.</p>
  */
 data class FloorMapping(
     // Floor id to place the map on.
