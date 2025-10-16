@@ -76,13 +76,13 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
 
     /**
      * @param keepRelativeTransform If true, keep the entity's relative transform and update its
-     * world transform. Otherwise keep its world transform and update its relative transform.
+     * world transform. Otherwise, keep its world transform and update its relative transform.
      */
     fun setSection(section: SectionModel, keepRelativeTransform: Boolean = false) {
         val isAreaMatch = section.areaVariant.area.id == areaId
-        val couldBeBbMapDesignate = areaId != section.areaVariant.area.id && areaId < 100
+        val multiVariant = areaId != section.areaVariant.area.id
 
-        require(isAreaMatch || couldBeBbMapDesignate) {
+        require(isAreaMatch || multiVariant) {
             "Quest entities can't be moved across areas (entity area: $areaId, section area: ${section.areaVariant.area.id})."
         }
 
