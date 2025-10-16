@@ -5,6 +5,8 @@ import org.w3c.dom.Node
 import world.phantasmal.cell.map
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.EntityType
+import world.phantasmal.psolib.fileFormats.quest.isBossArea
+import world.phantasmal.psolib.fileFormats.quest.isPioneer2OrLab
 import world.phantasmal.web.questEditor.controllers.EntityListController
 import world.phantasmal.web.questEditor.rendering.EntityImageRenderer
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
@@ -31,18 +33,10 @@ class EntityListWidget(
                     val areaId = area?.id ?: 0
 
                     // Check if this is Pioneer2/Lab area
-                    val isPioneer2OrLab = when (episode) {
-                        Episode.I -> areaId == 0  // EP1 Pioneer II
-                        Episode.II -> areaId == 0 // EP2 Lab
-                        Episode.IV -> areaId == 0 // EP4 Pioneer II
-                    }
+                    val isPioneer2OrLab = isPioneer2OrLab(episode, areaId)
 
                     // Check if this is boss area
-                    val isBoss = when (episode) {
-                        Episode.I -> areaId in listOf(11, 12, 13, 14)
-                        Episode.II -> areaId in listOf(5, 12, 13, 14, 15)
-                        Episode.IV -> areaId in listOf(9)
-                    }
+                    val isBoss = isBossArea(episode, areaId)
                     
                     // Only show omnispawn in regular areas
                     !isPioneer2OrLab && !isBoss

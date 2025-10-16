@@ -107,3 +107,11 @@ private fun createArea(id: Int, name: String, bossArea: Boolean, order: Int, var
 fun isBossArea(episode: Episode, areaId: Int): Boolean {
     AREAS[episode]?.any { area -> area.id == areaId && area.bossArea }.let { return it == true }
 }
+
+fun isPioneer2OrLab(episode: Episode, areaId: Int): Boolean {
+    return when (episode) {
+        Episode.I -> areaId == 0  // EP1 Pioneer II
+        Episode.II -> areaId == 0 // EP2 Lab
+        Episode.IV -> areaId == 0 // EP4 Pioneer II
+    }
+}
