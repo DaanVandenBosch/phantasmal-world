@@ -1,7 +1,6 @@
 package world.phantasmal.psolib.fileFormats.quest
 
 import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.NpcType.values
 
 enum class ObjectType(
     override val uniqueName: String,
@@ -2567,6 +2566,6 @@ enum class ObjectType(
         /**
          * Use this instead of [values] to avoid unnecessary copying.
          */
-        val VALUES: Array<ObjectType> = values()
+        val VALUES: Array<ObjectType> = entries.toTypedArray()
     }
 }

@@ -10,6 +10,8 @@ import org.w3c.dom.pointerevents.PointerEvent
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.web.core.rendering.InputManager
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
+import world.phantasmal.web.externals.three.Plane
+import world.phantasmal.web.externals.three.Raycaster
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
@@ -40,6 +42,9 @@ class QuestInputManager(
      * Prevents events from triggering while dragging the pointer.
      */
     private val pointerTrap = document.createElement("div") as HTMLElement
+
+    private val raycaster = Raycaster()
+    private val groundPlane = Plane(Vector3(0.0, 1.0, 0.0), 0.0) // Y = 0 plane
 
     private val cameraInputManager: OrbitalCameraInputManager
 
@@ -84,7 +89,35 @@ class QuestInputManager(
         stateContext = StateContext(questEditorStore, renderContext, cameraInputManager)
         state = IdleState(stateContext, entityManipulationEnabled)
 
+        // Observe quest editing enabled state
         observeNow(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
+        
+        // Observe target camera position for navigation - preserves current zoom level
+        observeNow(questEditorStore.targetCameraPosition) { targetPosition ->
+            targetPosition?.let { position ->
+                // Check if camera has been initialized (not at default position)
+                val currentDistance = renderContext.camera.position.distanceTo(cameraInputManager.controls.target)
+                val isInitialState = currentDistance > 1400.0 // Initial distance is ~1200
+
+                if (isInitialState) {
+                    // For initial navigation, use the original approach with fixed offset
+                    val cameraOffset = Vector3(0.0, 600.0, 900.0)
+                    val cameraPosition = position.clone().add(cameraOffset)
+                    console.log("Initial navigation - Moving camera to: ${cameraPosition.x}, ${cameraPosition.y}, ${cameraPosition.z}")
+                    cameraInputManager.lookAt(cameraPosition, position)
+                } else {
+                    // For subsequent navigations, preserve the current viewpoint (camera position and orientation)
+                    // Get current floor ID from quest and area variant
+                    val currentFloorId = getCurrentFloorId()
+                    cameraInputManager.lookAtPreservingViewpoint(position, currentFloorId)
+                }
+
+                // Clear the target position after navigation to allow future navigations
+                window.setTimeout({
+                    questEditorStore.setTargetCameraPosition(null)
+                }, 200)
+            }
+        }
 
         pointerTrap.className = "pw-quest-editor-input-manager-pointer-trap"
         pointerTrap.hidden = true
@@ -119,6 +152,9 @@ class QuestInputManager(
     override fun beforeRender() {
         state.beforeRender()
         cameraInputManager.beforeRender()
+
+        // Update user offset when camera controls change the target (e.g., during pan operations)
+        cameraInputManager.updateUserOffset()
     }
 
     private fun onFocus() {
@@ -202,6 +238,9 @@ class QuestInputManager(
     private fun onPointerOut(e: PointerEvent) {
         processPointerEvent(type = null, e.clientX, e.clientY)
 
+        // Clear mouse world position when pointer leaves canvas
+        questEditorStore.setMouseWorldPosition(null)
+
         state = state.processEvent(
             PointerOutEvt(
                 e.buttons.toInt(),
@@ -264,6 +303,9 @@ class QuestInputManager(
         pointerDevicePosition.copy(pointerPosition)
         renderContext.pointerPosToDeviceCoords(pointerDevicePosition)
 
+        // Calculate world position using raycaster
+        updateMouseWorldPosition()
+
         when (type) {
             "pointerdown" -> {
                 movedSinceLastPointerDown = false
@@ -276,6 +318,41 @@ class QuestInputManager(
         }
 
         lastPointerPosition.copy(pointerPosition)
+    }
+
+    private fun updateMouseWorldPosition() {
+        try {
+            // Set up raycaster from camera through mouse position
+            raycaster.setFromCamera(pointerDevicePosition, renderContext.camera)
+
+            // Intersect with ground plane (Y = 0)
+            val intersectionPoint = Vector3()
+            val intersected = raycaster.ray.intersectPlane(groundPlane, intersectionPoint)
+
+            if (intersected != null) {
+                questEditorStore.setMouseWorldPosition(intersected)
+            } else {
+                questEditorStore.setMouseWorldPosition(null)
+            }
+        } catch (e: Exception) {
+            // If there's any error, clear the position
+            questEditorStore.setMouseWorldPosition(null)
+        }
+    }
+
+    private fun getCurrentFloorId(): Int? {
+        val quest = questEditorStore.currentQuest.value ?: return null
+        val currentVariant = questEditorStore.currentAreaVariant.value ?: return null
+
+        // For quests with floor mappings, find the floor ID that matches current area and variant
+        if (quest.floorMappings.isNotEmpty()) {
+            val floorMapping = quest.floorMappings.find { mapping ->
+                mapping.areaId == currentVariant.area.id && mapping.variantId == currentVariant.id
+            }
+            return floorMapping?.floorId
+        }
+
+        return currentVariant.area.id
     }
 
     private fun returnToIdleState() {

@@ -31,7 +31,7 @@ class EntityDragEvent(private val data: EventData, private val event: DragEvent)
     val entityType: EntityType = data.entityType
     val clientX = event.clientX
     val clientY = event.clientY
-    val ctrlKey = event.ctrlKey
+    val ctrlKey = event.ctrlKey || event.metaKey  // Support both Ctrl (Windows/Linux) and Cmd (macOS)
     val shiftKey = event.shiftKey
 
     fun allowDrop() {

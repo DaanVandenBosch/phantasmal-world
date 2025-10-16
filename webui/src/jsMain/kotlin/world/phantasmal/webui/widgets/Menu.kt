@@ -205,7 +205,7 @@ class Menu<T : Any>(
             // language=css
             style("""
                 .pw-menu {
-                    z-index: 1000;
+                    z-index: 1001;
                     position: absolute;
                     box-sizing: border-box;
                     outline: none;

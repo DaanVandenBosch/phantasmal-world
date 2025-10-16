@@ -7,6 +7,8 @@ import world.phantasmal.psolib.asm.BytecodeIr
 import world.phantasmal.psolib.asm.InstructionSegment
 import world.phantasmal.psolib.asm.OP_SET_EPISODE
 import world.phantasmal.psolib.asm.dataFlowAnalysis.ControlFlowGraph
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
+import world.phantasmal.psolib.asm.dataFlowAnalysis.getFloorMappings
 import world.phantasmal.psolib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.compression.prs.prsCompress
@@ -32,7 +34,8 @@ class Quest(
     val datUnknowns: MutableList<DatUnknown>,
     var bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
-    val mapDesignations: MutableMap<Int, Int>,
+    val mapDesignations: MutableMap<Int, MutableSet<Int>>,
+    val floorMappings: List<FloorMapping> = emptyList(),
 )
 
 /**
@@ -69,7 +72,8 @@ fun parseBinDatToQuest(
 
     // Extract episode and map designations from byte code.
     var episode = Episode.I
-    var mapDesignations = mutableMapOf<Int, Int>()
+    var mapDesignations = mutableMapOf<Int, MutableSet<Int>>()
+    var floorMappings = emptyList<FloorMapping>()
 
     val parseBytecodeResult = parseBytecode(
         bin.bytecode,
@@ -108,8 +112,21 @@ fun parseBinDatToQuest(
                 npc.episode = episode
             }
 
-            mapDesignations =
-                getMapDesignations(label0Segment) { ControlFlowGraph.create(bytecodeIr) }
+            // Pass all instruction segments instead of just label 0 segment to support multi-floor quests
+            floorMappings = getFloorMappings(instructionSegments) { ControlFlowGraph.create(bytecodeIr) }
+
+            // Create mapDesignations based on floor mappings if available
+            if (floorMappings.isNotEmpty()) {
+                // For bb_map_designate, use floor ID as key with its corresponding variant
+                mapDesignations = mutableMapOf()
+                for (mapping in floorMappings) {
+                    mapDesignations[mapping.areaId] = mutableSetOf(mapping.variantId)
+                }
+            } else {
+                // Fall back to original logic for non-bb_map_designate quests
+                mapDesignations =
+                    getMapDesignations(label0Segment) { ControlFlowGraph.create(bytecodeIr) }
+            }
         } else {
             result.addProblem(Severity.Warning, "No instruction segment for label 0 found.")
         }
@@ -129,6 +146,7 @@ fun parseBinDatToQuest(
         bytecodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
+        floorMappings,
     ))
 }
 

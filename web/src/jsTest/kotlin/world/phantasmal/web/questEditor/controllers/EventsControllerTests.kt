@@ -14,7 +14,7 @@ class EventsControllerTests : WebTestSuite {
     fun addEvent() = testAsync {
         // Setup.
         val store = components.questEditorStore
-        val quest = createQuestModel(mapDesignations = mapOf(1 to 0))
+        val quest = createQuestModel(mapDesignations = mapOf(1 to setOf(0)))
         store.setCurrentQuest(quest)
         store.setCurrentArea(quest.areaVariants.value.first().area)
         store.makeMainUndoCurrent()
@@ -49,7 +49,7 @@ class EventsControllerTests : WebTestSuite {
     fun addAction() = testAsync {
         // Setup.
         val store = components.questEditorStore
-        val quest = createQuestModel(mapDesignations = mapOf(1 to 0))
+        val quest = createQuestModel(mapDesignations = mapOf(1 to setOf(0)))
         store.setCurrentQuest(quest)
         store.setCurrentArea(quest.areaVariants.value.first().area)
         store.makeMainUndoCurrent()
@@ -84,7 +84,7 @@ class EventsControllerTests : WebTestSuite {
         val store = components.questEditorStore
         // Quest with two events, the first event triggers the second event.
         val quest = createQuestModel(
-            mapDesignations = mapOf(1 to 0),
+            mapDesignations = mapOf(1 to setOf(0)),
             events = listOf(
                 QuestEventModel(
                     id = 100,

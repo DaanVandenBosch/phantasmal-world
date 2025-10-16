@@ -7,12 +7,14 @@ import world.phantasmal.web.externals.three.PerspectiveCamera
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.rendering.input.QuestInputManager
+import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 
 class QuestRenderer(
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
     questEditorStore: QuestEditorStore,
+    areaStore: AreaStore,
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : Renderer() {
     override val context = addDisposable(QuestRenderContext(
@@ -29,15 +31,17 @@ class QuestRenderer(
 
     override val inputManager = addDisposable(QuestInputManager(questEditorStore, context))
 
+    private val meshManager = addDisposable(
+        QuestEditorMeshManager(
+            areaAssetLoader,
+            entityAssetLoader,
+            questEditorStore,
+            areaStore,
+            context,
+        ),
+    )
+
     init {
-        addDisposables(
-            QuestEditorMeshManager(
-                areaAssetLoader,
-                entityAssetLoader,
-                questEditorStore,
-                context,
-            ),
-        )
 
         var prevQuest = questEditorStore.currentQuest.value
         var prevAreaVariant = questEditorStore.currentAreaVariant.value
@@ -50,5 +54,10 @@ class QuestRenderer(
                 prevAreaVariant = av
             }
         }
+    }
+
+    override fun render() {
+        // Call parent render method (handles inputManager.beforeRender() and actual rendering)
+        super.render()
     }
 }

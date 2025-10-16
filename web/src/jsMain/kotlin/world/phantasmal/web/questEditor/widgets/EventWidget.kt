@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.widgets
 
+import kotlinx.browser.window
 import org.w3c.dom.*
 import world.phantasmal.cell.map
 import world.phantasmal.web.questEditor.controllers.EventsController
@@ -15,16 +16,30 @@ class EventWidget(
     private val event: QuestEventModel,
 ) : Widget() {
     private val isSelected = ctrl.isSelected(event)
+    private val isMultiSelected = ctrl.isMultiSelected(event)
 
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-event"
             toggleClass("pw-selected", isSelected)
+            toggleClass("pw-multi-selected", isMultiSelected)
             tabIndex = 0
 
             onclick = { e ->
                 e.stopPropagation()
-                ctrl.selectEvent(event)
+                // Check for multi-select modifier key: Ctrl on Windows/Linux, Cmd on macOS
+                val isMultiSelectKey = e.ctrlKey || e.metaKey
+
+                if (isMultiSelectKey) {
+                    ctrl.selectEvent(event, true)
+                } else {
+                    ctrl.selectEvent(event, false)
+
+                    // Navigate to event's section with delayed execution to avoid cell dependency issues
+                    window.setTimeout({
+                        ctrl.goToEventSection(event)
+                    }, 100)
+                }
             }
 
             onkeyup = { e ->
@@ -160,6 +175,19 @@ class EventWidget(
                     border-color: hsl(0, 0%, 35%);
                     background-color: hsl(0, 0%, 25%);
                     color: hsl(0, 0%, 90%);
+                }
+
+                .pw-quest-editor-event.pw-multi-selected {
+                    border-color: hsl(200, 100%, 50%);
+                    background-color: hsl(200, 50%, 20%);
+                    color: hsl(0, 0%, 90%);
+                    box-shadow: 0 0 3px hsl(200, 100%, 50%);
+                }
+
+                .pw-quest-editor-event.pw-selected.pw-multi-selected {
+                    border-color: hsl(200, 100%, 60%);
+                    background-color: hsl(200, 50%, 25%);
+                    box-shadow: 0 0 5px hsl(200, 100%, 60%);
                 }
                 
                 .pw-quest-editor-event-props, .pw-quest-editor-event-actions {

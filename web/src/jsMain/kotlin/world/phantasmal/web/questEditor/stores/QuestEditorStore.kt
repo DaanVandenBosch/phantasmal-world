@@ -1,19 +1,13 @@
 package world.phantasmal.web.questEditor.stores
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import world.phantasmal.cell.Cell
-import world.phantasmal.cell.and
-import world.phantasmal.cell.flatMapNull
-import world.phantasmal.cell.isNotNull
+import world.phantasmal.cell.*
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.emptyListCell
 import world.phantasmal.cell.list.filtered
 import world.phantasmal.cell.list.flatMapToList
-import world.phantasmal.cell.map
-import world.phantasmal.cell.mutableCell
-import world.phantasmal.cell.mutate
-import world.phantasmal.cell.not
 import world.phantasmal.psolib.Episode
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.commands.Command
@@ -37,38 +31,78 @@ class QuestEditorStore(
     initializeNewQuest: Boolean,
 ) : Store() {
     private val _devMode = mutableCell(false)
+    private val _showSectionIds = mutableCell(true) // Section ID display toggle
+    private val _spawnMonstersOnGround = mutableCell(false) // Monster ground spawn toggle
+    private val _omnispawn = mutableCell(false) // Omnispawn toggle for NPCs
+    private val _showOriginPoint = mutableCell(false) // Origin point display toggle
     private val _currentQuest = mutableCell<QuestModel?>(null)
     private val _currentArea = mutableCell<AreaModel?>(null)
+    private val _currentAreaVariant = mutableCell<AreaVariantModel?>(null)
     private val _selectedEvent = mutableCell<QuestEventModel?>(null)
+    private val _selectedEvents = mutableCell<Set<QuestEventModel>>(emptySet())
     private val _highlightedEntity = mutableCell<QuestEntityModel<*, *>?>(null)
     private val _selectedEntity = mutableCell<QuestEntityModel<*, *>?>(null)
     private val mainUndo = UndoStack(undoManager)
     private val _showCollisionGeometry = mutableCell(true)
+    private val _mouseWorldPosition = mutableCell<Vector3?>(null)
+    private val _targetCameraPosition = mutableCell<Vector3?>(null)
+    private val _sectionsUpdated = mutableCell(0) // Trigger to update sections
+    private val _selectedSection = mutableCell<SectionModel?>(null)
+    
 
     val devMode: Cell<Boolean> = _devMode
 
     private val runner = QuestRunner()
     val currentQuest: Cell<QuestModel?> = _currentQuest
     val currentArea: Cell<AreaModel?> = _currentArea
-    val currentAreaVariant: Cell<AreaVariantModel?> =
-        map(currentArea, currentQuest.flatMapNull { it?.areaVariants }) { area, variants ->
-            if (area != null && variants != null) {
-                variants.find { it.area.id == area.id } ?: area.areaVariants.first()
-            } else {
-                null
-            }
-        }
+    val showSectionIds: Cell<Boolean> = _showSectionIds
+    val spawnMonstersOnGround: Cell<Boolean> = _spawnMonstersOnGround
+    val omnispawn: Cell<Boolean> = _omnispawn
+    val showOriginPoint: Cell<Boolean> = _showOriginPoint
+    val currentAreaVariant: Cell<AreaVariantModel?> = _currentAreaVariant
 
     val currentAreaEvents: ListCell<QuestEventModel> =
         flatMapToList(currentQuest, currentArea) { quest, area ->
             if (quest != null && area != null) {
-                quest.events.filtered { it.areaId == area.id }
+                if (quest.floorMappings.isNotEmpty()) {
+                    // For quests with floor mappings, find events by floor IDs that map to this area
+                    val relevantFloorIds = quest.floorMappings
+                        .filter { it.areaId == area.id }
+                        .map { it.floorId }
+                        .toSet()
+                    quest.events.filtered { event -> event.areaId in relevantFloorIds }
+                } else {
+                    quest.events.filtered { it.areaId == area.id }
+                }
             } else {
                 emptyListCell()
             }
         }
 
     val selectedEvent: Cell<QuestEventModel?> = _selectedEvent
+    val selectedEvents: Cell<Set<QuestEventModel>> = _selectedEvents
+
+    /**
+     * Get section and wave info from selected events for NPC filtering.
+     * Only NPCs that match both the section and wave of selected events will be shown.
+     */
+    val selectedEventsSectionWaves: Cell<Set<Pair<Int, Int>>> = selectedEvents.map { events ->
+        events.map { event -> Pair(event.sectionId.value, event.wave.value.id) }.toSet()
+    }
+
+    /**
+     * Get all sections for the current area variant for goto section functionality
+     */
+    val currentAreaSections: Cell<List<SectionModel>> =
+        map(currentQuest, currentAreaVariant, _sectionsUpdated) { quest, areaVariant, _ ->
+            if (areaVariant != null) {
+                // If we have an area variant, try to load sections regardless of quest status
+                val episode = quest?.episode ?: Episode.I // Default to Episode I if no quest
+                areaStore.getLoadedSections(episode, areaVariant) ?: emptyList()
+            } else {
+                emptyList()
+            }
+        }
 
     /**
      * The entity the user is currently hovering over.
@@ -93,6 +127,9 @@ class QuestEditorStore(
     val canSaveChanges: Cell<Boolean> = !undoManager.allAtSavePoint
 
     val showCollisionGeometry: Cell<Boolean> = _showCollisionGeometry
+    val mouseWorldPosition: Cell<Vector3?> = _mouseWorldPosition
+    val targetCameraPosition: Cell<Vector3?> = _targetCameraPosition
+    val selectedSection: Cell<SectionModel?> = _selectedSection
 
     init {
         addDisposables(
@@ -108,6 +145,7 @@ class QuestEditorStore(
                 makeMainUndoCurrent()
             }
         }
+
 
         if (initializeNewQuest) {
             scope.launch { setCurrentQuest(getDefaultQuest(Episode.I)) }
@@ -139,13 +177,47 @@ class QuestEditorStore(
         _highlightedEntity.value = null
         _selectedEntity.value = null
         _selectedEvent.value = null
+        _selectedSection.value = null
 
         if (quest == null) {
             _currentArea.value = null
+            _currentAreaVariant.value = null
             _currentQuest.value = null
         } else {
-            _currentArea.value = areaStore.getArea(quest.episode, 0)
             _currentQuest.value = quest
+
+            // Set the appropriate area and variant based on quest type
+            val firstAreaVariant = if (quest.floorMappings.isNotEmpty()) {
+                // For quests with floor mappings, find the mapping for floor 0 (starting area)
+                val floor0Mapping = quest.floorMappings.find { it.floorId == 0 }
+                if (floor0Mapping != null) {
+                    // Set currentArea to match the floor 0 mapping
+                    _currentArea.value = areaStore.getArea(quest.episode, floor0Mapping.areaId)
+                    // Return the corresponding variant
+                    areaStore.getVariant(quest.episode, floor0Mapping.areaId, floor0Mapping.variantId)
+                } else {
+                    // Fallback: if no floor 0 mapping, find the first area variant with entities
+                    val areaWithEntities = quest.areaVariants.value.find { variant ->
+                        val hasNpcs = quest.npcs.value.any { it.areaId == variant.area.id }
+                        val hasObjects = quest.objects.value.any { it.areaId == variant.area.id }
+                        hasNpcs || hasObjects
+                    }
+
+                    if (areaWithEntities != null) {
+                        _currentArea.value = areaWithEntities.area
+                        areaWithEntities
+                    } else {
+                        quest.areaVariants.value.firstOrNull()?.also { variant ->
+                            _currentArea.value = variant.area
+                        }
+                    }
+                }
+            } else {
+                _currentArea.value = areaStore.getArea(quest.episode, 0)
+                areaStore.getArea(quest.episode, 0)?.areaVariants?.getOrNull(0)
+            }
+
+            _currentAreaVariant.value = firstAreaVariant
 
             // Load section data.
             updateQuestEntitySections(quest)
@@ -153,6 +225,9 @@ class QuestEditorStore(
             // Ensure all entities have their section initialized.
             quest.npcs.value.forEach(QuestNpcModel::setSectionInitialized)
             quest.objects.value.forEach(QuestObjectModel::setSectionInitialized)
+
+            // Trigger section loading for dropdown immediately after quest is loaded
+            _sectionsUpdated.value += 1
         }
     }
 
@@ -177,6 +252,20 @@ class QuestEditorStore(
         _highlightedEntity.value = null
         _selectedEntity.value = null
         _currentArea.value = area
+        
+        // Load sections for the new area if quest is loaded
+        // Use setTimeout to ensure currentAreaVariant has been updated first
+        window.setTimeout({
+            currentQuest.value?.let { quest ->
+                currentAreaVariant.value?.let { areaVariant ->
+                    requestSectionLoading(quest.episode, areaVariant)
+                }
+            }
+        }, 50)
+    }
+
+    fun setCurrentAreaVariant(variant: AreaVariantModel?) {
+        _currentAreaVariant.value = variant
     }
 
     fun addEvent(quest: QuestModel, index: Int, event: QuestEventModel) {
@@ -194,29 +283,33 @@ class QuestEditorStore(
     }
 
     fun setSelectedEvent(event: QuestEventModel?) {
-        event?.let {
-            val wave = event.wave.value
+        // Simple implementation - just set the selected event
+        _selectedEvent.value = event
 
-            highlightedEntity.value?.let { entity ->
-                if (entity is QuestNpcModel && entity.wave.value != wave) {
-                    setHighlightedEntity(null)
-                }
-            }
+        // Update multi-selection to match single selection
+        if (event != null) {
+            _selectedEvents.value = setOf(event)
+        } else {
+            _selectedEvents.value = emptySet()
+        }
+    }
 
-            selectedEntity.value?.let { entity ->
-                if (entity is QuestNpcModel && entity.wave.value != wave) {
-                    setSelectedEntity(null)
-                }
-            }
+    /**
+     * Toggle event selection for multi-selection with Ctrl+click
+     */
+    fun toggleEventSelection(event: QuestEventModel) {
+        val currentSelection = _selectedEvents.value.toMutableSet()
 
-            val quest = currentQuest.value
-
-            if (quest != null && _currentArea.value?.id != event.areaId) {
-                _currentArea.value = areaStore.getArea(quest.episode, event.areaId)
-            }
+        if (event in currentSelection) {
+            currentSelection.remove(event)
+        } else {
+            currentSelection.add(event)
         }
 
-        _selectedEvent.value = event
+        _selectedEvents.value = currentSelection
+
+        // Update single selection to the last selected event (or null if none)
+        _selectedEvent.value = if (currentSelection.isEmpty()) null else event
     }
 
     fun <T> setEventProperty(
@@ -270,7 +363,27 @@ class QuestEditorStore(
     fun setSelectedEntity(entity: QuestEntityModel<*, *>?) {
         entity?.let {
             currentQuest.value?.let { quest ->
-                _currentArea.value = areaStore.getArea(quest.episode, entity.areaId)
+                // For quests with floor mappings, use the mapping to determine correct area and variant
+                if (quest.floorMappings.isNotEmpty()) {
+                    // Find the floor mapping for this entity's areaId (which is actually floorId in this context)
+                    val floorMapping = quest.floorMappings.find { mapping -> mapping.floorId == entity.areaId }
+
+                    if (floorMapping != null) {
+                        // Use the floor mapping to set BOTH area and variant correctly
+                        val newArea = areaStore.getArea(quest.episode, floorMapping.areaId)
+                        val newVariant = areaStore.getVariant(quest.episode, floorMapping.areaId, floorMapping.variantId)
+
+                        _currentArea.value = newArea
+                        _currentAreaVariant.value = newVariant
+                    } else {
+                        // Fallback to entity's area
+                        val newArea = areaStore.getArea(quest.episode, entity.areaId)
+                        _currentArea.value = newArea
+                    }
+                } else {
+                    val newArea = areaStore.getArea(quest.episode, entity.areaId)
+                    _currentArea.value = newArea
+                }
             }
         }
 
@@ -342,7 +455,7 @@ class QuestEditorStore(
         }
     }
 
-    suspend fun setMapDesignations(mapDesignations: Map<Int, Int>) {
+    suspend fun setMapDesignations(mapDesignations: Map<Int, Set<Int>>) {
         currentQuest.value?.let { quest ->
             quest.setMapDesignations(mapDesignations)
             updateQuestEntitySections(quest)
@@ -369,18 +482,21 @@ class QuestEditorStore(
      */
     private fun setEntitySection(entity: QuestEntityModel<*, *>, sectionId: Int) {
         currentQuest.value?.let { quest ->
-            val variant = quest.areaVariants.value.find { it.area.id == entity.areaId }
+            // Find all variants for this area and try to find the section in any of them
+            val variants = quest.areaVariants.value.filter { it.area.id == entity.areaId }
 
-            variant?.let {
+            for (variant in variants) {
                 val section = areaStore.getLoadedSections(quest.episode, variant)
                     ?.find { it.id == sectionId }
 
-                if (section == null) {
-                    entity.setSectionId(sectionId)
-                } else {
+                if (section != null) {
                     entity.setSection(section)
+                    return@let
                 }
             }
+
+            // If section not found in any variant, just set the ID
+            entity.setSectionId(sectionId)
         }
     }
 
@@ -405,8 +521,52 @@ class QuestEditorStore(
         _showCollisionGeometry.value = show
     }
 
+    fun setShowSectionIds(show: Boolean) {
+        _showSectionIds.value = show
+    }
+
+    fun setSpawnMonstersOnGround(spawn: Boolean) {
+        _spawnMonstersOnGround.value = spawn
+        QuestNpcModel.setSpawnOnGround(spawn)
+    }
+
+    fun setOmnispawn(omnispawn: Boolean) {
+        _omnispawn.value = omnispawn
+    }
+
+    fun setShowOriginPoint(show: Boolean) {
+        _showOriginPoint.value = show
+    }
+
+    fun setMouseWorldPosition(position: Vector3?) {
+        _mouseWorldPosition.value = position
+    }
+
+    fun setTargetCameraPosition(position: Vector3?) {
+        _targetCameraPosition.value = position
+    }
+
+    fun setSelectedSection(section: SectionModel?) {
+        _selectedSection.value = section
+    }
+
     fun questSaved() {
         undoManager.savePoint()
+    }
+
+    /**
+     * Request async loading of sections for a specific area variant
+     */
+    fun requestSectionLoading(episode: Episode, areaVariant: AreaVariantModel) {
+        scope.launch {
+            try {
+                areaStore.getSections(episode, areaVariant)
+                // Trigger UI update by incrementing the counter
+                _sectionsUpdated.value += 1
+            } catch (e: Exception) {
+                logger.warn(e) { "Error loading sections for area variant ${areaVariant.id}" }
+            }
+        }
     }
 
     /**
@@ -423,6 +583,28 @@ class QuestEditorStore(
         }
     }
 
+    /**
+     * Navigate camera to a specific section by section ID.
+     */
+    fun goToSection(sectionId: Int) {
+        currentAreaVariant.value?.let { areaVariant ->
+            // Use quest episode if available, otherwise default to Episode I
+            val episode = currentQuest.value?.episode ?: Episode.I
+            val sections = areaStore.getLoadedSections(episode, areaVariant)
+            sections?.find { it.id == sectionId }?.let { section ->
+                // Set target camera position without using observers to avoid circular dependencies
+                _targetCameraPosition.value = section.position.clone()
+            }
+        }
+    }
+
+    /**
+     * Navigate camera to the section of a specific event.
+     */
+    fun goToEventSection(event: QuestEventModel) {
+        goToSection(event.sectionId.value)
+    }
+
     private suspend fun updateQuestEntitySections(quest: QuestModel) {
         quest.areaVariants.value.forEach { variant ->
             val sections = areaStore.getSections(quest.episode, variant)
@@ -437,8 +619,17 @@ class QuestEditorStore(
         variant: AreaVariantModel,
         sections: List<SectionModel>,
     ) {
+        val quest = currentQuest.value ?: return
+
         entities.forEach { entity ->
-            if (entity.areaId == variant.area.id) {
+            val shouldProcessEntity = if (quest.floorMappings.isNotEmpty()) {
+                val floorMapping = quest.floorMappings.find { it.floorId == entity.areaId }
+                floorMapping?.areaId == variant.area.id && floorMapping.variantId == variant.id
+            } else {
+                entity.areaId == variant.area.id
+            }
+
+            if (shouldProcessEntity) {
                 val section = sections.find { it.id == entity.sectionId.value }
 
                 if (section == null) {
