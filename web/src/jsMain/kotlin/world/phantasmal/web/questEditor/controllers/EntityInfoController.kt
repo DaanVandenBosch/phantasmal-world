@@ -20,6 +20,8 @@ import world.phantasmal.web.questEditor.commands.*
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestEntityPropModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
+import world.phantasmal.web.questEditor.models.QuestObjectModel
+import world.phantasmal.psolib.fileFormats.quest.ObjectType
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
@@ -48,18 +50,38 @@ sealed class EntityInfoPropModel(
         EntityInfoPropModel(store, prop) {
 
         @Suppress("UNCHECKED_CAST")
-        val value: Cell<Int> = prop.value as Cell<Int>
+        val value: Cell<Int> = if (prop.name == "Door ID" && isForestDoor(store)) {
+            (prop.value as Cell<Int>).map { doorId ->
+                if (doorId == -1) doorId else doorId and 0xFF
+            }
+        } else {
+            prop.value as Cell<Int>
+        }
 
         val showGoToEvent: Boolean = prop.name == "Event ID"
 
         val canGoToEvent: Cell<Boolean> = store.canGoToEvent(value)
 
         fun setValue(value: Int) {
-            setPropValue(prop, value)
+            val actualValue = if (prop.name == "Door ID" && isForestDoor(store)) {
+                if (value == -1) value else {
+                    @Suppress("UNCHECKED_CAST")
+                    val originalValue = (prop.value as Cell<Int>).value
+                    (originalValue and 0xFF00) or (value and 0xFF)
+                }
+            } else {
+                value
+            }
+            setPropValue(prop, actualValue)
         }
 
         fun goToEvent() {
             store.goToEvent(value.value)
+        }
+
+        private fun isForestDoor(store: QuestEditorStore): Boolean {
+            val entity = store.selectedEntity.value
+            return entity is QuestObjectModel && entity.type == ObjectType.ForestDoor
         }
     }
 

@@ -2,13 +2,12 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.list.ListCell
-import world.phantasmal.cell.list.flatMapToList
-import world.phantasmal.cell.list.listCell
 import world.phantasmal.cell.list.mutableListCell
 import world.phantasmal.cell.map
 import world.phantasmal.cell.mutableCell
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.BytecodeIr
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.psolib.fileFormats.quest.DatUnknown
 
 class QuestModel(
@@ -18,7 +17,7 @@ class QuestModel(
     shortDescription: String,
     longDescription: String,
     val episode: Episode,
-    mapDesignations: Map<Int, Int>,
+    mapDesignations: Map<Int, Set<Int>>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
     events: MutableList<QuestEventModel>,
@@ -28,6 +27,7 @@ class QuestModel(
     val datUnknowns: List<DatUnknown>,
     bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
+    val floorMappings: List<FloorMapping>,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
     private val _id = mutableCell(0)
@@ -47,9 +47,9 @@ class QuestModel(
     val longDescription: Cell<String> = _longDescription
 
     /**
-     * Map of area IDs to area variant IDs. One designation per area.
+     * Map of area IDs to area variant IDs. Multiple variants per area supported.
      */
-    val mapDesignations: Cell<Map<Int, Int>> = _mapDesignations
+    val mapDesignations: Cell<Map<Int, Set<Int>>> = _mapDesignations
 
     /**
      * Map of area IDs to entity counts.
@@ -57,9 +57,16 @@ class QuestModel(
     val entitiesPerArea: Cell<Map<Int, Int>>
 
     /**
-     * One variant per area.
+     * All area variants used by this quest. Multiple variants per area are supported.
      */
     val areaVariants: ListCell<AreaVariantModel>
+
+    /**
+     * Map floor ID to area variant, for regular quests, this is empty.
+     */
+    val floorToVariantMap: Map<Int, AreaVariantModel>
+
+    private val _cachedAreaVariants = mutableListCell<AreaVariantModel>()
 
     val npcs: ListCell<QuestNpcModel> = _npcs
     val objects: ListCell<QuestObjectModel> = _objects
@@ -90,24 +97,54 @@ class QuestModel(
             map
         }
 
-        areaVariants =
-            flatMapToList(entitiesPerArea, this.mapDesignations) { entitiesPerArea, mds ->
-                val variants = mutableMapOf<Int, AreaVariantModel>()
+        val variants = mutableMapOf<Int, AreaVariantModel>()
 
-                for (areaId in entitiesPerArea.keys) {
-                    getVariant(episode, areaId, 0)?.let {
-                        variants[areaId] = it
-                    }
+        if (floorMappings.isNotEmpty()) {
+            for (mapping in floorMappings) {
+                getVariant(episode, mapping.areaId, mapping.variantId)?.let { variant ->
+                    variants[mapping.floorId] = variant
                 }
-
-                for ((areaId, variantId) in mds) {
-                    getVariant(episode, areaId, variantId)?.let {
-                        variants[areaId] = it
-                    }
-                }
-
-                listCell(*variants.values.toTypedArray())
             }
+        } else {
+            for ((areaId, variantIds) in mapDesignations) {
+                for (variantId in variantIds) {
+                    getVariant(episode, areaId, variantId)?.let { variant ->
+                        // Use a composite key to handle multiple variants per area
+                        val key = areaId * 1000 + variantId
+                        variants[key] = variant
+                    }
+                }
+            }
+
+            // Then, ensure areas from mapDesignations have at least variant 0
+            for (areaId in mapDesignations.keys) {
+                val key = areaId * 1000 + 0
+                if (key !in variants) {
+                    getVariant(episode, areaId, 0)?.let {
+                        variants[key] = it
+                    }
+                }
+            }
+
+            // For empty quests (like defaults), ensure at least Pioneer II (area 0) exists
+            if (variants.isEmpty()) {
+                getVariant(episode, 0, 0)?.let {
+                    variants[0] = it
+                }
+            }
+        }
+
+        floorToVariantMap = if (floorMappings.isNotEmpty()) {
+            variants.toMap()
+        } else {
+            emptyMap()
+        }
+
+        // Cache the results to prevent Assembly from modifying them
+        for (variant in variants.values) {
+            _cachedAreaVariants.add(variant)
+        }
+        areaVariants = _cachedAreaVariants
     }
 
     fun setId(id: Int): QuestModel {
@@ -156,7 +193,7 @@ class QuestModel(
         }
     }
 
-    fun setMapDesignations(mapDesignations: Map<Int, Int>) {
+    fun setMapDesignations(mapDesignations: Map<Int, Set<Int>>) {
         _mapDesignations.value = mapDesignations
     }
 

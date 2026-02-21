@@ -1449,8 +1449,14 @@ opcodes:
     mnemonic: map_designate
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
+            read: true
+          - type: int
+            read: true
+          - type: int
+            read: true
+          - type: int
             read: true
 
   - code: 0xc5
@@ -1870,26 +1876,31 @@ opcodes:
     params: []
 
   - code: 0xf812
+    mnemonic: ba_set_tech
     params:
       - type: int
     stack: pop
 
   - code: 0xf813
+    mnemonic: ba_set_equip
     params:
       - type: int
     stack: pop
 
   - code: 0xf814
+    mnemonic: ba_set_mag
     params:
       - type: int
     stack: pop
 
   - code: 0xf815
+    mnemonic: ba_set_item
     params:
       - type: int
     stack: pop
 
   - code: 0xf816
+    mnemonic: ba_set_trapmenu
     params:
       - type: int
     stack: pop
@@ -1900,21 +1911,25 @@ opcodes:
     stack: pop
 
   - code: 0xf818
+    mnemonic: ba_set_respawn
     params:
       - type: int
     stack: pop
 
   - code: 0xf819
+    mnemonic: ba_set_char
     params:
       - type: int
     stack: pop
 
   - code: 0xf81a
+    mnemonic: ba_dropwep
     params:
       - type: int
     stack: pop
 
   - code: 0xf81b
+    mnemonic: ba_teams
     params:
       - type: int
     stack: pop
@@ -1932,7 +1947,7 @@ opcodes:
     stack: pop
 
   - code: 0xf81e
-    mnemonic: death_tech_lvl_up
+    mnemonic: ba_set_meseta
     params:
       - type: int
     stack: pop
@@ -2178,6 +2193,7 @@ opcodes:
             write: true
 
   - code: 0xf851
+    mnemonic: ba_set_trap
     params:
       - type: reg
         registers: # TODO: determine type and access
@@ -2302,6 +2318,7 @@ opcodes:
             write: true
 
   - code: 0xf86b
+    mnemonic: ba_box_drops
     params:
       - type: reg
         registers: # TODO: determine type and access
@@ -2315,6 +2332,10 @@ opcodes:
         registers: # TODO: determine type and access
           - type: any
             write: true
+
+  - code: 0xf86d
+    mnemonic: ba_set_trapself
+    params: []
 
   - code: 0xf86f
     mnemonic: ba_set_lives
@@ -2467,6 +2488,10 @@ opcodes:
           - type: any
             write: true
 
+  - code: 0xf888
+    mnemonic: ba_close_msg
+    params: []
+
   - code: 0xf88a
     mnemonic: get_player_status
     params:
@@ -2615,6 +2640,7 @@ opcodes:
             write: true
 
   - code: 0xf8a8
+    mnemonic: death_tech_lvl_up2
     params:
       - type: int
     stack: pop

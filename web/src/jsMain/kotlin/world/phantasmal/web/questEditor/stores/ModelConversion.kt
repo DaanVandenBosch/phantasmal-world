@@ -51,6 +51,7 @@ fun convertQuestToModel(
         quest.datUnknowns,
         quest.bytecodeIr,
         quest.shopItems,
+        quest.floorMappings,
         getVariant,
     )
 
@@ -99,5 +100,6 @@ fun convertQuestFromModel(quest: QuestModel): Quest =
         quest.datUnknowns.toMutableList(),
         quest.bytecodeIr,
         quest.shopItems,
-        quest.mapDesignations.value.toMutableMap(),
+        quest.mapDesignations.value.mapValues { (_, variants) -> variants.toMutableSet() }.toMutableMap(),
+        emptyList(),  // floorMappings - not needed for web side conversion
     )
