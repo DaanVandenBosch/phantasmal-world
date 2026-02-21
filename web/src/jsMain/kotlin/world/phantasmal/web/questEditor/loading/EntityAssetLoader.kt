@@ -7,11 +7,7 @@ import world.phantasmal.core.Success
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
-import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
-import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
-import world.phantasmal.psolib.fileFormats.ninja.parseNj
-import world.phantasmal.psolib.fileFormats.ninja.parseXj
-import world.phantasmal.psolib.fileFormats.ninja.parseXvm
+import world.phantasmal.psolib.fileFormats.ninja.*
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.psolib.fileFormats.quest.ObjectType
@@ -19,11 +15,7 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.loading.LoadingCache
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToInstancedMesh
 import world.phantasmal.web.core.rendering.disposeObject3DResources
-import world.phantasmal.web.externals.three.Color
-import world.phantasmal.web.externals.three.CylinderGeometry
-import world.phantasmal.web.externals.three.DoubleSide
-import world.phantasmal.web.externals.three.InstancedMesh
-import world.phantasmal.web.externals.three.MeshLambertMaterial
+import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.obj
 
@@ -75,7 +67,11 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
                 side = DoubleSide
             }),
             boundingVolumes = true,
-        ).apply { name = type.uniqueName }
+        ).apply {
+            name = type.uniqueName
+            // Apply entity-specific scaling
+            applyEntityTypeScale(type)
+        }
     }
 
     private suspend fun loadTextures(type: EntityType, model: Int?): List<XvrTexture> {
@@ -160,6 +156,26 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
                 count = 0
             }
     }
+}
+
+/**
+ * Apply entity-specific scaling to the mesh geometry.
+ * This allows adjusting the display size of specific entity types without affecting the original files.
+ */
+private fun InstancedMesh.applyEntityTypeScale(type: EntityType) {
+    val scaleFactor = when (type) {
+        NpcType.Delbiter -> 0.5  // Reduce Delbiter size to 50%
+        // Add more entity-specific scaling here as needed
+        // NpcType.SomeOtherEnemy -> 0.8
+        else -> return  // No scaling needed for other types
+    }
+
+    // Scale the geometry
+    geometry.scale(scaleFactor, scaleFactor, scaleFactor)
+
+    // Recompute bounding volumes after scaling
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
 }
 
 private enum class AssetType {
@@ -396,9 +412,9 @@ private fun entityTypeToPath(
                 ObjectType.RadarCollision,
                 ObjectType.FogCollisionSW,
                 ObjectType.ImageBoard,
-                ObjectType.UnknownItem29,
-                ObjectType.UnknownItem30,
-                ObjectType.UnknownItem31,
+                ObjectType.StarLight2D,
+                ObjectType.LensFlare2,
+                ObjectType.RadarHideCollision,
                 ObjectType.MenuActivation,
                 ObjectType.BoxDetectObject,
                 ObjectType.SymbolChatObject,
@@ -406,10 +422,10 @@ private fun entityTypeToPath(
                 ObjectType.TargetableObject,
                 ObjectType.EffectObject,
                 ObjectType.CountDownObject,
-                ObjectType.UnknownItem38,
-                ObjectType.UnknownItem39,
-                ObjectType.UnknownItem40,
-                ObjectType.UnknownItem41,
+                ObjectType.ChatSensor,
+                ObjectType.RadarIcon,
+                ObjectType.EnvSoundEx,
+                ObjectType.EnvSoundGlobal,
                 ObjectType.TelepipeLocation,
                 ObjectType.BGMCollision,
                 ObjectType.Pioneer2InvisibleTouchplate,
@@ -425,20 +441,20 @@ private fun entityTypeToPath(
                 ObjectType.EmptyTypeBoxBlue,
                 ObjectType.FloatingSoul,
                 ObjectType.Butterfly,
-                ObjectType.UnknownItem400,
+                ObjectType.Camera,
                 ObjectType.CcaAreaTeleporter,
-                ObjectType.UnknownItem523,
+                ObjectType.LightningController,
                 ObjectType.WhiteBird,
                 ObjectType.OrangeBird,
-                ObjectType.UnknownItem529,
-                ObjectType.UnknownItem530,
+                ObjectType.BiwaMushi,
+                ObjectType.JungleDesign,
                 ObjectType.Seagull,
-                ObjectType.UnknownItem576,
+                ObjectType.Ep2Particle,
                 ObjectType.WarpInBarbaRayRoom,
-                ObjectType.UnknownItem672,
+                ObjectType.LiveCamera,
                 ObjectType.InstaWarp,
                 ObjectType.LabInvisibleObject,
-                ObjectType.UnknownItem700,
+                ObjectType.AreaWarpEndingJung,
                 ObjectType.Ep4LightSource,
                 ObjectType.BreakableBrownRock,
                 ObjectType.UnknownItem897,
@@ -450,11 +466,11 @@ private fun entityTypeToPath(
                 ObjectType.UnknownItem905,
                 ObjectType.UnknownItem906,
                 ObjectType.DesertPlantHasCollision,
-                ObjectType.UnknownItem910,
-                ObjectType.UnknownItem912,
+                ObjectType.Ep4TestDoor,
+                ObjectType.Ep4TestParticle,
                 ObjectType.Heat,
                 ObjectType.TopOfSaintMillionEgg,
-                ObjectType.UnknownItem961,
+                ObjectType.Ep4BossRockSpawner,
                 -> null
 
                 else -> {

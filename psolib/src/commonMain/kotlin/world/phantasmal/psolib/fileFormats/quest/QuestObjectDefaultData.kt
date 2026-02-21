@@ -206,7 +206,7 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, -252124544)
         }
 
-        ObjectType.UnknownItem39 -> {
+        ObjectType.RadarIcon -> {
             data.setShort(4, 30728)
             data.setShort(6, 1)
             data.setInt(56, 65641)
@@ -1160,13 +1160,13 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, 1082650496)
         }
 
-        ObjectType.UnknownItem529 -> {
+        ObjectType.BiwaMushi -> {
             data.setShort(4, 2139)
             data.setShort(6, 6)
             data.setInt(64, 71348128)
         }
 
-        ObjectType.UnknownItem530 -> {
+        ObjectType.JungleDesign -> {
             data.setShort(4, 2046)
             data.setShort(6, 9)
             data.setInt(64, 206357088)
@@ -1386,7 +1386,7 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, 36805664)
         }
 
-        ObjectType.UnknownItem910 -> {
+        ObjectType.Ep4TestDoor -> {
             data.setShort(4, 1309)
             data.setShort(6, 6)
         }
@@ -1409,7 +1409,7 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, 26818944)
         }
 
-        ObjectType.UnknownItem961 -> {
+        ObjectType.Ep4BossRockSpawner -> {
             data.setShort(4, 1322)
             data.setShort(6, 9)
             data.setInt(64, 207524384)

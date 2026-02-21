@@ -7,6 +7,8 @@ import world.phantasmal.psolib.asm.BytecodeIr
 import world.phantasmal.psolib.asm.InstructionSegment
 import world.phantasmal.psolib.asm.OP_SET_EPISODE
 import world.phantasmal.psolib.asm.dataFlowAnalysis.ControlFlowGraph
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
+import world.phantasmal.psolib.asm.dataFlowAnalysis.getFloorMappings
 import world.phantasmal.psolib.asm.dataFlowAnalysis.getMapDesignations
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.compression.prs.prsCompress
@@ -30,9 +32,14 @@ class Quest(
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     val datUnknowns: MutableList<DatUnknown>,
+    val cmRandomSpawns: MutableList<DatCmRandomSpawn> = mutableListOf(),
+    val cmMonsterMappings: MutableList<DatCmMonsterMapping> = mutableListOf(),
+    val cmConfigPool: MutableList<DatCmConfigPool> = mutableListOf(),
     var bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
-    val mapDesignations: MutableMap<Int, Int>,
+    val mapDesignations: MutableMap<Int, MutableSet<Int>>,
+    val floorMappings: List<FloorMapping> = emptyList(),
+    var bytecodeOffset: Int? = null,
 )
 
 /**
@@ -69,7 +76,8 @@ fun parseBinDatToQuest(
 
     // Extract episode and map designations from byte code.
     var episode = Episode.I
-    var mapDesignations = mutableMapOf<Int, Int>()
+    var mapDesignations = mutableMapOf<Int, MutableSet<Int>>()
+    var floorMappings = emptyList<FloorMapping>()
 
     val parseBytecodeResult = parseBytecode(
         bin.bytecode,
@@ -108,8 +116,45 @@ fun parseBinDatToQuest(
                 npc.episode = episode
             }
 
-            mapDesignations =
-                getMapDesignations(label0Segment) { ControlFlowGraph.create(bytecodeIr) }
+            // Pass all instruction segments instead of just label 0 segment to support multi-floor quests
+            floorMappings = getFloorMappings(instructionSegments) { ControlFlowGraph.create(bytecodeIr) }
+
+            // Update NPC gameAreaId based on floor mappings from map_designate instructions
+            // gameAreaId is used for NPC type detection, while areaId remains as floorId for variant mapping
+            if (floorMappings.isNotEmpty()) {
+                for (npc in npcs) {
+                    /*
+                     * Use FloorMapping.floorId to match NPC.areaId.
+                     *
+                     * Reason:
+                     * - FloorMapping.floorId represents the original logical floor.
+                     * - NPC.areaId also stores the original floor ID.
+                     * - FloorMapping.areaId is derived from mapId and may differ
+                     *   from floorId when multiple floors share the same map.
+                     *
+                     * Example:
+                     *   Floor 17 -> Tower (mapId 35), variant 0
+                     *   Floor 16 -> Tower (mapId 35), variant 1
+                     */
+                    val mapping = floorMappings.find { it.floorId == npc.areaId }
+                    if (mapping != null) {
+                        npc.gameAreaId = mapping.areaId
+                    }
+                }
+            }
+
+            // Create mapDesignations based on floor mappings if available
+            if (floorMappings.isNotEmpty()) {
+                // For bb_map_designate, use floor ID as key with its corresponding variant
+                mapDesignations = mutableMapOf()
+                for (mapping in floorMappings) {
+                    mapDesignations.getOrPut(mapping.areaId) { mutableSetOf() }.add(mapping.variantId)
+                }
+            } else {
+                // Fall back to original logic for non-bb_map_designate quests
+                mapDesignations =
+                    getMapDesignations(label0Segment) { ControlFlowGraph.create(bytecodeIr) }
+            }
         } else {
             result.addProblem(Severity.Warning, "No instruction segment for label 0 found.")
         }
@@ -126,9 +171,14 @@ fun parseBinDatToQuest(
         npcs,
         events = dat.events,
         datUnknowns = dat.unknowns,
+        cmRandomSpawns = dat.cmRandomSpawns,
+        cmMonsterMappings = dat.cmMonsterMappings,
+        cmConfigPool = dat.cmConfigPool,
         bytecodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
+        floorMappings,
+        bytecodeOffset = bin.bytecodeOffset,
     ))
 }
 
@@ -248,6 +298,9 @@ fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
         npcs = quest.npcs.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
         events = quest.events,
         unknowns = quest.datUnknowns,
+        cmRandomSpawns = quest.cmRandomSpawns,
+        cmMonsterMappings = quest.cmMonsterMappings,
+        cmConfigPool = quest.cmConfigPool,
     ))
 
     val binFormat = when (version) {
@@ -268,6 +321,7 @@ fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
         bytecode,
         labelOffsets,
         quest.shopItems,
+        quest.bytecodeOffset,
     ))
 
     return Pair(bin, dat)

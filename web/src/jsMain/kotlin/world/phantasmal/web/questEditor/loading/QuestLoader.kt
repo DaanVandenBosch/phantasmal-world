@@ -19,11 +19,8 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
     )
 
     suspend fun loadDefaultQuest(episode: Episode): Quest {
-        require(episode == Episode.I) {
-            "Episode $episode not yet supported."
-        }
-
-        return loadQuest("/defaults/default_ep_1.qst")
+        val ver = episode.toInt()
+        return loadQuest("/defaults/default_ep_$ver.qst")
     }
 
     private suspend fun loadQuest(path: String): Quest =

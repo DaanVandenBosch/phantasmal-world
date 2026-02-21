@@ -2,13 +2,16 @@ package world.phantasmal.web.questEditor.models
 
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.list.ListCell
-import world.phantasmal.cell.list.flatMapToList
-import world.phantasmal.cell.list.listCell
 import world.phantasmal.cell.list.mutableListCell
 import world.phantasmal.cell.map
+import world.phantasmal.cell.MutableCell
 import world.phantasmal.cell.mutableCell
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.BytecodeIr
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
+import world.phantasmal.psolib.fileFormats.quest.DatCmConfigPool
+import world.phantasmal.psolib.fileFormats.quest.DatCmMonsterMapping
+import world.phantasmal.psolib.fileFormats.quest.DatCmRandomSpawn
 import world.phantasmal.psolib.fileFormats.quest.DatUnknown
 
 class QuestModel(
@@ -18,7 +21,7 @@ class QuestModel(
     shortDescription: String,
     longDescription: String,
     val episode: Episode,
-    mapDesignations: Map<Int, Int>,
+    mapDesignations: Map<Int, Set<Int>>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
     events: MutableList<QuestEventModel>,
@@ -26,8 +29,21 @@ class QuestModel(
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     val datUnknowns: List<DatUnknown>,
+    /**
+     * Challenge mode random spawn configurations.
+     */
+    cmRandomSpawns: MutableList<DatCmRandomSpawn>,
+    /**
+     * Challenge mode monster type mappings (Table 5B).
+     */
+    cmMonsterMappings: MutableList<DatCmMonsterMapping>,
+    /**
+     * Challenge mode config pool (Table 5A).
+     */
+    cmConfigPool: MutableList<DatCmConfigPool>,
     bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
+    val floorMappings: List<FloorMapping>,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
     private val _id = mutableCell(0)
@@ -39,6 +55,10 @@ class QuestModel(
     private val _npcs = mutableListCell(npcs)
     private val _objects = mutableListCell(objects)
     private val _events = mutableListCell(events)
+    private val _cmRandomSpawns = mutableListCell(cmRandomSpawns)
+    private val _cmMonsterMappings = mutableListCell(cmMonsterMappings)
+    private val _cmConfigPool = mutableListCell(cmConfigPool)
+    private val _cmDataRevision: MutableCell<Int> = mutableCell(0)
 
     val id: Cell<Int> = _id
     val language: Cell<Int> = _language
@@ -47,9 +67,9 @@ class QuestModel(
     val longDescription: Cell<String> = _longDescription
 
     /**
-     * Map of area IDs to area variant IDs. One designation per area.
+     * Map of area IDs to area variant IDs. Multiple variants per area supported.
      */
-    val mapDesignations: Cell<Map<Int, Int>> = _mapDesignations
+    val mapDesignations: Cell<Map<Int, Set<Int>>> = _mapDesignations
 
     /**
      * Map of area IDs to entity counts.
@@ -57,14 +77,26 @@ class QuestModel(
     val entitiesPerArea: Cell<Map<Int, Int>>
 
     /**
-     * One variant per area.
+     * All area variants used by this quest. Multiple variants per area are supported.
      */
     val areaVariants: ListCell<AreaVariantModel>
+
+    /**
+     * Map floor ID to area variant, for regular quests, this is empty.
+     */
+    val floorToVariantMap: Map<Int, AreaVariantModel>
+
+    private val _cachedAreaVariants = mutableListCell<AreaVariantModel>()
 
     val npcs: ListCell<QuestNpcModel> = _npcs
     val objects: ListCell<QuestObjectModel> = _objects
 
     val events: ListCell<QuestEventModel> = _events
+
+    val cmRandomSpawns: ListCell<DatCmRandomSpawn> = _cmRandomSpawns
+    val cmMonsterMappings: ListCell<DatCmMonsterMapping> = _cmMonsterMappings
+    val cmConfigPool: ListCell<DatCmConfigPool> = _cmConfigPool
+    val cmDataRevision: Cell<Int> = _cmDataRevision
 
     var bytecodeIr: BytecodeIr = bytecodeIr
         private set
@@ -90,24 +122,54 @@ class QuestModel(
             map
         }
 
-        areaVariants =
-            flatMapToList(entitiesPerArea, this.mapDesignations) { entitiesPerArea, mds ->
-                val variants = mutableMapOf<Int, AreaVariantModel>()
+        val variants = mutableMapOf<Int, AreaVariantModel>()
 
-                for (areaId in entitiesPerArea.keys) {
-                    getVariant(episode, areaId, 0)?.let {
-                        variants[areaId] = it
-                    }
+        if (floorMappings.isNotEmpty()) {
+            for (mapping in floorMappings) {
+                getVariant(episode, mapping.areaId, mapping.variantId)?.let { variant ->
+                    variants[mapping.floorId] = variant
                 }
-
-                for ((areaId, variantId) in mds) {
-                    getVariant(episode, areaId, variantId)?.let {
-                        variants[areaId] = it
-                    }
-                }
-
-                listCell(*variants.values.toTypedArray())
             }
+        } else {
+            for ((areaId, variantIds) in mapDesignations) {
+                for (variantId in variantIds) {
+                    getVariant(episode, areaId, variantId)?.let { variant ->
+                        // Use a composite key to handle multiple variants per area
+                        val key = areaId * 1000 + variantId
+                        variants[key] = variant
+                    }
+                }
+            }
+
+            // Then, ensure areas from mapDesignations have at least variant 0
+            for (areaId in mapDesignations.keys) {
+                val key = areaId * 1000 + 0
+                if (key !in variants) {
+                    getVariant(episode, areaId, 0)?.let {
+                        variants[key] = it
+                    }
+                }
+            }
+
+            // For empty quests (like defaults), ensure at least Pioneer II (area 0) exists
+            if (variants.isEmpty()) {
+                getVariant(episode, 0, 0)?.let {
+                    variants[0] = it
+                }
+            }
+        }
+
+        floorToVariantMap = if (floorMappings.isNotEmpty()) {
+            variants.toMap()
+        } else {
+            emptyMap()
+        }
+
+        // Cache the results to prevent Assembly from modifying them
+        for (variant in variants.values) {
+            _cachedAreaVariants.add(variant)
+        }
+        areaVariants = _cachedAreaVariants
     }
 
     fun setId(id: Int): QuestModel {
@@ -156,7 +218,7 @@ class QuestModel(
         }
     }
 
-    fun setMapDesignations(mapDesignations: Map<Int, Int>) {
+    fun setMapDesignations(mapDesignations: Map<Int, Set<Int>>) {
         _mapDesignations.value = mapDesignations
     }
 
@@ -185,5 +247,29 @@ class QuestModel(
 
     fun setBytecodeIr(bytecodeIr: BytecodeIr) {
         this.bytecodeIr = bytecodeIr
+    }
+
+    fun addCmRandomSpawn(spawn: DatCmRandomSpawn) {
+        _cmRandomSpawns.add(spawn)
+        bumpCmRevision()
+    }
+
+    fun removeCmRandomSpawn(spawn: DatCmRandomSpawn) {
+        _cmRandomSpawns.remove(spawn)
+        bumpCmRevision()
+    }
+
+    fun addCmMonsterMapping(mapping: DatCmMonsterMapping) {
+        _cmMonsterMappings.add(mapping)
+        bumpCmRevision()
+    }
+
+    fun removeCmMonsterMapping(mapping: DatCmMonsterMapping) {
+        _cmMonsterMappings.remove(mapping)
+        bumpCmRevision()
+    }
+
+    fun bumpCmRevision() {
+        _cmDataRevision.value++
     }
 }

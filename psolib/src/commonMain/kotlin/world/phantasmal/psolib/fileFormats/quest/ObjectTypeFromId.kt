@@ -31,19 +31,19 @@ fun objectTypeFromId(id: Short): ObjectType =
         26 -> ObjectType.ImageBoard
         27 -> ObjectType.QuestWarp
         28 -> ObjectType.Epilogue
-        29 -> ObjectType.UnknownItem29
-        30 -> ObjectType.UnknownItem30
-        31 -> ObjectType.UnknownItem31
+        29 -> ObjectType.StarLight2D
+        30 -> ObjectType.LensFlare2
+        31 -> ObjectType.RadarHideCollision
         32 -> ObjectType.BoxDetectObject
         33 -> ObjectType.SymbolChatObject
         34 -> ObjectType.TouchPlateObject
         35 -> ObjectType.TargetableObject
         36 -> ObjectType.EffectObject
         37 -> ObjectType.CountDownObject
-        38 -> ObjectType.UnknownItem38
-        39 -> ObjectType.UnknownItem39
-        40 -> ObjectType.UnknownItem40
-        41 -> ObjectType.UnknownItem41
+        38 -> ObjectType.ChatSensor
+        39 -> ObjectType.RadarIcon
+        40 -> ObjectType.EnvSoundEx
+        41 -> ObjectType.EnvSoundGlobal
         64 -> ObjectType.MenuActivation
         65 -> ObjectType.TelepipeLocation
         66 -> ObjectType.BGMCollision
@@ -183,17 +183,17 @@ fun objectTypeFromId(id: Short): ObjectType =
         384 -> ObjectType.LobbyGameMenu
         385 -> ObjectType.LobbyWarpObject
         386 -> ObjectType.Lobby1EventObjectDefaultTree
-        387 -> ObjectType.UnknownItem387
-        388 -> ObjectType.UnknownItem388
-        389 -> ObjectType.UnknownItem389
+        387 -> ObjectType.LobbyPigeon
+        388 -> ObjectType.ButterflyLobby
+        389 -> ObjectType.RainbowLobby
         390 -> ObjectType.LobbyEventObjectStaticPumpkin
         391 -> ObjectType.LobbyEventObject3ChristmasWindows
         392 -> ObjectType.LobbyEventObjectRedAndWhiteCurtain
-        393 -> ObjectType.UnknownItem393
-        394 -> ObjectType.UnknownItem394
+        393 -> ObjectType.WeddingLobby
+        394 -> ObjectType.TreeLobby
         395 -> ObjectType.LobbyFishTank
         396 -> ObjectType.LobbyEventObjectButterflies
-        400 -> ObjectType.UnknownItem400
+        400 -> ObjectType.Camera
         401 -> ObjectType.GreyWallLow
         402 -> ObjectType.SpaceshipDoor
         403 -> ObjectType.GreyWallHigh
@@ -221,13 +221,14 @@ fun objectTypeFromId(id: Short): ObjectType =
         520 -> ObjectType.Medium3StoneWall
         521 -> ObjectType.SpiderPlant
         522 -> ObjectType.CcaAreaTeleporter
-        523 -> ObjectType.UnknownItem523
+        523 -> ObjectType.LightningController
         524 -> ObjectType.WhiteBird
         525 -> ObjectType.OrangeBird
+        526 -> ObjectType.ContainerJungEnemy
         527 -> ObjectType.Saw
         528 -> ObjectType.LaserDetect
-        529 -> ObjectType.UnknownItem529
-        530 -> ObjectType.UnknownItem530
+        529 -> ObjectType.BiwaMushi
+        530 -> ObjectType.JungleDesign
         531 -> ObjectType.Seagull
         544 -> ObjectType.Fish
         545 -> ObjectType.SeabedDoorWithBlueEdges
@@ -239,9 +240,9 @@ fun objectTypeFromId(id: Short): ObjectType =
         551 -> ObjectType.Dolphin
         552 -> ObjectType.CaptureTrap
         553 -> ObjectType.VRLink
-        576 -> ObjectType.UnknownItem576
+        576 -> ObjectType.Ep2Particle
         640 -> ObjectType.WarpInBarbaRayRoom
-        672 -> ObjectType.UnknownItem672
+        672 -> ObjectType.LiveCamera
         688 -> ObjectType.GeeNest
         689 -> ObjectType.LabComputerConsole
         690 -> ObjectType.LabComputerConsoleGreenScreen
@@ -254,7 +255,7 @@ fun objectTypeFromId(id: Short): ObjectType =
         697 -> ObjectType.InstaWarp
         698 -> ObjectType.LabInvisibleObject
         699 -> ObjectType.LabGlassWindowDoor
-        700 -> ObjectType.UnknownItem700
+        700 -> ObjectType.AreaWarpEndingJung
         701 -> ObjectType.LabCeilingWarp
         768 -> ObjectType.Ep4LightSource
         769 -> ObjectType.Cactus
@@ -275,11 +276,11 @@ fun objectTypeFromId(id: Short): ObjectType =
         907 -> ObjectType.FallingRock
         908 -> ObjectType.DesertPlantHasCollision
         909 -> ObjectType.DesertFixedTypeBoxBreakableCrystals
-        910 -> ObjectType.UnknownItem910
+        910 -> ObjectType.Ep4TestDoor
         911 -> ObjectType.BeeHive
-        912 -> ObjectType.UnknownItem912
+        912 -> ObjectType.Ep4TestParticle
         913 -> ObjectType.Heat
         960 -> ObjectType.TopOfSaintMillionEgg
-        961 -> ObjectType.UnknownItem961
+        961 -> ObjectType.Ep4BossRockSpawner
         else -> ObjectType.Unknown
     }
