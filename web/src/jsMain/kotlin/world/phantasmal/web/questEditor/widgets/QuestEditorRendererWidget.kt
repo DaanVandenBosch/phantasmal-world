@@ -8,33 +8,64 @@ import org.w3c.dom.Node
 import org.w3c.dom.events.Event
 import org.w3c.dom.events.KeyboardEvent
 import world.phantasmal.cell.Cell
+import world.phantasmal.cell.cell
+import world.phantasmal.cell.map
+import world.phantasmal.cell.mutableCell
 import world.phantasmal.cell.observeNow
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.controllers.AreaNpcListController
 import world.phantasmal.web.questEditor.controllers.AreaObjectListController
+import world.phantasmal.web.questEditor.controllers.MonsterRandomnessController
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.dom.disposableListener
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.dom.dom
 import world.phantasmal.webui.dom.span
+import world.phantasmal.webui.widgets.Button
+import world.phantasmal.webui.widgets.Dialog
 
 class QuestEditorRendererWidget(
     renderer: QuestRenderer,
     mouseWorldPosition: Cell<Vector3?>,
     playbackActionText: Cell<String>,
     private val questEditorStore: QuestEditorStore,
+    private val monsterRandomnessCtrl: MonsterRandomnessController,
     private val areaNpcListCtrl: AreaNpcListController,
     private val areaObjectListCtrl: AreaObjectListController,
 ) : QuestRendererWidget(renderer, mouseWorldPosition, playbackActionText) {
 
+    private val monsterRandomnessDialogVisible = mutableCell(false)
     private var contextMenuPopup: HTMLDivElement? = null
     private var documentMouseDownListener: Disposable? = null
     private var documentKeyDownListener: Disposable? = null
 
     override fun interceptElement(element: HTMLElement) {
+        // Whether the current area/variant has any CM data
+        val hasCmData: Cell<Boolean> = map(
+            questEditorStore.currentQuest,
+            questEditorStore.currentArea,
+            questEditorStore.currentAreaVariant,
+        ) { quest, area, areaVariant ->
+            if (quest == null || area == null) {
+                false
+            } else if (quest.floorMappings.isNotEmpty()) {
+                val floorIds = quest.floorMappings
+                    .filter { it.areaId == area.id && (areaVariant == null || it.variantId == areaVariant.id) }
+                    .map { it.floorId }
+                    .toSet()
+                quest.cmRandomSpawns.value.any { it.areaId in floorIds } ||
+                    quest.cmMonsterMappings.value.any { it.areaId in floorIds } ||
+                    quest.cmConfigPool.value.any { it.areaId in floorIds }
+            } else {
+                quest.cmRandomSpawns.value.any { it.areaId == area.id } ||
+                    quest.cmMonsterMappings.value.any { it.areaId == area.id } ||
+                    quest.cmConfigPool.value.any { it.areaId == area.id }
+            }
+        }
+
         // Build context menu popup (appended to body, positioned fixed)
         val popup = dom {
             div {
@@ -136,6 +167,27 @@ class QuestEditorRendererWidget(
                     }
                 }
 
+                // Separator (only visible when quest has CM data)
+                div {
+                    className = "pw-toolbar-menu-separator"
+                    observeNow(hasCmData) { hidden = !it }
+                }
+
+                // Monster Randomness... action (only visible when quest has CM data)
+                div {
+                    className = "pw-toolbar-menu-item"
+                    observeNow(hasCmData) { hidden = !it }
+
+                    span {
+                        className = "pw-toolbar-menu-item-label"
+                        textContent = "Monster Randomness..."
+                    }
+
+                    onclick = {
+                        questEditorStore.dismissContextMenu()
+                        monsterRandomnessDialogVisible.value = true
+                    }
+                }
             }
         }
 
@@ -171,6 +223,43 @@ class QuestEditorRendererWidget(
                 documentMouseDownListener = null
                 documentKeyDownListener?.dispose()
                 documentKeyDownListener = null
+            }
+        }
+
+        // Monster Randomness Dialog
+        val mrDialogWidth = 900
+        val mrDialogHeight = 700
+
+        val mrDialog = addDisposable(Dialog(
+            visible = monsterRandomnessDialogVisible,
+            title = cell("Monster Randomness"),
+            content = {
+                addWidget(MonsterRandomnessWidget(monsterRandomnessCtrl))
+            },
+            footer = {
+                addWidget(Button(
+                    text = "Close",
+                    onClick = { monsterRandomnessDialogVisible.value = false },
+                ))
+            },
+            onDismiss = { monsterRandomnessDialogVisible.value = false },
+        ))
+        mrDialog.dialogElement.style.width = "${mrDialogWidth}px"
+        mrDialog.dialogElement.style.height = "${mrDialogHeight}px"
+
+        // Make the dialog body fill available space with hidden overflow so inner widget can scroll
+        val bodyEl = mrDialog.dialogElement.querySelector(".pw-dialog-body") as? HTMLElement
+        bodyEl?.let {
+            it.style.setProperty("overflow", "hidden")
+            it.style.setProperty("min-height", "0")
+        }
+
+        // Re-center the dialog after Dialog's own positioning (which uses hardcoded 500x500)
+        observeNow(monsterRandomnessDialogVisible) { visible ->
+            if (visible) {
+                val x = (window.innerWidth - mrDialogWidth) / 2
+                val y = maxOf(20, (window.innerHeight - mrDialogHeight) / 2)
+                mrDialog.dialogElement.style.transform = "translate(${x}px, ${y}px)"
             }
         }
 

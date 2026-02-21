@@ -77,6 +77,7 @@ class QuestEditor(
         val eventsController = addDisposable(EventsController(questEditorStore))
         val areaNpcListController = addDisposable(AreaNpcListController(questEditorStore))
         val areaObjectListController = addDisposable(AreaObjectListController(questEditorStore))
+        val monsterRandomnessController = addDisposable(MonsterRandomnessController(questEditorStore))
         val compatibilityController = addDisposable(CompatibilityController(questEditorStore, asmStore))
 
         // Rendering
@@ -116,6 +117,7 @@ class QuestEditor(
                     questEditorStore.mouseWorldPosition,
                     questEditorStore.playbackActionText,
                     questEditorStore,
+                    monsterRandomnessController,
                     areaNpcListController,
                     areaObjectListController,
                 )

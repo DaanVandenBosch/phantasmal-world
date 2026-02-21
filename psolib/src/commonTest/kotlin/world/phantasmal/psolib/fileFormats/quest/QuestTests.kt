@@ -108,6 +108,53 @@ class QuestTests : LibTestSuite {
         roundTripTest(filename, readFile("/$filename"))
     }
 
+    @Test
+    fun parseQstToQuest_with_challenge_mode_quest() = testAsync {
+        val result = parseQstToQuest(readFile("/chl01.qst"), lenient = true)
+
+        assertTrue(result is Success, "Failed to parse challenge mode quest: ${result.problems.joinToString()}")
+
+        val quest = result.value.quest
+
+        // Verify challenge mode events were parsed
+        val cmEvents = quest.events.filter { it.isChallengeMode }
+        assertTrue(cmEvents.isNotEmpty(), "Expected challenge mode events to be parsed")
+
+        // Verify CM-specific entity types were parsed
+        assertTrue(
+            quest.cmRandomSpawns.isNotEmpty() || quest.cmMonsterMappings.isNotEmpty(),
+            "Expected challenge mode spawn or mapping data"
+        )
+    }
+
+    @Test
+    fun round_trip_test_with_challenge_mode_quest() = testAsync {
+        // Just verify DAT parsing works correctly
+        val result = parseQstToQuest(readFile("/chl01.qst"), lenient = true)
+        assertTrue(result is Success)
+
+        val quest = result.value.quest
+
+        // Verify challenge mode data was parsed
+        val cmEvents = quest.events.filter { it.isChallengeMode }
+        assertTrue(cmEvents.isNotEmpty())
+
+        // Write and re-parse just the DAT to verify round-trip
+        val (_, dat) = writeQuestToBinDat(quest, result.value.version)
+        val reparsedDat = parseDat(dat.cursor())
+
+        // Verify same number of entities
+        assertEquals(quest.objects.size, reparsedDat.objs.size)
+        assertEquals(quest.npcs.size, reparsedDat.npcs.size)
+        assertEquals(quest.events.size, reparsedDat.events.size)
+        assertEquals(quest.cmRandomSpawns.size, reparsedDat.cmRandomSpawns.size)
+        assertEquals(quest.cmMonsterMappings.size, reparsedDat.cmMonsterMappings.size)
+
+        // Verify challenge mode event flags are preserved
+        val reparsedCmEvents = reparsedDat.events.filter { it.isChallengeMode }
+        assertEquals(cmEvents.size, reparsedCmEvents.size)
+    }
+
     // TODO: Figure out why this test is so slow in JS/Karma.
     @Test
     fun round_trip_test_with_all_tethealla_quests() = testAsync(slow = true) {

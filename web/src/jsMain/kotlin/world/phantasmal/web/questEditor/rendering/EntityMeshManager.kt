@@ -62,6 +62,15 @@ class EntityMeshManager(
         }
     )
 
+    /**
+     * Challenge mode random monster spawn points.
+     */
+    private val challengeMonsterSpawnContainer = addDisposable(
+        ChallengeMonsterSpawnContainer().also {
+            renderContext.helpers.add(it.mesh)  // Add to helpers, not entities (non-selectable)
+        }
+    )
+
     // Lines between warps and their destination.
     private val warpLineBufferAttribute = Float32BufferAttribute(Float32Array(6), 3)
     private val warpLines =
@@ -217,6 +226,21 @@ class EntityMeshManager(
             }
         }
 
+        // Observe quest, area, and area variant changes to update challenge mode spawn points
+        // Wait for area variant to match current area before creating spawns
+        observeNow(
+            map(
+                questEditorStore.currentQuest,
+                questEditorStore.currentArea,
+                questEditorStore.currentAreaVariant,
+            ) { quest, area, areaVariant ->
+                Triple(quest, area, areaVariant)
+            }
+        ) { (quest, area, _) ->
+            // updateChallengeMonsterSpawns will validate that areaVariant matches area
+            // and skip spawn creation if they don't match yet
+            updateChallengeMonsterSpawns(quest, area)
+        }
     }
 
     override fun dispose() {
@@ -233,6 +257,8 @@ class EntityMeshManager(
         }
         // Dispose all SCL_TAMA circles
         clearAllSclTamaCircles()
+        // Dispose challenge mode spawn container
+        challengeMonsterSpawnContainer.clearInstances()
         super.dispose()
     }
 
@@ -305,6 +331,8 @@ class EntityMeshManager(
         }
 
         destinationInstanceContainer.clearInstances()
+        // Note: Don't clear challengeMonsterSpawnContainer here - it's managed by updateChallengeMonsterSpawns()
+        // which observes area changes directly. Clearing it here causes spawns to disappear when NPCs are loaded.
     }
 
     private fun markHighlighted(instance: EntityInstance?) {
@@ -1044,6 +1072,80 @@ class EntityMeshManager(
         }
 
         return groundIntersection?.point?.y ?: 0.0
+    }
+
+    /**
+     * Updates challenge mode random monster spawn point visualizations for the current area.
+     */
+    private fun updateChallengeMonsterSpawns(quest: QuestModel?, area: AreaModel?) {
+        // Clear existing spawn points
+        challengeMonsterSpawnContainer.clearInstances()
+
+        if (quest == null || area == null) {
+            return
+        }
+
+        // Check if quest has challenge mode data
+        if (quest.cmRandomSpawns.value.isEmpty()) {
+            return
+        }
+
+        // Get the currently displayed area variant
+        // IMPORTANT: Only use sections from the current variant to ensure correct coordinate transformation
+        val areaVariant = questEditorStore.currentAreaVariant.value
+        if (areaVariant == null) {
+            logger.debug { "Area variant not available, skipping CM spawn creation" }
+            return
+        }
+
+        // Validate that area variant matches the current area
+        if (areaVariant.area.id != area.id) {
+            // Area variant hasn't updated yet, skip spawn creation for now
+            return
+        }
+
+        val sections = areaVariant.sections.value
+        var totalSpawnsCreated = 0
+        var spawnsSkipped = 0
+
+        // Find spawn configurations for the current area
+        for (cmSpawn in quest.cmRandomSpawns.value) {
+            // Check if this spawn's areaId matches the current area/variant
+            // Similar to how quest entities use floor mappings to determine their variant
+            val shouldProcessSpawn = if (quest.floorMappings.isNotEmpty()) {
+                // If quest has floor mappings, treat cmSpawn.areaId as a floor ID
+                val floorMapping = quest.floorMappings.find { it.floorId == cmSpawn.areaId }
+                floorMapping?.areaId == area.id && floorMapping.variantId == areaVariant.id
+            } else {
+                // Otherwise, treat cmSpawn.areaId as an area ID
+                cmSpawn.areaId == area.id
+            }
+
+            if (shouldProcessSpawn) {
+                // Create spawn point models for each entry
+                for (entry in cmSpawn.entries) {
+                    val sectionId = entry.sectionId.toInt()
+
+                    // Find section in the currently displayed variant
+                    val section = sections.find { it.id == sectionId }
+
+                    if (section == null) {
+                        // Section not in current variant
+                        logger.debug { "CM spawn section $sectionId not found in variant ${areaVariant.id} of area ${area.id}" }
+                        spawnsSkipped++
+                        continue
+                    }
+
+                    val spawnModel = ChallengeMonsterSpawnModel(cmSpawn.areaId, entry, section)
+                    challengeMonsterSpawnContainer.addInstance(spawnModel)
+                    totalSpawnsCreated++
+                }
+            }
+        }
+
+        if (spawnsSkipped > 0) {
+            logger.debug { "CM spawns in variant ${areaVariant.id}: $totalSpawnsCreated shown, $spawnsSkipped skipped" }
+        }
     }
 
     /**
