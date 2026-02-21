@@ -133,9 +133,12 @@ abstract class QuestMeshManager protected constructor(
      * Called before each render to update text scales for constant screen size.
      */
     fun beforeRender() {
-        // Update text scales in the NPC mesh manager (which handles section labels)
+        // Update text scales in the NPC mesh manager (which handles section labels and playback labels)
         npcMeshManager.beforeRender()
 
-        // No text scaling needed for origin point since text was removed
+        // Update origin point axis labels (billboard + constant screen size)
+        originGroup?.let { group ->
+            originPointRenderer.updateLabels(renderContext.camera, group)
+        }
     }
 }

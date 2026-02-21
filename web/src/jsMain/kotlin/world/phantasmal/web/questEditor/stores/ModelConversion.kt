@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.stores
 
 import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.asm.BytecodeIr
 import world.phantasmal.psolib.fileFormats.quest.DatEvent
 import world.phantasmal.psolib.fileFormats.quest.DatEventAction
 import world.phantasmal.psolib.fileFormats.quest.Quest
@@ -44,10 +45,14 @@ fun convertQuestToModel(
                         is DatEventAction.TriggerEvent ->
                             QuestEventActionModel.TriggerEvent(action.eventId)
                     }
-                }
+                },
+                event.cmWaveSettings
             )
         },
         quest.datUnknowns,
+        quest.cmRandomSpawns,
+        quest.cmMonsterMappings,
+        quest.cmConfigPool,
         quest.bytecodeIr,
         quest.shopItems,
         quest.floorMappings,
@@ -56,9 +61,12 @@ fun convertQuestToModel(
 
 /**
  * The returned [Quest] object will reference parts of [quest], so some changes to [quest] will be
- * reflected in the returned object and vice-versa.
+ * reflected in the returned object and vice versa.
+ *
+ * @param bytecodeIrOverride Optional bytecodeIr to use instead of quest.bytecodeIr. Useful when
+ *   you need bytecodeIr with source location information (e.g., for compatibility checking).
  */
-fun convertQuestFromModel(quest: QuestModel): Quest =
+fun convertQuestFromModel(quest: QuestModel, bytecodeIrOverride: BytecodeIr? = null): Quest =
     Quest(
         quest.id.value,
         quest.language.value,
@@ -94,10 +102,15 @@ fun convertQuestFromModel(quest: QuestModel): Quest =
                 },
                 event.areaId,
                 event.unknown.toShort(),
+                event.cmWaveSettings.value != null,  // isChallengeMode if wave settings present
+                event.cmWaveSettings.value,
             )
         },
         quest.datUnknowns.toMutableList(),
-        quest.bytecodeIr,
+        quest.cmRandomSpawns.value.toMutableList(),
+        quest.cmMonsterMappings.value.toMutableList(),
+        quest.cmConfigPool.value.toMutableList(),
+        bytecodeIrOverride ?: quest.bytecodeIr,
         quest.shopItems,
         quest.floorMappings,
     )

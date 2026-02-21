@@ -34,6 +34,8 @@ class QuestNpcModel(npc: QuestNpc, waveId: Int) : QuestEntityModel<NpcType, Ques
             val yOffset = when (type) {
                 NpcType.Epsilon -> 20.0  // Epsilon appears too low, raise by 20 units
                 NpcType.GiGue -> 25.0    // Gigue appears too low, raise by 25 units
+                NpcType.Bulclaw -> 25.0    // Bulclaw appears too low, raise by 25 units
+                NpcType.Claw -> 10.0    // Claw appears too low, raise by 25 units
                 NpcType.ChaosSorcerer -> 25.0    // ChaosSorcerer appears too low, raise by 25 units
                 NpcType.ChaosSorcerer2 -> 25.0    // ChaosSorcerer(EP2) appears too low, raise by 25 units
                 // Add more entity-specific Y offsets here as needed

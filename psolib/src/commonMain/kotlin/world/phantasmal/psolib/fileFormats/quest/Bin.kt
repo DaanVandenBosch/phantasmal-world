@@ -21,6 +21,7 @@ class BinFile(
     val bytecode: Buffer,
     val labelOffsets: IntArray,
     val shopItems: UIntArray,
+    var bytecodeOffset: Int? = null,
 )
 
 enum class BinFormat {
@@ -56,6 +57,16 @@ fun parseBin(cursor: Cursor): BinFile {
             }
             BinFormat.PC
         }
+    }
+
+    // Store non-standard offset for preservation during round-trip
+    val preservedOffset = if (bytecodeOffset != DC_GC_OBJECT_CODE_OFFSET &&
+        bytecodeOffset != PC_OBJECT_CODE_OFFSET &&
+        bytecodeOffset != BB_OBJECT_CODE_OFFSET
+    ) {
+        bytecodeOffset
+    } else {
+        null
     }
 
     val questId: Int
@@ -115,6 +126,7 @@ fun parseBin(cursor: Cursor): BinFile {
         bytecode,
         labelOffsets,
         shopItems,
+        preservedOffset,
     )
 }
 
@@ -135,7 +147,7 @@ fun writeBin(bin: BinFile): Buffer {
         "shopItems can't be larger than 932, was ${bin.shopItems.size}."
     }
 
-    val bytecodeOffset = when (bin.format) {
+    val bytecodeOffset = bin.bytecodeOffset ?: when (bin.format) {
         BinFormat.DC_GC -> DC_GC_OBJECT_CODE_OFFSET
         BinFormat.PC -> PC_OBJECT_CODE_OFFSET
         BinFormat.BB -> BB_OBJECT_CODE_OFFSET

@@ -4,10 +4,14 @@ import world.phantasmal.cell.Cell
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.mutableListCell
 import world.phantasmal.cell.map
+import world.phantasmal.cell.MutableCell
 import world.phantasmal.cell.mutableCell
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.BytecodeIr
 import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
+import world.phantasmal.psolib.fileFormats.quest.DatCmConfigPool
+import world.phantasmal.psolib.fileFormats.quest.DatCmMonsterMapping
+import world.phantasmal.psolib.fileFormats.quest.DatCmRandomSpawn
 import world.phantasmal.psolib.fileFormats.quest.DatUnknown
 
 class QuestModel(
@@ -24,6 +28,18 @@ class QuestModel(
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     val datUnknowns: List<DatUnknown>,
+    /**
+     * Challenge mode random spawn configurations.
+     */
+    cmRandomSpawns: MutableList<DatCmRandomSpawn>,
+    /**
+     * Challenge mode monster type mappings (Table 5B).
+     */
+    cmMonsterMappings: MutableList<DatCmMonsterMapping>,
+    /**
+     * Challenge mode config pool (Table 5A).
+     */
+    cmConfigPool: MutableList<DatCmConfigPool>,
     bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
     floorMappings: List<FloorMapping>,
@@ -37,6 +53,10 @@ class QuestModel(
     private val _npcs = mutableListCell(npcs)
     private val _objects = mutableListCell(objects)
     private val _events = mutableListCell(events)
+    private val _cmRandomSpawns = mutableListCell(cmRandomSpawns)
+    private val _cmMonsterMappings = mutableListCell(cmMonsterMappings)
+    private val _cmConfigPool = mutableListCell(cmConfigPool)
+    private val _cmDataRevision: MutableCell<Int> = mutableCell(0)
 
     val id: Cell<Int> = _id
     val language: Cell<Int> = _language
@@ -68,6 +88,11 @@ class QuestModel(
     val objects: ListCell<QuestObjectModel> = _objects
 
     val events: ListCell<QuestEventModel> = _events
+
+    val cmRandomSpawns: ListCell<DatCmRandomSpawn> = _cmRandomSpawns
+    val cmMonsterMappings: ListCell<DatCmMonsterMapping> = _cmMonsterMappings
+    val cmConfigPool: ListCell<DatCmConfigPool> = _cmConfigPool
+    val cmDataRevision: Cell<Int> = _cmDataRevision
 
     var bytecodeIr: BytecodeIr = bytecodeIr
         private set
@@ -202,5 +227,29 @@ class QuestModel(
 
     fun setBytecodeIr(bytecodeIr: BytecodeIr) {
         this.bytecodeIr = bytecodeIr
+    }
+
+    fun addCmRandomSpawn(spawn: DatCmRandomSpawn) {
+        _cmRandomSpawns.add(spawn)
+        bumpCmRevision()
+    }
+
+    fun removeCmRandomSpawn(spawn: DatCmRandomSpawn) {
+        _cmRandomSpawns.remove(spawn)
+        bumpCmRevision()
+    }
+
+    fun addCmMonsterMapping(mapping: DatCmMonsterMapping) {
+        _cmMonsterMappings.add(mapping)
+        bumpCmRevision()
+    }
+
+    fun removeCmMonsterMapping(mapping: DatCmMonsterMapping) {
+        _cmMonsterMappings.remove(mapping)
+        bumpCmRevision()
+    }
+
+    fun bumpCmRevision() {
+        _cmDataRevision.value++
     }
 }

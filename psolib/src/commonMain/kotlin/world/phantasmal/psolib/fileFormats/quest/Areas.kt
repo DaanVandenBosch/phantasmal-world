@@ -163,4 +163,7 @@ fun getMapId(episode: Int, areaId: Int): Int =
 fun isBossArea(episode: Episode, areaId: Int): Boolean =
     AREAS[episode]?.any { it.id == areaId && it.bossArea } ?: false
 
+/**
+ * Check if area is Pioneer 2 (Episode I) or Lab (Episode II)
+ */
 fun isPioneer2OrLab(areaId: Int): Boolean = areaId == 0

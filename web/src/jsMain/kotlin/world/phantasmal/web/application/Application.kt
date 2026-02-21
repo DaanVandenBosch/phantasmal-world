@@ -32,6 +32,10 @@ class Application(
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
     clock: Clock,
 ) : DisposableContainer() {
+    companion object {
+        const val VERSION = "1.2.0"
+    }
+
     init {
         addDisposables(
             // Disable native undo/redo.
