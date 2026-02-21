@@ -46,7 +46,7 @@ abstract class QuestEntityModel<Type : EntityType, Entity : QuestEntity<Type>>(
      */
     val position: Cell<Vector3> = _position
 
-    val worldPosition: Cell<Vector3> = _worldPosition
+    open val worldPosition: Cell<Vector3> = _worldPosition
 
     /**
      * Section-relative rotation

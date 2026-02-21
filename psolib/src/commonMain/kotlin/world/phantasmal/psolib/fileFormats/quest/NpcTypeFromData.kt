@@ -7,7 +7,9 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
     val episode = npc.episode
     val special = npc.special
     val skin = npc.skin
-    val areaId = npc.areaId
+    // Use gameAreaId for NPC type detection (mapped from floor mapping, e.g., 17 for Tower)
+    // This ensures correct type identification for quests using map_designate instructions
+    val areaId = npc.gameAreaId
 
     return when (npc.typeId.toInt()) {
         0x004 -> NpcType.FemaleFat
@@ -53,7 +55,7 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         }
         0x060 -> if (episode == Episode.II) NpcType.GrassAssassin2 else NpcType.GrassAssassin
         0x061 -> when {
-            areaId > 15 -> NpcType.DelLily
+            areaId == 17 -> NpcType.DelLily  // Tower (EP2 area 17)
             special -> if (episode == Episode.II) NpcType.NarLily2 else NpcType.NarLily
             else -> if (episode == Episode.II) NpcType.PoisonLily2 else NpcType.PoisonLily
         }
@@ -123,7 +125,7 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         0x0DE -> NpcType.Morfos
         0x0DF -> NpcType.Recobox
         0x0E0 -> when {
-            areaId > 15 -> NpcType.Epsilon
+            areaId == 17 -> NpcType.Epsilon  // Tower (EP2 area 17)
             skin % 2 == 0 -> NpcType.SinowZoa
             else -> NpcType.SinowZele
         }
