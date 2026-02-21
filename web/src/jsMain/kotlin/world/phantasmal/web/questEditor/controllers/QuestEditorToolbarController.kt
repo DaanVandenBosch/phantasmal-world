@@ -14,6 +14,7 @@ import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestModel
+import world.phantasmal.web.questEditor.models.SectionModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.web.questEditor.stores.convertQuestFromModel
@@ -34,6 +35,7 @@ class QuestEditorToolbarController(
     private val _resultDialogVisible = mutableCell(false)
     private val _result = mutableCell<PwResult<*>?>(null)
     private val saving = mutableCell(false)
+    private val _selectedAreaAndLabel = mutableCell<AreaAndLabel?>(null)
 
     // We mainly disable saving while a save is underway for visual feedback that a save is
     // happening/has happened.
@@ -97,63 +99,122 @@ class QuestEditorToolbarController(
     val areas: Cell<List<AreaAndLabel>> = questEditorStore.currentQuest.flatMap { quest ->
         quest?.let {
             map(quest.entitiesPerArea, quest.areaVariants) { entitiesPerArea, variants ->
+                val result = mutableListOf<AreaAndLabel>()
+
                 if (quest.floorMappings.isNotEmpty()) {
-                    // For multi-floor quests, show all episode areas. Areas with multiple
-                    // variants (from floor mappings) get one entry per variant.
+                    // Group floor mappings by area ID for lookup
+                    val floorMappingsByArea = quest.floorMappings.groupBy { it.areaId }
+                    // Group floor IDs by (areaId, variantId) for per-variant entity counting
                     val variantFloorIds = quest.floorMappings
                         .groupBy { Pair(it.areaId, it.variantId) }
                         .mapValues { (_, mappings) -> mappings.map { it.floorId }.toSet() }
 
-                    // Group quest variants by area
-                    val variantsByArea = variants.groupBy { it.area }
+                    for (area in areaStore.getAreasForEpisode(quest.episode)) {
+                        val areaFloorMappings = floorMappingsByArea[area.id]
 
-                    areaStore.getAreasForEpisode(quest.episode).flatMap { area ->
-                        val areaVariants = variantsByArea[area]
+                        if (areaFloorMappings != null) {
+                            // Deduplicate by variant ID
+                            val seenVariants = mutableSetOf<Int>()
+                            for (mapping in areaFloorMappings) {
+                                if (!seenVariants.add(mapping.variantId)) continue
+                                val variant = areaStore.getVariant(quest.episode, mapping.areaId, mapping.variantId)
 
-                        if (areaVariants != null) {
-                            areaVariants.map { variant ->
-                                val floorIds = variantFloorIds[Pair(variant.area.id, variant.id)]
-                                val entityCount = if (floorIds != null) {
-                                    quest.npcs.value.count { it.areaId in floorIds } +
-                                        quest.objects.value.count { it.areaId in floorIds }
-                                } else 0
-
-                                val label = variant.area.name +
-                                    (if (entityCount > 0) " ($entityCount)" else "")
-                                AreaAndLabel(variant.area, label, variant)
+                                if (variant != null) {
+                                    // Count entities across all floor IDs for this area+variant
+                                    val floorIds = variantFloorIds[Pair(area.id, mapping.variantId)]
+                                    val entityCount = if (floorIds != null) {
+                                        quest.npcs.value.count { it.areaId in floorIds } +
+                                            quest.objects.value.count { it.areaId in floorIds }
+                                    } else 0
+                                    val displayName = buildAreaDisplayName(area, variant, if (entityCount > 0) entityCount else null)
+                                    result.add(AreaAndLabel(area, displayName, variant))
+                                }
                             }
                         } else {
-                            // Area not in floor mappings — show single default entry
-                            val entityCount = entitiesPerArea[area.id]
-                            listOf(AreaAndLabel(area, area.name + (entityCount?.let { " ($it)" } ?: "")))
+                            val displayName = buildAreaDisplayName(area, null, null)
+                            result.add(AreaAndLabel(area, displayName, null))
                         }
                     }
                 } else {
-                    areaStore.getAreasForEpisode(quest.episode).map { area ->
-                        val entityCount = entitiesPerArea[area.id]
-                        val name = variants.firstOrNull { it.area == area }?.name ?: area.name
-                        AreaAndLabel(area, name + (entityCount?.let { " ($it)" } ?: ""))
+                    for (area in areaStore.getAreasForEpisode(quest.episode)) {
+                        val entityCount = getEntityCountForArea(entitiesPerArea, area)
+                        val areaVariants = getAreaVariants(area, variants)
+
+                        if (areaVariants.isNotEmpty()) {
+                            for (variant in areaVariants) {
+                                val displayName = buildAreaDisplayName(area, variant, entityCount)
+                                result.add(AreaAndLabel(area, displayName, variant))
+                            }
+                        } else {
+                            val displayName = buildAreaDisplayName(area, null, entityCount)
+                            result.add(AreaAndLabel(area, displayName))
+                        }
                     }
                 }
+
+                result
             }
         } ?: cell(emptyList())
     }
 
-    val currentArea: Cell<AreaAndLabel?> =
-        map(areas, questEditorStore.currentArea, questEditorStore.currentAreaVariant) { areas, area, variant ->
-            // For multi-floor quests, match by both area and variant
-            if (variant != null) {
-                areas.find { it.area == area && it.variant == variant }
-            } else {
-                areas.find { it.area == area }
-            }
+    private fun getEntityCountForArea(entitiesPerArea: Map<Int, Int>, area: AreaModel): Int? {
+        return entitiesPerArea[area.id]
+    }
+
+    private fun getAreaVariants(area: AreaModel, variants: List<AreaVariantModel>): List<AreaVariantModel> {
+        return variants.filter { it.area.id == area.id }.sortedBy { it.id }
+    }
+
+    private fun buildAreaDisplayName(area: AreaModel, variant: AreaVariantModel?, entityCount: Int?): String {
+        val baseName = variant?.name ?: area.name
+        val mapSuffix = getMapVariantSuffix(area, variant?.id)
+        val countSuffix = createCountSuffix(entityCount)
+
+        return baseName + mapSuffix + countSuffix
+    }
+
+    private fun getMapVariantSuffix(area: AreaModel, variantId: Int?): String {
+        return when {
+            area.id <= 0 -> ""
+            area.bossArea -> ""
+            variantId != null -> " - Map ${variantId + 1}"  // Show Map X if variant is specified
+            else -> ""  // No Map suffix for areas without variants
         }
+    }
+
+    private fun createCountSuffix(entityCount: Int?): String {
+        return entityCount?.let { " ($it)" } ?: ""
+    }
+
+    val currentArea: Cell<AreaAndLabel?> = areas.flatMap { areas ->
+        map(_selectedAreaAndLabel, questEditorStore.currentArea, questEditorStore.currentAreaVariant) { selectedAreaAndLabel, storeCurrentArea, storeVariant ->
+            // If there's an explicitly selected AreaAndLabel, use it
+            selectedAreaAndLabel ?:
+            // Otherwise, match by both area and variant for multi-floor quests
+            if (storeVariant != null) {
+                areas.find { it.area == storeCurrentArea && it.variant == storeVariant }
+            } else {
+                areas.find { it.area.id == storeCurrentArea?.id }
+            } ?:
+            // Final fallback to first area
+            areas.firstOrNull()
+        }
+    }
 
     val areaSelectEnabled: Cell<Boolean> = questEditorStore.currentQuest.isNotNull()
 
     // Settings
 
     val showCollisionGeometry: Cell<Boolean> = questEditorStore.showCollisionGeometry
+    val showSectionIds: Cell<Boolean> = questEditorStore.showSectionIds
+    val spawnMonstersOnGround: Cell<Boolean> = questEditorStore.spawnMonstersOnGround
+    val showOriginPoint: Cell<Boolean> = questEditorStore.showOriginPoint
+
+    // Go to Section functionality
+    // Use the store's selectedSection directly to ensure sync when clicking events
+    val selectedSection: Cell<SectionModel?> = questEditorStore.selectedSection
+    val availableSections: Cell<List<SectionModel>> = questEditorStore.currentAreaSections
+    val gotoSectionEnabled: Cell<Boolean> = questEditorStore.currentAreaVariant.isNotNull()
 
     init {
         addDisposables(
@@ -385,12 +446,67 @@ class QuestEditorToolbarController(
     }
 
     fun setCurrentArea(areaAndLabel: AreaAndLabel) {
+        // Clear selected section when area changes to avoid showing wrong sections
+        clearSelectedSection()
+        // Store the selected AreaAndLabel to preserve variant information
+        _selectedAreaAndLabel.value = areaAndLabel
         questEditorStore.setCurrentArea(areaAndLabel.area)
-        areaAndLabel.variant?.let { questEditorStore.setCurrentAreaVariant(it) }
+        questEditorStore.setCurrentAreaVariant(areaAndLabel.variant)
     }
 
     fun setShowCollisionGeometry(show: Boolean) {
         questEditorStore.setShowCollisionGeometry(show)
+    }
+
+    fun setShowSectionIds(show: Boolean) {
+        questEditorStore.setShowSectionIds(show)
+    }
+
+    fun setSpawnMonstersOnGround(spawn: Boolean) {
+        questEditorStore.setSpawnMonstersOnGround(spawn)
+    }
+
+    fun setShowOriginPoint(show: Boolean) {
+        questEditorStore.setShowOriginPoint(show)
+    }
+
+    fun setSelectedSection(section: SectionModel?) {
+        // Update the quest editor store (which is what selectedSection references)
+        questEditorStore.setSelectedSection(section)
+    }
+
+    fun goToSelectedSection() {
+        selectedSection.value?.let { section ->
+            questEditorStore.goToSection(section.id)
+        }
+    }
+
+    /**
+     * Trigger section loading when user interacts with the section dropdown
+     */
+    fun ensureSectionsLoaded() {
+        val quest = questEditorStore.currentQuest.value
+        val areaVariant = questEditorStore.currentAreaVariant.value
+
+        if (areaVariant != null) {
+            // Use quest episode if available, otherwise default to Episode I
+            val episode = quest?.episode ?: Episode.I
+            // Check if sections are already loaded
+            val loadedSections = areaStore.getLoadedSections(episode, areaVariant)
+            if (loadedSections == null) {
+                console.log("Triggering section loading for area variant ${areaVariant.id}")
+                // We'll trigger this from the store instead where scope is available
+                questEditorStore.requestSectionLoading(episode, areaVariant)
+            }
+        }
+    }
+
+    /**
+     * Clear selected section when area changes
+     */
+    fun clearSelectedSection() {
+        // Clear the quest editor store selection (which selectedSection references)
+        questEditorStore.setSelectedSection(null)
     }
 
     private fun setFileHolder(fileHolder: FileHolder?) {
@@ -416,7 +532,13 @@ class QuestEditorToolbarController(
     ) {
         setFileHolder(fileHolder)
         setVersion(version)
+        // Reset area selection when loading a new quest
+        _selectedAreaAndLabel.value = null
+        // Note: No need to clear selectedSection here since setCurrentQuest() in the store already does this
         questEditorStore.setCurrentQuest(quest)
+
+        // Don't override the area/variant - let QuestEditorStore handle the correct initialization
+        // The store already correctly sets the area based on floor 0 mapping or appropriate fallback
     }
 
     private suspend fun setCurrentQuest(

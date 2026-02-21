@@ -107,10 +107,10 @@ class QuestEditor(
             { QuestInfoWidget(questInfoController) },
             { NpcCountsWidget(npcCountsController) },
             { EntityInfoWidget(entityInfoController) },
-            { QuestEditorRendererWidget(renderer) },
+            { QuestEditorRendererWidget(renderer, questEditorStore.mouseWorldPosition) },
             { AsmWidget(asmController) },
-            { EntityListWidget(npcListController, entityImageRenderer) },
-            { EntityListWidget(objectListController, entityImageRenderer) },
+            { EntityListWidget(npcListController, entityImageRenderer, questEditorStore, isNpcList = true) },
+            { EntityListWidget(objectListController, entityImageRenderer, questEditorStore, isNpcList = false) },
             { EventsWidget(eventsController) },
         )
     }
