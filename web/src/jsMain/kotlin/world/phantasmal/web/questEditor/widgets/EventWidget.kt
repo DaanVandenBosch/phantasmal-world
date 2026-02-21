@@ -7,6 +7,7 @@ import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.Node
 import world.phantasmal.cell.map
 import world.phantasmal.web.questEditor.controllers.EventsController
+import world.phantasmal.web.questEditor.controllers.PlaybackState
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.webui.dom.*
 import world.phantasmal.webui.widgets.Dropdown
@@ -22,16 +23,24 @@ class EventWidget(
     private val hasMultiSelection = ctrl.hasMultiSelection()
     private val npcsSummary = ctrl.getEventNpcsSummary(event)
     private val multiSelectedNpcsSummary = ctrl.getMultiSelectedEventNpcsSummary()
+    private val isPlaybackCurrent = map(ctrl.playbackState, ctrl.playbackIndex, ctrl.events) { state, index, evts ->
+        state != PlaybackState.Stopped && index in evts.indices && evts[index] === event
+    }
 
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-event"
             toggleClass("pw-selected", isSelected)
             toggleClass("pw-multi-selected", isMultiSelected)
+            toggleClass("pw-playback-current", isPlaybackCurrent)
             tabIndex = 0
 
             onclick = { e ->
                 e.stopPropagation()
+
+                // If playing, pause playback on click
+                ctrl.onEventClickedDuringPlayback(event)
+
                 // Check for multi-select modifier key: Ctrl on Windows/Linux, Cmd on macOS
                 val isMultiSelectKey = e.ctrlKey || e.metaKey
 
@@ -175,6 +184,50 @@ class EventWidget(
                         th { addChild(delayInput.label!!) }
                         td { addChild(delayInput) }
                     }
+                    // Challenge mode wave settings
+                    observeNow(event.cmWaveSettings) { settings ->
+                        if (settings != null) {
+                            tr {
+                                val minInput = IntInput(
+                                    enabled = ctrl.enabled,
+                                    value = event.cmMinEnemies,
+                                    onChange = { ctrl.setCmMinEnemies(event, it) },
+                                    label = "CM Min:",
+                                    min = 0,
+                                    max = 255,
+                                    step = 1,
+                                )
+                                th { addChild(minInput.label!!) }
+                                td { addChild(minInput) }
+                            }
+                            tr {
+                                val maxInput = IntInput(
+                                    enabled = ctrl.enabled,
+                                    value = event.cmMaxEnemies,
+                                    onChange = { ctrl.setCmMaxEnemies(event, it) },
+                                    label = "CM Max:",
+                                    min = 0,
+                                    max = 255,
+                                    step = 1,
+                                )
+                                th { addChild(maxInput.label!!) }
+                                td { addChild(maxInput) }
+                            }
+                            tr {
+                                val wavesInput = IntInput(
+                                    enabled = ctrl.enabled,
+                                    value = event.cmMaxWaves,
+                                    onChange = { ctrl.setCmMaxWaves(event, it) },
+                                    label = "CM Max Waves:",
+                                    min = 0,
+                                    max = 255,
+                                    step = 1,
+                                )
+                                th { addChild(wavesInput.label!!) }
+                                td { addChild(wavesInput) }
+                            }
+                        }
+                    }
                 }
             }
             div {
@@ -250,15 +303,21 @@ class EventWidget(
                     background-color: hsl(200, 50%, 25%);
                     box-shadow: 0 0 5px hsl(200, 100%, 60%);
                 }
-                
+
+                .pw-quest-editor-event.pw-playback-current {
+                    border-color: hsl(130, 70%, 45%);
+                    background-color: hsl(130, 30%, 20%);
+                    box-shadow: 0 0 6px hsl(130, 70%, 45%);
+                }
+
                 .pw-quest-editor-event-props, .pw-quest-editor-event-actions {
                     padding: 2px 6px;
                 }
-                
+
                 .pw-quest-editor-event-props {
-                    width: 115px;
+                    width: 150px;
                 }
-                
+
                 .pw-quest-editor-event-actions {
                     width: 165px;
                 }
@@ -270,6 +329,7 @@ class EventWidget(
 
                 .pw-quest-editor-event th {
                     text-align: left;
+                    white-space: nowrap;
                 }
 
                 /* Monster overlay (fixed position, appended to body) */

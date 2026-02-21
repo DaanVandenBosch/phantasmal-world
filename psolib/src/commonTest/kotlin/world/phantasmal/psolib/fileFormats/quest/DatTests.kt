@@ -60,4 +60,39 @@ class DatTests : LibTestSuite {
             }
         }
     }
+
+    @Test
+    fun parse_challenge_mode_quest_chl01() = testAsync {
+        val dat = parseDat(readFile("/chl01.dat"))
+
+        // Area 1 should have 8 rooms with specific room IDs and entry counts.
+        val area1Spawns = dat.cmRandomSpawns.filter { it.areaId == 1 }
+        assertEquals(8, area1Spawns.size)
+        assertEquals(listOf(2, 4, 5, 7, 8, 10, 11, 16), area1Spawns.map { it.roomId })
+        assertEquals(listOf(32, 32, 32, 32, 31, 23, 31, 27), area1Spawns.map { it.entries.size })
+
+        // Verify config pool is parsed (Table 5A).
+        assertEquals(2, dat.cmConfigPool.size)
+        assertEquals(12, dat.cmConfigPool[0].entries.size)
+        // Config IDs should be sequential 1..12.
+        assertEquals((1..12).toList(), dat.cmConfigPool[0].entries.map { it.configId })
+
+        // Verify monster mappings are parsed (Table 5B).
+        assertEquals(2, dat.cmMonsterMappings.size)
+        assertEquals(11, dat.cmMonsterMappings[0].entries.size)
+        assertEquals(13, dat.cmMonsterMappings[1].entries.size)
+    }
+
+    /**
+     * Parse a challenge mode DAT, write it back, and verify byte-for-byte equality.
+     */
+    @Test
+    fun parse_cm_dat_and_write_dat() = testAsync {
+        val origDat = readFile("/chl01.dat")
+        val newDat = writeDat(parseDat(origDat)).cursor()
+        origDat.seekStart(0)
+
+        assertDeepEquals(origDat, newDat)
+    }
+
 }

@@ -24,6 +24,13 @@ class SectionIdRenderer {
         private const val SELECTED_TEXT_COLOR = 0xFFFFFF  // White text for selected (bold and clear)
         private const val TEXT_SIZE = 32.0  // Text size (significantly increased for better visibility)
         private const val SELECTED_TEXT_SIZE = 38.0  // Slightly larger text for selected
+        private const val PLAYBACK_LABEL_TEXT_SIZE = 28.0  // Playback action label text size
+        private const val PLAYBACK_LABEL_HEIGHT_OFFSET = 60.0f  // Height above entity for playback labels
+        private const val DOOR_LABEL_HEIGHT_OFFSET = 30.0f  // Height above door for persistent Door ID label
+        const val DOOR_ID_COLOR = 0x00E5FF  // Bright cyan
+        const val UNLOCK_COLOR = 0x00E5FF  // Bright cyan (unified style)
+        const val LOCK_COLOR = 0x00E5FF  // Bright cyan (unified style)
+        const val SPAWN_COLOR = 0x00E5FF  // Bright cyan (unified style)
     }
 
     /**
@@ -258,6 +265,136 @@ class SectionIdRenderer {
             userData = js("{}")
             userData.asDynamic().baseScale = 1.0
             userData.asDynamic().targetScreenSize = size // Target screen size in pixels
+        }
+    }
+
+    /**
+     * Creates a playback action label (for door unlock/lock/spawn events) at the given position.
+     * Uses a wider canvas than section-ID labels because the text is longer (e.g. "Unlock #5").
+     */
+    fun createPlaybackActionLabel(
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        text: String,
+        color: Int,
+    ): Group {
+        val group = Group()
+
+        val textPlane = createWideTextPlane(text, color)
+        textPlane.position.y = 5.0
+        group.add(textPlane)
+
+        // Position above the entity
+        group.position.set(
+            centerX.toDouble(),
+            (centerY + PLAYBACK_LABEL_HEIGHT_OFFSET).toDouble(),
+            centerZ.toDouble(),
+        )
+        group.name = "PlaybackActionLabel_${text.hashCode()}"
+
+        group.renderOrder = 10001
+        textPlane.frustumCulled = false
+        group.frustumCulled = false
+
+        return group
+    }
+
+    /**
+     * Creates a label above a door object.  Callers supply the display text
+     * ("Door 5", "Unlock 5", "Lock 5") and colour so the same helper serves
+     * both the persistent annotation and the playback highlight.
+     */
+    fun createDoorLabel(
+        centerX: Float,
+        centerY: Float,
+        centerZ: Float,
+        text: String,
+        color: Int,
+    ): Group {
+        val group = Group()
+
+        val textPlane = createWideTextPlane(text, color)
+        textPlane.position.y = 5.0
+        group.add(textPlane)
+
+        group.position.set(
+            centerX.toDouble(),
+            (centerY + DOOR_LABEL_HEIGHT_OFFSET).toDouble(),
+            centerZ.toDouble(),
+        )
+        group.name = "DoorLabel_${text.hashCode()}"
+
+        group.renderOrder = 9998
+        textPlane.frustumCulled = false
+        group.frustumCulled = false
+
+        return group
+    }
+
+    /**
+     * Creates a text plane with a wider canvas suitable for multi-character labels
+     * like "Unlock #5" or "Door 12".
+     */
+    private fun createWideTextPlane(text: String, color: Int): Mesh {
+        val canvasWidth = 512
+        val canvasHeight = 128
+        val fontSize = 52.0
+
+        val canvas = document.createElement("CANVAS") as HTMLCanvasElement
+        canvas.width = canvasWidth
+        canvas.height = canvasHeight
+        val context = canvas.getContext("2d") as CanvasRenderingContext2D
+
+        context.clearRect(0.0, 0.0, canvasWidth.toDouble(), canvasHeight.toDouble())
+
+        // Dark rounded-rect background for contrast
+        context.font = "bold ${fontSize}px Arial"
+        val textWidth = context.measureText(text).width
+        val padX = 18.0
+        val padY = 10.0
+        val bgW = textWidth + padX * 2
+        val bgH = fontSize + padY * 2
+        val bgX = (canvasWidth - bgW) / 2.0
+        val bgY = (canvasHeight - bgH) / 2.0
+        val r = 14.0
+        context.beginPath()
+        context.asDynamic().roundRect(bgX, bgY, bgW, bgH, r)
+        context.fillStyle = "rgba(0,0,0,0.75)"
+        context.fill()
+
+        // Text
+        context.asDynamic().textAlign = "center"
+        context.asDynamic().textBaseline = "middle"
+        context.strokeStyle = "#000000"
+        context.lineWidth = 5.0
+        context.fillStyle = "#${color.toString(16).padStart(6, '0')}"
+        context.strokeText(text, canvasWidth / 2.0, canvasHeight / 2.0)
+        context.fillText(text, canvasWidth / 2.0, canvasHeight / 2.0)
+
+        val texture = Texture()
+        texture.asDynamic().image = canvas
+        texture.needsUpdate = true
+
+        val planeWidth = PLAYBACK_LABEL_TEXT_SIZE * 4.0
+        val planeHeight = PLAYBACK_LABEL_TEXT_SIZE * 1.2
+        val geometry = PlaneGeometry(planeWidth, planeHeight)
+
+        val material = MeshBasicMaterial(obj {
+            map = texture
+            transparent = true
+            alphaTest = 0.05
+        })
+        material.asDynamic().depthTest = false
+        material.asDynamic().depthWrite = false
+
+        return Mesh(geometry, material).apply {
+            name = "SectionText"
+            renderOrder = 10001
+            frustumCulled = false
+            userData = js("{}")
+            userData.asDynamic().baseScale = 1.0
+            userData.asDynamic().targetScreenSize = PLAYBACK_LABEL_TEXT_SIZE
         }
     }
 

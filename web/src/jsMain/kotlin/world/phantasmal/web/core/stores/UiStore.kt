@@ -136,7 +136,7 @@ class UiStore(applicationUrl: ApplicationUrl) : Store() {
         /**
          * The default tool that's loaded if the initial URL has no specific path.
          */
-        val DEFAULT_TOOL: PwToolType = PwToolType.Viewer
+        val DEFAULT_TOOL: PwToolType = PwToolType.QuestEditor
     }
 }
 

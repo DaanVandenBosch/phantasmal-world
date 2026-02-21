@@ -23,6 +23,8 @@ import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
 
+data class ContextMenuRequest(val clientX: Int, val clientY: Int)
+
 class QuestEditorStore(
     private val questLoader: QuestLoader,
     uiStore: UiStore,
@@ -31,7 +33,8 @@ class QuestEditorStore(
     initializeNewQuest: Boolean,
 ) : Store() {
     private val _devMode = mutableCell(false)
-    private val _showSectionIds = mutableCell(true) // Section ID display toggle
+    private val _showSectionIds = mutableCell(false) // Section ID display toggle
+    private val _showDoorIds = mutableCell(false) // Door/Fence ID display toggle
     private val _spawnMonstersOnGround = mutableCell(false) // Monster ground spawn toggle
     private val _omnispawn = mutableCell(false) // Omnispawn toggle for NPCs
     private val _showOriginPoint = mutableCell(false) // Origin point display toggle
@@ -48,7 +51,11 @@ class QuestEditorStore(
     private val _targetCameraPosition = mutableCell<Vector3?>(null)
     private val _sectionsUpdated = mutableCell(0) // Trigger to update sections
     private val _selectedSection = mutableCell<SectionModel?>(null)
-    
+    private val _playbackActionText = mutableCell("")
+    private val _playbackDoorIds = mutableCell<Set<Int>>(emptySet())
+    private val _playbackLockDoorIds = mutableCell<Set<Int>>(emptySet())
+    private val _playbackSpawnSectionIds = mutableCell<Set<Int>>(emptySet())
+    private val _contextMenuRequest = mutableCell<ContextMenuRequest?>(null)
 
     val devMode: Cell<Boolean> = _devMode
 
@@ -56,10 +63,45 @@ class QuestEditorStore(
     val currentQuest: Cell<QuestModel?> = _currentQuest
     val currentArea: Cell<AreaModel?> = _currentArea
     val showSectionIds: Cell<Boolean> = _showSectionIds
+    val showDoorIds: Cell<Boolean> = _showDoorIds
     val spawnMonstersOnGround: Cell<Boolean> = _spawnMonstersOnGround
     val omnispawn: Cell<Boolean> = _omnispawn
     val showOriginPoint: Cell<Boolean> = _showOriginPoint
     val currentAreaVariant: Cell<AreaVariantModel?> = _currentAreaVariant
+
+    val currentAreaNpcs: ListCell<QuestNpcModel> =
+        flatMapToList(currentQuest, currentArea, currentAreaVariant) { quest, area, areaVariant ->
+            if (quest != null && area != null) {
+                if (quest.floorMappings.isNotEmpty()) {
+                    val relevantFloorIds = quest.floorMappings
+                        .filter { it.areaId == area.id && (areaVariant == null || it.variantId == areaVariant.id) }
+                        .map { it.floorId }
+                        .toSet()
+                    quest.npcs.filtered { npc -> npc.areaId in relevantFloorIds }
+                } else {
+                    quest.npcs.filtered { it.areaId == area.id }
+                }
+            } else {
+                emptyListCell()
+            }
+        }
+
+    val currentAreaObjects: ListCell<QuestObjectModel> =
+        flatMapToList(currentQuest, currentArea, currentAreaVariant) { quest, area, areaVariant ->
+            if (quest != null && area != null) {
+                if (quest.floorMappings.isNotEmpty()) {
+                    val relevantFloorIds = quest.floorMappings
+                        .filter { it.areaId == area.id && (areaVariant == null || it.variantId == areaVariant.id) }
+                        .map { it.floorId }
+                        .toSet()
+                    quest.objects.filtered { obj -> obj.areaId in relevantFloorIds }
+                } else {
+                    quest.objects.filtered { it.areaId == area.id }
+                }
+            } else {
+                emptyListCell()
+            }
+        }
 
     val currentAreaEvents: ListCell<QuestEventModel> =
         flatMapToList(currentQuest, currentArea, currentAreaVariant) { quest, area, areaVariant ->
@@ -98,7 +140,8 @@ class QuestEditorStore(
             if (areaVariant != null) {
                 // If we have an area variant, try to load sections regardless of quest status
                 val episode = quest?.episode ?: Episode.I // Default to Episode I if no quest
-                areaStore.getLoadedSections(episode, areaVariant) ?: emptyList()
+                (areaStore.getLoadedSections(episode, areaVariant) ?: emptyList())
+                    .sortedBy { it.id }
             } else {
                 emptyList()
             }
@@ -113,6 +156,13 @@ class QuestEditorStore(
      * The entity the user has selected, typically by clicking it.
      */
     val selectedEntity: Cell<QuestEntityModel<*, *>?> = _selectedEntity
+
+    val contextMenuRequest: Cell<ContextMenuRequest?> = _contextMenuRequest
+
+    val playbackActionText: Cell<String> = _playbackActionText
+    val playbackDoorIds: Cell<Set<Int>> = _playbackDoorIds
+    val playbackLockDoorIds: Cell<Set<Int>> = _playbackLockDoorIds
+    val playbackSpawnSectionIds: Cell<Set<Int>> = _playbackSpawnSectionIds
 
     val questEditingEnabled: Cell<Boolean> = currentQuest.isNotNull() and !runner.running
 
@@ -581,6 +631,10 @@ class QuestEditorStore(
         _showSectionIds.value = show
     }
 
+    fun setShowDoorIds(show: Boolean) {
+        _showDoorIds.value = show
+    }
+
     fun setSpawnMonstersOnGround(spawn: Boolean) {
         _spawnMonstersOnGround.value = spawn
         QuestNpcModel.setSpawnOnGround(spawn)
@@ -594,6 +648,14 @@ class QuestEditorStore(
         _showOriginPoint.value = show
     }
 
+    fun requestContextMenu(clientX: Int, clientY: Int) {
+        _contextMenuRequest.value = ContextMenuRequest(clientX, clientY)
+    }
+
+    fun dismissContextMenu() {
+        _contextMenuRequest.value = null
+    }
+
     fun setMouseWorldPosition(position: Vector3?) {
         _mouseWorldPosition.value = position
     }
@@ -604,6 +666,22 @@ class QuestEditorStore(
 
     fun setSelectedSection(section: SectionModel?) {
         _selectedSection.value = section
+    }
+
+    fun setPlaybackActionText(text: String) {
+        _playbackActionText.value = text
+    }
+
+    fun setPlaybackDoorIds(doorIds: Set<Int>) {
+        _playbackDoorIds.value = doorIds
+    }
+
+    fun setPlaybackLockDoorIds(lockDoorIds: Set<Int>) {
+        _playbackLockDoorIds.value = lockDoorIds
+    }
+
+    fun setPlaybackSpawnSectionIds(sectionIds: Set<Int>) {
+        _playbackSpawnSectionIds.value = sectionIds
     }
 
     fun questSaved() {

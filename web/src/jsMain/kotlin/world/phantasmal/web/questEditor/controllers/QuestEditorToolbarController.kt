@@ -196,14 +196,22 @@ class QuestEditorToolbarController(
 
     val showCollisionGeometry: Cell<Boolean> = questEditorStore.showCollisionGeometry
     val showSectionIds: Cell<Boolean> = questEditorStore.showSectionIds
+    val showDoorIds: Cell<Boolean> = questEditorStore.showDoorIds
     val spawnMonstersOnGround: Cell<Boolean> = questEditorStore.spawnMonstersOnGround
     val showOriginPoint: Cell<Boolean> = questEditorStore.showOriginPoint
 
     // Go to Section functionality
     // Use the store's selectedSection directly to ensure sync when clicking events
     val selectedSection: Cell<SectionModel?> = questEditorStore.selectedSection
-    val availableSections: Cell<List<SectionModel>> = questEditorStore.currentAreaSections
     val gotoSectionEnabled: Cell<Boolean> = questEditorStore.currentAreaVariant.isNotNull()
+
+    private val gotoSectionFilter: MutableCell<(SectionModel) -> Boolean> =
+        mutableCell { true }
+
+    val filteredSections: Cell<List<SectionModel>> =
+        map(questEditorStore.currentAreaSections, gotoSectionFilter) { sections, filter ->
+            sections.filter(filter)
+        }
 
     init {
         addDisposables(
@@ -451,6 +459,10 @@ class QuestEditorToolbarController(
         questEditorStore.setShowSectionIds(show)
     }
 
+    fun setShowDoorIds(show: Boolean) {
+        questEditorStore.setShowDoorIds(show)
+    }
+
     fun setSpawnMonstersOnGround(spawn: Boolean) {
         questEditorStore.setSpawnMonstersOnGround(spawn)
     }
@@ -468,6 +480,22 @@ class QuestEditorToolbarController(
         selectedSection.value?.let { section ->
             questEditorStore.goToSection(section.id)
         }
+    }
+
+    fun filterSections(text: String) {
+        val trimmed = text.trim()
+        gotoSectionFilter.value =
+            if (trimmed.isEmpty()) {
+                { true }
+            } else {
+                { it.id.toString().contains(trimmed) }
+            }
+    }
+
+    fun selectSection(section: SectionModel) {
+        ensureSectionsLoaded()
+        setSelectedSection(section)
+        questEditorStore.goToSection(section.id)
     }
 
     /**

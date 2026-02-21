@@ -14,8 +14,11 @@ external val faFileMedical: IconDefinition
 external val faLevelDownAlt: IconDefinition
 external val faLevelUpAlt: IconDefinition
 external val faLongArrowAltRight: IconDefinition
+external val faPause: IconDefinition
 external val faPlay: IconDefinition
 external val faPlus: IconDefinition
+external val faStepBackward: IconDefinition
+external val faStepForward: IconDefinition
 external val faRedo: IconDefinition
 external val faSave: IconDefinition
 external val faStop: IconDefinition

@@ -1,7 +1,6 @@
 package world.phantasmal.web.questEditor.rendering
 
 import kotlinx.browser.document
-import org.khronos.webgl.Float32Array
 import org.w3c.dom.CanvasRenderingContext2D
 import org.w3c.dom.HTMLCanvasElement
 import world.phantasmal.web.externals.three.*
@@ -9,232 +8,220 @@ import world.phantasmal.webui.obj
 import kotlin.math.PI
 
 /**
- * Renders the world origin point (0,0,0) as a distinctive marker.
+ * Renders the world origin point (0,0,0) as a coordinate axes marker with arrows and labels.
  */
 class OriginPointRenderer {
     companion object {
-        private const val MARKER_SIZE = 50.0f  // Size of the origin marker
-        private const val AXIS_LENGTH = 100.0f  // Length of axis lines
-        private const val X_AXIS_COLOR = 0xFF0000  // Red for X axis
-        private const val Y_AXIS_COLOR = 0x00FF00  // Green for Y axis
-        private const val Z_AXIS_COLOR = 0x0000FF  // Blue for Z axis
-        private const val CENTER_COLOR = 0xFFFFFF  // White for center marker
-        private const val TEXT_COLOR = 0xFFFFFF  // White text
-        private const val TEXT_SIZE = 24.0  // Text size
+        private const val SHAFT_LENGTH = 80.0
+        private const val SHAFT_RADIUS = 1.2
+        private const val HEAD_LENGTH = 18.0
+        private const val HEAD_RADIUS = 4.0
+        private const val CENTER_RADIUS = 3.5
+        private const val NEG_LENGTH = 25.0
+        private const val NEG_RADIUS = 0.6
+
+        private const val X_COLOR = 0xE05555  // Soft red
+        private const val Y_COLOR = 0x55C055  // Soft green
+        private const val Z_COLOR = 0x5588DD  // Soft blue
+        private const val CENTER_COLOR = 0xDDDDDD
     }
 
-    /**
-     * Creates the origin point visualization with coordinate axes and label.
-     */
     fun createOriginPointVisualization(): Group {
         val group = Group()
 
-        // Create coordinate axes (X, Y, Z)
-        val axes = createCoordinateAxes()
-        group.add(axes)
+        // Center sphere
+        group.add(createCenterMarker())
 
-        // Create center marker
-        val centerMarker = createCenterMarker()
-        group.add(centerMarker)
+        // Positive axes with arrowheads
+        group.add(createArrow(Axis.X))
+        group.add(createArrow(Axis.Y))
+        group.add(createArrow(Axis.Z))
 
-        // Create text label (removed for cleaner display)
-        // val textLabel = createOriginLabel()
-        // textLabel.position.y = MARKER_SIZE.toDouble() + 20.0  // Position above the marker
-        // group.add(textLabel)
+        // Negative axis stubs (shorter, dimmer)
+        group.add(createNegativeStub(Axis.X))
+        group.add(createNegativeStub(Axis.Y))
+        group.add(createNegativeStub(Axis.Z))
 
-        // Position at world origin
+        // Axis labels
+        val labelOffset = SHAFT_LENGTH + HEAD_LENGTH + 10.0
+        group.add(createAxisLabel("X", X_COLOR, labelOffset, Axis.X))
+        group.add(createAxisLabel("Y", Y_COLOR, labelOffset, Axis.Y))
+        group.add(createAxisLabel("Z", Z_COLOR, labelOffset, Axis.Z))
+
         group.position.set(0.0, 0.0, 0.0)
         group.name = "OriginPointVisualization"
-
-        // Ensure high render order for visibility
         group.renderOrder = 9999
         group.frustumCulled = false
 
         return group
     }
 
-    /**
-     * Creates the coordinate axes (X=Red, Y=Green, Z=Blue).
-     */
-    private fun createCoordinateAxes(): Group {
-        val axesGroup = Group()
-
-        // X axis (Red)
-        val xAxis = createAxisLine(
-            Vector3(0.0, 0.0, 0.0),
-            Vector3(AXIS_LENGTH.toDouble(), 0.0, 0.0),
-            X_AXIS_COLOR
-        )
-        axesGroup.add(xAxis)
-
-        // Y axis (Green)
-        val yAxis = createAxisLine(
-            Vector3(0.0, 0.0, 0.0),
-            Vector3(0.0, AXIS_LENGTH.toDouble(), 0.0),
-            Y_AXIS_COLOR
-        )
-        axesGroup.add(yAxis)
-
-        // Z axis (Blue)
-        val zAxis = createAxisLine(
-            Vector3(0.0, 0.0, 0.0),
-            Vector3(0.0, 0.0, AXIS_LENGTH.toDouble()),
-            Z_AXIS_COLOR
-        )
-        axesGroup.add(zAxis)
-
-        axesGroup.name = "CoordinateAxes"
-        return axesGroup
-    }
+    private enum class Axis { X, Y, Z }
 
     /**
-     * Creates a single axis line.
+     * Creates a positive-direction arrow (cylinder shaft + cone head) along the given axis.
      */
-    private fun createAxisLine(start: Vector3, end: Vector3, color: Int): LineSegments {
-        val points = floatArrayOf(
-            start.x.toFloat(), start.y.toFloat(), start.z.toFloat(),
-            end.x.toFloat(), end.y.toFloat(), end.z.toFloat()
-        )
+    private fun createArrow(axis: Axis): Group {
+        val color = when (axis) { Axis.X -> X_COLOR; Axis.Y -> Y_COLOR; Axis.Z -> Z_COLOR }
 
-        val geometry = BufferGeometry().apply {
-            setAttribute("position", Float32BufferAttribute(Float32Array(points.toTypedArray()), 3))
-        }
-
-        val material = LineBasicMaterial(obj {
+        val material = MeshBasicMaterial(obj {
             this.color = Color(color)
             transparent = true
-            opacity = 0.9
-            linewidth = 4.0
-        })
+            opacity = 0.85
+        }).also {
+            it.asDynamic().depthTest = false
+            it.asDynamic().depthWrite = false
+        }
 
-        return LineSegments(geometry, material).apply {
-            name = "AxisLine_${color.toString(16)}"
+        val arrow = Group()
+
+        // Shaft (cylinder along +Y by default)
+        val shaft = Mesh(CylinderGeometry(SHAFT_RADIUS, SHAFT_RADIUS, SHAFT_LENGTH, 8), material).apply {
+            position.y = SHAFT_LENGTH / 2.0
             renderOrder = 10000
             frustumCulled = false
         }
+        arrow.add(shaft)
+
+        // Arrowhead (cone)
+        val head = Mesh(ConeGeometry(HEAD_RADIUS, HEAD_LENGTH, 12), material).apply {
+            position.y = SHAFT_LENGTH + HEAD_LENGTH / 2.0
+            renderOrder = 10000
+            frustumCulled = false
+        }
+        arrow.add(head)
+
+        orientGroup(arrow, axis, positive = true)
+        arrow.name = "Arrow_${axis.name}"
+        return arrow
     }
 
     /**
-     * Creates the center marker at the origin.
+     * Creates a shorter, dimmer stub for the negative axis direction.
      */
-    private fun createCenterMarker(): Mesh {
-        val geometry = SphereGeometry(MARKER_SIZE.toDouble() / 4.0, 16, 16)
+    private fun createNegativeStub(axis: Axis): Group {
+        val color = when (axis) { Axis.X -> X_COLOR; Axis.Y -> Y_COLOR; Axis.Z -> Z_COLOR }
 
+        val material = MeshBasicMaterial(obj {
+            this.color = Color(color)
+            transparent = true
+            opacity = 0.3
+        }).also {
+            it.asDynamic().depthTest = false
+            it.asDynamic().depthWrite = false
+        }
+
+        val stub = Group()
+        val mesh = Mesh(CylinderGeometry(NEG_RADIUS, NEG_RADIUS, NEG_LENGTH, 6), material).apply {
+            position.y = NEG_LENGTH / 2.0
+            renderOrder = 10000
+            frustumCulled = false
+        }
+        stub.add(mesh)
+
+        orientGroup(stub, axis, positive = false)
+        stub.name = "NegStub_${axis.name}"
+        return stub
+    }
+
+    /**
+     * Rotates a group so its local +Y direction points along the given world axis.
+     */
+    private fun orientGroup(group: Group, axis: Axis, positive: Boolean) {
+        when (axis) {
+            Axis.X -> group.rotation.z = if (positive) -PI / 2.0 else PI / 2.0
+            Axis.Y -> if (!positive) group.rotation.z = PI
+            Axis.Z -> group.rotation.x = if (positive) PI / 2.0 else -PI / 2.0
+        }
+    }
+
+    private fun createCenterMarker(): Mesh {
         val material = MeshBasicMaterial(obj {
             color = Color(CENTER_COLOR)
             transparent = true
-            opacity = 0.8
-        })
+            opacity = 0.9
+        }).also {
+            it.asDynamic().depthTest = false
+            it.asDynamic().depthWrite = false
+        }
 
-        // Force visibility settings
-        material.asDynamic().depthTest = false
-        material.asDynamic().depthWrite = false
-
-        return Mesh(geometry, material).apply {
+        return Mesh(SphereGeometry(CENTER_RADIUS, 16, 16), material).apply {
             name = "OriginCenterMarker"
-            renderOrder = 10000
+            renderOrder = 10001
             frustumCulled = false
         }
     }
 
     /**
-     * Creates the text label for the origin point.
+     * Creates a billboard text label for an axis, positioned at the tip of the arrow.
      */
-    private fun createOriginLabel(): Mesh {
-        return createTextPlane("Origin (0,0,0)", TEXT_COLOR, TEXT_SIZE)
-    }
-
-    /**
-     * Creates a text plane using canvas texture for displaying text.
-     */
-    private fun createTextPlane(text: String, color: Int, size: Double): Mesh {
-        // Create canvas for text rendering
+    private fun createAxisLabel(text: String, color: Int, offset: Double, axis: Axis): Mesh {
+        val canvasSize = 64
         val canvas = document.createElement("CANVAS") as HTMLCanvasElement
-        canvas.width = 256
-        canvas.height = 128
-        val context = canvas.getContext("2d") as CanvasRenderingContext2D
+        canvas.width = canvasSize
+        canvas.height = canvasSize
+        val ctx = canvas.getContext("2d") as CanvasRenderingContext2D
 
-        // Configure text rendering
-        context.fillStyle = "#${color.toString(16).padStart(6, '0')}"
-        context.font = "bold ${size * 2.5}px Arial"
-        context.asDynamic().textAlign = "center"
-        context.asDynamic().textBaseline = "middle"
+        ctx.clearRect(0.0, 0.0, canvasSize.toDouble(), canvasSize.toDouble())
 
-        // Add stroke for better visibility
-        context.strokeStyle = "#000000"
-        context.lineWidth = 3.0
+        // Draw letter with outline for readability
+        ctx.font = "bold 48px Arial"
+        ctx.asDynamic().textAlign = "center"
+        ctx.asDynamic().textBaseline = "middle"
+        ctx.strokeStyle = "#000000"
+        ctx.lineWidth = 4.0
+        ctx.strokeText(text, canvasSize / 2.0, canvasSize / 2.0)
+        ctx.fillStyle = "#${color.toString(16).padStart(6, '0')}"
+        ctx.fillText(text, canvasSize / 2.0, canvasSize / 2.0)
 
-        // Clear canvas and draw text
-        context.clearRect(0.0, 0.0, 256.0, 128.0)
-
-        // Draw text with stroke (outline) first, then fill
-        context.strokeText(text, 128.0, 64.0)  // Black outline
-        context.fillText(text, 128.0, 64.0)    // White fill
-
-        // Create texture from canvas
         val texture = Texture()
         texture.asDynamic().image = canvas
         texture.needsUpdate = true
 
-        // Create plane geometry
-        val geometry = PlaneGeometry(size * 4.0, size * 2.0)
-
-        // Create material
+        val planeSize = 18.0
         val material = MeshBasicMaterial(obj {
             map = texture
             transparent = true
             alphaTest = 0.05
-        })
+        }).also {
+            it.asDynamic().depthTest = false
+            it.asDynamic().depthWrite = false
+        }
 
-        // Force visibility settings
-        material.asDynamic().depthTest = false
-        material.asDynamic().depthWrite = false
-
-        return Mesh(geometry, material).apply {
-            name = "OriginText"
-            renderOrder = 10000
+        return Mesh(PlaneGeometry(planeSize, planeSize), material).apply {
+            name = "AxisLabel_$text"
+            renderOrder = 10002
             frustumCulled = false
 
-            // Custom property to track base scale for constant screen size
+            when (axis) {
+                Axis.X -> position.set(offset, 0.0, 0.0)
+                Axis.Y -> position.set(0.0, offset, 0.0)
+                Axis.Z -> position.set(0.0, 0.0, offset)
+            }
+
             userData = js("{}")
-            userData.asDynamic().baseScale = 1.0
-            userData.asDynamic().targetScreenSize = size
+            userData.asDynamic().targetScreenSize = 24.0
         }
     }
 
     /**
-     * Updates the scale of origin label to maintain constant screen size.
-     * Should be called when camera position or zoom changes.
+     * Updates axis labels to face the camera (billboard effect) and maintain constant screen size.
      */
-    fun updateTextScale(camera: Camera, originGroup: Group) {
+    fun updateLabels(camera: Camera, originGroup: Group) {
+        val cameraPos = camera.position
+
         originGroup.children.forEach { child ->
-            if (child is Mesh && child.name == "OriginText") {
-                updateTextMeshScale(camera, child)
+            if (child is Mesh && child.name.startsWith("AxisLabel_")) {
+                // Billboard: always face camera
+                child.asDynamic().lookAt(cameraPos)
+
+                // Constant screen size
+                val worldPos = Vector3()
+                child.asDynamic().getWorldPosition(worldPos)
+                val distance = cameraPos.distanceTo(worldPos)
+                val scaleFactor = (distance / 1000.0).coerceIn(0.1, 10.0)
+                child.scale.asDynamic().setScalar(scaleFactor)
             }
         }
-    }
-
-    /**
-     * Updates individual text mesh scale based on camera distance.
-     */
-    private fun updateTextMeshScale(camera: Camera, textMesh: Mesh) {
-        val userData = textMesh.userData
-        userData.asDynamic().targetScreenSize as? Double ?: TEXT_SIZE
-
-        // Calculate distance from camera to text mesh
-        val cameraPosition = camera.position
-        val textWorldPosition = Vector3()
-        textMesh.asDynamic().getWorldPosition(textWorldPosition)
-        val distance = cameraPosition.distanceTo(textWorldPosition)
-
-        // Calculate scale factor to maintain constant screen size
-        val baseDistance = 1000.0
-        val scaleFactor = (distance / baseDistance).coerceIn(0.1, 10.0)
-
-        // Apply scale to maintain constant apparent size
-        textMesh.scale.asDynamic().setScalar(scaleFactor)
-
-        // Ensure text always faces camera (billboard effect)
-        textMesh.asDynamic().lookAt(cameraPosition)
     }
 }

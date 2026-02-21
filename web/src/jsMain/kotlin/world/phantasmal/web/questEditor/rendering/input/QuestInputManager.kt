@@ -162,6 +162,8 @@ class QuestInputManager(
     }
 
     private fun onPointerDown(e: PointerEvent) {
+        questEditorStore.dismissContextMenu()
+
         processPointerEvent(e)
 
         state = state.processEvent(
@@ -201,6 +203,11 @@ class QuestInputManager(
                     movedSinceLastPointerDown,
                 )
             )
+
+            // Show context menu on single right-click (no drag)
+            if (e.button.toInt() == 2 && !movedSinceLastPointerDown) {
+                questEditorStore.requestContextMenu(e.clientX, e.clientY)
+            }
         } finally {
             onPointerUpListener?.dispose()
             onPointerUpListener = null

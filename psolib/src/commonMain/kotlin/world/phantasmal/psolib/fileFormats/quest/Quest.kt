@@ -32,10 +32,14 @@ class Quest(
      * (Partial) raw DAT data that can't be parsed yet by Phantasmal.
      */
     val datUnknowns: MutableList<DatUnknown>,
+    val cmRandomSpawns: MutableList<DatCmRandomSpawn> = mutableListOf(),
+    val cmMonsterMappings: MutableList<DatCmMonsterMapping> = mutableListOf(),
+    val cmConfigPool: MutableList<DatCmConfigPool> = mutableListOf(),
     var bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
     val mapDesignations: MutableMap<Int, MutableSet<Int>>,
     val floorMappings: List<FloorMapping> = emptyList(),
+    var bytecodeOffset: Int? = null,
 )
 
 /**
@@ -167,10 +171,14 @@ fun parseBinDatToQuest(
         npcs,
         events = dat.events,
         datUnknowns = dat.unknowns,
+        cmRandomSpawns = dat.cmRandomSpawns,
+        cmMonsterMappings = dat.cmMonsterMappings,
+        cmConfigPool = dat.cmConfigPool,
         bytecodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
         floorMappings,
+        bytecodeOffset = bin.bytecodeOffset,
     ))
 }
 
@@ -290,6 +298,9 @@ fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
         npcs = quest.npcs.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
         events = quest.events,
         unknowns = quest.datUnknowns,
+        cmRandomSpawns = quest.cmRandomSpawns,
+        cmMonsterMappings = quest.cmMonsterMappings,
+        cmConfigPool = quest.cmConfigPool,
     ))
 
     val binFormat = when (version) {
@@ -310,6 +321,7 @@ fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
         bytecode,
         labelOffsets,
         quest.shopItems,
+        quest.bytecodeOffset,
     ))
 
     return Pair(bin, dat)
