@@ -238,6 +238,7 @@ private fun geometryParts(type: EntityType): List<String?> =
         ObjectType.BigBrownRock -> listOf("-0") // TODO: use correct part.
         ObjectType.BigBlackRocks -> listOf("")
         ObjectType.BeeHive -> listOf("", "-0", "-1")
+        ObjectType.ForestConsole -> listOf("") // All model variants share the same geometry.
         else -> listOf(null)
     }
 
@@ -247,6 +248,7 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
             when (type) {
                 NpcType.Dubswitch,
                 NpcType.Dubswitch2,
+                NpcType.VolOptMonitor,
                 -> GeomFormat.Xj
 
                 else -> GeomFormat.Nj
@@ -311,21 +313,6 @@ private fun entityTypeToPath(
             when (type) {
                 // We don't have a model for these NPCs.
                 NpcType.Unknown,
-                NpcType.Migium,
-                NpcType.Hidoom,
-                NpcType.VolOptPart1,
-                NpcType.VolOptPart1Sub,
-                NpcType.VolOptCore,
-                NpcType.VolOptMonitor,
-                NpcType.VolOptHiraisin,
-                NpcType.DeathGunner,
-                NpcType.DarkGunnerCenter,
-                NpcType.StRappy,
-                NpcType.HalloRappy,
-                NpcType.EggRappy,
-                NpcType.Migium2,
-                NpcType.Hidoom2,
-                NpcType.Recon,
                 // Player class NPCs use .rel format, not .nj
                 NpcType.NpcHUmar,
                 NpcType.NpcHUnewearl,
@@ -395,6 +382,12 @@ private fun entityTypeToPath(
 
                 NpcType.PanArms2 ->
                     entityTypeToPath(NpcType.PanArms, assetType, suffix, model, geomFormat)
+
+                NpcType.Migium2 ->
+                    entityTypeToPath(NpcType.Migium, assetType, suffix, model, geomFormat)
+
+                NpcType.Hidoom2 ->
+                    entityTypeToPath(NpcType.Hidoom, assetType, suffix, model, geomFormat)
 
                 NpcType.Dubchic2 ->
                     entityTypeToPath(NpcType.Dubchic, assetType, suffix, model, geomFormat)
