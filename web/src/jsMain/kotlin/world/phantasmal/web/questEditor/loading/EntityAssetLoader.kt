@@ -53,6 +53,7 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
         val ninjaObject = when (geomFormat) {
             GeomFormat.Nj -> parseGeometry(type, geomParts, ::parseNj)
             GeomFormat.Xj -> parseGeometry(type, geomParts, ::parseXj)
+            GeomFormat.Rel -> parseGeometry(type, geomParts, ::parseRelNj)
         } ?: return null
 
         val textures = loadTextures(type, model)
@@ -183,7 +184,7 @@ private enum class AssetType {
 }
 
 private enum class GeomFormat {
-    Nj, Xj
+    Nj, Xj, Rel
 }
 
 /**
@@ -251,6 +252,23 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
                 NpcType.VolOptMonitor,
                 -> GeomFormat.Xj
 
+                // Player class NPCs use .rel format
+                NpcType.NpcHUmar,
+                NpcType.NpcHUnewearl,
+                NpcType.NpcRAmar,
+                NpcType.NpcRAcast,
+                NpcType.NpcRAcaseal,
+                NpcType.NpcFOmarl,
+                NpcType.NpcFOnewm,
+                NpcType.NpcFOnewearl,
+                NpcType.NpcHUnewearl2,
+                NpcType.NpcHUcast,
+                NpcType.NpcRAmar2,
+                NpcType.NpcFOmarl2,
+                NpcType.NpcFOnewm2,
+                NpcType.NpcFOnewearl2,
+                -> GeomFormat.Rel
+
                 else -> GeomFormat.Nj
             }
         }
@@ -303,6 +321,7 @@ private fun entityTypeToPath(
         AssetType.Geometry -> when (geomFormat) {
             GeomFormat.Nj -> "nj"
             GeomFormat.Xj -> "xj"
+            GeomFormat.Rel -> "rel"
         }
 
         AssetType.Texture -> "xvm"
@@ -313,26 +332,19 @@ private fun entityTypeToPath(
             when (type) {
                 // We don't have a model for these NPCs.
                 NpcType.Unknown,
-                // Player class NPCs use .rel format, not .nj
-                NpcType.NpcHUmar,
-                NpcType.NpcHUnewearl,
-                NpcType.NpcRAmar,
-                NpcType.NpcRAcast,
-                NpcType.NpcRAcaseal,
-                NpcType.NpcFOmarl,
-                NpcType.NpcFOnewm,
-                NpcType.NpcFOnewearl,
-                NpcType.NpcHUnewearl2,
-                NpcType.NpcHUcast,
-                NpcType.NpcRAmar2,
-                NpcType.NpcFOmarl2,
-                NpcType.NpcFOnewm2,
-                NpcType.NpcFOnewearl2,
                 NpcType.NpcEnemy,
-                NpcType.NpcLappy,
-                NpcType.NpcMoja,
-                NpcType.NpcBringer,
+                NpcType.Rupika,
                 -> null
+
+                // Friendly NPC versions of enemies share enemy models.
+                NpcType.NpcLappy ->
+                    entityTypeToPath(NpcType.RagRappy, assetType, suffix, model, geomFormat)
+
+                NpcType.NpcMoja ->
+                    entityTypeToPath(NpcType.Hildebear, assetType, suffix, model, geomFormat)
+
+                NpcType.NpcBringer ->
+                    entityTypeToPath(NpcType.ChaosBringer, assetType, suffix, model, geomFormat)
 
                 // Episode II VR Temple
 

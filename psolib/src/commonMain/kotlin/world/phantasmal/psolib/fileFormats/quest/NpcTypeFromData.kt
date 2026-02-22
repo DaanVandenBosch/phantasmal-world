@@ -170,7 +170,21 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         0x0E1 -> NpcType.IllGill
         0x0F0 -> NpcType.Hosa2
         0x0F1 -> NpcType.ItemShop
+        0x0F2 -> NpcType.DefaultFomar
+        0x0F3 -> NpcType.Karen
+        0x0F4 -> NpcType.Leo
+        0x0F5 -> NpcType.Pagini
+        0x0F6 -> NpcType.Unknown246
+        0x0F7 -> NpcType.Nol
+        0x0F8 -> NpcType.Elly
+        0x0F9 -> NpcType.Unknown249
+        0x0FA -> NpcType.ItemShop2
+        0x0FB -> NpcType.WeaponShop
+        0x0FC -> NpcType.SecurityGuard
+        0x0FD -> NpcType.HuntersGuild
         0x0FE -> NpcType.Nurse2
+        0x0FF -> NpcType.Unknown255
+        0x100 -> NpcType.Momoka
         0x110 -> NpcType.Astark
         0x111 -> if (special) NpcType.Yowie else NpcType.SatelliteLizard
         0x112 -> when (skin % 2) {
@@ -196,6 +210,7 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
             1 -> NpcType.PyroGoran
             else -> NpcType.GoranDetonator
         }
+        0x118 -> NpcType.Rupika
         0x119 -> when {
             special -> NpcType.Kondrieu
             skin % 2 == 0 -> NpcType.SaintMilion
