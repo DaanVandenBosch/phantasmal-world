@@ -1,7 +1,9 @@
 package world.phantasmal.psolib.asm.dataFlowAnalysis
 
 import mu.KotlinLogging
+import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.*
+import world.phantasmal.psolib.fileFormats.quest.findEpisodeByMapId
 import world.phantasmal.psolib.fileFormats.quest.getAreaIdByMapId
 import world.phantasmal.psolib.fileFormats.quest.getMapId
 
@@ -81,7 +83,10 @@ data class FloorMapping(
     // Area id deduced from the mapId.
     val areaId: Int,
     // Map variation id on the floor.
-    val variantId: Int
+    val variantId: Int,
+    // The episode this map belongs to, derived from mapId. Used to correctly resolve area variants
+    // when a quest references maps from a different episode (e.g., EP4 quest using EP2 Lab map).
+    val mapEpisode: Episode? = null
 )
 
 /**
@@ -228,7 +233,7 @@ fun getFloorMappings(
 
                     if (areaId != null) {
                         // map_designate/map_designate_ex have higher priority than set_floor_handler
-                        floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId)
+                        floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId, findEpisodeByMapId(mapId))
                     }
                 }
 
@@ -242,7 +247,7 @@ fun getFloorMappings(
 
                     if (areaId != null) {
                         // bb_map_designate has higher priority than set_floor_handler, can override existing mappings
-                        floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId)
+                        floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId, findEpisodeByMapId(mapId))
                     }
                 }
 
@@ -264,7 +269,7 @@ fun getFloorMappings(
                             // This ensures bb_map_designate instructions take precedence
                             if (!floorMappings.containsKey(floorId)) {
                                 // areaId is same as floorId for set_floor_handler
-                                floorMappings[floorId] = FloorMapping(floorId, mapId, floorId, variantId)
+                                floorMappings[floorId] = FloorMapping(floorId, mapId, floorId, variantId, findEpisodeByMapId(mapId))
                             }
                         }
                     } catch (e: Exception) {

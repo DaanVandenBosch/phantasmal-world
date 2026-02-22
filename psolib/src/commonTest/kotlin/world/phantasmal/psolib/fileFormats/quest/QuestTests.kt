@@ -11,6 +11,7 @@ import world.phantasmal.psolib.test.readFile
 import world.phantasmal.psolib.test.testWithTetheallaQuests
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class QuestTests : LibTestSuite {
@@ -217,6 +218,60 @@ class QuestTests : LibTestSuite {
 
         assertEquals(origQuest.mapDesignations, newQuest.mapDesignations)
         assertDeepEquals(origQuest.bytecodeIr, newQuest.bytecodeIr, ignoreSrcLocs = true)
+    }
+
+    @Test
+    fun cross_episode_map_designate_should_set_mapEpisode() = testAsync {
+        val result = parseQstToQuest(readFile("/lost_son_hopkins.qst"), lenient = true)
+        assertTrue(result is Success, "Failed to parse quest: ${result.problems.joinToString()}")
+
+        val quest = result.value.quest
+
+        // This is an Episode IV quest
+        assertEquals(Episode.IV, quest.episode)
+
+        // The quest should have floor mappings
+        assertTrue(quest.floorMappings.isNotEmpty(), "Expected floor mappings")
+
+        // Find floor 0 mapping - it uses mapId 0x12 (18) which is EP2 Lab
+        val floor0 = quest.floorMappings.find { it.floorId == 0 }
+        assertNotNull(floor0, "Expected floor 0 mapping")
+        assertEquals(0x12, floor0.mapId, "Floor 0 should use mapId 0x12 (Lab)")
+        assertEquals(0, floor0.areaId, "Lab should have areaId=0")
+        assertEquals(Episode.II, floor0.mapEpisode, "mapId 0x12 (Lab) should have mapEpisode=Episode.II")
+
+        // Simulate what QuestModel does: resolve variant using mapEpisode
+        // With the fix: getVariant(mapping.mapEpisode ?: episode, mapping.areaId, mapping.variantId)
+        // = getVariant(Episode.II, 0, 0) -> should find EP2 Lab, NOT EP4 Pioneer II
+        val resolvedEpisode = floor0.mapEpisode ?: quest.episode
+        assertEquals(Episode.II, resolvedEpisode, "Should use Episode.II for variant lookup")
+
+        // Verify the area it resolves to is Lab (EP2 area 0), not Pioneer II (EP4 area 0)
+        val ep2Areas = getAreasForEpisode(Episode.II)
+        val ep4Areas = getAreasForEpisode(Episode.IV)
+        val resolvedArea = ep2Areas.find { it.id == floor0.areaId }
+        val wrongArea = ep4Areas.find { it.id == floor0.areaId }
+
+        assertNotNull(resolvedArea, "Should find area in EP2")
+        assertEquals("Lab", resolvedArea.name, "EP2 area 0 should be Lab")
+        assertEquals("Pioneer II", wrongArea?.name, "EP4 area 0 would be Pioneer II (wrong)")
+
+        // Verify other EP4 floor mappings have mapEpisode=IV
+        val ep4Floors = quest.floorMappings.filter { it.floorId != 0 }
+        for (mapping in ep4Floors) {
+            assertEquals(Episode.IV, mapping.mapEpisode,
+                "EP4 map floorId=${mapping.floorId} mapId=0x${mapping.mapId.toString(16)} should have mapEpisode=IV")
+        }
+    }
+
+    @Test
+    fun findEpisodeByMapId_returns_correct_episode() {
+        assertEquals(Episode.I, findEpisodeByMapId(0x00), "Pioneer II EP1")
+        assertEquals(Episode.I, findEpisodeByMapId(0x01), "Forest 1")
+        assertEquals(Episode.II, findEpisodeByMapId(0x12), "Lab EP2")
+        assertEquals(Episode.II, findEpisodeByMapId(0x13), "VR Temple Alpha")
+        assertEquals(Episode.IV, findEpisodeByMapId(0x2D), "Pioneer II EP4")
+        assertEquals(Episode.IV, findEpisodeByMapId(0x24), "Crater Route 1")
     }
 
     companion object {

@@ -167,3 +167,19 @@ fun isBossArea(episode: Episode, areaId: Int): Boolean =
  * Check if area is Pioneer 2 (Episode I) or Lab (Episode II)
  */
 fun isPioneer2OrLab(areaId: Int): Boolean = areaId == 0
+
+/**
+ * Cache of all areas indexed by mapId for quick episode lookup.
+ */
+private val episodeByMapId: Map<Int, Episode> by lazy {
+    listOf(Episode.I, Episode.II, Episode.IV).flatMap { ep ->
+        getAreasForEpisode(ep).map { it.mapId to ep }
+    }.toMap()
+}
+
+/**
+ * Finds the episode that a map belongs to by its mapId.
+ * @param mapId The game-internal map ID
+ * @return The corresponding Episode or null if not found
+ */
+fun findEpisodeByMapId(mapId: Int): Episode? = episodeByMapId[mapId]

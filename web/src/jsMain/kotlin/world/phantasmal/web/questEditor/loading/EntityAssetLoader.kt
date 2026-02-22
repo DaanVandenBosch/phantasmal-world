@@ -78,9 +78,9 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
         val suffix =
             if (
                 type === ObjectType.FloatingRocks ||
-                (type === ObjectType.BigBrownRock && model == null)
+                type === ObjectType.BigBrownRock
             ) {
-                "-0"
+                "-${model ?: 0}"
             } else {
                 ""
             }
@@ -271,6 +271,8 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
                 ObjectType.FallingRock,
                 ObjectType.DesertFixedTypeBoxBreakableCrystals,
                 ObjectType.BeeHive,
+                ObjectType.LobbyPigeon,
+                ObjectType.ContainerJungEnemy,
                 -> GeomFormat.Nj
 
                 else -> GeomFormat.Xj
@@ -312,13 +314,37 @@ private fun entityTypeToPath(
                 NpcType.Migium,
                 NpcType.Hidoom,
                 NpcType.VolOptPart1,
+                NpcType.VolOptPart1Sub,
+                NpcType.VolOptCore,
+                NpcType.VolOptMonitor,
+                NpcType.VolOptHiraisin,
                 NpcType.DeathGunner,
+                NpcType.DarkGunnerCenter,
                 NpcType.StRappy,
                 NpcType.HalloRappy,
                 NpcType.EggRappy,
                 NpcType.Migium2,
                 NpcType.Hidoom2,
                 NpcType.Recon,
+                // Player class NPCs use .rel format, not .nj
+                NpcType.NpcHUmar,
+                NpcType.NpcHUnewearl,
+                NpcType.NpcRAmar,
+                NpcType.NpcRAcast,
+                NpcType.NpcRAcaseal,
+                NpcType.NpcFOmarl,
+                NpcType.NpcFOnewm,
+                NpcType.NpcFOnewearl,
+                NpcType.NpcHUnewearl2,
+                NpcType.NpcHUcast,
+                NpcType.NpcRAmar2,
+                NpcType.NpcFOmarl2,
+                NpcType.NpcFOnewm2,
+                NpcType.NpcFOnewearl2,
+                NpcType.NpcEnemy,
+                NpcType.NpcLappy,
+                NpcType.NpcMoja,
+                NpcType.NpcBringer,
                 -> null
 
                 // Episode II VR Temple
@@ -471,6 +497,12 @@ private fun entityTypeToPath(
                 ObjectType.Heat,
                 ObjectType.TopOfSaintMillionEgg,
                 ObjectType.Ep4BossRockSpawner,
+                ObjectType.UnknownItem16,
+                ObjectType.Battery,
+                ObjectType.LobbyGameMenu,
+                ObjectType.GBAStation,
+                ObjectType.UnknownItem832,
+                ObjectType.UnknownItem833,
                 -> null
 
                 else -> {

@@ -30,8 +30,15 @@ class AssetLoader(
     suspend fun loadArrayBuffer(path: String): ArrayBuffer =
         get(path).arrayBuffer().await()
 
-    private suspend fun get(path: String): Response =
-        window.fetch("$origin$basePath$path").await()
+    private suspend fun get(path: String): Response {
+        val response = window.fetch("$origin$basePath$path").await()
+
+        if (!response.ok) {
+            throw Exception("Failed to load $path: ${response.status} ${response.statusText}")
+        }
+
+        return response
+    }
 
     companion object {
         fun defaultBasePath(): String {

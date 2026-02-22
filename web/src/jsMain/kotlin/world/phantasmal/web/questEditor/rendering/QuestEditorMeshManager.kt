@@ -24,11 +24,12 @@ class QuestEditorMeshManager(
             if (quest != null && area != null) {
                 if (areaVariant != null) {
                     // Load the specific variant
-                    loadAreaMeshes(quest.episode, areaVariant)
+                    // Use variant's episode to handle cross-episode maps (e.g., EP4 quest using EP2 Lab)
+                    loadAreaMeshes(areaVariant.episode, areaVariant)
                 } else {
                     // For areas without variants (like Lab, Pioneer2), load the default variant
                     val defaultVariant = area.areaVariants.firstOrNull()
-                    loadAreaMeshes(quest.episode, defaultVariant)
+                    loadAreaMeshes(defaultVariant?.episode ?: quest.episode, defaultVariant)
                 }
             } else {
                 loadAreaMeshes(null, null)
