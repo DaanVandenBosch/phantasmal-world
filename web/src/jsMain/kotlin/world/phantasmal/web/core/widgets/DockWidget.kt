@@ -282,6 +282,10 @@ class DockWidget(
                 .pw-core-dock {
                     overflow: hidden;
                 }
+
+                #pw-root .lm_maximised {
+                    background-color: var(--pw-bg-color);
+                }
                 
                 #pw-root .lm_header {
                     box-sizing: border-box;
