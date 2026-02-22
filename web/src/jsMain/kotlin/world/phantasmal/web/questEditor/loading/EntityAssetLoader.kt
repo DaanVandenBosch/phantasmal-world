@@ -267,6 +267,7 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
                 NpcType.NpcFOmarl2,
                 NpcType.NpcFOnewm2,
                 NpcType.NpcFOnewearl2,
+                NpcType.Rupika, // Redirects to NpcFOnewearl (.rel)
                 -> GeomFormat.Rel
 
                 else -> GeomFormat.Nj
@@ -333,8 +334,11 @@ private fun entityTypeToPath(
                 // We don't have a model for these NPCs.
                 NpcType.Unknown,
                 NpcType.NpcEnemy,
-                NpcType.Rupika,
                 -> null
+
+                // Rupika is FOnewearl, share her model.
+                NpcType.Rupika ->
+                    entityTypeToPath(NpcType.NpcFOnewearl, assetType, suffix, model, geomFormat)
 
                 // Friendly NPC versions of enemies share enemy models.
                 NpcType.NpcLappy ->
