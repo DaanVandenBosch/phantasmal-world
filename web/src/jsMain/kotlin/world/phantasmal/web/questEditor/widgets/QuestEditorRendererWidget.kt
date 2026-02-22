@@ -420,14 +420,6 @@ class QuestEditorRendererWidget(
                     flex-direction: column;
                     gap: 4px;
                     z-index: 1000;
-                    transform: translateX(calc(100% - 28px));
-                    transition: transform 0.25s ease-out, opacity 0.25s ease-out;
-                    opacity: 0.7;
-                }
-
-                .pw-quest-editor-overlay-panels:hover {
-                    transform: translateX(0);
-                    opacity: 1;
                 }
 
                 .pw-quest-editor-overlay-panel {
@@ -436,6 +428,14 @@ class QuestEditorRendererWidget(
                     min-width: 200px;
                     max-width: 260px;
                     border-left: 3px solid hsl(210, 70%, 55%);
+                    transform: translateX(calc(100% - 28px));
+                    transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+                    opacity: 0.7;
+                }
+
+                .pw-quest-editor-overlay-panel:hover {
+                    transform: translateX(0);
+                    opacity: 1;
                 }
 
                 .pw-quest-editor-overlay-panel-header {
