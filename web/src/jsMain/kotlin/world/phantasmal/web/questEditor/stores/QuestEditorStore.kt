@@ -252,9 +252,11 @@ class QuestEditorStore(
                 val floor0Mapping = quest.floorMappings.find { it.floorId == 0 }
                 if (floor0Mapping != null) {
                     // Set currentArea to match the floor 0 mapping
-                    _currentArea.value = areaStore.getArea(quest.episode, floor0Mapping.areaId)
+                    // Use mapEpisode to handle cross-episode maps (e.g., EP4 quest using EP2 Lab)
+                    val mapEp = floor0Mapping.mapEpisode ?: quest.episode
+                    _currentArea.value = areaStore.getArea(mapEp, floor0Mapping.areaId)
                     // Return the corresponding variant
-                    areaStore.getVariant(quest.episode, floor0Mapping.areaId, floor0Mapping.variantId)
+                    areaStore.getVariant(mapEp, floor0Mapping.areaId, floor0Mapping.variantId)
                 } else {
                     // Fallback: if no floor 0 mapping, find the first area variant with entities
                     val areaWithEntities = quest.areaVariants.value.find { variant ->
@@ -321,7 +323,7 @@ class QuestEditorStore(
         window.setTimeout({
             currentQuest.value?.let { quest ->
                 currentAreaVariant.value?.let { areaVariant ->
-                    requestSectionLoading(quest.episode, areaVariant)
+                    requestSectionLoading(areaVariant.episode, areaVariant)
                 }
             }
         }, 50)
@@ -480,8 +482,10 @@ class QuestEditorStore(
 
                     if (floorMapping != null) {
                         // Use the floor mapping to set BOTH area and variant correctly
-                        val newArea = areaStore.getArea(quest.episode, floorMapping.areaId)
-                        val newVariant = areaStore.getVariant(quest.episode, floorMapping.areaId, floorMapping.variantId)
+                        // Use mapEpisode to handle cross-episode maps
+                        val mapEp = floorMapping.mapEpisode ?: quest.episode
+                        val newArea = areaStore.getArea(mapEp, floorMapping.areaId)
+                        val newVariant = areaStore.getVariant(mapEp, floorMapping.areaId, floorMapping.variantId)
 
                         _currentArea.value = newArea
                         _currentAreaVariant.value = newVariant
@@ -601,7 +605,7 @@ class QuestEditorStore(
             }
 
             for (variant in variants) {
-                val section = areaStore.getLoadedSections(quest.episode, variant)
+                val section = areaStore.getLoadedSections(variant.episode, variant)
                     ?.find { it.id == sectionId }
 
                 if (section != null) {
@@ -785,7 +789,7 @@ class QuestEditorStore(
 
     private suspend fun updateQuestEntitySections(quest: QuestModel) {
         quest.areaVariants.value.forEach { variant ->
-            val sections = areaStore.getSections(quest.episode, variant)
+            val sections = areaStore.getSections(variant.episode, variant)
             variant.setSections(sections)
             setSectionOnQuestEntities(quest.npcs.value, variant, sections)
             setSectionOnQuestEntities(quest.objects.value, variant, sections)

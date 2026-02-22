@@ -128,7 +128,7 @@ class QuestModel(
 
         if (floorMappings.isNotEmpty()) {
             for (mapping in floorMappings) {
-                getVariant(episode, mapping.areaId, mapping.variantId)?.let { variant ->
+                getVariant(mapping.mapEpisode ?: episode, mapping.areaId, mapping.variantId)?.let { variant ->
                     variants[mapping.floorId] = variant
                 }
             }
