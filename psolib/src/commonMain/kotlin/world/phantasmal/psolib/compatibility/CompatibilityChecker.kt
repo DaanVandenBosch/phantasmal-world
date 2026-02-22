@@ -412,8 +412,8 @@ class CompatibilityChecker(
             }
 
             else -> {
-                // Get subtype from unknow7 field (data offset 52)
-                val subtype = npc.data.getInt(52)
+                // Get subtype from rotation.x field (data offset 32)
+                val subtype = npc.data.getInt(32)
                 when {
                     subtype > 15 -> {
                         builder.addError(

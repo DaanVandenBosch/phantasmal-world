@@ -48,7 +48,11 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         0x030 -> NpcType.NpcFOmarl2
         0x031 -> NpcType.NpcFOnewm2
         0x032 -> NpcType.NpcFOnewearl2
-        0x033 -> NpcType.NpcEnemy
+        0x033 -> {
+            val subtype = npc.data.getInt(32)
+            val mapId = getMapId(episode.ordinal, areaId)
+            resolveStageNpc(mapId, subtype) ?: NpcType.NpcEnemy
+        }
         0x045 -> NpcType.NpcLappy
         0x046 -> NpcType.NpcMoja
         0x040 -> when (skin % 2) {
