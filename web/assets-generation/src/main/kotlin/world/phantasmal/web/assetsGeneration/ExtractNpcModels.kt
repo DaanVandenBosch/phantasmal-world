@@ -29,19 +29,23 @@ private data class BmlModelMapping(
 )
 
 /**
+ * Mapping for extracting animation (.njm) files from BML archives.
+ */
+private data class BmlAnimMapping(
+    val gslEntryName: String,
+    /** Index of the animation entry within the BML archive. */
+    val bmlEntryIndex: Int,
+    /** Output filename (e.g. "PanArms_wait.njm"). */
+    val outputFilename: String,
+)
+
+/**
  * Known mappings from data.gsl BML entries to NpcType names.
  *
  * These were determined by inspecting the GSL entry listing and parsing each BML to see internal
  * entry names. BML files bundle PRS-compressed model (.nj/.xj) and texture (.xvm) data.
  */
 private val MODEL_MAPPINGS = listOf(
-    // PanArms split forms — inside bm4_ps_ma_body.bml (ps_ma = PanArms)
-    // [0] ps_ma_body = PanArms (combined), [1] ps_ma_tail = PanArms tail
-    // [2] ps_mar_body = PanArms red variant, [3] ps_mar_tail = PanArms red tail
-    // [4] ps_mb_body = Migium (blue split), [5] ps_mbr_body = Hidoom (red split)
-    BmlModelMapping("bm4_ps_ma_body.bml", 4, "Migium"),
-    BmlModelMapping("bm4_ps_ma_body.bml", 5, "Hidoom"),
-
     // Recobox spawned enemy — inside the Recobox BML
     // [0] me7_all.nj = Recon (frog-like robot creature released by Recobox)
     // [1] me7_box_all.nj = Recobox (box form)
@@ -72,6 +76,21 @@ private val MODEL_MAPPINGS = listOf(
     BmlModelMapping("bm_boss3_volopt.bml", 19, "VolOptCore"),
     BmlModelMapping("bm_boss3_volopt.bml", 1, "VolOptMonitor", geomExtension = "xj"),
     BmlModelMapping("bm_boss3_volopt.bml", 16, "VolOptHiraisin"),
+)
+
+/**
+ * Animation mappings. BML animation entries contain only model data (PRS-compressed NJM),
+ * no texture data.
+ */
+private val ANIM_MAPPINGS = listOf(
+    // PanArms animations (bone animations for ps_ma_body skeleton)
+    BmlAnimMapping("bm4_ps_ma_body.bml", 7, "PanArms_apper.njm"),
+    BmlAnimMapping("bm4_ps_ma_body.bml", 8, "PanArms_atack.njm"),
+    BmlAnimMapping("bm4_ps_ma_body.bml", 9, "PanArms_damage.njm"),
+    BmlAnimMapping("bm4_ps_ma_body.bml", 10, "PanArms_kie.njm"),
+    BmlAnimMapping("bm4_ps_ma_body.bml", 14, "PanArms_nodam.njm"),
+    BmlAnimMapping("bm4_ps_ma_body.bml", 16, "PanArms_wait2.njm"),
+    BmlAnimMapping("bm4_ps_ma_body.bml", 17, "PanArms_wait.njm"),
 )
 
 /**
@@ -182,5 +201,43 @@ fun main(args: Array<String>) {
         }
     }
 
-    logger.info { "Done. Extracted $extracted model(s), $failed failure(s)." }
+    // Extract animations from BML archives.
+    val animMappingsByGslEntry = ANIM_MAPPINGS.groupBy { it.gslEntryName }
+
+    for ((gslEntryName, mappings) in animMappingsByGslEntry) {
+        val gslEntry = gslEntryByName[gslEntryName]
+
+        if (gslEntry == null) {
+            logger.warn { "GSL entry '$gslEntryName' not found in data.gsl — skipping ${mappings.size} animation(s)" }
+            failed += mappings.size
+            continue
+        }
+
+        logger.info { "Parsing BML for animations: $gslEntryName..." }
+        val bmlEntries = parseBml(gslEntry.data.cursor()).unwrap()
+
+        for (mapping in mappings) {
+            if (mapping.bmlEntryIndex >= bmlEntries.size) {
+                logger.warn { "  BML entry index ${mapping.bmlEntryIndex} out of range — skipping ${mapping.outputFilename}" }
+                failed++
+                continue
+            }
+
+            val bmlEntry = bmlEntries[mapping.bmlEntryIndex]
+            logger.info { "  Extracting ${mapping.outputFilename} from BML entry [${mapping.bmlEntryIndex}] '${bmlEntry.name}'..." }
+
+            try {
+                val animBytes = tryDecompress(bmlEntry.data)
+                val animFile = File(outputDir, mapping.outputFilename)
+                animFile.writeBytes(animBytes)
+                logger.info { "    Wrote ${animFile.name} (${animBytes.size} bytes)" }
+                extracted++
+            } catch (e: Exception) {
+                logger.error(e) { "  Failed to extract ${mapping.outputFilename}" }
+                failed++
+            }
+        }
+    }
+
+    logger.info { "Done. Extracted $extracted model(s) and animation(s), $failed failure(s)." }
 }
