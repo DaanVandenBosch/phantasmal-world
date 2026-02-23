@@ -474,8 +474,8 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setShort(4, 28167)
             data.setShort(6, 11)
             data.setFloat(40, 0f) // Color
-            data.setFloat(44, 8f) // Collision width
-            data.setFloat(48, 25f) // Collision depth
+            data.setFloat(44, 8f) // Collision depth (transverse to lasers)
+            data.setFloat(48, 25f) // Collision width (parallel to lasers)
             data.setInt(64, -526061696)
         }
 

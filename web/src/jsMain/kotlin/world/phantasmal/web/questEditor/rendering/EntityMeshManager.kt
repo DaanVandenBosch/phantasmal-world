@@ -533,8 +533,8 @@ class EntityMeshManager(
      * Creates and displays a collision rectangle for a LaserFenceEx or LaserSquareFenceEx entity.
      */
     private fun createCollisionRectForEntity(entity: QuestObjectModel) {
-        val widthProp = entity.properties.value.find { it.name == "Collision width" }
         val depthProp = entity.properties.value.find { it.name == "Collision depth" }
+        val widthProp = entity.properties.value.find { it.name == "Collision width" }
         if (widthProp == null || depthProp == null) return
 
         val width = widthProp.value.value as? Float ?: return

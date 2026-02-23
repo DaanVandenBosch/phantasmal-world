@@ -1007,8 +1007,8 @@ enum class ObjectType(
         typeId = 150,
         properties = listOf(
             EntityProp(name = "Color", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Collision width", offset = 44, type = EntityPropType.F32),
-            EntityProp(name = "Collision depth", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Collision depth", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Collision width", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
             EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
@@ -1019,8 +1019,8 @@ enum class ObjectType(
         typeId = 151,
         properties = listOf(
             EntityProp(name = "Color", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Collision width", offset = 44, type = EntityPropType.F32),
-            EntityProp(name = "Collision depth", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Collision depth", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Collision width", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
             EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
