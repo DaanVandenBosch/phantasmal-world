@@ -8,7 +8,7 @@ import world.phantasmal.webui.dom.ul
 import world.phantasmal.webui.widgets.Widget
 
 class SelectionWidget<T>(
-    private val items: List<T>,
+    private val items: Cell<List<T>>,
     private val selected: Cell<T?>,
     private val onSelect: (T) -> Unit,
     private val itemToString: (T) -> String,
@@ -22,15 +22,22 @@ class SelectionWidget<T>(
                 style.borderLeft = "var(--pw-border)"
             }
 
-            for (item in items) {
-                li {
+            bindDisposableChildrenTo(items) { item, _ ->
+                val activeCell = selected eq item
+
+                val node = li {
                     className = "pw-viewer-selection-item"
                     textContent = itemToString(item)
-
-                    toggleClass("pw-active", selected eq item)
-
+                    if (activeCell.value) classList.add("pw-active")
                     onclick = { onSelect(item) }
                 }
+
+                val disposable = activeCell.observeChange {
+                    if (it.value) node.classList.add("pw-active")
+                    else node.classList.remove("pw-active")
+                }
+
+                Pair(node, disposable)
             }
         }
 
