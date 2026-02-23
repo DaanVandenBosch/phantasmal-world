@@ -40,8 +40,6 @@ sealed class ViewerModel {
             NpcType.PalShark,
             NpcType.GuilShark,
             NpcType.PanArms,
-            NpcType.Migium,
-            NpcType.Hidoom,
             NpcType.Dubchic,
             NpcType.Gilchic,
             NpcType.Garanz,

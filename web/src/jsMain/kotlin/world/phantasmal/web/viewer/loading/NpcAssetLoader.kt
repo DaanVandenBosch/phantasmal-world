@@ -28,7 +28,15 @@ class NpcAssetLoader(private val assetLoader: AssetLoader) : DisposableContainer
 
     private suspend fun loadGeometry(npcType: NpcType): NinjaObject<*, *> {
         val buffer = assetLoader.loadArrayBuffer("/npcs/${npcType.name}.nj")
-        return parseNj(buffer.cursor(Endianness.Little)).unwrap().first()
+        val objects = parseNj(buffer.cursor(Endianness.Little)).unwrap()
+        val root = objects.first()
+        root.evaluationFlags.breakChildTrace = false
+
+        for (obj in objects.drop(1)) {
+            root.addChild(obj)
+        }
+
+        return root
     }
 
     private suspend fun loadTextures(npcType: NpcType): List<XvrTexture> {
@@ -63,6 +71,8 @@ class NpcAssetLoader(private val assetLoader: AssetLoader) : DisposableContainer
             NpcType.DarkGunner to "DarkGunnerCenter",
             NpcType.Bulclaw to "Bulk",
             NpcType.Claw to "Bulk",
+            NpcType.PofuillySlime to "PanArms",
+            NpcType.PouillySlime to "PanArms",
             NpcType.Dimenian to "SoDimenian",
             NpcType.LaDimenian to "SoDimenian",
             // EP2
@@ -133,6 +143,7 @@ class NpcAssetLoader(private val assetLoader: AssetLoader) : DisposableContainer
             "NanoDragon" to listOf("beam", "damfly", "damgrd", "deadg", "deads", "fly", "joy", "land", "lasfly", "lift", "wait", "walk"),
             "NarLily" to listOf("attack", "damege", "die", "laugh", "waitc", "waito", "wake"),
             "PalShark" to listOf("appear", "atackl", "atackr", "damage", "dead", "deadb", "leader", "mihari", "run", "stund", "wakeup", "walk"),
+            "PanArms" to listOf("apper", "atack", "damage", "kie", "nodam", "wait", "wait2"),
             "PoisonLily" to listOf("attack", "damege", "die", "laugh", "waitc", "waito", "wake"),
             "RagRappy" to listOf("attack", "damage", "die", "run", "tumble", "wait", "wait2", "wake", "wake2", "walk"),
             "Recon" to listOf("attack", "b", "close", "damage", "dethpose", "open", "start", "wait"),
