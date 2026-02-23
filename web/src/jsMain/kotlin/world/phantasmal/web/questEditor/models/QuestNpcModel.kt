@@ -10,6 +10,22 @@ import world.phantasmal.web.externals.three.Vector3
 class QuestNpcModel(npc: QuestNpc, waveId: Int) : QuestEntityModel<NpcType, QuestNpc>(npc) {
     private val _waveId = mutableCell(waveId)
 
+    /**
+     * Whether this NPC is a StageNPC (typeId=0x33).
+     *
+     * StageNPC is a single NPC type that maps to many different monsters via subtype (character ID).
+     * Its Y position in quest data differs from regular NPCs of the same monster type (e.g.,
+     * StageNPC GiGue y=-15 vs regular GiGue y=0~3.8), because the game engine handles StageNPC
+     * positioning differently. We ignore the data Y and use section ground height + yOffset instead.
+     */
+    private val isStageNpc: Boolean = npc.typeId.toInt() == 0x33
+
+    /**
+     * Y offset precomputed at construction time based on the resolved NPC type.
+     * For StageNPC, the type is resolved from the NPC51 table via subtype/character ID.
+     */
+    private val yOffset: Double = computeYOffset(type)
+
     val wave: Cell<WaveModel> = map(_waveId, sectionId) { id, sectionId ->
         WaveModel(id, areaId, sectionId)
     }
@@ -22,30 +38,19 @@ class QuestNpcModel(npc: QuestNpc, waveId: Int) : QuestEntityModel<NpcType, Ques
 
     override val worldPosition: Cell<Vector3> =
         map(super.worldPosition, _spawnOnGround, section) { basePos, spawnOnGround, section ->
-            val adjustedPos = if (spawnOnGround && section != null) {
-                // Calculate the actual ground height for this position
+            if (isStageNpc && section != null) {
+                // StageNPC Y values in quest data are not usable for editor display — they differ
+                // significantly from regular NPCs of the same monster type (e.g., GiGue: -15 vs 0).
+                // Use section ground height + monster-specific yOffset for correct placement.
                 val groundY = calculateGroundHeight(basePos.x, basePos.z, section)
-                Vector3(basePos.x, groundY, basePos.z)
+                Vector3(basePos.x, groundY + yOffset, basePos.z)
+            } else if (spawnOnGround && section != null) {
+                val groundY = calculateGroundHeight(basePos.x, basePos.z, section)
+                Vector3(basePos.x, groundY + yOffset, basePos.z)
+            } else if (yOffset != 0.0) {
+                Vector3(basePos.x, basePos.y + yOffset, basePos.z)
             } else {
                 basePos
-            }
-
-            // Apply entity-specific Y offset adjustments
-            val yOffset = when (type) {
-                NpcType.Epsilon -> 20.0  // Epsilon appears too low, raise by 20 units
-                NpcType.GiGue -> 25.0    // Gigue appears too low, raise by 25 units
-                NpcType.Bulclaw -> 25.0    // Bulclaw appears too low, raise by 25 units
-                NpcType.Claw -> 10.0    // Claw appears too low, raise by 25 units
-                NpcType.ChaosSorcerer -> 25.0    // ChaosSorcerer appears too low, raise by 25 units
-                NpcType.ChaosSorcerer2 -> 25.0    // ChaosSorcerer(EP2) appears too low, raise by 25 units
-                // Add more entity-specific Y offsets here as needed
-                else -> 0.0
-            }
-
-            if (yOffset != 0.0) {
-                Vector3(adjustedPos.x, adjustedPos.y + yOffset, adjustedPos.z)
-            } else {
-                adjustedPos
             }
         }
 
@@ -67,6 +72,20 @@ class QuestNpcModel(npc: QuestNpc, waveId: Int) : QuestEntityModel<NpcType, Ques
 
         fun setGroundHeightCalculator(calculator: ((x: Double, z: Double, section: SectionModel) -> Double)?) {
             _groundHeightCalculator = calculator
+        }
+
+        /**
+         * Compute the Y offset for a given NPC type.
+         * Certain monster types need to be raised to avoid appearing partially underground.
+         */
+        private fun computeYOffset(npcType: NpcType): Double = when (npcType) {
+            NpcType.Epsilon -> 20.0
+            NpcType.GiGue -> 25.0
+            NpcType.Bulclaw -> 25.0
+            NpcType.Claw -> 10.0
+            NpcType.ChaosSorcerer -> 25.0
+            NpcType.ChaosSorcerer2 -> 25.0
+            else -> 0.0
         }
     }
 }
