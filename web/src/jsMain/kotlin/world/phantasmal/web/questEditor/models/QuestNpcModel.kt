@@ -80,6 +80,7 @@ class QuestNpcModel(npc: QuestNpc, waveId: Int) : QuestEntityModel<NpcType, Ques
          */
         private fun computeYOffset(npcType: NpcType): Double = when (npcType) {
             NpcType.Epsilon -> 20.0
+            NpcType.Recon -> 10.0
             NpcType.GiGue -> 25.0
             NpcType.Bulclaw -> 25.0
             NpcType.Claw -> 10.0
