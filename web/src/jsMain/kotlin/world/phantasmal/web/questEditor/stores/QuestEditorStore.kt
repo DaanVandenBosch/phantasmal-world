@@ -289,6 +289,15 @@ class QuestEditorStore(
 
             // Trigger section loading for dropdown immediately after quest is loaded
             _sectionsUpdated.value += 1
+
+            // Auto-select the section closest to the origin for the initial area.
+            if (firstAreaVariant != null) {
+                val sections = areaStore.getLoadedSections(quest.episode, firstAreaVariant)
+                if (sections != null && sections.isNotEmpty()) {
+                    val origin = Vector3(0.0, 0.0, 0.0)
+                    _selectedSection.value = sections.minByOrNull { it.position.distanceTo(origin) }
+                }
+            }
         }
     }
 
@@ -698,9 +707,16 @@ class QuestEditorStore(
     fun requestSectionLoading(episode: Episode, areaVariant: AreaVariantModel) {
         scope.launch {
             try {
-                areaStore.getSections(episode, areaVariant)
+                val sections = areaStore.getSections(episode, areaVariant)
                 // Trigger UI update by incrementing the counter
                 _sectionsUpdated.value += 1
+
+                // Auto-select the section closest to the origin if none is selected.
+                if (_selectedSection.value == null && sections.isNotEmpty()) {
+                    val origin = Vector3(0.0, 0.0, 0.0)
+                    val closest = sections.minByOrNull { it.position.distanceTo(origin) }
+                    _selectedSection.value = closest
+                }
             } catch (e: Exception) {
                 logger.warn(e) { "Error loading sections for area variant ${areaVariant.id}" }
             }
