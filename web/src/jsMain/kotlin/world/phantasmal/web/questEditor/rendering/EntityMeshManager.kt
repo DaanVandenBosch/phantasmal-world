@@ -586,12 +586,14 @@ class EntityMeshManager(
     ) {
         val position = entity.worldPosition.value
         val rotation = entity.rotation.value
+        // In the renderer, the first param maps to X axis and the second to Z axis.
+        // Per qedit: offset 44 (depth) → X axis, offset 48 (width) → Z axis.
         val rect = collisionRectRenderer.createCollisionRect(
             position.x.toFloat(),
             position.y.toFloat(),
             position.z.toFloat(),
-            width,
             depth,
+            width,
             rotation.y.toFloat(),
         )
         renderContext.helpers.add(rect)

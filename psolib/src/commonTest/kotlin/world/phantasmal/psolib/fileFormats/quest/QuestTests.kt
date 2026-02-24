@@ -266,7 +266,7 @@ class QuestTests : LibTestSuite {
         val newMapDesignations = newQuest.floorMappings
             .groupBy { it.areaId }
             .mapValues { (_, mappings) -> mappings.map { it.variantId }.toSet() }
-        assertDeepEquals(origMapDesignations, newMapDesignations, ::assertEquals)
+        assertEquals(origMapDesignations, newMapDesignations)
         assertDeepEquals(origQuest.bytecodeIr, newQuest.bytecodeIr, ignoreSrcLocs = true)
     }
 
