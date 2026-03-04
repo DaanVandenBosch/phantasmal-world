@@ -42,27 +42,44 @@ fun parseBinDatToQuest(
     binCursor: Cursor,
     datCursor: Cursor,
     lenient: Boolean = false,
+    compressed: Boolean = true,
 ): PwResult<Quest> {
     val result = PwResult.build<Quest>(logger)
 
     // Decompress and parse files.
-    val binDecompressed = prsDecompress(binCursor)
-    result.addResult(binDecompressed)
+    val binData: Cursor
 
-    if (binDecompressed !is Success) {
-        return result.failure()
+    if (compressed) {
+        val binDecompressed = prsDecompress(binCursor)
+        result.addResult(binDecompressed)
+
+        if (binDecompressed !is Success) {
+            return result.failure()
+        }
+
+        binData = binDecompressed.value
+    } else {
+        binData = binCursor
     }
 
-    val bin = parseBin(binDecompressed.value)
+    val bin = parseBin(binData)
 
-    val datDecompressed = prsDecompress(datCursor)
-    result.addResult(datDecompressed)
+    val datData: Cursor
 
-    if (datDecompressed !is Success) {
-        return result.failure()
+    if (compressed) {
+        val datDecompressed = prsDecompress(datCursor)
+        result.addResult(datDecompressed)
+
+        if (datDecompressed !is Success) {
+            return result.failure()
+        }
+
+        datData = datDecompressed.value
+    } else {
+        datData = datCursor
     }
 
-    val dat = parseDat(datDecompressed.value)
+    val dat = parseDat(datData)
     val objects = dat.objs.mapTo(mutableListOf()) { QuestObject(it.areaId, it.data) }
     // Initialize NPCs with random episode and correct it later.
     val npcs = dat.npcs.mapTo(mutableListOf()) { QuestNpc(Episode.I, it.areaId, it.data) }
