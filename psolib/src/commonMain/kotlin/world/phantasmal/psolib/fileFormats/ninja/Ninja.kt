@@ -6,6 +6,7 @@ import world.phantasmal.core.Success
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.fileFormats.Vec3
 import world.phantasmal.psolib.fileFormats.parseIff
+import world.phantasmal.psolib.fileFormats.parseRel
 import world.phantasmal.psolib.fileFormats.vec3Float
 
 private const val NJCM: Int = 0x4D434A4E
@@ -18,6 +19,20 @@ fun parseXj(cursor: Cursor): PwResult<List<XjObject>> =
 
 fun parseXjObject(cursor: Cursor): List<XjObject> =
     parseSiblingObjects(cursor, { c, _ -> parseXjModel(c) }, ::XjObject, Unit)
+
+/**
+ * Parses NJ chunk models from a .rel container file.
+ * The .rel footer contains a pointer to the root NJS_OBJECT.
+ */
+fun parseRelNj(cursor: Cursor): PwResult<List<NjObject>> {
+    val rel = parseRel(cursor, parseIndex = false)
+    // dataOffset points to a table whose first entry is the root NJS_OBJECT offset.
+    cursor.seekStart(rel.dataOffset)
+    val rootObjectOffset = cursor.int()
+    cursor.seekStart(rootObjectOffset)
+    val objects = parseSiblingObjects(cursor, ::parseNjModel, ::NjObject, mutableMapOf())
+    return Success(objects)
+}
 
 private typealias CreateObject<Model, Obj> = (
     offset: Int,

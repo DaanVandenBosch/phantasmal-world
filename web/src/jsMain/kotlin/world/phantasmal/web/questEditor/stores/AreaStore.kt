@@ -10,13 +10,13 @@ import world.phantasmal.psolib.fileFormats.quest.getAreasForEpisode as getAreasF
 
 class AreaStore(private val areaAssetLoader: AreaAssetLoader) : Store() {
     private val areas: Map<Episode, List<AreaModel>> =
-        Episode.values().associate { episode ->
-            episode to getAreasForEpisodeLib(episode).map { area ->
+        Episode.entries.associateWith { episode ->
+            getAreasForEpisodeLib(episode).map { area ->
                 val variants = mutableListOf<AreaVariantModel>()
-                val areaModel = AreaModel(area.id, area.name, area.order, variants)
+                val areaModel = AreaModel(area.id, area.name, area.bossArea, area.order, variants)
 
                 area.areaVariants.forEach { variant ->
-                    variants.add(AreaVariantModel(variant.id, areaModel))
+                    variants.add(AreaVariantModel(variant.id, areaModel, episode))
                 }
 
                 areaModel

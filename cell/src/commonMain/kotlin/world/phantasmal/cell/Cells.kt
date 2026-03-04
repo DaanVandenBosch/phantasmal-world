@@ -180,6 +180,20 @@ fun <T1, T2, T3, R> map(
 ): Cell<R> =
     DependentCell(c1, c2, c3) { transform(c1.value, c2.value, c3.value) }
 
+/**
+ * Map a transformation function over 4 cells.
+ *
+ * @param transform called whenever [c1], [c2], [c3] or [c4] changes
+ */
+fun <T1, T2, T3, T4, R> map(
+    c1: Cell<T1>,
+    c2: Cell<T2>,
+    c3: Cell<T3>,
+    c4: Cell<T4>,
+    transform: (T1, T2, T3, T4) -> R,
+): Cell<R> =
+    DependentCell(c1, c2, c3, c4) { transform(c1.value, c2.value, c3.value, c4.value) }
+
 fun <T> Cell<Cell<T>>.flatten(): Cell<T> =
     FlatteningDependentCell(this) { this.value }
 

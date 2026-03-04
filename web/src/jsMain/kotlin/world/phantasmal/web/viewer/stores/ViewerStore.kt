@@ -25,8 +25,10 @@ import world.phantasmal.web.shared.dto.SectionId
 import world.phantasmal.web.viewer.ViewerUrls
 import world.phantasmal.web.viewer.loading.AnimationAssetLoader
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
+import world.phantasmal.web.viewer.loading.NpcAssetLoader
 import world.phantasmal.web.viewer.models.AnimationModel
 import world.phantasmal.web.viewer.models.CharacterClass
+import world.phantasmal.web.viewer.models.ViewerModel
 import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
@@ -39,6 +41,7 @@ sealed class NinjaGeometry {
 
 class ViewerStore(
     private val characterClassAssetLoader: CharacterClassAssetLoader,
+    private val npcAssetLoader: NpcAssetLoader,
     private val animationAssetLoader: AnimationAssetLoader,
     uiStore: UiStore,
 ) : Store() {
@@ -48,15 +51,18 @@ class ViewerStore(
     private val _currentNinjaMotion = mutableCell<NjMotion?>(null)
 
     // High-level concepts.
-    private val _currentCharacterClass =
-        mutableCell<CharacterClass?>(CharacterClass.VALUES.random())
+    private val _currentModel =
+        mutableCell<ViewerModel?>(ViewerModel.Character(CharacterClass.VALUES.random()))
     private val _currentSectionId = mutableCell(SectionId.VALUES.random())
     private val _currentBody =
-        mutableCell((0 until _currentCharacterClass.value!!.bodyStyleCount).random())
+        mutableCell(
+            (0 until ((_currentModel.value as? ViewerModel.Character)
+                ?.characterClass?.bodyStyleCount ?: 1)).random()
+        )
     private val _currentAnimation = mutableCell<AnimationModel?>(null)
 
     // Params.
-    private val characterClassParams = mutableListOf<Param>()
+    private val modelParams = mutableListOf<Param>()
     private val sectionIdParams = mutableListOf<Param>()
     private val bodyParams = mutableListOf<Param>()
 
@@ -73,14 +79,24 @@ class ViewerStore(
     val currentNinjaMotion: Cell<NjMotion?> = _currentNinjaMotion
 
     // High-level concepts.
-    val currentCharacterClass: Cell<CharacterClass?> = _currentCharacterClass
+    val currentModel: Cell<ViewerModel?> = _currentModel
+    val currentCharacterClass: Cell<CharacterClass?> = _currentModel.map {
+        (it as? ViewerModel.Character)?.characterClass
+    }
     val currentSectionId: Cell<SectionId> = _currentSectionId
     val currentBody: Cell<Int> = _currentBody
-    val animations: List<AnimationModel> = (0 until 572).map {
+    private val playerAnimations: List<AnimationModel> = (0 until 572).map {
         AnimationModel(
             "Animation ${it + 1}",
             "/player/animation/animation_${it.toString().padStart(3, '0')}.njm",
         )
+    }
+    val animations: Cell<List<AnimationModel>> = _currentModel.map { model ->
+        when (model) {
+            is ViewerModel.Character -> playerAnimations
+            is ViewerModel.Npc -> NpcAssetLoader.getAnimations(model.npcType)
+            null -> emptyList()
+        }
     }
     val currentAnimation: Cell<AnimationModel?> = _currentAnimation
 
@@ -99,21 +115,21 @@ class ViewerStore(
 
     init {
         for (path in listOf(ViewerUrls.mesh, ViewerUrls.texture)) {
-            val characterClassParam = addDisposable(
+            val modelParam = addDisposable(
                 uiStore.registerParameter(
                     PwToolType.Viewer,
                     path,
                     MODEL_PARAM,
                     onChange = { newValue ->
                         scope.launch {
-                            setCurrentCharacterClass(
-                                CharacterClass.VALUES.find { it.slug == newValue },
+                            setCurrentModel(
+                                newValue?.let { ViewerModel.findBySlug(it) },
                             )
                         }
                     },
                 ),
             )
-            characterClassParams.add(characterClassParam)
+            modelParams.add(modelParam)
 
             val sectionIdParam = addDisposable(
                 uiStore.registerParameter(
@@ -150,15 +166,18 @@ class ViewerStore(
             if (uiStore.currentTool.value == PwToolType.Viewer &&
                 uiStore.path.value == path
             ) {
-                CharacterClass.VALUES.find { it.slug == characterClassParam.value }?.let {
-                    _currentCharacterClass.value = it
+                modelParam.value?.let { paramValue ->
+                    ViewerModel.findBySlug(paramValue)?.let {
+                        _currentModel.value = it
+                    }
                 }
 
                 sectionIdParam.value?.let { enumValueOfOrNull<SectionId>(it) }?.let {
                     _currentSectionId.value = it
                 }
 
-                val maxBody = _currentCharacterClass.value?.bodyStyleCount ?: 1
+                val maxBody = (_currentModel.value as? ViewerModel.Character)
+                    ?.characterClass?.bodyStyleCount ?: 1
                 bodyParam.value?.toIntOrNull()?.let {
                     _currentBody.value = clamp(it, 1, maxBody) - 1
                 }
@@ -166,19 +185,19 @@ class ViewerStore(
         }
 
         // Initialize parameters from settings.
-        setCurrentCharacterClassValue(_currentCharacterClass.value)
+        setCurrentModelValue(_currentModel.value)
         setCurrentSectionIdValue(_currentSectionId.value)
         setCurrentBodyValue(_currentBody.value)
 
         scope.launch {
-            loadCharacterClassNinjaObject(clearAnimation = true)
+            loadCurrentModel(clearAnimation = true)
         }
     }
 
     fun setCurrentNinjaGeometry(geometry: NinjaGeometry?) {
         mutate {
-            if (_currentCharacterClass.value != null) {
-                setCurrentCharacterClassValue(null)
+            if (_currentModel.value != null) {
+                setCurrentModelValue(null)
                 _currentTextures.clear()
             }
 
@@ -192,16 +211,24 @@ class ViewerStore(
         _currentTextures.replaceAll(textures)
     }
 
-    suspend fun setCurrentCharacterClass(char: CharacterClass?) {
-        val clearAnimation = _currentCharacterClass.value == null
+    suspend fun setCurrentModel(model: ViewerModel?) {
+        val prevWasCharacter = _currentModel.value is ViewerModel.Character
+        val newIsCharacter = model is ViewerModel.Character
 
-        setCurrentCharacterClassValue(char)
+        // Only preserve animation when switching between character classes.
+        val clearAnimation = !(prevWasCharacter && newIsCharacter)
 
-        if (char != null && _currentBody.value >= char.bodyStyleCount) {
-            setCurrentBodyValue(char.bodyStyleCount - 1)
+        setCurrentModelValue(model)
+
+        if (model is ViewerModel.Character) {
+            val char = model.characterClass
+
+            if (_currentBody.value >= char.bodyStyleCount) {
+                setCurrentBodyValue(char.bodyStyleCount - 1)
+            }
         }
 
-        loadCharacterClassNinjaObject(clearAnimation)
+        loadCurrentModel(clearAnimation)
     }
 
     suspend fun setCurrentSectionId(sectionId: SectionId) {
@@ -257,6 +284,24 @@ class ViewerStore(
         }
     }
 
+    private suspend fun loadCurrentModel(clearAnimation: Boolean) {
+        when (_currentModel.value) {
+            is ViewerModel.Character -> loadCharacterClassNinjaObject(clearAnimation)
+            is ViewerModel.Npc -> loadNpcNinjaObject(clearAnimation)
+            null -> {
+                mutate {
+                    _currentNinjaGeometry.value = null
+                    _currentTextures.clear()
+
+                    if (clearAnimation) {
+                        _currentAnimation.value = null
+                        _currentNinjaMotion.value = null
+                    }
+                }
+            }
+        }
+    }
+
     private suspend fun loadCharacterClassNinjaObject(clearAnimation: Boolean) {
         val char = currentCharacterClass.value
             ?: return
@@ -288,6 +333,35 @@ class ViewerStore(
         }
     }
 
+    private suspend fun loadNpcNinjaObject(clearAnimation: Boolean) {
+        val model = _currentModel.value as? ViewerModel.Npc ?: return
+        val npcType = model.npcType
+
+        try {
+            val ninjaObject = npcAssetLoader.loadNinjaObject(npcType)
+            val textures = npcAssetLoader.loadXvrTextures(npcType)
+
+            mutate {
+                if (clearAnimation) {
+                    _currentAnimation.value = null
+                    _currentNinjaMotion.value = null
+                }
+
+                _currentNinjaGeometry.value = NinjaGeometry.Object(ninjaObject)
+                _currentTextures.replaceAll(textures)
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Couldn't load Ninja model for ${npcType.uniqueName}." }
+
+            mutate {
+                _currentAnimation.value = null
+                _currentNinjaMotion.value = null
+                _currentNinjaGeometry.value = null
+                _currentTextures.clear()
+            }
+        }
+    }
+
     private suspend fun loadAnimation(animation: AnimationModel) {
         try {
             val ninjaMotion = animationAssetLoader.loadAnimation(animation.filePath)
@@ -305,11 +379,11 @@ class ViewerStore(
         }
     }
 
-    private fun setCurrentCharacterClassValue(char: CharacterClass?) {
-        _currentCharacterClass.value = char
+    private fun setCurrentModelValue(model: ViewerModel?) {
+        _currentModel.value = model
 
-        for (param in characterClassParams) {
-            param.set(char?.slug)
+        for (param in modelParams) {
+            param.set(model?.slug)
         }
     }
 

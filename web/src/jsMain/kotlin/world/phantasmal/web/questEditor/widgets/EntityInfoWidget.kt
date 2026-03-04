@@ -3,19 +3,16 @@ package world.phantasmal.web.questEditor.widgets
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.cell
 import world.phantasmal.cell.mutableCell
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.web.core.widgets.UnavailableWidget
 import world.phantasmal.web.questEditor.controllers.EntityInfoController
 import world.phantasmal.web.questEditor.controllers.EntityInfoPropModel
 import world.phantasmal.webui.dom.*
-import world.phantasmal.webui.widgets.Button
-import world.phantasmal.webui.widgets.DoubleInput
-import world.phantasmal.webui.widgets.IntInput
-import world.phantasmal.webui.widgets.Widget
+import world.phantasmal.webui.widgets.*
 
 class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled = ctrl.enabled) {
     override fun Node.createElement() =
@@ -28,6 +25,10 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
             table {
                 hidden(ctrl.unavailable)
 
+                tr {
+                    th { textContent = "ID:" }
+                    td { text(ctrl.id) }
+                }
                 tr {
                     th { textContent = "Type:" }
                     td { text(ctrl.type) }
@@ -133,6 +134,43 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
 
     private fun Node.createPropRow(prop: EntityInfoPropModel): Pair<Node, Disposable> {
         val disposer = Disposer()
+
+        // Use a Select widget for Color properties on fence types.
+        val colorSelect = when (prop) {
+            is EntityInfoPropModel.I32 -> prop.colorOptions?.let { options ->
+                disposer.add(
+                    Select(
+                        enabled = ctrl.enabled,
+                        label = prop.label,
+                        items = cell(options),
+                        selected = prop.selectedColor,
+                        onSelect = { option -> prop.setValue(option.value) },
+                    )
+                )
+            }
+
+            is EntityInfoPropModel.F32 -> prop.colorOptions?.let { options ->
+                disposer.add(
+                    Select(
+                        enabled = ctrl.enabled,
+                        label = prop.label,
+                        items = cell(options),
+                        selected = prop.selectedColor,
+                        onSelect = { option -> prop.setValue(option.value.toDouble()) },
+                    )
+                )
+            }
+
+            else -> null
+        }
+
+        if (colorSelect != null) {
+            val node = tr {
+                th { addWidget(disposer.add(colorSelect.label!!), addToDisposer = false) }
+                td { addWidget(colorSelect, addToDisposer = false) }
+            }
+            return Pair(node, disposer)
+        }
 
         val input = disposer.add(
             when (prop) {

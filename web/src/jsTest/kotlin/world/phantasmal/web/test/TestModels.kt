@@ -17,7 +17,7 @@ fun WebTestContext.createQuestModel(
     shortDescription: String = name,
     longDescription: String = name,
     episode: Episode = Episode.I,
-    mapDesignations: Map<Int, Int> = emptyMap(),
+    mapDesignations: Map<Int, Set<Int>> = emptyMap(),
     npcs: List<QuestNpcModel> = emptyList(),
     objects: List<QuestObjectModel> = emptyList(),
     events: List<QuestEventModel> = emptyList(),
@@ -35,8 +35,12 @@ fun WebTestContext.createQuestModel(
         objects.toMutableList(),
         events.toMutableList(),
         datUnknowns = emptyList(),
+        cmRandomSpawns = mutableListOf(),
+        cmMonsterMappings = mutableListOf(),
+        cmConfigPool = mutableListOf(),
         bytecodeIr,
         UIntArray(0),
+        emptyList(),
         components.areaStore::getVariant,
     )
 

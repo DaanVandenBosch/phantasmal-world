@@ -465,8 +465,11 @@ private fun writeFileHeaders(
     }
 
     for (file in files) {
-        require(file.id == null || (file.id in 0..maxId)) {
-            "Quest ID should be between 0 and $maxId, inclusive."
+        if (file.id != null && file.id !in 0..maxId) {
+            logger.warn {
+                "Quest ID ${file.id} is outside the valid range 0-$maxId for ${version} quests. " +
+                        "It will be truncated to ${file.id and maxId}."
+            }
         }
         require(file.questName == null || file.questName.length <= maxQuestNameLength) {
             "File ${file.filename} has a quest name longer than $maxQuestNameLength characters (${file.questName})."

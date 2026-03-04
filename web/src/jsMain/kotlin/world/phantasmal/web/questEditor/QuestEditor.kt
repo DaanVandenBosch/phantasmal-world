@@ -75,6 +75,10 @@ class QuestEditor(
         val objectListController =
             addDisposable(EntityListController(questEditorStore, npcs = false))
         val eventsController = addDisposable(EventsController(questEditorStore))
+        val areaNpcListController = addDisposable(AreaNpcListController(questEditorStore))
+        val areaObjectListController = addDisposable(AreaObjectListController(questEditorStore))
+        val monsterRandomnessController = addDisposable(MonsterRandomnessController(questEditorStore))
+        val compatibilityController = addDisposable(CompatibilityController(questEditorStore, asmStore))
 
         // Rendering
         val renderer = addDisposable(
@@ -82,6 +86,7 @@ class QuestEditor(
                 areaAssetLoader,
                 entityAssetLoader,
                 questEditorStore,
+                areaStore,
                 createThreeRenderer,
             )
         )
@@ -102,14 +107,24 @@ class QuestEditor(
         // Main Widget
         return QuestEditorWidget(
             questEditorController,
-            { QuestEditorToolbarWidget(toolbarController) },
+            { QuestEditorToolbarWidget(toolbarController, compatibilityController) },
             { QuestInfoWidget(questInfoController) },
             { NpcCountsWidget(npcCountsController) },
             { EntityInfoWidget(entityInfoController) },
-            { QuestEditorRendererWidget(renderer) },
+            {
+                QuestEditorRendererWidget(
+                    renderer,
+                    questEditorStore.mouseWorldPosition,
+                    questEditorStore.playbackActionText,
+                    questEditorStore,
+                    monsterRandomnessController,
+                    areaNpcListController,
+                    areaObjectListController,
+                )
+            },
             { AsmWidget(asmController) },
-            { EntityListWidget(npcListController, entityImageRenderer) },
-            { EntityListWidget(objectListController, entityImageRenderer) },
+            { EntityListWidget(npcListController, entityImageRenderer, questEditorStore, isNpcList = true) },
+            { EntityListWidget(objectListController, entityImageRenderer, questEditorStore, isNpcList = false) },
             { EventsWidget(eventsController) },
         )
     }

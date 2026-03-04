@@ -97,6 +97,14 @@ fun <T1, T2, R> flatMapToList(
 ): ListCell<R> =
     FlatteningDependentListCell(c1, c2) { transform(c1.value, c2.value) }
 
+fun <T1, T2, T3, R> flatMapToList(
+    c1: Cell<T1>,
+    c2: Cell<T2>,
+    c3: Cell<T3>,
+    transform: (T1, T2, T3) -> ListCell<R>,
+): ListCell<R> =
+    FlatteningDependentListCell(c1, c2, c3) { transform(c1.value, c2.value, c3.value) }
+
 fun listCellToString(cell: ListCell<*>): String =
     buildString {
         append(cell::class.simpleName)

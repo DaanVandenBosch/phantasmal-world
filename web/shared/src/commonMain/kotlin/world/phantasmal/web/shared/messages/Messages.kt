@@ -63,7 +63,7 @@ sealed class ServerMessage
 sealed class ServerNotification : ServerMessage() {
     @Serializable
     class MapDesignations(
-        val mapDesignations: Map<Int, Int>,
+        val mapDesignations: Map<Int, Set<Int>>,
     ) : ServerNotification()
 
     @Serializable

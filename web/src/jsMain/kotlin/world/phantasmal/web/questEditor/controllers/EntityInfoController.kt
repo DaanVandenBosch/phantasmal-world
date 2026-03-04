@@ -1,18 +1,14 @@
 package world.phantasmal.web.questEditor.controllers
 
-import world.phantasmal.core.math.degToRad
-import world.phantasmal.core.math.radToDeg
-import world.phantasmal.cell.Cell
-import world.phantasmal.cell.cell
-import world.phantasmal.cell.flatMap
-import world.phantasmal.cell.isNull
+import world.phantasmal.cell.*
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.emptyListCell
 import world.phantasmal.cell.list.flatMapToList
 import world.phantasmal.cell.list.listMap
-import world.phantasmal.cell.map
-import world.phantasmal.cell.zeroIntCell
+import world.phantasmal.core.math.degToRad
+import world.phantasmal.core.math.radToDeg
 import world.phantasmal.psolib.fileFormats.quest.EntityPropType
+import world.phantasmal.psolib.fileFormats.quest.ObjectType
 import world.phantasmal.web.core.euler
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3
@@ -20,6 +16,7 @@ import world.phantasmal.web.questEditor.commands.*
 import world.phantasmal.web.questEditor.models.QuestEntityModel
 import world.phantasmal.web.questEditor.models.QuestEntityPropModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
+import world.phantasmal.web.questEditor.models.QuestObjectModel
 import world.phantasmal.web.questEditor.stores.AreaStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
@@ -47,26 +44,68 @@ sealed class EntityInfoPropModel(
     class I32(store: QuestEditorStore, prop: QuestEntityPropModel) :
         EntityInfoPropModel(store, prop) {
 
+        /** Non-null when this property should render as a color select box. */
+        val colorOptions: List<ColorOption>? =
+            if (prop.name == "Color" && isFenceColorProp(store)) COLOR_OPTIONS else null
+
         @Suppress("UNCHECKED_CAST")
-        val value: Cell<Int> = prop.value as Cell<Int>
+        val value: Cell<Int> = if (prop.name == "Door ID" && isForestDoor(store)) {
+            (prop.value as Cell<Int>).map { doorId ->
+                if (doorId == -1) doorId else doorId and 0xFF
+            }
+        } else {
+            prop.value as Cell<Int>
+        }
+
+        val selectedColor: Cell<ColorOption?> =
+            if (colorOptions != null) {
+                value.map { v -> colorOptions.find { it.value == v } }
+            } else {
+                cell(null)
+            }
 
         val showGoToEvent: Boolean = prop.name == "Event ID"
 
         val canGoToEvent: Cell<Boolean> = store.canGoToEvent(value)
 
         fun setValue(value: Int) {
-            setPropValue(prop, value)
+            val actualValue = if (prop.name == "Door ID" && isForestDoor(store)) {
+                if (value == -1) value else {
+                    @Suppress("UNCHECKED_CAST")
+                    val originalValue = (prop.value as Cell<Int>).value
+                    (originalValue and 0xFF00) or (value and 0xFF)
+                }
+            } else {
+                value
+            }
+            setPropValue(prop, actualValue)
         }
 
         fun goToEvent() {
             store.goToEvent(value.value)
+        }
+
+        private fun isForestDoor(store: QuestEditorStore): Boolean {
+            val entity = store.selectedEntity.value
+            return entity is QuestObjectModel && entity.type == ObjectType.ForestDoor
         }
     }
 
     class F32(store: QuestEditorStore, prop: QuestEntityPropModel) :
         EntityInfoPropModel(store, prop) {
 
+        /** Non-null when this property should render as a color select box. */
+        val colorOptions: List<ColorOption>? =
+            if (prop.name == "Color" && isFenceColorProp(store)) COLOR_OPTIONS else null
+
         val value: Cell<Double> = prop.value.map { (it as Float).toDouble() }
+
+        val selectedColor: Cell<ColorOption?> =
+            if (colorOptions != null) {
+                value.map { v -> colorOptions.find { it.value == v.toInt() } }
+            } else {
+                cell(null)
+            }
 
         fun setValue(value: Double) {
             setPropValue(prop, value.toFloat())
@@ -82,6 +121,38 @@ sealed class EntityInfoPropModel(
             setPropValue(prop, degToRad(value).toFloat())
         }
     }
+
+    data class ColorOption(val value: Int, val name: String) {
+        override fun toString(): String = name
+    }
+
+    companion object {
+        val COLOR_OPTIONS = listOf(
+            ColorOption(0, "Orange"),
+            ColorOption(1, "Blue"),
+            ColorOption(2, "Green"),
+            ColorOption(3, "Purple"),
+        )
+
+        private val FENCE_COLOR_TYPES: Set<ObjectType> = setOf(
+            ObjectType.LaserFence,
+            ObjectType.LaserSquareFence,
+            ObjectType.LaserFenceEx,
+            ObjectType.LaserSquareFenceEx,
+            ObjectType.ForestSwitch,
+            ObjectType.ForestLaserFenceSwitch,
+            ObjectType.RuinsFenceSwitch,
+            ObjectType.RuinsLaserFence4x2,
+            ObjectType.RuinsLaserFence6x2,
+            ObjectType.RuinsLaserFence4x4,
+            ObjectType.RuinsLaserFence6x4,
+        )
+
+        private fun isFenceColorProp(store: QuestEditorStore): Boolean {
+            val entity = store.selectedEntity.value
+            return entity is QuestObjectModel && entity.type in FENCE_COLOR_TYPES
+        }
+    }
 }
 
 class EntityInfoController(
@@ -90,6 +161,14 @@ class EntityInfoController(
 ) : Controller() {
     val unavailable: Cell<Boolean> = questEditorStore.selectedEntity.isNull()
     val enabled: Cell<Boolean> = questEditorStore.questEditingEnabled
+
+    val id: Cell<String> = questEditorStore.selectedEntity.map {
+        when (it) {
+            is QuestNpcModel -> it.entity.typeId.toString()
+            is QuestObjectModel -> it.entity.typeId.toString()
+            else -> ""
+        }
+    }
 
     val type: Cell<String> = questEditorStore.selectedEntity.map {
         it?.let { if (it is QuestNpcModel) "NPC" else "Object" } ?: ""

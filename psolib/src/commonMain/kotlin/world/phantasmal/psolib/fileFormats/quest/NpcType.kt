@@ -10,12 +10,32 @@ private val FRIENDLY_NPC_PROPERTIES = listOf(
     EntityProp(name = "Movement flag", offset = 64, type = EntityPropType.I32)
 )
 
+private val ENEMY_PROPERTIES_6 = listOf(
+    EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+    EntityProp(name = "2", offset = 48, type = EntityPropType.F32),
+    EntityProp(name = "3", offset = 52, type = EntityPropType.F32),
+    EntityProp(name = "4", offset = 56, type = EntityPropType.F32),
+    EntityProp(name = "5", offset = 60, type = EntityPropType.F32),
+    EntityProp(name = "6", offset = 64, type = EntityPropType.I32),
+)
+
+private val ENEMY_PROPERTIES_SUBTYPE = listOf(
+    EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+    EntityProp(name = "2", offset = 48, type = EntityPropType.F32),
+    EntityProp(name = "3", offset = 52, type = EntityPropType.F32),
+    EntityProp(name = "4", offset = 56, type = EntityPropType.F32),
+    EntityProp(name = "5", offset = 60, type = EntityPropType.F32),
+    EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
+)
+
 enum class NpcType(
     override val uniqueName: String,
     override val simpleName: String = uniqueName,
     val ultimateName: String = simpleName,
     val episode: Episode? = null,
     val enemy: Boolean = false,
+    val minion: Boolean = false,
+    val boss: Boolean = false,
     rareType: (() -> NpcType)? = null,
     /**
      * IDs of the areas this NPC can be found in.
@@ -53,6 +73,30 @@ enum class NpcType(
     // Friendly NPCs
     //
 
+    FemaleBase(
+        uniqueName = "Female Base",
+        areaIds = listOf(0),
+        typeId = 1,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    FemaleChild(
+        uniqueName = "Female Child",
+        areaIds = listOf(0),
+        typeId = 2,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    FemaleDwarf(
+        uniqueName = "Female Dwarf",
+        areaIds = listOf(0),
+        typeId = 3,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
     FemaleFat(
         uniqueName = "Female Fat",
         areaIds = listOf(0),
@@ -69,10 +113,34 @@ enum class NpcType(
         special = false,
         properties = FRIENDLY_NPC_PROPERTIES,
     ),
+    FemaleOld(
+        uniqueName = "Female Old",
+        areaIds = listOf(0),
+        typeId = 6,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
     FemaleTall(
         uniqueName = "Female Tall",
         areaIds = listOf(0),
         typeId = 7,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    MaleBase(
+        uniqueName = "Male Base",
+        areaIds = listOf(0),
+        typeId = 8,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    MaleChild(
+        uniqueName = "Male Child",
+        areaIds = listOf(0),
+        typeId = 9,
         skin = 0,
         special = false,
         properties = FRIENDLY_NPC_PROPERTIES,
@@ -105,6 +173,14 @@ enum class NpcType(
         uniqueName = "Male Old",
         areaIds = listOf(0),
         typeId = 13,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    MaleTall(
+        uniqueName = "Male Tall",
+        areaIds = listOf(0),
+        typeId = 14,
         skin = 0,
         special = false,
         properties = FRIENDLY_NPC_PROPERTIES,
@@ -173,10 +249,329 @@ enum class NpcType(
         special = false,
         properties = FRIENDLY_NPC_PROPERTIES,
     ),
+    NpcHUmar(
+        uniqueName = "NPC HUmar",
+        simpleName = "HUmar",
+        areaIds = listOf(0),
+        typeId = 33,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcHUnewearl(
+        uniqueName = "NPC HUnewearl",
+        simpleName = "HUnewearl",
+        areaIds = listOf(0),
+        typeId = 34,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcRAmar(
+        uniqueName = "NPC RAmar",
+        simpleName = "RAmar",
+        areaIds = listOf(0),
+        typeId = 36,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcRAcast(
+        uniqueName = "NPC RAcast",
+        simpleName = "RAcast",
+        areaIds = listOf(0),
+        typeId = 37,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcRAcaseal(
+        uniqueName = "NPC RAcaseal",
+        simpleName = "RAcaseal",
+        areaIds = listOf(0),
+        typeId = 38,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcFOmarl(
+        uniqueName = "NPC FOmarl",
+        simpleName = "FOmarl",
+        areaIds = listOf(0),
+        typeId = 39,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcFOnewm(
+        uniqueName = "NPC FOnewm",
+        simpleName = "FOnewm",
+        areaIds = listOf(0),
+        typeId = 40,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcFOnewearl(
+        uniqueName = "NPC FOnewearl",
+        simpleName = "FOnewearl",
+        areaIds = listOf(0),
+        typeId = 41,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcHUnewearl2(
+        uniqueName = "NPC HUnewearl 2",
+        simpleName = "HUnewearl",
+        areaIds = listOf(0),
+        typeId = 43,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcHUcast(
+        uniqueName = "NPC HUcast",
+        simpleName = "HUcast",
+        areaIds = listOf(0),
+        typeId = 44,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcRAmar2(
+        uniqueName = "NPC RAmar 2",
+        simpleName = "RAmar",
+        areaIds = listOf(0),
+        typeId = 45,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcFOmarl2(
+        uniqueName = "NPC FOmarl 2",
+        simpleName = "FOmarl",
+        areaIds = listOf(0),
+        typeId = 48,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcFOnewm2(
+        uniqueName = "NPC FOnewm 2",
+        simpleName = "FOnewm",
+        areaIds = listOf(0),
+        typeId = 49,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcFOnewearl2(
+        uniqueName = "NPC FOnewearl 2",
+        simpleName = "FOnewearl",
+        areaIds = listOf(0),
+        typeId = 50,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcEnemy(
+        uniqueName = "NPC Enemy",
+        areaIds = listOf(0),
+        typeId = 51,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcLappy(
+        uniqueName = "NPC Lappy",
+        areaIds = listOf(0),
+        typeId = 69,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcMoja(
+        uniqueName = "NPC Moja",
+        areaIds = listOf(0),
+        typeId = 70,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    NpcBringer(
+        uniqueName = "NPC Bringer",
+        areaIds = listOf(0),
+        typeId = 169,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Kenkyu(
+        uniqueName = "Lab Scientist (Ep. II)",
+        simpleName = "Lab Scientist",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 208,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Soutokufu(
+        uniqueName = "Commander (Ep. II)",
+        simpleName = "Commander",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 209,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Hosa(
+        uniqueName = "Assistant (Ep. II)",
+        simpleName = "Assistant",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 210,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    KenkyuFemale(
+        uniqueName = "Lab Scientist Female (Ep. II)",
+        simpleName = "Lab Scientist Female",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 211,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Hosa2(
+        uniqueName = "Assistant 2",
+        simpleName = "Assistant",
+        areaIds = listOf(0),
+        typeId = 240,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
     ItemShop(
         uniqueName = "Item Shop",
         areaIds = listOf(0),
         typeId = 241,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    DefaultFomar(
+        uniqueName = "Default FO'mar",
+        simpleName = "Default FO'mar",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 242,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Karen(
+        uniqueName = "Karen",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 243,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Leo(
+        uniqueName = "Leo",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 244,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Pagini(
+        uniqueName = "Pagini",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 245,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Unknown246(
+        uniqueName = "Unknown 246",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 246,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Nol(
+        uniqueName = "Nol",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 247,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Elly(
+        uniqueName = "Elly",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 248,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Unknown249(
+        uniqueName = "Unknown 249",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 249,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    ItemShop2(
+        uniqueName = "Item Shop (Ep. II)",
+        simpleName = "Item Shop",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 250,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    WeaponShop(
+        uniqueName = "Weapon Shop (Ep. II)",
+        simpleName = "Weapon Shop",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 251,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    SecurityGuard(
+        uniqueName = "Security Guard",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 252,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    HuntersGuild(
+        uniqueName = "Hunters Guild (Ep. II)",
+        simpleName = "Hunters Guild",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 253,
         skin = 0,
         special = false,
         properties = FRIENDLY_NPC_PROPERTIES,
@@ -187,6 +582,33 @@ enum class NpcType(
         episode = Episode.II,
         areaIds = listOf(0),
         typeId = 254,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Unknown255(
+        uniqueName = "Unknown 255",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 255,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Momoka(
+        uniqueName = "Momoka",
+        episode = Episode.II,
+        areaIds = listOf(0),
+        typeId = 256,
+        skin = 0,
+        special = false,
+        properties = FRIENDLY_NPC_PROPERTIES,
+    ),
+    Rupika(
+        uniqueName = "Rupika",
+        episode = Episode.IV,
+        areaIds = listOf(0),
+        typeId = 280,
         skin = 0,
         special = false,
         properties = FRIENDLY_NPC_PROPERTIES,
@@ -208,6 +630,7 @@ enum class NpcType(
         typeId = 64,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     Hildeblue(
         uniqueName = "Hildeblue",
@@ -218,6 +641,7 @@ enum class NpcType(
         typeId = 64,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     RagRappy(
         uniqueName = "Rag Rappy",
@@ -229,6 +653,7 @@ enum class NpcType(
         typeId = 65,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     AlRappy(
         uniqueName = "Al Rappy",
@@ -239,6 +664,7 @@ enum class NpcType(
         typeId = 65,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     Monest(
         uniqueName = "Monest",
@@ -260,6 +686,7 @@ enum class NpcType(
         ultimateName = "Mothvert",
         episode = Episode.I,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     SavageWolf(
@@ -271,7 +698,10 @@ enum class NpcType(
         typeId = 67,
         skin = 0,
         special = false,
-        properties = listOf(EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32)),
+        properties = listOf(
+            EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Leader flag", offset = 48, type = EntityPropType.F32),
+        ),
     ),
     BarbarousWolf(
         uniqueName = "Barbarous Wolf",
@@ -282,7 +712,10 @@ enum class NpcType(
         typeId = 67,
         skin = 0,
         special = true,
-        properties = listOf(EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32)),
+        properties = listOf(
+            EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Leader flag", offset = 48, type = EntityPropType.F32),
+        ),
     ),
     Booma(
         uniqueName = "Booma",
@@ -294,7 +727,9 @@ enum class NpcType(
         skin = 0,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     Gobooma(
@@ -307,7 +742,9 @@ enum class NpcType(
         skin = 1,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     Gigobooma(
@@ -320,7 +757,9 @@ enum class NpcType(
         skin = 2,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     Dragon(
@@ -328,10 +767,12 @@ enum class NpcType(
         ultimateName = "Sil Dragon",
         episode = Episode.I,
         enemy = true,
+        boss = true,
         areaIds = listOf(11),
         typeId = 192,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
 
     // Episode I Caves
@@ -345,6 +786,7 @@ enum class NpcType(
         typeId = 96,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     PoisonLily(
         uniqueName = "Poison Lily",
@@ -376,7 +818,12 @@ enum class NpcType(
         skin = 0,
         special = false,
         properties = listOf(
-            EntityProp(name = "Spawn flag", offset = 64, type = EntityPropType.I32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "5", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Spawn Flag", offset = 64, type = EntityPropType.I32),
         ),
     ),
     EvilShark(
@@ -389,7 +836,9 @@ enum class NpcType(
         skin = 0,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     PalShark(
@@ -402,7 +851,9 @@ enum class NpcType(
         skin = 1,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     GuilShark(
@@ -415,7 +866,9 @@ enum class NpcType(
         skin = 2,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     PofuillySlime(
@@ -427,6 +880,7 @@ enum class NpcType(
         typeId = 100,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     PouillySlime(
         uniqueName = "Pouilly Slime",
@@ -436,6 +890,7 @@ enum class NpcType(
         typeId = 100,
         skin = 0,
         special = true,
+        properties = ENEMY_PROPERTIES_6,
     ),
     PanArms(
         uniqueName = "Pan Arms",
@@ -445,17 +900,20 @@ enum class NpcType(
         typeId = 101,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Migium(
         uniqueName = "Migium",
         episode = Episode.I,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     Hidoom(
         uniqueName = "Hidoom",
         episode = Episode.I,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     DeRolLe(
@@ -463,10 +921,12 @@ enum class NpcType(
         ultimateName = "Dal Ra Lie",
         episode = Episode.I,
         enemy = true,
+        boss = true,
         areaIds = listOf(12),
         typeId = 193,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
 
     // Episode I Mines
@@ -480,6 +940,7 @@ enum class NpcType(
         typeId = 128,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Gilchic(
         uniqueName = "Gilchic",
@@ -490,6 +951,7 @@ enum class NpcType(
         typeId = 128,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Garanz(
         uniqueName = "Garanz",
@@ -500,6 +962,7 @@ enum class NpcType(
         typeId = 129,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     SinowBeat(
         uniqueName = "Sinow Beat",
@@ -511,7 +974,12 @@ enum class NpcType(
         skin = 0,
         special = false,
         properties = listOf(
-            EntityProp(name = "Invisible", offset = 44, type = EntityPropType.F32)
+            EntityProp(name = "Invisible", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "5", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "6", offset = 64, type = EntityPropType.I32),
         ),
     ),
     SinowGold(
@@ -524,7 +992,12 @@ enum class NpcType(
         skin = 0,
         special = true,
         properties = listOf(
-            EntityProp(name = "Invisible", offset = 44, type = EntityPropType.F32)
+            EntityProp(name = "Invisible", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "5", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "6", offset = 64, type = EntityPropType.I32),
         ),
     ),
     Canadine(
@@ -536,6 +1009,7 @@ enum class NpcType(
         typeId = 131,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Canane(
         uniqueName = "Canane",
@@ -546,6 +1020,7 @@ enum class NpcType(
         typeId = 132,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Dubswitch(
         uniqueName = "Dubswitch",
@@ -555,6 +1030,7 @@ enum class NpcType(
         typeId = 133,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     VolOptPart1(
         uniqueName = "Vol Opt (Part 1)",
@@ -562,8 +1038,34 @@ enum class NpcType(
         ultimateName = "Vol Opt ver.2",
         episode = Episode.I,
         enemy = true,
+        boss = true,
         areaIds = listOf(13),
         typeId = 194,
+        skin = 0,
+        special = false,
+        properties = ENEMY_PROPERTIES_6,
+    ),
+    VolOptPart1Sub(
+        uniqueName = "Vol Opt (Part 1 Sub)",
+        simpleName = "Vol Opt",
+        ultimateName = "Vol Opt ver.2",
+        episode = Episode.I,
+        enemy = true,
+        boss = true,
+        areaIds = listOf(13),
+        typeId = 195,
+        skin = 0,
+        special = false,
+    ),
+    VolOptCore(
+        uniqueName = "Vol Opt (Core)",
+        simpleName = "Vol Opt",
+        ultimateName = "Vol Opt ver.2",
+        episode = Episode.I,
+        enemy = true,
+        boss = true,
+        areaIds = listOf(13),
+        typeId = 196,
         skin = 0,
         special = false,
     ),
@@ -573,8 +1075,34 @@ enum class NpcType(
         ultimateName = "Vol Opt ver.2",
         episode = Episode.I,
         enemy = true,
+        boss = true,
         areaIds = listOf(13),
         typeId = 197,
+        skin = 0,
+        special = false,
+        properties = ENEMY_PROPERTIES_6,
+    ),
+    VolOptMonitor(
+        uniqueName = "Vol Opt (Monitor)",
+        simpleName = "Vol Opt",
+        ultimateName = "Vol Opt ver.2",
+        episode = Episode.I,
+        enemy = true,
+        boss = true,
+        areaIds = listOf(13),
+        typeId = 198,
+        skin = 0,
+        special = false,
+    ),
+    VolOptHiraisin(
+        uniqueName = "Vol Opt (Lightning)",
+        simpleName = "Vol Opt",
+        ultimateName = "Vol Opt ver.2",
+        episode = Episode.I,
+        enemy = true,
+        boss = true,
+        areaIds = listOf(13),
+        typeId = 199,
         skin = 0,
         special = false,
     ),
@@ -603,6 +1131,7 @@ enum class NpcType(
         typeId = 161,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     DarkGunner(
         uniqueName = "Dark Gunner",
@@ -612,11 +1141,23 @@ enum class NpcType(
         typeId = 162,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
+    ),
+    DarkGunnerCenter(
+        uniqueName = "Dark Gunner Center",
+        episode = Episode.I,
+        enemy = true,
+        minion = true,
+        areaIds = listOf(8, 9, 10),
+        typeId = 163,
+        skin = 0,
+        special = false,
     ),
     DeathGunner(
         uniqueName = "Death Gunner",
         episode = Episode.I,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     ChaosBringer(
@@ -628,6 +1169,7 @@ enum class NpcType(
         typeId = 164,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     DarkBelra(
         uniqueName = "Dark Belra",
@@ -638,6 +1180,7 @@ enum class NpcType(
         typeId = 165,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Dimenian(
         uniqueName = "Dimenian",
@@ -649,7 +1192,12 @@ enum class NpcType(
         skin = 0,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     LaDimenian(
@@ -662,7 +1210,12 @@ enum class NpcType(
         skin = 1,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     SoDimenian(
@@ -675,7 +1228,12 @@ enum class NpcType(
         skin = 2,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     Bulclaw(
@@ -686,11 +1244,13 @@ enum class NpcType(
         typeId = 167,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Bulk(
         uniqueName = "Bulk",
         episode = Episode.I,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     Claw(
@@ -701,15 +1261,18 @@ enum class NpcType(
         typeId = 168,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     DarkFalz(
         uniqueName = "Dark Falz",
         episode = Episode.I,
         enemy = true,
+        boss = true,
         areaIds = listOf(14),
         typeId = 200,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
 
     // Episode II VR Temple
@@ -725,6 +1288,7 @@ enum class NpcType(
         typeId = 64,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     Hildeblue2(
         uniqueName = "Hildeblue (Ep. II)",
@@ -736,6 +1300,7 @@ enum class NpcType(
         typeId = 64,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     RagRappy2(
         uniqueName = "Rag Rappy (Ep. II)",
@@ -748,6 +1313,7 @@ enum class NpcType(
         typeId = 65,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     LoveRappy(
         uniqueName = "Love Rappy",
@@ -757,23 +1323,27 @@ enum class NpcType(
         typeId = 65,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     StRappy(
         uniqueName = "St. Rappy",
         episode = Episode.II,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     HalloRappy(
         uniqueName = "Hallo Rappy",
         episode = Episode.II,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     EggRappy(
         uniqueName = "Egg Rappy",
         episode = Episode.II,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     Monest2(
@@ -797,6 +1367,7 @@ enum class NpcType(
         ultimateName = "Mothvert",
         episode = Episode.II,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     PoisonLily2(
@@ -832,6 +1403,7 @@ enum class NpcType(
         typeId = 96,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Dimenian2(
         uniqueName = "Dimenian (Ep. II)",
@@ -844,7 +1416,12 @@ enum class NpcType(
         skin = 0,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     LaDimenian2(
@@ -858,7 +1435,12 @@ enum class NpcType(
         skin = 1,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     SoDimenian2(
@@ -872,7 +1454,12 @@ enum class NpcType(
         skin = 2,
         special = false,
         properties = listOf(
-            EntityProp(name = "Idle distance", offset = 48, type = EntityPropType.F32)
+            EntityProp(name = "1", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Idle Distance", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "2", offset = 52, type = EntityPropType.F32),
+            EntityProp(name = "3", offset = 56, type = EntityPropType.F32),
+            EntityProp(name = "4", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     DarkBelra2(
@@ -885,15 +1472,18 @@ enum class NpcType(
         typeId = 165,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     BarbaRay(
         uniqueName = "Barba Ray",
         episode = Episode.II,
         enemy = true,
+        boss = true,
         areaIds = listOf(14),
         typeId = 203,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
 
     // Episode II VR Spaceship
@@ -908,7 +1498,10 @@ enum class NpcType(
         typeId = 67,
         skin = 0,
         special = false,
-        properties = listOf(EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32)),
+        properties = listOf(
+            EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Leader flag", offset = 48, type = EntityPropType.F32),
+        ),
     ),
     BarbarousWolf2(
         uniqueName = "Barbarous Wolf (Ep. II)",
@@ -920,7 +1513,10 @@ enum class NpcType(
         typeId = 67,
         skin = 0,
         special = true,
-        properties = listOf(EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32)),
+        properties = listOf(
+            EntityProp(name = "Group ID", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Leader flag", offset = 48, type = EntityPropType.F32),
+        ),
     ),
     PanArms2(
         uniqueName = "Pan Arms (Ep. II)",
@@ -931,12 +1527,14 @@ enum class NpcType(
         typeId = 101,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Migium2(
         uniqueName = "Migium (Ep. II)",
         simpleName = "Migium",
         episode = Episode.II,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     Hidoom2(
@@ -944,6 +1542,7 @@ enum class NpcType(
         simpleName = "Hidoom",
         episode = Episode.II,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     Dubchic2(
@@ -956,6 +1555,7 @@ enum class NpcType(
         typeId = 128,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Gilchic2(
         uniqueName = "Gilchic (Ep. II)",
@@ -967,6 +1567,7 @@ enum class NpcType(
         typeId = 128,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Garanz2(
         uniqueName = "Garanz (Ep. II)",
@@ -978,6 +1579,7 @@ enum class NpcType(
         typeId = 129,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Dubswitch2(
         uniqueName = "Dubswitch (Ep. II)",
@@ -988,6 +1590,7 @@ enum class NpcType(
         typeId = 133,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Delsaber2(
         uniqueName = "Delsaber (Ep. II)",
@@ -1013,15 +1616,18 @@ enum class NpcType(
         typeId = 161,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     GolDragon(
         uniqueName = "Gol Dragon",
         episode = Episode.II,
         enemy = true,
+        boss = true,
         areaIds = listOf(15),
         typeId = 204,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
 
     // Episode II Central Control Area
@@ -1034,6 +1640,7 @@ enum class NpcType(
         typeId = 212,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     SinowSpigell(
         uniqueName = "Sinow Spigell",
@@ -1043,6 +1650,7 @@ enum class NpcType(
         typeId = 212,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Merillia(
         uniqueName = "Merillia",
@@ -1052,6 +1660,7 @@ enum class NpcType(
         typeId = 213,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Meriltas(
         uniqueName = "Meriltas",
@@ -1061,6 +1670,7 @@ enum class NpcType(
         typeId = 213,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Mericarol(
         uniqueName = "Mericarol",
@@ -1070,6 +1680,7 @@ enum class NpcType(
         typeId = 214,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Merikle(
         uniqueName = "Merikle",
@@ -1079,6 +1690,7 @@ enum class NpcType(
         typeId = 214,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Mericus(
         uniqueName = "Mericus",
@@ -1088,6 +1700,7 @@ enum class NpcType(
         typeId = 214,
         skin = 2,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     UlGibbon(
         uniqueName = "Ul Gibbon",
@@ -1102,7 +1715,8 @@ enum class NpcType(
             EntityProp(name = "Jump appear", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Back jump", offset = 52, type = EntityPropType.F32),
             EntityProp(name = "Run tech", offset = 56, type = EntityPropType.F32),
-            EntityProp(name = "Back tech", offset = 60, type = EntityPropType.F32)
+            EntityProp(name = "Back tech", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     ZolGibbon(
@@ -1118,7 +1732,8 @@ enum class NpcType(
             EntityProp(name = "Jump appear", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Back jump", offset = 52, type = EntityPropType.F32),
             EntityProp(name = "Run tech", offset = 56, type = EntityPropType.F32),
-            EntityProp(name = "Back tech", offset = 60, type = EntityPropType.F32)
+            EntityProp(name = "Back tech", offset = 60, type = EntityPropType.F32),
+            EntityProp(name = "Subtype", offset = 64, type = EntityPropType.I32),
         ),
     ),
     Gibbles(
@@ -1129,6 +1744,7 @@ enum class NpcType(
         typeId = 216,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Gee(
         uniqueName = "Gee",
@@ -1138,6 +1754,7 @@ enum class NpcType(
         typeId = 217,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     GiGue(
         uniqueName = "Gi Gue",
@@ -1147,6 +1764,7 @@ enum class NpcType(
         typeId = 218,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     IllGill(
         uniqueName = "Ill Gill",
@@ -1156,6 +1774,7 @@ enum class NpcType(
         typeId = 225,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     DelLily(
         uniqueName = "Del Lily",
@@ -1174,15 +1793,18 @@ enum class NpcType(
         typeId = 224,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     GalGryphon(
         uniqueName = "Gal Gryphon",
         episode = Episode.II,
         enemy = true,
+        boss = true,
         areaIds = listOf(12),
         typeId = 192,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
 
     // Episode II Seabed
@@ -1195,6 +1817,7 @@ enum class NpcType(
         typeId = 219,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Delbiter(
         uniqueName = "Delbiter",
@@ -1221,6 +1844,7 @@ enum class NpcType(
         typeId = 221,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Dolmdarl(
         uniqueName = "Dolmdarl",
@@ -1230,6 +1854,7 @@ enum class NpcType(
         typeId = 221,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Morfos(
         uniqueName = "Morfos",
@@ -1239,6 +1864,7 @@ enum class NpcType(
         typeId = 222,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Recobox(
         uniqueName = "Recobox",
@@ -1248,11 +1874,13 @@ enum class NpcType(
         typeId = 223,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Recon(
         uniqueName = "Recon",
         episode = Episode.II,
         enemy = true,
+        minion = true,
         areaIds = listOf(),
     ),
     SinowZoa(
@@ -1263,6 +1891,7 @@ enum class NpcType(
         typeId = 224,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     SinowZele(
         uniqueName = "Sinow Zele",
@@ -1272,15 +1901,18 @@ enum class NpcType(
         typeId = 224,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     OlgaFlow(
         uniqueName = "Olga Flow",
         episode = Episode.II,
         enemy = true,
+        boss = true,
         areaIds = listOf(13),
         typeId = 202,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
 
     // Episode IV
@@ -1294,6 +1926,7 @@ enum class NpcType(
         typeId = 65,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     DelRappy(
         uniqueName = "Del Rappy",
@@ -1303,6 +1936,7 @@ enum class NpcType(
         typeId = 65,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_SUBTYPE,
     ),
     Astark(
         uniqueName = "Astark",
@@ -1312,6 +1946,7 @@ enum class NpcType(
         typeId = 272,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     SatelliteLizard(
         uniqueName = "Satellite Lizard",
@@ -1321,6 +1956,7 @@ enum class NpcType(
         typeId = 273,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Yowie(
         uniqueName = "Yowie",
@@ -1330,6 +1966,7 @@ enum class NpcType(
         typeId = 273,
         skin = 0,
         special = true,
+        properties = ENEMY_PROPERTIES_6,
     ),
     MerissaA(
         uniqueName = "Merissa A",
@@ -1340,6 +1977,7 @@ enum class NpcType(
         typeId = 274,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     MerissaAA(
         uniqueName = "Merissa AA",
@@ -1349,6 +1987,7 @@ enum class NpcType(
         typeId = 274,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Girtablulu(
         uniqueName = "Girtablulu",
@@ -1358,6 +1997,7 @@ enum class NpcType(
         typeId = 275,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Zu(
         uniqueName = "Zu",
@@ -1368,6 +2008,7 @@ enum class NpcType(
         typeId = 276,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Pazuzu(
         uniqueName = "Pazuzu",
@@ -1377,6 +2018,7 @@ enum class NpcType(
         typeId = 276,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Boota(
         uniqueName = "Boota",
@@ -1386,6 +2028,7 @@ enum class NpcType(
         typeId = 277,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     ZeBoota(
         uniqueName = "Ze Boota",
@@ -1395,6 +2038,7 @@ enum class NpcType(
         typeId = 277,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     BaBoota(
         uniqueName = "Ba Boota",
@@ -1404,6 +2048,7 @@ enum class NpcType(
         typeId = 277,
         skin = 2,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Dorphon(
         uniqueName = "Dorphon",
@@ -1414,6 +2059,7 @@ enum class NpcType(
         typeId = 278,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     DorphonEclair(
         uniqueName = "Dorphon Eclair",
@@ -1423,6 +2069,7 @@ enum class NpcType(
         typeId = 278,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Goran(
         uniqueName = "Goran",
@@ -1432,6 +2079,7 @@ enum class NpcType(
         typeId = 279,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     PyroGoran(
         uniqueName = "Pyro Goran",
@@ -1441,6 +2089,7 @@ enum class NpcType(
         typeId = 279,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     GoranDetonator(
         uniqueName = "Goran Detonator",
@@ -1450,35 +2099,42 @@ enum class NpcType(
         typeId = 279,
         skin = 2,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     SaintMilion(
         uniqueName = "Saint-Milion",
         episode = Episode.IV,
         enemy = true,
+        boss = true,
         rareType = { Kondrieu },
         areaIds = listOf(9),
         typeId = 281,
         skin = 0,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Shambertin(
         uniqueName = "Shambertin",
         episode = Episode.IV,
         enemy = true,
+        boss = true,
         rareType = { Kondrieu },
         areaIds = listOf(9),
         typeId = 281,
         skin = 1,
         special = false,
+        properties = ENEMY_PROPERTIES_6,
     ),
     Kondrieu(
         uniqueName = "Kondrieu",
         episode = Episode.IV,
         enemy = true,
+        boss = true,
         areaIds = listOf(9),
         typeId = 281,
         skin = 0,
         special = true,
+        properties = ENEMY_PROPERTIES_6,
     );
 
     /**

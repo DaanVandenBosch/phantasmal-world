@@ -12,6 +12,7 @@ import world.phantasmal.web.viewer.controllers.ViewerController
 import world.phantasmal.web.viewer.controllers.ViewerToolbarController
 import world.phantasmal.web.viewer.loading.AnimationAssetLoader
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
+import world.phantasmal.web.viewer.loading.NpcAssetLoader
 import world.phantasmal.web.viewer.rendering.MeshRenderer
 import world.phantasmal.web.viewer.rendering.TextureRenderer
 import world.phantasmal.web.viewer.stores.ViewerStore
@@ -31,11 +32,12 @@ class Viewer(
     override fun initialize(): Widget {
         // Asset Loaders
         val characterClassAssetLoader = addDisposable(CharacterClassAssetLoader(assetLoader))
+        val npcAssetLoader = addDisposable(NpcAssetLoader(assetLoader))
         val animationAssetLoader = addDisposable(AnimationAssetLoader(assetLoader))
 
         // Stores
         val viewerStore =
-            addDisposable(ViewerStore(characterClassAssetLoader, animationAssetLoader, uiStore))
+            addDisposable(ViewerStore(characterClassAssetLoader, npcAssetLoader, animationAssetLoader, uiStore))
 
         // Controllers
         val viewerController = addDisposable(ViewerController(uiStore, viewerStore))
