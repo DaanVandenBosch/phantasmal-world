@@ -20,10 +20,13 @@ class QuestEditorToolbarWidget(
 ) : Widget() {
     private val compatibilityDialogVisible = mutableCell(false)
     private val aboutDialogVisible = mutableCell(false)
+    private val citylabOffline = mutableCell(false)
+    private val citylabUltimate = mutableCell(false)
 
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-toolbar"
+
 
             addChild(Toolbar(
                 children = listOf(
@@ -45,6 +48,35 @@ class QuestEditorToolbarWidget(
                                     MenuItem.Action(
                                         label = "Episode IV",
                                         onAction = { scope.launch { ctrl.createNewQuest(Episode.IV) } },
+                                    ),
+                                ),
+                            ),
+                            MenuItem.SubMenu(
+                                label = "Load City&Labo Quest",
+                                items = listOf(
+                                    MenuItem.Check(
+                                        label = "Offline",
+                                        checked = citylabOffline,
+                                        onChange = { citylabOffline.value = it },
+                                    ),
+                                    MenuItem.Check(
+                                        label = "Ultimate",
+                                        tooltip = "Only available for Episode II",
+                                        checked = citylabUltimate,
+                                        onChange = { citylabUltimate.value = it },
+                                    ),
+                                    MenuItem.Separator,
+                                    MenuItem.Action(
+                                        label = "Episode I",
+                                        onAction = { scope.launch { ctrl.loadCitylabLobbyQuest(Episode.I, citylabOffline.value, citylabUltimate.value) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "Episode II",
+                                        onAction = { scope.launch { ctrl.loadCitylabLobbyQuest(Episode.II, citylabOffline.value, citylabUltimate.value) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "Episode IV",
+                                        onAction = { scope.launch { ctrl.loadCitylabLobbyQuest(Episode.IV, citylabOffline.value, citylabUltimate.value) } },
                                     ),
                                 ),
                             ),

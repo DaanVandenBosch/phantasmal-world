@@ -41,6 +41,7 @@ sealed class MenuItem {
     data class SubMenu(
         val label: String,
         val items: List<MenuItem>,
+        val visible: Cell<Boolean> = trueCell(),
     ) : MenuItem()
 
     /** A visual separator line. */
@@ -175,6 +176,10 @@ class ToolbarMenu(
                 is MenuItem.SubMenu -> div {
                     className = "pw-toolbar-menu-item pw-toolbar-menu-item-submenu"
                     dataset.asDynamic().index = index.toString()
+
+                    observeNow(item.visible) { visible ->
+                        style.display = if (visible) "flex" else "none"
+                    }
 
                     span {
                         className = "pw-toolbar-menu-item-label"

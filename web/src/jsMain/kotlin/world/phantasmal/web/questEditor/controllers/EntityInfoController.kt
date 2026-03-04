@@ -18,6 +18,7 @@ import world.phantasmal.web.questEditor.models.QuestEntityPropModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
 import world.phantasmal.web.questEditor.stores.AreaStore
+import world.phantasmal.web.questEditor.stores.AsmStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
 import world.phantasmal.webui.controllers.Controller
 
@@ -26,6 +27,7 @@ sealed class EntityInfoPropModel(
     protected val prop: QuestEntityPropModel,
 ) {
     val label = prop.name + ":"
+    val isScriptLabel: Boolean = prop.name == "Script label"
 
     protected fun setPropValue(prop: QuestEntityPropModel, value: Any) {
         store.selectedEntity.value?.let { entity ->
@@ -158,6 +160,8 @@ sealed class EntityInfoPropModel(
 class EntityInfoController(
     private val areaStore: AreaStore,
     private val questEditorStore: QuestEditorStore,
+    private val asmStore: AsmStore,
+    private val onActivateAsmEditor: () -> Unit = {},
 ) : Controller() {
     val unavailable: Cell<Boolean> = questEditorStore.selectedEntity.isNull()
     val enabled: Cell<Boolean> = questEditorStore.questEditingEnabled
@@ -221,6 +225,11 @@ class EntityInfoController(
 
     fun focused() {
         questEditorStore.makeMainUndoCurrent()
+    }
+
+    fun goToScriptLabel(labelId: Int) {
+        onActivateAsmEditor()
+        asmStore.goToLabel(labelId)
     }
 
     suspend fun setSectionId(sectionId: Int) {

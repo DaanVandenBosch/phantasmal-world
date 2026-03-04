@@ -10,6 +10,7 @@ import world.phantasmal.web.core.observable.Observable
 import world.phantasmal.web.externals.monacoEditor.ITextModel
 import world.phantasmal.web.externals.monacoEditor.createModel
 import world.phantasmal.web.questEditor.stores.AsmStore
+import world.phantasmal.web.shared.messages.AsmRange
 import world.phantasmal.webui.controllers.Controller
 
 class AsmEditorController(private val store: AsmStore) : Controller() {
@@ -20,6 +21,7 @@ class AsmEditorController(private val store: AsmStore) : Controller() {
 
     val didUndo: Observable<Unit> = store.didUndo
     val didRedo: Observable<Unit> = store.didRedo
+    val goToLabel: Observable<AsmRange> = store.goToLabelEvent
 
     val inlineStackArgs: Cell<Boolean> = store.inlineStackArgs
     val inlineStackArgsEnabled: Cell<Boolean> = store.problems.map { it.isEmpty() }

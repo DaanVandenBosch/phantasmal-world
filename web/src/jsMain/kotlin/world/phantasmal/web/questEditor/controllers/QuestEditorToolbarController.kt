@@ -245,6 +245,14 @@ class QuestEditorToolbarController(
         setCurrentQuest(fileHolder = null, Version.BB, questEditorStore.getDefaultQuest(episode))
     }
 
+    suspend fun loadCitylabLobbyQuest(episode: Episode, offline: Boolean, ultimate: Boolean) {
+        setCurrentQuest(
+            fileHolder = null,
+            Version.BB,
+            questEditorStore.getCitylabLobbyQuest(episode, offline, ultimate),
+        )
+    }
+
     suspend fun openFiles(newFiles: List<FileHandle>?) {
         try {
             if (newFiles.isNullOrEmpty()) return

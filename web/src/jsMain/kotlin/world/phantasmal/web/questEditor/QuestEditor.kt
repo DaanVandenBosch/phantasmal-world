@@ -69,7 +69,16 @@ class QuestEditor(
         )
         val questInfoController = addDisposable(QuestInfoController(questEditorStore))
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
-        val entityInfoController = addDisposable(EntityInfoController(areaStore, questEditorStore))
+        val entityInfoController = addDisposable(EntityInfoController(
+            areaStore,
+            questEditorStore,
+            asmStore,
+            onActivateAsmEditor = {
+                questEditorController.requestActivateWidget(
+                    QuestEditorController.ASM_WIDGET_ID
+                )
+            },
+        ))
         val asmController = addDisposable(AsmEditorController(asmStore))
         val npcListController = addDisposable(EntityListController(questEditorStore, npcs = true))
         val objectListController =

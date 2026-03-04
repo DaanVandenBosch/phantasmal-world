@@ -72,6 +72,10 @@ class DockWidget(
                 addDisposable(size.observeChange { (size) ->
                     goldenLayout.updateSize(size.width, size.height)
                 })
+
+                addDisposable(ctrl.activateWidgetEvent.observe { widgetId ->
+                    activateTab(goldenLayout, widgetId)
+                })
             }
         }
 
@@ -109,6 +113,25 @@ class DockWidget(
             removeChild(widget)
             idToChildWidget.remove(id)
         })
+    }
+
+    private fun activateTab(goldenLayout: GoldenLayout, widgetId: String) {
+        try {
+            @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+            val root = goldenLayout.asDynamic().root as? GoldenLayout.ContentItem ?: return
+            val items = root.getItemsByFilter { contentItem ->
+                val cfg = contentItem.config.unsafeCast<GoldenLayout.ComponentConfig>()
+                cfg.componentName == widgetId
+            }
+            val item = items.firstOrNull() ?: return
+            val parent = item.parent
+
+            if (parent.type == "stack") {
+                parent.setActiveContentItem(item)
+            }
+        } catch (e: Exception) {
+            logger.warn(e) { "Failed to activate widget: $widgetId" }
+        }
     }
 
     private fun onStateChanged() {

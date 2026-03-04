@@ -9,6 +9,7 @@ import world.phantasmal.cell.list.emptyListCell
 import world.phantasmal.cell.list.filtered
 import world.phantasmal.cell.list.flatMapToList
 import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.Quest
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.core.stores.UiStore
@@ -303,6 +304,25 @@ class QuestEditorStore(
 
     suspend fun getDefaultQuest(episode: Episode): QuestModel =
         convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
+
+    suspend fun getCitylabLobbyQuest(
+        episode: Episode,
+        offline: Boolean = false,
+        ultimate: Boolean = false,
+    ): QuestModel {
+        val quest = questLoader.loadCitylabLobbyQuest(episode, offline, ultimate)
+        // Lobby quests don't need floorMappings; ensure area 0 is in mapDesignations.
+        quest.mapDesignations.getOrPut(0) { mutableSetOf() }.add(0)
+        // Clear floorMappings so the model uses mapDesignations for area resolution.
+        val lobbyQuest = Quest(
+            quest.id, quest.language, quest.name, quest.shortDescription, quest.longDescription,
+            quest.episode, quest.objects, quest.npcs, quest.events, quest.datUnknowns,
+            quest.cmRandomSpawns, quest.cmMonsterMappings, quest.cmConfigPool,
+            quest.bytecodeIr, quest.shopItems, quest.mapDesignations,
+            floorMappings = emptyList(), quest.bytecodeOffset,
+        )
+        return convertQuestToModel(lobbyQuest, areaStore::getVariant)
+    }
 
     fun <T> setQuestProperty(
         quest: QuestModel,

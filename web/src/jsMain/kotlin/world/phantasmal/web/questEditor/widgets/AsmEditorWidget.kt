@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.widgets
 
+import mu.KotlinLogging
 import org.w3c.dom.Node
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.cell.mutateDeferred
@@ -9,6 +10,8 @@ import world.phantasmal.web.questEditor.controllers.AsmEditorController
 import world.phantasmal.webui.dom.div
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.widgets.Widget
+
+private val logger = KotlinLogging.logger {}
 
 class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
     private lateinit var editor: IStandaloneCodeEditor
@@ -90,6 +93,15 @@ class AsmEditorWidget(private val ctrl: AsmEditorController) : Widget() {
             })
 
             editor.onDidFocusEditorWidget(ctrl::makeUndoCurrent)
+
+            // Navigate to a label position when triggered from entity info panel.
+            addDisposable(ctrl.goToLabel.observe { range ->
+                logger.info { "goToLabel observer fired: line=${range.startLineNo}, col=${range.startCol}" }
+                val pos: IPosition = obj { lineNumber = range.startLineNo; column = range.startCol }
+                editor.setPosition(pos)
+                editor.revealPositionInCenter(pos)
+                editor.focus()
+            })
 
             addDisposable(EditorHistory(editor))
         }

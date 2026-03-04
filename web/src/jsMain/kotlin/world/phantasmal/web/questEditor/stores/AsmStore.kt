@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.stores
 
 import kotlinx.browser.window
+import mu.KotlinLogging
 import kotlinx.coroutines.launch
 import world.phantasmal.core.Severity
 import world.phantasmal.core.disposable.Disposer
@@ -11,6 +12,7 @@ import world.phantasmal.cell.mutableCell
 import world.phantasmal.cell.mutateDeferred
 import world.phantasmal.psolib.asm.assemble
 import world.phantasmal.psolib.asm.disassemble
+import world.phantasmal.web.core.observable.Emitter
 import world.phantasmal.web.core.observable.Observable
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
@@ -23,6 +25,8 @@ import world.phantasmal.web.shared.messages.AsmRange
 import world.phantasmal.web.shared.messages.AssemblyProblem
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.stores.Store
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * Depends on a global [AsmAnalyser], instantiate at most once.
@@ -52,6 +56,9 @@ class AsmStore(
 
     val didUndo: Observable<Unit> = undo.didUndo
     val didRedo: Observable<Unit> = undo.didRedo
+
+    private val _goToLabelEvent = Emitter<AsmRange>()
+    val goToLabelEvent: Observable<AsmRange> = _goToLabelEvent
 
     val problems: ListCell<AssemblyProblem> = asmAnalyser.problems
 
@@ -105,6 +112,21 @@ class AsmStore(
 
     fun makeUndoCurrent() {
         undoManager.setCurrent(undo)
+    }
+
+    fun goToLabel(labelId: Int) {
+        logger.info { "goToLabel called with labelId=$labelId" }
+        scope.launch {
+            val labels = asmAnalyser.getLabels()
+            logger.info { "getLabels returned ${labels.size} labels: ${labels.take(10).map { it.name }}" }
+            val label = labels.find { it.name == labelId }
+            if (label != null) {
+                logger.info { "Found label $labelId at line ${label.range.startLineNo}" }
+                _goToLabelEvent.emit(label.range)
+            } else {
+                logger.warn { "Label $labelId not found" }
+            }
+        }
     }
 
     fun setInlineStackArgs(inline: Boolean) {

@@ -13,23 +13,39 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.loading.LoadingCache
 import world.phantasmal.webui.DisposableContainer
 
-private class CitylabFiles(val bin: String, val npcDat: String, val objDat: String)
+private class CitylabConfig(
+    val binPrefix: String,
+    val npcDat: String,
+    val npcDatOffline: String,
+    val objDat: String,
+    val objDatOffline: String,
+    val hasUltimate: Boolean,
+)
 
-private val CITYLAB_FILES = mapOf(
-    Episode.I to CitylabFiles(
-        bin = "map_city_on_j.bin",
+private val CITYLAB_CONFIGS = mapOf(
+    Episode.I to CitylabConfig(
+        binPrefix = "map_city",
         npcDat = "map_city00_00e.dat",
+        npcDatOffline = "map_city00_00e_s.dat",
         objDat = "map_city00_00o.dat",
+        objDatOffline = "map_city00_00o_s.dat",
+        hasUltimate = false,
     ),
-    Episode.II to CitylabFiles(
-        bin = "map_labo_on_j.bin",
+    Episode.II to CitylabConfig(
+        binPrefix = "map_labo",
         npcDat = "map_labo00_00e.dat",
+        npcDatOffline = "map_labo00_00e_s.dat",
         objDat = "map_labo00_00o.dat",
+        objDatOffline = "map_labo00_00o_s.dat",
+        hasUltimate = true,
     ),
-    Episode.IV to CitylabFiles(
-        bin = "map_city02_on_j.bin",
+    Episode.IV to CitylabConfig(
+        binPrefix = "map_city02",
         npcDat = "map_city02_00_00e.dat",
+        npcDatOffline = "map_city02_00_00e_s.dat",
         objDat = "map_city02_00_00o.dat",
+        objDatOffline = "map_city02_00_00o_s.dat",
+        hasUltimate = false,
     ),
 )
 
@@ -51,13 +67,25 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
         return loadQuest("/defaults/default_ep_$ver.qst")
     }
 
-    suspend fun loadCitylabLobbyQuest(episode: Episode): Quest {
-        val files = CITYLAB_FILES[episode]
+    suspend fun loadCitylabLobbyQuest(
+        episode: Episode,
+        offline: Boolean = false,
+        ultimate: Boolean = false,
+    ): Quest {
+        val config = CITYLAB_CONFIGS[episode]
             ?: error("Episode $episode not supported.")
 
-        val binBuf = assetLoader.loadArrayBuffer("/citylab/${files.bin}")
-        val npcBuf = assetLoader.loadArrayBuffer("/citylab/${files.npcDat}")
-        val objBuf = assetLoader.loadArrayBuffer("/citylab/${files.objDat}")
+        // Build bin filename: {prefix}_{on|off}_j[_u].bin
+        val onOff = if (offline) "off" else "on"
+        val ult = if (ultimate && config.hasUltimate) "_u" else ""
+        val binName = "${config.binPrefix}_${onOff}_j${ult}.bin"
+
+        val npcName = if (offline) config.npcDatOffline else config.npcDat
+        val objName = if (offline) config.objDatOffline else config.objDat
+
+        val binBuf = assetLoader.loadArrayBuffer("/citylab/$binName")
+        val npcBuf = assetLoader.loadArrayBuffer("/citylab/$npcName")
+        val objBuf = assetLoader.loadArrayBuffer("/citylab/$objName")
 
         val datCursor = synthesizeDat(
             objData = Buffer.fromArrayBuffer(objBuf, Endianness.Little),

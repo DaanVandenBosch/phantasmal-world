@@ -201,6 +201,19 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
         )
 
         val node = tr {
+            if (prop.isScriptLabel) {
+                style.cursor = "pointer"
+                title = "Double-click to go to script label"
+                addEventListener("dblclick", {
+                    val labelId = when (prop) {
+                        is EntityInfoPropModel.I32 -> prop.value.value
+                        is EntityInfoPropModel.F32 -> prop.value.value.toInt()
+                        else -> return@addEventListener
+                    }
+                    ctrl.goToScriptLabel(labelId)
+                })
+            }
+
             th {
                 addWidget(disposer.add(input.label!!), addToDisposer = false)
             }
@@ -218,6 +231,27 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                             onClick = { e ->
                                 e.stopPropagation()
                                 prop.goToEvent()
+                            }
+                        )),
+                        addToDisposer = false,
+                    )
+                }
+            }
+
+            if (prop.isScriptLabel) {
+                td {
+                    addWidget(
+                        disposer.add(Button(
+                            tooltip = cell("Go to script label"),
+                            iconLeft = Icon.ArrowRight,
+                            onClick = { e ->
+                                e.stopPropagation()
+                                val labelId = when (prop) {
+                                    is EntityInfoPropModel.I32 -> prop.value.value
+                                    is EntityInfoPropModel.F32 -> prop.value.value.toInt()
+                                    else -> return@Button
+                                }
+                                ctrl.goToScriptLabel(labelId)
                             }
                         )),
                         addToDisposer = false,
