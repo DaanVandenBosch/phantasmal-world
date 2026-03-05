@@ -22,7 +22,7 @@ private val logger = KotlinLogging.logger {}
 
 class AsmAnalyser {
     private var inlineStackArgs: Boolean = true
-    private var _mapDesignations: MutableCell<Map<Int, List<FloorMapping>>> = mutableCell(emptyMap())
+    private var _mapDesignations: MutableCell<List<FloorMapping>> = mutableCell(emptyList())
     private val _problems = mutableListCell<AssemblyProblem>()
 
     private val worker = Worker("/assembly-worker.js")
@@ -33,7 +33,7 @@ class AsmAnalyser {
      */
     private val inFlightRequests = mutableMapOf<Int, CancellableContinuation<*>>()
 
-    val mapDesignations: Cell<Map<Int, List<FloorMapping>>> = _mapDesignations
+    val mapDesignations: Cell<List<FloorMapping>> = _mapDesignations
     val problems: ListCell<AssemblyProblem> = _problems
 
     init {

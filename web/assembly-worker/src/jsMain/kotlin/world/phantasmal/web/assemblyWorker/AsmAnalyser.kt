@@ -26,7 +26,7 @@ class AsmAnalyser {
             return _cfg!!
         }
 
-    private var mapDesignations: Map<Int, List<FloorMapping>>? = null
+    private var mapDesignations: List<FloorMapping>? = null
 
     fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
         this.inlineStackArgs = inlineStackArgs

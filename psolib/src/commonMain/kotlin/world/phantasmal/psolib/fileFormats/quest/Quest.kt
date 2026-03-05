@@ -114,10 +114,9 @@ fun parseBinDatToQuest(
             }
 
             // Extract floor mappings from all instruction segments
-            val mapDesignations = getMapDesignations(instructionSegments) {
+            floorMappings = getMapDesignations(instructionSegments) {
                 ControlFlowGraph.create(bytecodeIr)
             }
-            floorMappings = mapDesignations.values.flatten()
 
             // Update NPC gameAreaId based on floor mappings from map_designate instructions
             // gameAreaId is used for NPC type detection, while areaId remains as floorId for variant mapping

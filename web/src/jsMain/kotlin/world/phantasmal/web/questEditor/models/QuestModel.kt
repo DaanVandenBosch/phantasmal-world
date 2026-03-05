@@ -198,8 +198,8 @@ class QuestModel(
         }
     }
 
-    fun setFloorMappings(map: Map<Int, List<FloorMapping>>) {
-        floorMappings = map.values.flatten()
+    fun setFloorMappings(floorMappings: List<FloorMapping>) {
+        this.floorMappings = floorMappings
     }
 
     fun addNpc(npc: QuestNpcModel) {

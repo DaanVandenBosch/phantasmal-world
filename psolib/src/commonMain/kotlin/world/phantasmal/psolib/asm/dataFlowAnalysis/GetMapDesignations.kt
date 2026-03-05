@@ -96,13 +96,17 @@ data class FloorMapping(
  * Searches all instruction segments for map_designate / map_designate_ex / bb_map_designate /
  * set_floor_handler opcodes.
  *
- * Returns a map of area IDs to lists of [FloorMapping]s.
+ * Multiple opcodes may reference the same floor. A Map keyed by floorId is used internally to
+ * handle priority: bb_map_designate / map_designate(_ex) unconditionally overwrite any existing
+ * entry, while set_floor_handler only fills in floors not yet mapped. The final result is a flat
+ * list with one [FloorMapping] per unique floor.
  */
 fun getMapDesignations(
     instructionSegments: List<InstructionSegment>,
     createCfg: () -> ControlFlowGraph,
-): MutableMap<Int, MutableList<FloorMapping>> {
-    val floorMappings = mutableMapOf<Int, FloorMapping>()  // floorId → FloorMapping (for priority)
+): List<FloorMapping> {
+    // Keyed by floorId so that higher-priority opcodes can overwrite lower-priority ones.
+    val floorMappings = mutableMapOf<Int, FloorMapping>()
 
     // Find label 0 segment for episode info
     val func0Segment = instructionSegments.find { 0 in it.labels }
@@ -157,7 +161,7 @@ fun getMapDesignations(
                     val variantId = variantIdValues[0]!!
 
                     if (areaId != null) {
-                        // map_designate/map_designate_ex have higher priority than set_floor_handler
+                        // High priority: overwrites any set_floor_handler entry for this floor.
                         floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId, findEpisodeByMapId(mapId))
                     }
                 }
@@ -167,11 +171,10 @@ fun getMapDesignations(
                     val mapId = (inst.args[1] as IntArg).value   // map id
                     val variantId = (inst.args[2] as IntArg).value // variant (3rd parameter)
 
-                    // Map map ID to model area ID
                     val areaId = getAreaIdByMapId(mapId)
 
                     if (areaId != null) {
-                        // bb_map_designate has higher priority than set_floor_handler, can override existing mappings
+                        // High priority: overwrites any set_floor_handler entry for this floor.
                         floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId, findEpisodeByMapId(mapId))
                     }
                 }
@@ -190,9 +193,9 @@ fun getMapDesignations(
                             val mapId = getMapId(episode, floorId)
                             val variantId = 0 // Default variant
 
-                            // set_floor_handler has lower priority - only adds mapping if floor not already mapped
+                            // Low priority: only fills in floors not yet mapped by map_designate / bb_map_designate.
+                            // areaId defaults to floorId because set_floor_handler doesn't carry an explicit area.
                             if (!floorMappings.containsKey(floorId)) {
-                                // areaId is same as floorId for set_floor_handler
                                 floorMappings[floorId] = FloorMapping(floorId, mapId, floorId, variantId, findEpisodeByMapId(mapId))
                             }
                         }
@@ -204,12 +207,7 @@ fun getMapDesignations(
         }
     }
 
-    // Group by areaId
-    val result = mutableMapOf<Int, MutableList<FloorMapping>>()
-    for (mapping in floorMappings.values) {
-        result.getOrPut(mapping.areaId) { mutableListOf() }.add(mapping)
-    }
-    return result
+    return floorMappings.values.toList()
 }
 
 /**

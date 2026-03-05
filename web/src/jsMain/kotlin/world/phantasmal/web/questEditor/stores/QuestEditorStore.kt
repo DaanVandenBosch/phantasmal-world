@@ -578,9 +578,9 @@ class QuestEditorStore(
         }
     }
 
-    suspend fun setFloorMappings(map: Map<Int, List<FloorMapping>>) {
+    suspend fun setFloorMappings(floorMappings: List<FloorMapping>) {
         currentQuest.value?.let { quest ->
-            quest.setFloorMappings(map)
+            quest.setFloorMappings(floorMappings)
             updateQuestEntitySections(quest)
         }
     }

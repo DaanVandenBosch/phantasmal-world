@@ -117,13 +117,13 @@ class QuestTests : LibTestSuite {
         val floor17 = quest.floorMappings.find { it.floorId == 17 }
 
         // Floor 0 -> Lab (area 0)
-        assertEquals(FloorMapping(0, 18, 0, 0), floor0, "Floor 0 should be Lab")
+        assertEquals(FloorMapping(0, 18, 0, 0, Episode.II), floor0, "Floor 0 should be Lab")
 
         // Floor 17 -> Tower (area 17), variant 0
-        assertEquals(FloorMapping(17, 35, 17, 0), floor17, "Floor 17 should be Tower variant 0")
+        assertEquals(FloorMapping(17, 35, 17, 0, Episode.II), floor17, "Floor 17 should be Tower variant 0")
 
         // Floor 16 -> Tower (area 17), variant 1 (NOT Seaside Night area 16!)
-        assertEquals(FloorMapping(16, 35, 17, 1), floor16, "Floor 16 should be Tower variant 1")
+        assertEquals(FloorMapping(16, 35, 17, 1, Episode.II), floor16, "Floor 16 should be Tower variant 1")
 
         // Verify mapDesignations view: area 17 should have variants {0, 1}
         val mapDesignations = quest.floorMappings
