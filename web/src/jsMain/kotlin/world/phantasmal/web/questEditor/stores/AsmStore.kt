@@ -77,7 +77,7 @@ class AsmStore(
         }
 
         observe(asmAnalyser.mapDesignations) {
-            scope.launch { questEditorStore.setMapDesignations(it) }
+            scope.launch { questEditorStore.setFloorMappings(it) }
         }
 
         observeNow(problems) { problems ->

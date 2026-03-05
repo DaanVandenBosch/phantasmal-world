@@ -18,7 +18,6 @@ fun convertQuestToModel(
         quest.shortDescription,
         quest.longDescription,
         quest.episode,
-        quest.mapDesignations,
         quest.npcs.mapTo(mutableListOf()) { QuestNpcModel(it, it.wave.toInt()) },
         quest.objects.mapTo(mutableListOf()) { QuestObjectModel(it) },
         quest.events.mapTo(mutableListOf()) { event ->
@@ -113,7 +112,5 @@ fun convertQuestFromModel(quest: QuestModel, bytecodeIrOverride: BytecodeIr? = n
         quest.cmConfigPool.value.toMutableList(),
         bytecodeIrOverride ?: quest.bytecodeIr,
         quest.shopItems,
-        quest.mapDesignations.value.mapValues { (_, variants) -> variants.toMutableSet() }.toMutableMap(),
-        emptyList(),  // floorMappings - not needed for web side conversion
-        null,  // bytecodeOffset - will be preserved from original if it exists
+        quest.floorMappings,
     )

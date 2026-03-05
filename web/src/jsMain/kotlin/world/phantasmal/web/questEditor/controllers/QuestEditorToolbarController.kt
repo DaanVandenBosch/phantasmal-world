@@ -102,28 +102,36 @@ class QuestEditorToolbarController(
                 val result = mutableListOf<AreaAndLabel>()
 
                 if (quest.floorMappings.isNotEmpty()) {
-                    // For each area in episode order, either show floor mappings or simple entry
-
-                    // Group floor mappings by area ID for easy lookup
+                    // Group floor mappings by area ID for lookup
                     val floorMappingsByArea = quest.floorMappings.groupBy { it.areaId }
+                    // Group floor IDs by (areaId, variantId) for per-variant entity counting
+                    val variantFloorIds = quest.floorMappings
+                        .groupBy { Pair(it.areaId, it.variantId) }
+                        .mapValues { (_, mappings) -> mappings.map { it.floorId }.toSet() }
 
-                    // Process areas in episode order
+
                     for (area in areaStore.getAreasForEpisode(quest.episode)) {
                         val areaFloorMappings = floorMappingsByArea[area.id]
 
                         if (areaFloorMappings != null) {
-                            // This area has floor mappings, add entries for each mapping
+                            // Deduplicate by variant ID
+                            val seenVariants = mutableSetOf<Int>()
                             for (mapping in areaFloorMappings) {
-                                val entityCount = entitiesPerArea[mapping.floorId]
+                                if (!seenVariants.add(mapping.variantId)) continue
                                 val variant = areaStore.getVariant(quest.episode, mapping.areaId, mapping.variantId)
 
                                 if (variant != null) {
-                                    val displayName = buildAreaDisplayName(area, variant, entityCount)
+                                    // Count entities across all floor IDs for this area+variant
+                                    val floorIds = variantFloorIds[Pair(area.id, mapping.variantId)]
+                                    val entityCount = if (floorIds != null) {
+                                        quest.npcs.value.count { it.areaId in floorIds } +
+                                            quest.objects.value.count { it.areaId in floorIds }
+                                    } else 0
+                                    val displayName = buildAreaDisplayName(area, variant, if (entityCount > 0) entityCount else null)
                                     result.add(AreaAndLabel(area, displayName, variant))
                                 }
                             }
                         } else {
-                            // This area has no floor mappings, add simple entry
                             val displayName = buildAreaDisplayName(area, null, null)
                             result.add(AreaAndLabel(area, displayName, null))
                         }
@@ -134,13 +142,11 @@ class QuestEditorToolbarController(
                         val areaVariants = getAreaVariants(area, variants)
 
                         if (areaVariants.isNotEmpty()) {
-                            // Create an entry for each variant of this area
                             for (variant in areaVariants) {
                                 val displayName = buildAreaDisplayName(area, variant, entityCount)
                                 result.add(AreaAndLabel(area, displayName, variant))
                             }
                         } else {
-                            // No variants found, show standard entry for this area
                             val displayName = buildAreaDisplayName(area, null, entityCount)
                             result.add(AreaAndLabel(area, displayName))
                         }
@@ -181,13 +187,19 @@ class QuestEditorToolbarController(
         return entityCount?.let { " ($it)" } ?: ""
     }
 
-    val currentArea: Cell<AreaAndLabel?> = map(areas, _selectedAreaAndLabel, questEditorStore.currentArea) { areas, selectedAreaAndLabel, storeCurrentArea ->
-        // If there's an explicitly selected AreaAndLabel, use it
-        selectedAreaAndLabel ?:
-        // Otherwise, find the AreaAndLabel that matches the store's current area
-        areas.find { it.area.id == storeCurrentArea?.id } ?:
-        // Final fallback to first area
-        areas.firstOrNull()
+    val currentArea: Cell<AreaAndLabel?> = areas.flatMap { areas ->
+        map(_selectedAreaAndLabel, questEditorStore.currentArea, questEditorStore.currentAreaVariant) { selectedAreaAndLabel, storeCurrentArea, storeVariant ->
+            // If there's an explicitly selected AreaAndLabel, use it
+            selectedAreaAndLabel ?:
+            // Otherwise, match by both area and variant for multi-floor quests
+            if (storeVariant != null) {
+                areas.find { it.area == storeCurrentArea && it.variant == storeVariant }
+            } else {
+                areas.find { it.area.id == storeCurrentArea?.id }
+            } ?:
+            // Final fallback to first area
+            areas.firstOrNull()
+        }
     }
 
     val areaSelectEnabled: Cell<Boolean> = questEditorStore.currentQuest.isNotNull()

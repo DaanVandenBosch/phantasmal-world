@@ -44,17 +44,22 @@ class QuestEditorMeshManager(
         ) { quest, area, areaVariant, selectedSectionWaves ->
             loadNpcMeshes(
                 if (quest != null && area != null) {
-                    quest.npcs.filteredCell {
-                        val entityBelongsToCurrentAreaVariant =
-                            if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
-                                val floorMapping = quest.floorMappings.find { mapping -> mapping.floorId == it.areaId }
-                                floorMapping?.areaId == area.id && floorMapping.variantId == areaVariant.id
-                            } else {
-                                it.areaId == area.id
-                            }
+                    // For multi-floor quests, find floor IDs that map to this area+variant
+                    val relevantFloorIds = if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
+                        quest.floorMappings
+                            .filter { it.areaId == area.id && it.variantId == areaVariant.id }
+                            .map { it.floorId }
+                            .toSet()
+                    } else {
+                        null
+                    }
 
-                        val sectionInit = it.sectionInitialized
-                        val belongsToArea = entityBelongsToCurrentAreaVariant
+                    quest.npcs.filteredCell {
+                        val areaMatch = if (relevantFloorIds != null) {
+                            it.areaId in relevantFloorIds
+                        } else {
+                            it.areaId == area.id
+                        }
 
                         // Only show NPCs that match the exact section and wave combination of selected events
                         val matchesSelectedEvent = if (selectedSectionWaves.isEmpty()) {
@@ -63,9 +68,7 @@ class QuestEditorMeshManager(
                             selectedSectionWaves.contains(Pair(it.sectionId.value, it.wave.value.id))
                         }
 
-                        val shouldShow = sectionInit and belongsToArea and matchesSelectedEvent
-
-                        shouldShow
+                        it.sectionInitialized and areaMatch and matchesSelectedEvent
                     }
                 } else {
                     emptyListCell()
@@ -80,16 +83,22 @@ class QuestEditorMeshManager(
         ) { quest, area, areaVariant ->
             loadObjectMeshes(
                 if (quest != null && area != null) {
-                    quest.objects.filteredCell {
-                        val entityBelongsToCurrentAreaVariant =
-                            if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
-                                val floorMapping = quest.floorMappings.find { mapping -> mapping.floorId == it.areaId }
-                                floorMapping?.areaId == area.id && floorMapping.variantId == areaVariant.id
-                            } else {
-                                it.areaId == area.id
-                            }
+                    val relevantFloorIds = if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
+                        quest.floorMappings
+                            .filter { it.areaId == area.id && it.variantId == areaVariant.id }
+                            .map { it.floorId }
+                            .toSet()
+                    } else {
+                        null
+                    }
 
-                        it.sectionInitialized and entityBelongsToCurrentAreaVariant
+                    quest.objects.filteredCell {
+                        val areaMatch = if (relevantFloorIds != null) {
+                            it.areaId in relevantFloorIds
+                        } else {
+                            it.areaId == area.id
+                        }
+                        it.sectionInitialized and areaMatch
                     }
                 } else {
                     emptyListCell()

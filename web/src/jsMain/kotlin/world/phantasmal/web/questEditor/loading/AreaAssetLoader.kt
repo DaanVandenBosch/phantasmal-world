@@ -131,13 +131,6 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         var areaId = areaVariant.area.id
         var areaVariantId = areaVariant.id
 
-        // Exception for Seaside Area at Night, variant 1.
-        // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
-        if (episode == Episode.II && areaId == 16 && areaVariantId == 1) {
-            areaId = 17
-            areaVariantId = 1
-        }
-
         // Exception for Crater Route 1-4, naming is slightly different.
         if (episode == Episode.IV && areaId in 1..4) {
             areaVariantId = areaId - 1

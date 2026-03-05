@@ -2,10 +2,7 @@ package world.phantasmal.web.assemblyWorker
 
 import world.phantasmal.core.*
 import world.phantasmal.psolib.asm.*
-import world.phantasmal.psolib.asm.dataFlowAnalysis.ControlFlowGraph
-import world.phantasmal.psolib.asm.dataFlowAnalysis.ValueSet
-import world.phantasmal.psolib.asm.dataFlowAnalysis.getMapDesignations
-import world.phantasmal.psolib.asm.dataFlowAnalysis.getStackValue
+import world.phantasmal.psolib.asm.dataFlowAnalysis.*
 import world.phantasmal.web.shared.messages.*
 import world.phantasmal.web.shared.messages.AssemblyProblem
 import kotlin.math.max
@@ -29,7 +26,7 @@ class AsmAnalyser {
             return _cfg!!
         }
 
-    private var mapDesignations: Map<Int, Set<Int>>? = null
+    private var mapDesignations: List<FloorMapping>? = null
 
     fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
         this.inlineStackArgs = inlineStackArgs
@@ -154,16 +151,13 @@ class AsmAnalyser {
             bytecodeIr = assemblyResult.value
 
             val instructionSegments = bytecodeIr.instructionSegments()
+            val designations = getMapDesignations(instructionSegments) { cfg }
 
-            instructionSegments.find { 0 in it.labels }?.let { label0Segment ->
-                val designations = getMapDesignations(label0Segment) { cfg }
-
-                if (designations != mapDesignations) {
-                    mapDesignations = designations
-                    notifications.add(
-                        ServerNotification.MapDesignations(designations)
-                    )
-                }
+            if (designations != mapDesignations) {
+                mapDesignations = designations
+                notifications.add(
+                    ServerNotification.MapDesignations(designations)
+                )
             }
         }
 

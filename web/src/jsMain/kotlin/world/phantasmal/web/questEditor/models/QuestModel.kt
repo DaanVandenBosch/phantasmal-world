@@ -21,7 +21,6 @@ class QuestModel(
     shortDescription: String,
     longDescription: String,
     val episode: Episode,
-    mapDesignations: Map<Int, Set<Int>>,
     npcs: MutableList<QuestNpcModel>,
     objects: MutableList<QuestObjectModel>,
     events: MutableList<QuestEventModel>,
@@ -43,7 +42,7 @@ class QuestModel(
     cmConfigPool: MutableList<DatCmConfigPool>,
     bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
-    val floorMappings: List<FloorMapping>,
+    floorMappings: List<FloorMapping>,
     getVariant: (Episode, areaId: Int, variantId: Int) -> AreaVariantModel?,
 ) {
     private val _id = mutableCell(0)
@@ -51,7 +50,6 @@ class QuestModel(
     private val _name = mutableCell("")
     private val _shortDescription = mutableCell("")
     private val _longDescription = mutableCell("")
-    private val _mapDesignations = mutableCell(mapDesignations)
     private val _npcs = mutableListCell(npcs)
     private val _objects = mutableListCell(objects)
     private val _events = mutableListCell(events)
@@ -66,10 +64,8 @@ class QuestModel(
     val shortDescription: Cell<String> = _shortDescription
     val longDescription: Cell<String> = _longDescription
 
-    /**
-     * Map of area IDs to area variant IDs. Multiple variants per area supported.
-     */
-    val mapDesignations: Cell<Map<Int, Set<Int>>> = _mapDesignations
+    var floorMappings: List<FloorMapping> = floorMappings
+        private set
 
     /**
      * Map of area IDs to entity counts.
@@ -108,15 +104,21 @@ class QuestModel(
         setShortDescription(shortDescription)
         setLongDescription(longDescription)
 
+        // Build a floor-to-area lookup for entity counting
+        val floorToAreaId = floorMappings.associate { it.floorId to it.areaId }
+
         entitiesPerArea = map(this.npcs, this.objects) { ns, os ->
             val map = mutableMapOf<Int, Int>()
 
             for (npc in ns) {
-                map[npc.areaId] = (map[npc.areaId] ?: 0) + 1
+                // Map floor ID to area ID for correct counting
+                val areaId = floorToAreaId[npc.areaId] ?: npc.areaId
+                map[areaId] = (map[areaId] ?: 0) + 1
             }
 
             for (obj in os) {
-                map[obj.areaId] = (map[obj.areaId] ?: 0) + 1
+                val areaId = floorToAreaId[obj.areaId] ?: obj.areaId
+                map[areaId] = (map[areaId] ?: 0) + 1
             }
 
             map
@@ -131,31 +133,9 @@ class QuestModel(
                 }
             }
         } else {
-            for ((areaId, variantIds) in mapDesignations) {
-                for (variantId in variantIds) {
-                    getVariant(episode, areaId, variantId)?.let { variant ->
-                        // Use a composite key to handle multiple variants per area
-                        val key = areaId * 1000 + variantId
-                        variants[key] = variant
-                    }
-                }
-            }
-
-            // Then, ensure areas from mapDesignations have at least variant 0
-            for (areaId in mapDesignations.keys) {
-                val key = areaId * 1000 + 0
-                if (key !in variants) {
-                    getVariant(episode, areaId, 0)?.let {
-                        variants[key] = it
-                    }
-                }
-            }
-
-            // For empty quests (like defaults), ensure at least Pioneer II (area 0) exists
-            if (variants.isEmpty()) {
-                getVariant(episode, 0, 0)?.let {
-                    variants[0] = it
-                }
+            // Default: area 0, variant 0 (lobby scenario)
+            getVariant(episode, 0, 0)?.let {
+                variants[0] = it
             }
         }
 
@@ -218,8 +198,8 @@ class QuestModel(
         }
     }
 
-    fun setMapDesignations(mapDesignations: Map<Int, Set<Int>>) {
-        _mapDesignations.value = mapDesignations
+    fun setFloorMappings(floorMappings: List<FloorMapping>) {
+        this.floorMappings = floorMappings
     }
 
     fun addNpc(npc: QuestNpcModel) {

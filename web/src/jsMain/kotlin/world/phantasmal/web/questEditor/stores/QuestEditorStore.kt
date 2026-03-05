@@ -9,6 +9,7 @@ import world.phantasmal.cell.list.emptyListCell
 import world.phantasmal.cell.list.filtered
 import world.phantasmal.cell.list.flatMapToList
 import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.psolib.fileFormats.quest.Quest
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.commands.Command
@@ -260,8 +261,11 @@ class QuestEditorStore(
                 } else {
                     // Fallback: if no floor 0 mapping, find the first area variant with entities
                     val areaWithEntities = quest.areaVariants.value.find { variant ->
-                        val hasNpcs = quest.npcs.value.any { it.areaId == variant.area.id }
-                        val hasObjects = quest.objects.value.any { it.areaId == variant.area.id }
+                        val floorIds = quest.floorMappings
+                            .filter { it.areaId == variant.area.id && it.variantId == variant.id }
+                            .map { it.floorId }.toSet()
+                        val hasNpcs = quest.npcs.value.any { it.areaId in floorIds }
+                        val hasObjects = quest.objects.value.any { it.areaId in floorIds }
                         hasNpcs || hasObjects
                     }
 
@@ -311,14 +315,13 @@ class QuestEditorStore(
         ultimate: Boolean = false,
     ): QuestModel {
         val quest = questLoader.loadCitylabLobbyQuest(episode, offline, ultimate)
-        // Lobby quests don't need floorMappings; ensure area 0 is in mapDesignations.
-        quest.mapDesignations.getOrPut(0) { mutableSetOf() }.add(0)
-        // Clear floorMappings so the model uses mapDesignations for area resolution.
+        // Lobby quests don't need floorMappings; the QuestModel default (empty floorMappings)
+        // will create a default variant for area 0.
         val lobbyQuest = Quest(
             quest.id, quest.language, quest.name, quest.shortDescription, quest.longDescription,
             quest.episode, quest.objects, quest.npcs, quest.events, quest.datUnknowns,
             quest.cmRandomSpawns, quest.cmMonsterMappings, quest.cmConfigPool,
-            quest.bytecodeIr, quest.shopItems, quest.mapDesignations,
+            quest.bytecodeIr, quest.shopItems,
             floorMappings = emptyList(), quest.bytecodeOffset,
         )
         return convertQuestToModel(lobbyQuest, areaStore::getVariant)
@@ -594,9 +597,9 @@ class QuestEditorStore(
         }
     }
 
-    suspend fun setMapDesignations(mapDesignations: Map<Int, Set<Int>>) {
+    suspend fun setFloorMappings(floorMappings: List<FloorMapping>) {
         currentQuest.value?.let { quest ->
-            quest.setMapDesignations(mapDesignations)
+            quest.setFloorMappings(floorMappings)
             updateQuestEntitySections(quest)
         }
     }
@@ -621,8 +624,13 @@ class QuestEditorStore(
      */
     private fun setEntitySection(entity: QuestEntityModel<*, *>, sectionId: Int) {
         currentQuest.value?.let { quest ->
-            // Find all variants for this area and try to find the section in any of them
-            val variants = quest.areaVariants.value.filter { it.area.id == entity.areaId }
+            // For multi-floor quests, entity.areaId is a floor ID — use floorToVariantMap
+            val variant = quest.floorToVariantMap[entity.areaId]
+            val variants = if (variant != null) {
+                listOf(variant)
+            } else {
+                quest.areaVariants.value.filter { it.area.id == entity.areaId }
+            }
 
             for (variant in variants) {
                 val section = areaStore.getLoadedSections(variant.episode, variant)

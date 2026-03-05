@@ -597,7 +597,7 @@ class CompatibilityCheckerTests : LibTestSuite {
         datUnknowns = mutableListOf(),
         bytecodeIr = bytecodeIr,
         shopItems = UIntArray(0),
-        mapDesignations = mutableMapOf(),
+        floorMappings = emptyList(),
     )
 
     private fun createDefaultBytecodeIr(): BytecodeIr = BytecodeIr(
