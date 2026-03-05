@@ -13,7 +13,7 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.loading.LoadingCache
 import world.phantasmal.webui.DisposableContainer
 
-private class CitylabConfig(
+private class CityConfig(
     val binPrefix: String,
     val npcDat: String,
     val npcDatOffline: String,
@@ -22,8 +22,8 @@ private class CitylabConfig(
     val hasUltimate: Boolean,
 )
 
-private val CITYLAB_CONFIGS = mapOf(
-    Episode.I to CitylabConfig(
+private val CITY_CONFIGS = mapOf(
+    Episode.I to CityConfig(
         binPrefix = "map_city",
         npcDat = "map_city00_00e.dat",
         npcDatOffline = "map_city00_00e_s.dat",
@@ -31,7 +31,7 @@ private val CITYLAB_CONFIGS = mapOf(
         objDatOffline = "map_city00_00o_s.dat",
         hasUltimate = false,
     ),
-    Episode.II to CitylabConfig(
+    Episode.II to CityConfig(
         binPrefix = "map_labo",
         npcDat = "map_labo00_00e.dat",
         npcDatOffline = "map_labo00_00e_s.dat",
@@ -39,7 +39,7 @@ private val CITYLAB_CONFIGS = mapOf(
         objDatOffline = "map_labo00_00o_s.dat",
         hasUltimate = true,
     ),
-    Episode.IV to CitylabConfig(
+    Episode.IV to CityConfig(
         binPrefix = "map_city02",
         npcDat = "map_city02_00_00e.dat",
         npcDatOffline = "map_city02_00_00e_s.dat",
@@ -67,12 +67,12 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
         return loadQuest("/defaults/default_ep_$ver.qst")
     }
 
-    suspend fun loadCitylabLobbyQuest(
+    suspend fun loadCityLobbyQuest(
         episode: Episode,
         offline: Boolean = false,
         ultimate: Boolean = false,
     ): Quest {
-        val config = CITYLAB_CONFIGS[episode]
+        val config = CITY_CONFIGS[episode]
             ?: error("Episode $episode not supported.")
 
         // Build bin filename: {prefix}_{on|off}_j[_u].bin
@@ -83,9 +83,9 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
         val npcName = if (offline) config.npcDatOffline else config.npcDat
         val objName = if (offline) config.objDatOffline else config.objDat
 
-        val binBuf = assetLoader.loadArrayBuffer("/citylab/$binName")
-        val npcBuf = assetLoader.loadArrayBuffer("/citylab/$npcName")
-        val objBuf = assetLoader.loadArrayBuffer("/citylab/$objName")
+        val binBuf = assetLoader.loadArrayBuffer("/city/$binName")
+        val npcBuf = assetLoader.loadArrayBuffer("/city/$npcName")
+        val objBuf = assetLoader.loadArrayBuffer("/city/$objName")
 
         val datCursor = synthesizeDat(
             objData = Buffer.fromArrayBuffer(objBuf, Endianness.Little),

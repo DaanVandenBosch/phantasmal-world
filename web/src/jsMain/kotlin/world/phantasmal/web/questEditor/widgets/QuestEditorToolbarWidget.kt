@@ -20,8 +20,8 @@ class QuestEditorToolbarWidget(
 ) : Widget() {
     private val compatibilityDialogVisible = mutableCell(false)
     private val aboutDialogVisible = mutableCell(false)
-    private val citylabOffline = mutableCell(false)
-    private val citylabUltimate = mutableCell(false)
+    private val cityOffline = mutableCell(false)
+    private val cityUltimate = mutableCell(false)
 
     override fun Node.createElement() =
         div {
@@ -52,31 +52,31 @@ class QuestEditorToolbarWidget(
                                 ),
                             ),
                             MenuItem.SubMenu(
-                                label = "Load City&Labo Quest",
+                                label = "Load City Quest",
                                 items = listOf(
                                     MenuItem.Check(
                                         label = "Offline",
-                                        checked = citylabOffline,
-                                        onChange = { citylabOffline.value = it },
+                                        checked = cityOffline,
+                                        onChange = { cityOffline.value = it },
                                     ),
                                     MenuItem.Check(
                                         label = "Ultimate",
                                         tooltip = "Only available for Episode II",
-                                        checked = citylabUltimate,
-                                        onChange = { citylabUltimate.value = it },
+                                        checked = cityUltimate,
+                                        onChange = { cityUltimate.value = it },
                                     ),
                                     MenuItem.Separator,
                                     MenuItem.Action(
                                         label = "Episode I",
-                                        onAction = { scope.launch { ctrl.loadCitylabLobbyQuest(Episode.I, citylabOffline.value, citylabUltimate.value) } },
+                                        onAction = { scope.launch { ctrl.loadCityLobbyQuest(Episode.I, cityOffline.value, cityUltimate.value) } },
                                     ),
                                     MenuItem.Action(
                                         label = "Episode II",
-                                        onAction = { scope.launch { ctrl.loadCitylabLobbyQuest(Episode.II, citylabOffline.value, citylabUltimate.value) } },
+                                        onAction = { scope.launch { ctrl.loadCityLobbyQuest(Episode.II, cityOffline.value, cityUltimate.value) } },
                                     ),
                                     MenuItem.Action(
                                         label = "Episode IV",
-                                        onAction = { scope.launch { ctrl.loadCitylabLobbyQuest(Episode.IV, citylabOffline.value, citylabUltimate.value) } },
+                                        onAction = { scope.launch { ctrl.loadCityLobbyQuest(Episode.IV, cityOffline.value, cityUltimate.value) } },
                                     ),
                                 ),
                             ),

@@ -257,11 +257,11 @@ class QuestEditorToolbarController(
         setCurrentQuest(fileHolder = null, Version.BB, questEditorStore.getDefaultQuest(episode))
     }
 
-    suspend fun loadCitylabLobbyQuest(episode: Episode, offline: Boolean, ultimate: Boolean) {
+    suspend fun loadCityLobbyQuest(episode: Episode, offline: Boolean, ultimate: Boolean) {
         setCurrentQuest(
             fileHolder = null,
             Version.BB,
-            questEditorStore.getCitylabLobbyQuest(episode, offline, ultimate),
+            questEditorStore.getCityLobbyQuest(episode, offline, ultimate),
         )
     }
 
