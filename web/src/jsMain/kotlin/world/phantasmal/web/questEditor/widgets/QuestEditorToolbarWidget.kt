@@ -20,8 +20,6 @@ class QuestEditorToolbarWidget(
 ) : Widget() {
     private val compatibilityDialogVisible = mutableCell(false)
     private val aboutDialogVisible = mutableCell(false)
-    private val cityOffline = mutableCell(false)
-    private val cityUltimate = mutableCell(false)
 
     override fun Node.createElement() =
         div {
@@ -48,35 +46,6 @@ class QuestEditorToolbarWidget(
                                     MenuItem.Action(
                                         label = "Episode IV",
                                         onAction = { scope.launch { ctrl.createNewQuest(Episode.IV) } },
-                                    ),
-                                ),
-                            ),
-                            MenuItem.SubMenu(
-                                label = "Load City Quest",
-                                items = listOf(
-                                    MenuItem.Check(
-                                        label = "Offline",
-                                        checked = cityOffline,
-                                        onChange = { cityOffline.value = it },
-                                    ),
-                                    MenuItem.Check(
-                                        label = "Ultimate",
-                                        tooltip = "Only available for Episode II",
-                                        checked = cityUltimate,
-                                        onChange = { cityUltimate.value = it },
-                                    ),
-                                    MenuItem.Separator,
-                                    MenuItem.Action(
-                                        label = "Episode I",
-                                        onAction = { scope.launch { ctrl.loadCityLobbyQuest(Episode.I, cityOffline.value, cityUltimate.value) } },
-                                    ),
-                                    MenuItem.Action(
-                                        label = "Episode II",
-                                        onAction = { scope.launch { ctrl.loadCityLobbyQuest(Episode.II, cityOffline.value, cityUltimate.value) } },
-                                    ),
-                                    MenuItem.Action(
-                                        label = "Episode IV",
-                                        onAction = { scope.launch { ctrl.loadCityLobbyQuest(Episode.IV, cityOffline.value, cityUltimate.value) } },
                                     ),
                                 ),
                             ),
@@ -115,6 +84,31 @@ class QuestEditorToolbarWidget(
                                 tooltip = "Whether the collision or the render geometry should be shown",
                                 checked = ctrl.showCollisionGeometry,
                                 onChange = ctrl::setShowCollisionGeometry,
+                            ),
+                            MenuItem.Separator,
+                            MenuItem.Check(
+                                label = "Section IDs",
+                                tooltip = "Whether to show section ID numbers in each section",
+                                checked = ctrl.showSectionIds,
+                                onChange = ctrl::setShowSectionIds,
+                            ),
+                            MenuItem.Check(
+                                label = "Door & Fence IDs",
+                                tooltip = "Whether to show door and fence ID labels",
+                                checked = ctrl.showDoorIds,
+                                onChange = ctrl::setShowDoorIds,
+                            ),
+                            MenuItem.Check(
+                                label = "Spawn Ground",
+                                tooltip = "Whether monsters should spawn directly at ground level (section height)",
+                                checked = ctrl.spawnMonstersOnGround,
+                                onChange = ctrl::setSpawnMonstersOnGround,
+                            ),
+                            MenuItem.Check(
+                                label = "Origin Point",
+                                tooltip = "Show the world coordinate origin point at position (0,0,0)",
+                                checked = ctrl.showOriginPoint,
+                                onChange = ctrl::setShowOriginPoint,
                             ),
                         ),
                     ),

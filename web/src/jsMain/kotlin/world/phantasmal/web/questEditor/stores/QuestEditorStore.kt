@@ -8,6 +8,7 @@ import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.emptyListCell
 import world.phantasmal.cell.list.filtered
 import world.phantasmal.cell.list.flatMapToList
+import world.phantasmal.core.externals.browser.FileSystemDirectoryHandle
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.web.core.PwToolType
@@ -23,6 +24,13 @@ import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
+
+class CityLobbyQuestResult(
+    val questModel: QuestModel,
+    val binName: String,
+    val npcDatName: String,
+    val objDatName: String,
+)
 
 data class ContextMenuRequest(val clientX: Int, val clientY: Int)
 
@@ -309,14 +317,15 @@ class QuestEditorStore(
         convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
 
     suspend fun getCityLobbyQuest(
+        gameDirHandle: FileSystemDirectoryHandle,
         episode: Episode,
-        offline: Boolean = false,
-        ultimate: Boolean = false,
-    ): QuestModel =
-        convertQuestToModel(
-            questLoader.loadCityLobbyQuest(episode, offline, ultimate),
-            areaStore::getVariant,
-        )
+        offline: Boolean,
+        ultimate: Boolean,
+    ): CityLobbyQuestResult {
+        val result = questLoader.loadCityLobbyQuest(gameDirHandle, episode, offline, ultimate)
+        val questModel = convertQuestToModel(result.quest, areaStore::getVariant)
+        return CityLobbyQuestResult(questModel, result.binName, result.npcDatName, result.objDatName)
+    }
 
     fun <T> setQuestProperty(
         quest: QuestModel,

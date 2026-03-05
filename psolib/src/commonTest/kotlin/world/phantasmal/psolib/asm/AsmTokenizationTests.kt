@@ -19,6 +19,11 @@ class AsmTokenizationTests : LibTestSuite {
         tokenizer.testInt("0xAb", 0xAB)
         tokenizer.testInt("0xaB", 0xAB)
         tokenizer.testInt("0xff", 0xFF)
+
+        // Large unsigned hex values (> Int.MAX_VALUE) should parse correctly.
+        tokenizer.testInt("0xFFFFFFEC", -20) // unsigned 4294967276 = signed -20
+        tokenizer.testInt("0x80000000", Int.MIN_VALUE) // unsigned 2147483648 = signed -2147483648
+        tokenizer.testInt("0xFFFFFFFF", -1)
     }
 
     private fun LineTokenizer.testInt(line: String, value: Int) {

@@ -4,13 +4,18 @@ import kotlinx.coroutines.await
 import mu.KotlinLogging
 import world.phantasmal.cell.*
 import world.phantasmal.core.*
+import world.phantasmal.core.externals.browser.FileSystemDirectoryHandle
+import world.phantasmal.core.externals.browser.arrayBuffer
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.fileFormats.quest.*
+import world.phantasmal.web.questEditor.loading.CityBinInfo
+import world.phantasmal.web.questEditor.loading.parseCityBinFilename
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.files.cursor
 import world.phantasmal.web.core.files.writeBuffer
 import world.phantasmal.web.core.stores.UiStore
+import world.phantasmal.web.questEditor.loading.extractRawEntityData
 import world.phantasmal.web.questEditor.models.AreaModel
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestModel
@@ -22,6 +27,8 @@ import world.phantasmal.web.questEditor.stores.convertQuestToModel
 import world.phantasmal.webui.UserAgentFeatures
 import world.phantasmal.webui.controllers.Controller
 import world.phantasmal.webui.files.*
+import world.phantasmal.webui.files.showDirectoryPicker
+import world.phantasmal.webui.obj
 
 private val logger = KotlinLogging.logger {}
 
@@ -36,6 +43,7 @@ class QuestEditorToolbarController(
     private val _result = mutableCell<PwResult<*>?>(null)
     private val saving = mutableCell(false)
     private val _selectedAreaAndLabel = mutableCell<AreaAndLabel?>(null)
+    private var gameDirHandle: FileSystemDirectoryHandle? = null
 
     // We mainly disable saving while a save is underway for visual feedback that a save is
     // happening/has happened.
@@ -257,62 +265,24 @@ class QuestEditorToolbarController(
         setCurrentQuest(fileHolder = null, Version.BB, questEditorStore.getDefaultQuest(episode))
     }
 
-    suspend fun loadCityLobbyQuest(episode: Episode, offline: Boolean, ultimate: Boolean) {
-        setCurrentQuest(
-            fileHolder = null,
-            Version.BB,
-            questEditorStore.getCityLobbyQuest(episode, offline, ultimate),
-        )
-    }
-
     suspend fun openFiles(newFiles: List<FileHandle>?) {
         try {
             if (newFiles.isNullOrEmpty()) return
 
-            val qstFile = newFiles.find { it.extension().equals("qst", ignoreCase = true) }
-
-            if (qstFile != null) {
-                val parseResult = parseQstToQuest(qstFile.cursor(Endianness.Little))
-                setResult(parseResult)
-
-                if (parseResult is Success) {
-                    setCurrentQuest(
-                        FileHolder.Qst(qstFile),
-                        parseResult.value.version,
-                        parseResult.value.quest,
-                    )
-                }
-            } else {
-                val binFile = newFiles.find { it.extension().equals("bin", ignoreCase = true) }
-                val datFile = newFiles.find { it.extension().equals("dat", ignoreCase = true) }
-
-                if (binFile == null || datFile == null) {
-                    setResult(
-                        Failure(
-                            listOf(
-                                Problem(
-                                    Severity.Error,
-                                    "Please select a .qst file or one .bin and one .dat file.",
-                                )
+            when (val strategy = resolveLoadStrategy(newFiles)) {
+                is QuestLoadStrategy.Qst -> loadQst(strategy)
+                is QuestLoadStrategy.BinDat -> loadBinDat(strategy)
+                is QuestLoadStrategy.CityLobby -> loadCityLobby(strategy)
+                null -> setResult(
+                    Failure(
+                        listOf(
+                            Problem(
+                                Severity.Error,
+                                "Please select a .qst file or one .bin and one .dat file.",
                             )
                         )
                     )
-                    return
-                }
-
-                val parseResult = parseBinDatToQuest(
-                    binFile.cursor(Endianness.Little),
-                    datFile.cursor(Endianness.Little),
                 )
-                setResult(parseResult)
-
-                if (parseResult is Success) {
-                    setCurrentQuest(
-                        FileHolder.BinDat(binFile, datFile),
-                        Version.BB,
-                        parseResult.value,
-                    )
-                }
             }
         } catch (e: Throwable) {
             setResult(
@@ -321,6 +291,78 @@ class QuestEditorToolbarController(
                     .failure()
             )
         }
+    }
+
+    private fun resolveLoadStrategy(files: List<FileHandle>): QuestLoadStrategy? {
+        val qstFile = files.find { it.extension().equals("qst", ignoreCase = true) }
+        if (qstFile != null) return QuestLoadStrategy.Qst(qstFile)
+
+        val binFile = files.find { it.extension().equals("bin", ignoreCase = true) }
+        val datFile = files.find { it.extension().equals("dat", ignoreCase = true) }
+
+        if (binFile != null) {
+            // Single .bin — check if it's a city lobby bin.
+            val cityInfo = parseCityBinFilename(binFile.name)
+            if (cityInfo != null) return QuestLoadStrategy.CityLobby(cityInfo)
+
+            // Regular bin+dat.
+            if (datFile != null) return QuestLoadStrategy.BinDat(binFile, datFile)
+        }
+
+        return null
+    }
+
+    private suspend fun loadQst(strategy: QuestLoadStrategy.Qst) {
+        val parseResult = parseQstToQuest(strategy.file.cursor(Endianness.Little))
+        setResult(parseResult)
+
+        if (parseResult is Success) {
+            setCurrentQuest(
+                FileHolder.Qst(strategy.file),
+                parseResult.value.version,
+                parseResult.value.quest,
+            )
+        }
+    }
+
+    private suspend fun loadBinDat(strategy: QuestLoadStrategy.BinDat) {
+        val parseResult = parseBinDatToQuest(
+            strategy.binFile.cursor(Endianness.Little),
+            strategy.datFile.cursor(Endianness.Little),
+        )
+        setResult(parseResult)
+
+        if (parseResult is Success) {
+            setCurrentQuest(
+                FileHolder.BinDat(strategy.binFile, strategy.datFile),
+                Version.BB,
+                parseResult.value,
+            )
+        }
+    }
+
+    private suspend fun loadCityLobby(strategy: QuestLoadStrategy.CityLobby) {
+        var dirHandle = gameDirHandle
+
+        if (dirHandle == null) {
+            dirHandle = showDirectoryPicker() ?: return
+            gameDirHandle = dirHandle
+        }
+
+        val info = strategy.info
+        val result = questEditorStore.getCityLobbyQuest(
+            dirHandle, info.episode, info.offline, info.ultimate,
+        )
+        setCurrentQuest(
+            FileHolder.GameDir(
+                dirHandle,
+                result.binName,
+                result.npcDatName,
+                result.objDatName,
+            ),
+            Version.BB,
+            result.questModel,
+        )
     }
 
     suspend fun save() {
@@ -364,6 +406,11 @@ class QuestEditorToolbarController(
                         questEditorStore.questSaved()
                         return
                     }
+                }
+
+                is FileHolder.GameDir -> {
+                    saveToGameDir(holder, quest)
+                    return
                 }
 
                 else -> {}
@@ -556,6 +603,8 @@ class QuestEditorToolbarController(
                         ?: fileHolder.datFile.basename()
                         ?: fileHolder.binFile.name
 
+                is FileHolder.GameDir -> fileHolder.binName
+
                 null -> ""
             }
         )
@@ -594,8 +643,65 @@ class QuestEditorToolbarController(
         }
     }
 
+    private suspend fun saveToGameDir(holder: FileHolder.GameDir, quest: QuestModel) {
+        val convertedQuest = convertQuestFromModel(quest)
+        val dataDir = try {
+            holder.dirHandle.getDirectoryHandle("data").await()
+        } catch (_: Throwable) {
+            holder.dirHandle
+        }
+
+        // 1. Backup original files.
+        val backupDir = holder.dirHandle.getDirectoryHandle("backup", obj { create = true }).await()
+
+        for (name in listOf(holder.binName, holder.npcDatName, holder.objDatName)) {
+            val originalData = dataDir.getFileHandle(name).await()
+                .getFile().await().arrayBuffer().await()
+
+            val backupHandle = backupDir.getFileHandle(name, obj { create = true }).await()
+            val writable = backupHandle.createWritable().await()
+            writable.write(originalData).await()
+            writable.close().await()
+        }
+
+        // 2. Write modified bin (uncompressed).
+        val (bin, _) = writeQuestToBinDat(convertedQuest, Version.BB)
+
+        val binHandle = dataDir.getFileHandle(holder.binName).await()
+        val binWritable = binHandle.createWritable().await()
+        binWritable.write(bin.arrayBuffer).await()
+        binWritable.close().await()
+
+        // 3. Write modified dat files (split back into separate npc/obj).
+        val (objBuf, npcBuf) = extractRawEntityData(convertedQuest)
+
+        val objHandle = dataDir.getFileHandle(holder.objDatName).await()
+        val objWritable = objHandle.createWritable().await()
+        objWritable.write(objBuf.arrayBuffer).await()
+        objWritable.close().await()
+
+        val npcHandle = dataDir.getFileHandle(holder.npcDatName).await()
+        val npcWritable = npcHandle.createWritable().await()
+        npcWritable.write(npcBuf.arrayBuffer).await()
+        npcWritable.close().await()
+
+        questEditorStore.questSaved()
+    }
+
+    private sealed class QuestLoadStrategy {
+        class Qst(val file: FileHandle) : QuestLoadStrategy()
+        class BinDat(val binFile: FileHandle, val datFile: FileHandle) : QuestLoadStrategy()
+        class CityLobby(val info: CityBinInfo) : QuestLoadStrategy()
+    }
+
     private sealed class FileHolder {
         class Qst(val file: FileHandle) : FileHolder()
         class BinDat(val binFile: FileHandle, val datFile: FileHandle) : FileHolder()
+        class GameDir(
+            val dirHandle: FileSystemDirectoryHandle,
+            val binName: String,
+            val npcDatName: String,
+            val objDatName: String,
+        ) : FileHolder()
     }
 }

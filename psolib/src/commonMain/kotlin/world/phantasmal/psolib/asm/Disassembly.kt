@@ -11,8 +11,14 @@ private val INDENT = " ".repeat(INDENT_WIDTH)
 /**
  * @param inlineStackArgs If true, will output stack arguments inline instead of outputting stack
  * management instructions (argpush variants).
+ * @param intFormat How to format integer arguments: "hex" for 0x prefixed hexadecimal, "dec" for
+ * decimal. Labels and registers are not affected.
  */
-fun disassemble(bytecodeIr: BytecodeIr, inlineStackArgs: Boolean = true): List<String> {
+fun disassemble(
+    bytecodeIr: BytecodeIr,
+    inlineStackArgs: Boolean = true,
+    intFormat: String = "dec",
+): List<String> {
     logger.trace {
         "Disassembling ${bytecodeIr.segments.size} segments with ${
             if (inlineStackArgs) "inline stack arguments" else "stack push instructions"
@@ -71,19 +77,23 @@ fun disassemble(bytecodeIr: BytecodeIr, inlineStackArgs: Boolean = true): List<S
                         val sb = StringBuilder(INDENT)
                         sb.append(opcode.mnemonic)
 
+                        val useHex = intFormat == "hex"
+
                         if (opcode.stack == StackInteraction.Pop) {
                             if (inlineStackArgs) {
                                 sb.appendArgs(
                                     opcode.params,
                                     stack.takeLast(opcode.params.size),
                                     stack = true,
+                                    useHex = useHex,
                                 )
                             }
                         } else {
                             sb.appendArgs(
                                 opcode.params,
                                 addTypeToArgs(opcode.params, instruction.args),
-                                stack = false
+                                stack = false,
+                                useHex = useHex,
                             )
                         }
 
@@ -188,7 +198,12 @@ private fun addTypeToArgs(params: List<Param>, args: List<Arg>): List<ArgWithTyp
     return argsWithType
 }
 
-private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType>, stack: Boolean) {
+private fun StringBuilder.appendArgs(
+    params: List<Param>,
+    args: List<ArgWithType>,
+    stack: Boolean,
+    useHex: Boolean = false,
+) {
     var i = 0
 
     while (i < params.size) {
@@ -244,7 +259,16 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
                     }
 
                     else -> {
-                        append(arg.value)
+                        if (useHex && paramType is ValueType && paramType !is LabelType) {
+                            val bitSize = when (paramType) {
+                                ByteType -> 8
+                                ShortType -> 16
+                                else -> 32
+                            }
+                            appendHexInt(arg.value, bitSize)
+                        } else {
+                            append(arg.value)
+                        }
                     }
                 }
             }
@@ -252,6 +276,16 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
 
         i++
     }
+}
+
+private fun StringBuilder.appendHexInt(value: Any?, bitSize: Int = 32) {
+    val intVal = (value as? Number)?.toInt() ?: 0
+    val unsigned = intVal.toUInt()
+    val mask = if (bitSize >= 32) UInt.MAX_VALUE else ((1u shl bitSize) - 1u)
+    val masked = unsigned and mask
+    val hexDigits = bitSize / 4
+    append("0x")
+    append(masked.toString(16).uppercase().padStart(hexDigits, '0'))
 }
 
 private fun StringBuilder.appendStringArg(value: String): StringBuilder {

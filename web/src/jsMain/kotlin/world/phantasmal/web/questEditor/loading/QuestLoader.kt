@@ -1,11 +1,16 @@
 package world.phantasmal.web.questEditor.loading
 
+import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBuffer
+import world.phantasmal.core.externals.browser.FileSystemDirectoryHandle
+import world.phantasmal.core.externals.browser.arrayBuffer
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psolib.fileFormats.quest.NPC_BYTE_SIZE
+import world.phantasmal.psolib.fileFormats.quest.OBJECT_BYTE_SIZE
 import world.phantasmal.psolib.fileFormats.quest.Quest
 import world.phantasmal.psolib.fileFormats.quest.parseBinDatToQuest
 import world.phantasmal.psolib.fileFormats.quest.parseQstToQuest
@@ -13,40 +18,59 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.loading.LoadingCache
 import world.phantasmal.webui.DisposableContainer
 
-private class CityConfig(
-    val binPrefix: String,
-    val npcDat: String,
-    val npcDatOffline: String,
-    val objDat: String,
-    val objDatOffline: String,
-    val hasUltimate: Boolean,
+class CityLobbyResult(
+    val quest: Quest,
+    val binName: String,
+    val npcDatName: String,
+    val objDatName: String,
 )
 
-private val CITY_CONFIGS = mapOf(
-    Episode.I to CityConfig(
-        binPrefix = "map_city",
-        npcDat = "map_city00_00e.dat",
-        npcDatOffline = "map_city00_00e_s.dat",
-        objDat = "map_city00_00o.dat",
-        objDatOffline = "map_city00_00o_s.dat",
-        hasUltimate = false,
-    ),
-    Episode.II to CityConfig(
-        binPrefix = "map_labo",
-        npcDat = "map_labo00_00e.dat",
-        npcDatOffline = "map_labo00_00e_s.dat",
-        objDat = "map_labo00_00o.dat",
-        objDatOffline = "map_labo00_00o_s.dat",
-        hasUltimate = true,
-    ),
-    Episode.IV to CityConfig(
-        binPrefix = "map_city02",
-        npcDat = "map_city02_00_00e.dat",
-        npcDatOffline = "map_city02_00_00e_s.dat",
-        objDat = "map_city02_00_00o.dat",
-        objDatOffline = "map_city02_00_00o_s.dat",
-        hasUltimate = false,
-    ),
+private val EPISODE_TO_BIN_PREFIX = mapOf(
+    Episode.I to "map_city",
+    Episode.II to "map_labo",
+    Episode.IV to "map_city02",
+)
+
+private val EPISODE_TO_DAT_PREFIX = mapOf(
+    Episode.I to "map_city00_00",
+    Episode.II to "map_labo00_00",
+    Episode.IV to "map_city02_00_00",
+)
+
+/** Language suffixes to try when looking for bin files. */
+private val BIN_LANG_SUFFIXES = listOf("j", "e")
+
+private val BIN_PREFIX_TO_EPISODE = mapOf(
+    "map_city" to Episode.I,
+    "map_labo" to Episode.II,
+    "map_city02" to Episode.IV,
+)
+
+/**
+ * Parse a city lobby bin filename to extract episode, online/offline, and ultimate.
+ * Expected pattern: `{prefix}_{on|off}_{lang}[_u].bin`
+ * Returns null if the filename doesn't match.
+ */
+fun parseCityBinFilename(binName: String): CityBinInfo? {
+    val regex = Regex("""^(map_city02|map_city|map_labo)_(on|off)_[a-z](_u)?\.bin$""")
+    val match = regex.matchEntire(binName) ?: return null
+
+    val prefix = match.groupValues[1]
+    val episode = BIN_PREFIX_TO_EPISODE[prefix] ?: return null
+    val offline = match.groupValues[2] == "off"
+    val ultimate = match.groupValues[3] == "_u"
+
+    return CityBinInfo(
+        episode = episode,
+        offline = offline,
+        ultimate = ultimate,
+    )
+}
+
+class CityBinInfo(
+    val episode: Episode,
+    val offline: Boolean,
+    val ultimate: Boolean,
 )
 
 // DAT table header constants.
@@ -68,38 +92,65 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
     }
 
     suspend fun loadCityLobbyQuest(
+        gameDirHandle: FileSystemDirectoryHandle,
         episode: Episode,
         offline: Boolean = false,
         ultimate: Boolean = false,
-    ): Quest {
-        val config = CITY_CONFIGS[episode]
+    ): CityLobbyResult {
+        val binPrefix = EPISODE_TO_BIN_PREFIX[episode]
+            ?: error("Episode $episode not supported.")
+        val datPrefix = EPISODE_TO_DAT_PREFIX[episode]
             ?: error("Episode $episode not supported.")
 
-        // Build bin filename: {prefix}_{on|off}_j[_u].bin
         val onOff = if (offline) "off" else "on"
-        val ult = if (ultimate && config.hasUltimate) "_u" else ""
-        val binName = "${config.binPrefix}_${onOff}_j${ult}.bin"
+        val ult = if (ultimate && episode == Episode.II) "_u" else ""
+        val offlineSuffix = if (offline) "_s" else ""
 
-        val npcName = if (offline) config.npcDatOffline else config.npcDat
-        val objName = if (offline) config.objDatOffline else config.objDat
+        val npcDatName = "${datPrefix}e${offlineSuffix}.dat"
+        val objDatName = "${datPrefix}o${offlineSuffix}.dat"
 
-        val binBuf = assetLoader.loadArrayBuffer("/city/$binName")
-        val npcBuf = assetLoader.loadArrayBuffer("/city/$npcName")
-        val objBuf = assetLoader.loadArrayBuffer("/city/$objName")
+        // Support both: user picked game root (has data/ subdir) or data/ directly.
+        val dataDir = try {
+            gameDirHandle.getDirectoryHandle("data").await()
+        } catch (_: Throwable) {
+            gameDirHandle
+        }
+
+        // Try different language suffixes for the bin file.
+        var binName: String? = null
+        var binBuf: ArrayBuffer? = null
+
+        for (lang in BIN_LANG_SUFFIXES) {
+            val candidate = "${binPrefix}_${onOff}_${lang}${ult}.bin"
+            try {
+                binBuf = dataDir.getFileHandle(candidate).await()
+                    .getFile().await().arrayBuffer().await()
+                binName = candidate
+                break
+            } catch (_: Throwable) {
+                // File doesn't exist with this language suffix, try next.
+            }
+        }
+
+        if (binName == null || binBuf == null) {
+            val tried = BIN_LANG_SUFFIXES.joinToString { "${binPrefix}_${onOff}_${it}${ult}.bin" }
+            error("City bin file not found. Tried: $tried")
+        }
+
+        val npcBuf = dataDir.getFileHandle(npcDatName).await().getFile().await().arrayBuffer().await()
+        val objBuf = dataDir.getFileHandle(objDatName).await().getFile().await().arrayBuffer().await()
 
         val datCursor = synthesizeDat(
             objData = Buffer.fromArrayBuffer(objBuf, Endianness.Little),
             npcData = Buffer.fromArrayBuffer(npcBuf, Endianness.Little),
         )
 
-        val questResult = parseBinDatToQuest(
+        val quest = parseBinDatToQuest(
             binCursor = binBuf.cursor(Endianness.Little),
             datCursor = datCursor,
             lenient = true,
             compressed = false,
-        )
-
-        val quest = questResult.unwrap()
+        ).unwrap()
 
         // Lobby .bin files may lack SET_EPISODE, so force the correct episode.
         quest.episode = episode
@@ -108,11 +159,36 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
             npc.episode = episode
         }
 
-        return quest
+        return CityLobbyResult(quest, binName, npcDatName, objDatName)
     }
 
     private suspend fun loadQuest(path: String): Quest =
         parseQstToQuest(cache.get(path).cursor(Endianness.Little)).unwrap().quest
+}
+
+/**
+ * Extract raw entity data from a quest, returning separate object and NPC buffers
+ * suitable for writing back to city lobby dat files.
+ */
+fun extractRawEntityData(quest: Quest): Pair<Buffer, Buffer> {
+    val objSize = quest.objects.size * OBJECT_BYTE_SIZE
+    val npcSize = quest.npcs.size * NPC_BYTE_SIZE
+
+    val objBuf = Buffer.withSize(objSize, Endianness.Little)
+    var offset = 0
+    for (obj in quest.objects) {
+        obj.data.copyInto(objBuf, destinationOffset = offset)
+        offset += OBJECT_BYTE_SIZE
+    }
+
+    val npcBuf = Buffer.withSize(npcSize, Endianness.Little)
+    offset = 0
+    for (npc in quest.npcs) {
+        npc.data.copyInto(npcBuf, destinationOffset = offset)
+        offset += NPC_BYTE_SIZE
+    }
+
+    return Pair(objBuf, npcBuf)
 }
 
 /**

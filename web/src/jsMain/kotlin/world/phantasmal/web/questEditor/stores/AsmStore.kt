@@ -36,6 +36,7 @@ class AsmStore(
     private val undoManager: UndoManager,
 ) : Store() {
     private val _inlineStackArgs = mutableCell(true)
+    private val _hexFormat = mutableCell(true)
     private var _textModel = mutableCell<ITextModel?>(null)
 
     private var setBytecodeIrTimeout: Int? = null
@@ -49,6 +50,7 @@ class AsmStore(
     private val undo = addDisposable(TextModelUndo(undoManager, "Script edits", _textModel))
 
     val inlineStackArgs: Cell<Boolean> = _inlineStackArgs
+    val hexFormat: Cell<Boolean> = _hexFormat
 
     val textModel: Cell<ITextModel?> = _textModel
 
@@ -74,6 +76,14 @@ class AsmStore(
             }
 
             setTextModel(questEditorStore.currentQuest.value, inlineStackArgs)
+        }
+
+        observe(hexFormat) {
+            if (setBytecodeIrTimeout != null) {
+                setBytecodeIr()
+            }
+
+            setTextModel(questEditorStore.currentQuest.value, inlineStackArgs.value)
         }
 
         observe(asmAnalyser.mapDesignations) {
@@ -133,6 +143,10 @@ class AsmStore(
         _inlineStackArgs.value = inline
     }
 
+    fun setHexFormat(hex: Boolean) {
+        _hexFormat.value = hex
+    }
+
     private fun setTextModel(quest: QuestModel?, inlineStackArgs: Boolean) {
         mutateDeferred {
             setBytecodeIrTimeout?.let { it ->
@@ -144,7 +158,8 @@ class AsmStore(
 
             quest ?: return@mutateDeferred
 
-            val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
+            val intFmt = if (hexFormat.value) "hex" else "dec"
+            val asm = disassemble(quest.bytecodeIr, inlineStackArgs, intFmt)
             asmAnalyser.setAsm(asm, inlineStackArgs)
 
             _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
@@ -198,7 +213,7 @@ class AsmStore(
             registerSignatureHelpProvider(ASM_LANG_ID, AsmSignatureHelpProvider(asmAnalyser))
             registerHoverProvider(ASM_LANG_ID, AsmHoverProvider(asmAnalyser))
             registerDefinitionProvider(ASM_LANG_ID, AsmDefinitionProvider(asmAnalyser))
-            registerDocumentSymbolProvider(ASM_LANG_ID, AsmDocumentSymbolProvider(asmAnalyser))
+            registerDocumentSymbolProvider(ASM_LANG_ID, createDocumentSymbolProvider(asmAnalyser))
             registerDocumentHighlightProvider(
                 ASM_LANG_ID,
                 AsmDocumentHighlightProvider(asmAnalyser)

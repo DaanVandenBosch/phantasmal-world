@@ -36,12 +36,19 @@ class AsmEditorController(private val store: AsmStore) : Controller() {
             }
         }
 
+    val hexFormat: Cell<Boolean> = store.hexFormat
+    val hexFormatEnabled: Cell<Boolean> = store.problems.map { it.isEmpty() }
+
     fun makeUndoCurrent() {
         store.makeUndoCurrent()
     }
 
     fun setInlineStackArgs(inline: Boolean) {
         store.setInlineStackArgs(inline)
+    }
+
+    fun setHexFormat(hex: Boolean) {
+        store.setHexFormat(hex)
     }
 
     companion object {
