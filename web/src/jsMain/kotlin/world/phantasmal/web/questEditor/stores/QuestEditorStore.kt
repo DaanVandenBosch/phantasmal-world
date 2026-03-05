@@ -9,6 +9,7 @@ import world.phantasmal.cell.list.emptyListCell
 import world.phantasmal.cell.list.filtered
 import world.phantasmal.cell.list.flatMapToList
 import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.commands.Command
 import world.phantasmal.web.core.stores.UiStore
@@ -207,8 +208,11 @@ class QuestEditorStore(
                 } else {
                     // Fallback: if no floor 0 mapping, find the first area variant with entities
                     val areaWithEntities = quest.areaVariants.value.find { variant ->
-                        val hasNpcs = quest.npcs.value.any { it.areaId == variant.area.id }
-                        val hasObjects = quest.objects.value.any { it.areaId == variant.area.id }
+                        val floorIds = quest.floorMappings
+                            .filter { it.areaId == variant.area.id && it.variantId == variant.id }
+                            .map { it.floorId }.toSet()
+                        val hasNpcs = quest.npcs.value.any { it.areaId in floorIds }
+                        val hasObjects = quest.objects.value.any { it.areaId in floorIds }
                         hasNpcs || hasObjects
                     }
 
@@ -511,9 +515,9 @@ class QuestEditorStore(
         }
     }
 
-    suspend fun setMapDesignations(mapDesignations: Map<Int, Set<Int>>) {
+    suspend fun setFloorMappings(map: Map<Int, List<FloorMapping>>) {
         currentQuest.value?.let { quest ->
-            quest.setMapDesignations(mapDesignations)
+            quest.setFloorMappings(map)
             updateQuestEntitySections(quest)
         }
     }
@@ -538,8 +542,13 @@ class QuestEditorStore(
      */
     private fun setEntitySection(entity: QuestEntityModel<*, *>, sectionId: Int) {
         currentQuest.value?.let { quest ->
-            // Find all variants for this area and try to find the section in any of them
-            val variants = quest.areaVariants.value.filter { it.area.id == entity.areaId }
+            // For multi-floor quests, entity.areaId is a floor ID — use floorToVariantMap
+            val variant = quest.floorToVariantMap[entity.areaId]
+            val variants = if (variant != null) {
+                listOf(variant)
+            } else {
+                quest.areaVariants.value.filter { it.area.id == entity.areaId }
+            }
 
             for (variant in variants) {
                 val section = areaStore.getLoadedSections(quest.episode, variant)

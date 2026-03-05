@@ -2,6 +2,7 @@ package world.phantasmal.web.shared.messages
 
 import kotlinx.serialization.Serializable
 import world.phantasmal.core.Severity
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 
 /*
  * The protocol between the AsmAnalyser and the assembly web worker is loosely based on the language
@@ -63,7 +64,7 @@ sealed class ServerMessage
 sealed class ServerNotification : ServerMessage() {
     @Serializable
     class MapDesignations(
-        val mapDesignations: Map<Int, Set<Int>>,
+        val mapDesignations: Map<Int, List<FloorMapping>>,
     ) : ServerNotification()
 
     @Serializable

@@ -169,9 +169,13 @@ class EntityInfoController(
     suspend fun setSectionId(sectionId: Int) {
         questEditorStore.currentQuest.value?.let { quest ->
             questEditorStore.selectedEntity.value?.let { entity ->
+                // For multi-floor quests, entity.areaId is a floor ID, use floorToVariantMap
+                val variant = quest.floorToVariantMap[entity.areaId]
+                    ?: quest.areaVariants.value.firstOrNull { it.area.id == entity.areaId }
+                    ?: return
                 val section = areaStore.getSection(
                     quest.episode,
-                    quest.areaVariants.value.first { it.area.id == entity.areaId },
+                    variant,
                     sectionId,
                 )
                 questEditorStore.executeAction(

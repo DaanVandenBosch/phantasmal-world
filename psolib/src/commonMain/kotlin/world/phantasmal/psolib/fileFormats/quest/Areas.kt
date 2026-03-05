@@ -13,7 +13,7 @@ class Area(
 
 class AreaVariant(
     val id: Int, // Area variant ID
-    val area: Area, // Parent area
+    val area: Area,
 )
 
 fun getAreasForEpisode(episode: Episode): List<Area> =

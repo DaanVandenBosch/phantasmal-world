@@ -1,5 +1,6 @@
 package world.phantasmal.psolib.asm.dataFlowAnalysis
 
+import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import world.phantasmal.psolib.asm.*
 import world.phantasmal.psolib.fileFormats.quest.getAreaIdByMapId
@@ -16,7 +17,7 @@ private val logger = KotlinLogging.logger {}
  *
  * <p><b>Why switch from floor-variant to areaId-variant mapping?</b></p>
  *
- * <p>Let’s take <b>Phantasmal World #4</b> as an example. The label 0 of this quest looks like this:</p>
+ * <p>Let's take <b>Phantasmal World #4</b> as an example. The label 0 of this quest looks like this:</p>
  *
  * <pre>{@code
  * 0:
@@ -43,7 +44,7 @@ private val logger = KotlinLogging.logger {}
  * Tower          = 00000023
  * }</pre>
  *
- * <p>Let’s look at the first three <code>bb_map_designate</code> lines:</p>
+ * <p>Let's look at the first three <code>bb_map_designate</code> lines:</p>
  *
  * <ol>
  *   <li><b>Floor 0</b>: map = <b>Lab (0x12 = 18)</b>, variant = <b>0</b> (Lab/City maps each have only one variant).</li>
@@ -64,6 +65,7 @@ private val logger = KotlinLogging.logger {}
  * <p>By switching to an <code>areaId(1)</code> ↔ <code>variant(N)</code> mapping,
  * the <b>FloorMapping</b> design now correctly resolves multi-variant maps under the same <code>mapId</code>.</p>
  */
+@Serializable
 data class FloorMapping(
     /**
      * The ID of the floor where the map should be placed.
@@ -85,101 +87,24 @@ data class FloorMapping(
 )
 
 /**
- * Extract map designations from function 0 bytecode instructions.
- * Returns a map of area IDs to sets of variant IDs.
+ * Extract map designations from quest bytecode instructions.
+ * Searches all instruction segments for map_designate / map_designate_ex / bb_map_designate /
+ * set_floor_handler opcodes.
+ *
+ * Returns a map of area IDs to lists of [FloorMapping]s.
  */
 fun getMapDesignations(
-    func0Segment: InstructionSegment,
-    createCfg: () -> ControlFlowGraph,
-): MutableMap<Int, MutableSet<Int>> {
-    val mapDesignations = mutableMapOf<Int, MutableSet<Int>>()
-    var cfg: ControlFlowGraph? = null
-
-    for (inst in func0Segment.instructions) {
-        when (inst.opcode) {
-            OP_MAP_DESIGNATE,
-            OP_MAP_DESIGNATE_EX,
-                -> {
-                if (cfg == null) {
-                    cfg = createCfg()
-                }
-
-                // These opcodes read consecutive registers starting from the given register
-                val baseRegister = (inst.args[0] as IntArg).value
-
-                // Get floor ID from base register
-                val floorIdValues = getRegisterValue(cfg, inst, baseRegister)
-                if (floorIdValues.size > 1) {
-                    logger.warn { "Could not determine floor ID from register for ${inst.opcode.mnemonic}" }
-                    continue
-                }
-
-                // Get map ID from base+1 register
-                val mapIdValues = getRegisterValue(cfg, inst, baseRegister + 1)
-                if (mapIdValues.size > 1) {
-                    logger.warn { "Could not determine map ID from register for ${inst.opcode.mnemonic}" }
-                    continue
-                }
-
-                // For OP_MAP_DESIGNATE, map ID is same as floor ID, it only changes the map variant for the default floor
-                if (inst.opcode == OP_MAP_DESIGNATE) {
-                    mapIdValues.setValue(floorIdValues[0]!!)
-                }
-
-                // map_designate R40 reads: R40, R41, R42, R43
-                // is equivalent to R40, (R41), R42, R43, R44(map_designate_ex)
-                // Get variant ID from base+2 or base+3 register depending on opcode
-                val variantRegister = baseRegister + (if (inst.opcode == OP_MAP_DESIGNATE) 2 else 3)
-                val variantIdValues = getRegisterValue(cfg, inst, variantRegister)
-                if (variantIdValues.size > 1) {
-                    logger.warn { "Could not determine variant ID from register for ${inst.opcode.mnemonic}" }
-                    continue
-                }
-
-                val mapId = mapIdValues[0]!!
-                val areaId = getAreaIdByMapId(mapId)
-                val variantId = variantIdValues[0]!!
-
-                if (areaId != null) {
-                    mapDesignations.getOrPut(areaId) { mutableSetOf() }.add(variantId)
-                }
-            }
-
-            OP_BB_MAP_DESIGNATE -> {
-                val mapId = (inst.args[1] as IntArg).value   // map id
-                val variantId = (inst.args[2] as IntArg).value // variant (3rd parameter)
-
-                // Map game area ID to model area ID
-                val areaId = getAreaIdByMapId(mapId)
-
-                if (areaId != null) {
-                    mapDesignations.getOrPut(areaId) { mutableSetOf() }.add(variantId)
-                }
-            }
-        }
-    }
-
-    return mapDesignations
-}
-
-/**
- * Extract floor mappings from quest bytecode instructions.
- * Modified to search all instruction segments instead of just function 0 segment
- * to support multi-floor quests with bb_map_designate instructions in different segments.
- */
-fun getFloorMappings(
     instructionSegments: List<InstructionSegment>,
     createCfg: () -> ControlFlowGraph,
-): List<FloorMapping> {
-    val floorMappings = mutableMapOf<Int, FloorMapping>()
+): MutableMap<Int, MutableList<FloorMapping>> {
+    val floorMappings = mutableMapOf<Int, FloorMapping>()  // floorId → FloorMapping (for priority)
+
     // Find label 0 segment for episode info
     val func0Segment = instructionSegments.find { 0 in it.labels }
     val episode = func0Segment?.let { getEpisode(it) } ?: 0
 
     var cfg: ControlFlowGraph? = null
 
-    // Search all instruction segments for floor mapping instructions
-    // This ensures we find bb_map_designate instructions in any segment, not just function 0
     for (segment in instructionSegments) {
         for (inst in segment.instructions) {
             when (inst.opcode) {
@@ -241,7 +166,7 @@ fun getFloorMappings(
                     val areaId = getAreaIdByMapId(mapId)
 
                     if (areaId != null) {
-                        // bb_map_designate has higher priority than set_floor_handler, can override existing mappings
+                        // bb_map_designate has higher priority than set_floor_handler
                         floorMappings[floorId] = FloorMapping(floorId, mapId, areaId, variantId)
                     }
                 }
@@ -261,7 +186,6 @@ fun getFloorMappings(
                             val variantId = 0 // Default variant
 
                             // set_floor_handler has lower priority - only adds mapping if floor not already mapped
-                            // This ensures bb_map_designate instructions take precedence
                             if (!floorMappings.containsKey(floorId)) {
                                 // areaId is same as floorId for set_floor_handler
                                 floorMappings[floorId] = FloorMapping(floorId, mapId, floorId, variantId)
@@ -275,7 +199,12 @@ fun getFloorMappings(
         }
     }
 
-    return floorMappings.values.toList()
+    // Group by areaId
+    val result = mutableMapOf<Int, MutableList<FloorMapping>>()
+    for (mapping in floorMappings.values) {
+        result.getOrPut(mapping.areaId) { mutableListOf() }.add(mapping)
+    }
+    return result
 }
 
 /**

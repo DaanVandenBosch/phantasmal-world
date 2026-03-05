@@ -3,6 +3,7 @@ package world.phantasmal.psolib.fileFormats.quest
 import world.phantasmal.core.Success
 import world.phantasmal.psolib.Episode
 import world.phantasmal.psolib.asm.*
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
 import world.phantasmal.psolib.test.LibTestSuite
@@ -50,17 +51,21 @@ class QuestTests : LibTestSuite {
         assertEquals(ObjectType.MenuActivation, quest.objects[0].type)
         assertEquals(ObjectType.PlayerSet, quest.objects[4].type)
         assertEquals(216, quest.npcs.size)
-        assertEquals(10, quest.mapDesignations.size)
-        assertEquals(setOf(0), quest.mapDesignations[0]!!)
-        assertEquals(setOf(0), quest.mapDesignations[2]!!)
-        assertEquals(setOf(0), quest.mapDesignations[11]!!)
-        assertEquals(setOf(4), quest.mapDesignations[5]!!)
-        assertEquals(setOf(0), quest.mapDesignations[12]!!)
-        assertEquals(setOf(4), quest.mapDesignations[7]!!)
-        assertEquals(setOf(0), quest.mapDesignations[13]!!)
-        assertEquals(setOf(4), quest.mapDesignations[8]!!)
-        assertEquals(setOf(4), quest.mapDesignations[10]!!)
-        assertEquals(setOf(0), quest.mapDesignations[14]!!)
+        // Derive mapDesignations view from floorMappings for assertion compatibility
+        val mapDesignations = quest.floorMappings
+            .groupBy { it.areaId }
+            .mapValues { (_, mappings) -> mappings.map { it.variantId }.toSet() }
+        assertEquals(10, mapDesignations.size)
+        assertEquals(setOf(0), mapDesignations[0]!!)
+        assertEquals(setOf(0), mapDesignations[2]!!)
+        assertEquals(setOf(0), mapDesignations[11]!!)
+        assertEquals(setOf(4), mapDesignations[5]!!)
+        assertEquals(setOf(0), mapDesignations[12]!!)
+        assertEquals(setOf(4), mapDesignations[7]!!)
+        assertEquals(setOf(0), mapDesignations[13]!!)
+        assertEquals(setOf(4), mapDesignations[8]!!)
+        assertEquals(setOf(4), mapDesignations[10]!!)
+        assertEquals(setOf(0), mapDesignations[14]!!)
 
         val seg1 = quest.bytecodeIr.segments[0]
         assertTrue(seg1 is InstructionSegment)
@@ -89,6 +94,44 @@ class QuestTests : LibTestSuite {
         assertEquals(0, seg4.instructions[0].args[0].value)
         assertEquals(200, seg4.instructions[0].args[1].value)
         assertEquals(201, seg4.instructions[0].args[2].value)
+    }
+
+    @Test
+    fun parseQstToQuest_with_phantasmal_world_4_multi_floor() = testAsync {
+        val result = parseQstToQuest(readFile("/pw4.qst"))
+
+        assertTrue(result is Success)
+
+        val quest = result.value.quest
+        assertEquals(Episode.II, quest.episode)
+
+        // PW4 has bb_map_designate instructions:
+        //   bb_map_designate 0, 18, 0, 0   -> floor 0, map 18 (Lab), areaId 0, variant 0
+        //   bb_map_designate 17, 35, 0, 0  -> floor 17, map 35 (Tower), areaId 17, variant 0
+        //   bb_map_designate 16, 35, 1, 0  -> floor 16, map 35 (Tower), areaId 17, variant 1
+        assertTrue(quest.floorMappings.isNotEmpty(), "PW4 should have floor mappings")
+
+        // Verify that both tower floors map to area 17 (Tower), NOT area 16 (Seaside Night)
+        val floor0 = quest.floorMappings.find { it.floorId == 0 }
+        val floor16 = quest.floorMappings.find { it.floorId == 16 }
+        val floor17 = quest.floorMappings.find { it.floorId == 17 }
+
+        // Floor 0 -> Lab (area 0)
+        assertEquals(FloorMapping(0, 18, 0, 0), floor0, "Floor 0 should be Lab")
+
+        // Floor 17 -> Tower (area 17), variant 0
+        assertEquals(FloorMapping(17, 35, 17, 0), floor17, "Floor 17 should be Tower variant 0")
+
+        // Floor 16 -> Tower (area 17), variant 1 (NOT Seaside Night area 16!)
+        assertEquals(FloorMapping(16, 35, 17, 1), floor16, "Floor 16 should be Tower variant 1")
+
+        // Verify mapDesignations view: area 17 should have variants {0, 1}
+        val mapDesignations = quest.floorMappings
+            .groupBy { it.areaId }
+            .mapValues { (_, mappings) -> mappings.map { it.variantId }.toSet() }
+        assertEquals(setOf(0, 1), mapDesignations[17], "Tower should have variants 0 and 1")
+        // Area 16 (Seaside Night) should NOT appear
+        assertTrue(16 !in mapDesignations, "Seaside Night should not appear in PW4 mapDesignations")
     }
 
     @Test
@@ -169,7 +212,14 @@ class QuestTests : LibTestSuite {
             assertEquals(origNpc.type, newNpc.type)
         }
 
-        assertDeepEquals(origQuest.mapDesignations, newQuest.mapDesignations, ::assertEquals)
+        // Compare floorMappings-derived mapDesignations view
+        val origMapDesignations = origQuest.floorMappings
+            .groupBy { it.areaId }
+            .mapValues { (_, mappings) -> mappings.map { it.variantId }.toSet() }
+        val newMapDesignations = newQuest.floorMappings
+            .groupBy { it.areaId }
+            .mapValues { (_, mappings) -> mappings.map { it.variantId }.toSet() }
+        assertDeepEquals(origMapDesignations, newMapDesignations, ::assertEquals)
         assertDeepEquals(origQuest.bytecodeIr, newQuest.bytecodeIr, ignoreSrcLocs = true)
     }
 

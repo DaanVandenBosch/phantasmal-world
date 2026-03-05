@@ -12,6 +12,7 @@ import world.phantasmal.cell.MutableCell
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.mutableListCell
 import world.phantasmal.cell.mutableCell
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.web.shared.messages.*
 import kotlin.coroutines.Continuation
@@ -21,7 +22,7 @@ private val logger = KotlinLogging.logger {}
 
 class AsmAnalyser {
     private var inlineStackArgs: Boolean = true
-    private var _mapDesignations: MutableCell<Map<Int, Set<Int>>> = mutableCell(emptyMap())
+    private var _mapDesignations: MutableCell<Map<Int, List<FloorMapping>>> = mutableCell(emptyMap())
     private val _problems = mutableListCell<AssemblyProblem>()
 
     private val worker = Worker("/assembly-worker.js")
@@ -32,7 +33,7 @@ class AsmAnalyser {
      */
     private val inFlightRequests = mutableMapOf<Int, CancellableContinuation<*>>()
 
-    val mapDesignations: Cell<Map<Int, Set<Int>>> = _mapDesignations
+    val mapDesignations: Cell<Map<Int, List<FloorMapping>>> = _mapDesignations
     val problems: ListCell<AssemblyProblem> = _problems
 
     init {

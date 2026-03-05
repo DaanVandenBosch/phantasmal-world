@@ -27,13 +27,28 @@ class QuestEditorMeshManager(
         observeNow(
             questEditorStore.currentQuest,
             questEditorStore.currentArea,
+            questEditorStore.currentAreaVariant,
             questEditorStore.selectedEvent.flatMapNull { it?.wave },
-        ) { quest, area, wave ->
+        ) { quest, area, areaVariant, wave ->
             loadNpcMeshes(
                 if (quest != null && area != null) {
+                    // For multi-floor quests, find floor IDs that map to this area+variant
+                    val relevantFloorIds = if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
+                        quest.floorMappings
+                            .filter { it.areaId == area.id && it.variantId == areaVariant.id }
+                            .map { it.floorId }
+                            .toSet()
+                    } else {
+                        null
+                    }
+
                     quest.npcs.filteredCell {
-                        it.sectionInitialized and
-                                (it.areaId == area.id) and
+                        val areaMatch = if (relevantFloorIds != null) {
+                            it.areaId in relevantFloorIds
+                        } else {
+                            it.areaId == area.id
+                        }
+                        it.sectionInitialized and areaMatch and
                                 ((wave == null) or (it.wave eq wave))
                     }
                 } else {
@@ -45,11 +60,26 @@ class QuestEditorMeshManager(
         observeNow(
             questEditorStore.currentQuest,
             questEditorStore.currentArea,
-        ) { quest, area ->
+            questEditorStore.currentAreaVariant,
+        ) { quest, area, areaVariant ->
             loadObjectMeshes(
                 if (quest != null && area != null) {
+                    val relevantFloorIds = if (quest.floorMappings.isNotEmpty() && areaVariant != null) {
+                        quest.floorMappings
+                            .filter { it.areaId == area.id && it.variantId == areaVariant.id }
+                            .map { it.floorId }
+                            .toSet()
+                    } else {
+                        null
+                    }
+
                     quest.objects.filteredCell {
-                        it.sectionInitialized and (it.areaId == area.id)
+                        val areaMatch = if (relevantFloorIds != null) {
+                            it.areaId in relevantFloorIds
+                        } else {
+                            it.areaId == area.id
+                        }
+                        it.sectionInitialized and areaMatch
                     }
                 } else {
                     emptyListCell()
