@@ -1,6 +1,23 @@
 # Script Editor Enhancement TODOs
 
-## Completed
+## Progress (4/12)
+
+- [x] Hex/Decimal Toggle
+- [x] Monaco DocumentSymbolProvider Fix (Ctrl+Shift+O)
+- [x] View Menu Display Options
+- [x] City Quest Loading Simplification
+- [ ] Label List Panel
+- [ ] Register List Panel
+- [ ] Opcode Reference Panel
+- [ ] Data/String Segment List
+- [ ] Hide NOPs Toggle
+- [ ] Data Editing (Right-click Context Menu)
+- [ ] Label Flag Marking
+- [ ] Annotation Support
+
+---
+
+## Completed Details
 
 ### Hex/Decimal Toggle
 - Added `intFormat` parameter to `disassemble()` in `Disassembly.kt` (default: `"dec"`)
@@ -25,7 +42,7 @@
 
 ---
 
-## Next Up: Slide-out Panels (like 3D view NPC/Object overlay panels)
+## Next Up: Slide-out Panels
 
 ### Label List Panel [next]
 - List all labels from `asmAnalyser.getLabels()`, ordered by line number
