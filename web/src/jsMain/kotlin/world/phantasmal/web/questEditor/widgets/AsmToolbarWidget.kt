@@ -29,6 +29,12 @@ class AsmToolbarWidget(private val ctrl: AsmEditorController) : Widget() {
                             checked = ctrl.hexFormat,
                             onChange = ctrl::setHexFormat,
                         ),
+                        Checkbox(
+                            enabled = ctrl.hideNopsEnabled,
+                            label = "Hide NOPs",
+                            checked = ctrl.hideNops,
+                            onChange = ctrl::setHideNops,
+                        ),
                     )
                 )
             )

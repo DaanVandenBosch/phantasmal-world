@@ -1,20 +1,22 @@
 # Script Editor Enhancement TODOs
 
-## Progress (4/13)
+## Progress (9/10)
 
 - [x] Hex/Decimal Toggle
 - [x] Monaco DocumentSymbolProvider Fix (Ctrl+Shift+O)
 - [x] View Menu Display Options
 - [x] City Quest Loading Simplification
+- [x] Hide NOPs Toggle
+- [x] Label List Panel
+- [x] Opcode Reference Panel
+- [x] Register List Panel
+- [x] Data/String Segment List
 - [ ] Free Roam Map Loading (expand to all areas)
-- [ ] Label List Panel
-- [ ] Register List Panel
-- [ ] Opcode Reference Panel
-- [ ] Data/String Segment List
-- [ ] Hide NOPs Toggle
-- [ ] Data Editing (Right-click Context Menu)
-- [ ] Label Flag Marking
-- [ ] Annotation Support
+
+### 暂不开发
+- Data Editing (Right-click Context Menu)
+- Label Flag Marking
+- Annotation Support
 
 ---
 
@@ -40,6 +42,41 @@
 ### City Quest Loading Simplification
 - Removed `npcDatName`/`objDatName` from `CityBinInfo`, removed unused methods
 - Single "Open City Quest..." menu item with file picker flow
+
+### Hide NOPs Toggle
+- Added `hideNops: Boolean = false` parameter to `disassemble()` in `Disassembly.kt`
+- Skips NOP instructions (`opcode.code == OP_NOP.code`) during instruction emission
+- `AsmStore` adds `_hideNops` cell, observer triggers re-disassembly
+- "Hide NOPs" checkbox in `AsmToolbarWidget` next to "Hex"
+
+### Label List Panel
+- Slide-out overlay panel on right side of ASM editor (same pattern as renderer NPC/Object panels)
+- Lists all labels sorted by label ID, showing label name + line number
+- Click navigates to label position in editor via `goToLabelRange()`
+- Labels fetched async from worker via `AsmAnalyser.getLabels()`, refreshed on asm change
+- Files: `AsmWidget.kt`, `AsmStore.kt` (labels cell + refreshLabels), `AsmEditorController.kt`
+
+### Register List Panel
+- Slide-out overlay panel showing all registers referenced in current script
+- New worker request `GetRegisters`: iterates bytecodeIr instruction segments, collects register IDs from `RegRefType` params
+- Shows register ID (r0, r1, ...) + read/write counts (R3/W1)
+- Sorted by register ID
+- Files: `Messages.kt` (RegisterInfo, Request/Response.GetRegisters), worker `AsmAnalyser.kt`, `AsmServer.kt`, web `AsmAnalyser.kt`, `AsmStore.kt`, `AsmEditorController.kt`, `AsmWidget.kt`
+
+### Data/String Segment List
+- Slide-out overlay panel listing all `.data` and `.string` segments
+- New worker request `GetSegments`: iterates bytecodeIr segments, returns type + labels + range + size
+- Shows segment type (.data/.string) + label IDs + size (bytes/chars)
+- Click navigates to segment position in editor
+- Files: `Messages.kt` (SegmentInfo, SegmentInfoType, Request/Response.GetSegments), same chain as Register List
+
+### Opcode Reference Panel
+- Slide-out overlay panel below Label List panel
+- Lists all known opcodes (from `OPCODES`, `OPCODES_F8`, `OPCODES_F9` arrays) with mnemonic + hex code
+- Filter/search input (matches mnemonic, hex code, or doc text)
+- Click navigates to opcode occurrence in editor; consecutive clicks cycle through all occurrences
+- Hover shows opcode documentation tooltip
+- Files: `AsmWidget.kt`, `AsmEditorController.kt` (findOpcodeMatches + goToMatch)
 
 ---
 
@@ -108,42 +145,15 @@
 
 ## Slide-out Panels
 
-### Label List Panel [next]
-- List all labels from `asmAnalyser.getLabels()`, ordered by line number
-- Click → navigate to label in editor (reuse `goToLabel` mechanism)
-- Show label ID + line number
-- Pattern: expandable overlay like `QuestEditorRendererWidget` panels
+### Label List Panel [done]
+### Opcode Reference Panel [done]
 
-### Register List Panel
-- Show registers referenced in current script
-- Need new worker request `GetRegisters` to extract register usage from bytecodeIr
-- Show register ID + read/write info
-
-### Opcode Reference Panel
-- List all 538 opcodes from `Opcodes.kt`
-- Filterable/searchable
-- Click → insert opcode mnemonic at cursor, or show docs
-- Static data, no worker needed
-
-### Data/String Segment List
-- List all `.data` and `.string` segments with their labels
-- Click → navigate to segment in editor
-- Need new worker request or derive from `getLabels()` + segment type info
-
-### Files to Modify for Panels
-- `web/.../widgets/AsmWidget.kt` or new `AsmEditorPanelsWidget.kt`
-- `web/.../controllers/AsmEditorController.kt` — expose label/register/segment data
-- `web/.../asm/AsmAnalyser.kt` — possibly new requests
-- `web/assembly-worker/.../AsmAnalyser.kt` — implement new data extraction
-- `web/shared/.../Messages.kt` — new message types if needed
+### Register List Panel [done]
+### Data/String Segment List [done]
 
 ---
 
 ## Later: Advanced Features
-
-### Hide NOPs Toggle
-- Filter out NOP instructions during disassembly (toggle in toolbar)
-- Add `hideNops` parameter to `disassemble()`
 
 ### Data Editing (Right-click Context Menu)
 - Context menu to insert/edit NPC data, Image, Float, Vector, Enemy stats, Symbol Chat

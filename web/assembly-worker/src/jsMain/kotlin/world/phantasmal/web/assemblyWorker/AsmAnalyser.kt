@@ -293,6 +293,101 @@ class AsmAnalyser {
         return Response.GetLabels(requestId, result)
     }
 
+    fun getRegisters(requestId: Int): Response.GetRegisters {
+        val readCounts = mutableMapOf<Int, Int>()
+        val writeCounts = mutableMapOf<Int, Int>()
+
+        for (segment in bytecodeIr.segments) {
+            if (segment is InstructionSegment) {
+                for (inst in segment.instructions) {
+                    visitArgs(
+                        inst,
+                        processParam = { VisitAction.Go },
+                        processImmediateArg = { param, arg, _ ->
+                            if (param.type is RegRefType && arg is IntArg) {
+                                val regId = arg.value
+                                val innerParams = (param.type as? RegType)?.registers
+                                val hasRead = innerParams?.any { it.read } ?: true
+                                val hasWrite = innerParams?.any { it.write } ?: false
+                                if (hasRead) readCounts[regId] = (readCounts[regId] ?: 0) + 1
+                                if (hasWrite) writeCounts[regId] = (writeCounts[regId] ?: 0) + 1
+                            }
+                            VisitAction.Go
+                        },
+                        processStackArgSrcLoc = { param, _ ->
+                            if (param.type is RegRefType) VisitAction.Go
+                            else VisitAction.Continue
+                        },
+                        processStackArg = { param, _, pushInst, _ ->
+                            if (pushInst != null) {
+                                val pushArg = pushInst.args.firstOrNull()
+                                if (pushArg is IntArg) {
+                                    val regId = pushArg.value
+                                    if (pushInst.opcode.code == OP_ARG_PUSHR.code) {
+                                        // arg_pushr: register is being read
+                                        readCounts[regId] = (readCounts[regId] ?: 0) + 1
+                                    } else {
+                                        val innerParams = (param.type as? RegType)?.registers
+                                        val hasRead = innerParams?.any { it.read } ?: true
+                                        val hasWrite = innerParams?.any { it.write } ?: false
+                                        if (hasRead) readCounts[regId] = (readCounts[regId] ?: 0) + 1
+                                        if (hasWrite) writeCounts[regId] = (writeCounts[regId] ?: 0) + 1
+                                    }
+                                }
+                            }
+                            VisitAction.Go
+                        },
+                    )
+                }
+            }
+        }
+
+        val allRegIds = (readCounts.keys + writeCounts.keys).sorted()
+        val result = allRegIds.map { id ->
+            RegisterInfo(id, readCounts[id] ?: 0, writeCounts[id] ?: 0)
+        }
+
+        return Response.GetRegisters(requestId, result)
+    }
+
+    fun getSegments(requestId: Int): Response.GetSegments {
+        val result = bytecodeIr.segments.mapNotNull { segment ->
+            when (segment) {
+                is DataSegment -> {
+                    val labelRanges = segment.srcLoc.labels
+                    val range = if (labelRanges.isNotEmpty()) {
+                        labelRanges.first().toAsmRange()
+                    } else {
+                        AsmRange(0, 0, 0, 0)
+                    }
+                    SegmentInfo(
+                        type = SegmentInfoType.Data,
+                        labels = segment.labels.toList(),
+                        range = range,
+                        size = segment.data.size,
+                    )
+                }
+                is StringSegment -> {
+                    val labelRanges = segment.srcLoc.labels
+                    val range = if (labelRanges.isNotEmpty()) {
+                        labelRanges.first().toAsmRange()
+                    } else {
+                        AsmRange(0, 0, 0, 0)
+                    }
+                    SegmentInfo(
+                        type = SegmentInfoType.String,
+                        labels = segment.labels.toList(),
+                        range = range,
+                        size = segment.value.length,
+                    )
+                }
+                else -> null
+            }
+        }
+
+        return Response.GetSegments(requestId, result)
+    }
+
     fun getHighlights(requestId: Int, lineNo: Int, col: Int): Response.GetHighlights {
         val results = mutableListOf<AsmRange>()
 

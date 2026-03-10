@@ -13,11 +13,13 @@ private val INDENT = " ".repeat(INDENT_WIDTH)
  * management instructions (argpush variants).
  * @param intFormat How to format integer arguments: "hex" for 0x prefixed hexadecimal, "dec" for
  * decimal. Labels and registers are not affected.
+ * @param hideNops If true, NOP instructions will be omitted from the output.
  */
 fun disassemble(
     bytecodeIr: BytecodeIr,
     inlineStackArgs: Boolean = true,
     intFormat: String = "dec",
+    hideNops: Boolean = false,
 ): List<String> {
     logger.trace {
         "Disassembling ${bytecodeIr.segments.size} segments with ${
@@ -60,6 +62,10 @@ fun disassemble(
 
                 segment.instructions.forEachIndexed { i, instruction ->
                     val opcode = instruction.opcode
+
+                    if (hideNops && opcode.code == OP_NOP.code) {
+                        return@forEachIndexed
+                    }
 
                     if (opcode.code == OP_VA_START.code) {
                         inVaList = true
@@ -111,7 +117,7 @@ fun disassemble(
 
                 for (i in 0 until segment.data.size) {
                     sb.append("0x")
-                    sb.append(segment.data.getUByte(i).toString(16).padStart(2, '0'))
+                    sb.append(segment.data.getUByte(i).toString(16).uppercase().padStart(2, '0'))
 
                     when {
                         // Last line.

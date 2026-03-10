@@ -71,6 +71,12 @@ class AsmAnalyser {
     suspend fun getHighlights(lineNo: Int, col: Int): List<AsmRange> =
         sendRequest { id -> Request.GetHighlights(id, lineNo, col) }
 
+    suspend fun getRegisters(): List<RegisterInfo> =
+        sendRequest { id -> Request.GetRegisters(id) }
+
+    suspend fun getSegments(): List<SegmentInfo> =
+        sendRequest { id -> Request.GetSegments(id) }
+
     private suspend fun <T> sendRequest(createRequest: (id: Int) -> Request): T {
         val id = nextRequestId.getAndIncrement()
 

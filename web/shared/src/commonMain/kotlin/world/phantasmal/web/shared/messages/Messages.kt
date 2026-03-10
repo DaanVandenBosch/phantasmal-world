@@ -55,6 +55,12 @@ sealed class Request : ClientMessage() {
 
     @Serializable
     class GetHighlights(override val id: Int, val lineNo: Int, val col: Int) : Request()
+
+    @Serializable
+    class GetRegisters(override val id: Int) : Request()
+
+    @Serializable
+    class GetSegments(override val id: Int) : Request()
 }
 
 @Serializable
@@ -117,6 +123,18 @@ sealed class Response<T> : ServerMessage() {
         override val id: Int,
         override val result: List<AsmRange>,
     ) : Response<List<AsmRange>>()
+
+    @Serializable
+    class GetRegisters(
+        override val id: Int,
+        override val result: List<RegisterInfo>,
+    ) : Response<List<RegisterInfo>>()
+
+    @Serializable
+    class GetSegments(
+        override val id: Int,
+        override val result: List<SegmentInfo>,
+    ) : Response<List<SegmentInfo>>()
 }
 
 @Serializable
@@ -199,3 +217,23 @@ class Label(
     val name: Int,
     val range: AsmRange,
 )
+
+@Serializable
+class RegisterInfo(
+    val id: Int,
+    val reads: Int,
+    val writes: Int,
+)
+
+@Serializable
+class SegmentInfo(
+    val type: SegmentInfoType,
+    val labels: List<Int>,
+    val range: AsmRange,
+    val size: Int,
+)
+
+@Serializable
+enum class SegmentInfoType {
+    Data, String
+}
