@@ -13,7 +13,7 @@
 - [x] Data/String Segment List
 - [ ] Free Roam Map Loading (expand to all areas)
 
-### 暂不开发
+### Deferred
 - Data Editing (Right-click Context Menu)
 - Label Flag Marking
 - Annotation Support
@@ -83,63 +83,63 @@
 ## Next Up: Free Roam Map Loading
 
 ### Overview
-当前只支持 City/Lab（EP1 Pioneer II、EP2 Lab、EP4 Pioneer II）。需要扩展到所有 free roam 区域。
-加载逻辑与 city/lab 一致：bin + dat → `synthesizeDat` → `parseBinDatToQuest`，只需扩展文件查找。
+Currently only City/Lab areas are supported (EP1 Pioneer II, EP2 Lab, EP4 Pioneer II). Need to expand to all free roam areas.
+Loading logic is the same as city/lab: bin + dat → `synthesizeDat` → `parseBinDatToQuest`, just need to expand file discovery.
 
-### 游戏数据目录
-`{game_root}/data/` 下的文件（以 Ephinea 为参考）。
+### Game Data Directory
+Files under `{game_root}/data/` (using Ephinea as reference).
 
-### 所有 Free Roam 区域文件清单
+### All Free Roam Area File List
 
-| Episode | 区域 | bin 文件 | dat 文件 (data/) | dat 类型 |
+| Episode | Area | bin file | dat file (data/) | dat type |
 |---------|------|----------|-----------------|----------|
 | I | Pioneer II | `map_city_{on\|off}_{lang}.bin` | `map_city00_00{e\|o}[_s].dat` | NPC+OBJ |
-| I | Forest | `map_forest_{lang}[_u].bin` | 无 | 纯脚本 |
+| I | Forest | `map_forest_{lang}[_u].bin` | none | script only |
 | I | Cave | `map_cave_{lang}[_u].bin` | `map_cave{01-03}_{var}_{subvar}o.dat` | OBJ only |
 | I | Mine | `map_machine_{lang}[_u].bin` | `map_machine{01-02}_{var}_{subvar}o.dat` | OBJ only |
 | I | Ruins | `map_ruin_{lang}[_u].bin` | `map_ruins{01-02}_{var}_00o.dat` | OBJ only |
 | II | Lab | `map_labo_{on\|off}_{lang}[_u].bin` | `map_labo00_00{e\|o}[_s].dat` | NPC+OBJ |
-| II | Jungle | `map_jungle_{lang}[_u].bin` | 无 | 纯脚本 |
+| II | Jungle | `map_jungle_{lang}[_u].bin` | none | script only |
 | II | Temple | `map_ancient_{lang}[_u].bin` | `map_ancient{01-03}_{var}_{subvar}o.dat` | OBJ only |
 | II | Seabed | `map_seabed_{lang}[_u].bin` | `map_seabed{01-02}_{var}_{subvar}o.dat` | OBJ only |
 | II | CCA | `map_space_{lang}[_u].bin` | `map_space{01-02}_{var}_00o.dat` | OBJ only |
 | IV | Pioneer II | `map_city02_{on\|off}_{lang}.bin` | `map_city02_00_00{e\|o}[_s].dat` | NPC+OBJ |
-| IV | Crater | 无独立 bin（city02 控制） | `map_crater01_00_{var}{e\|o}.dat` | NPC+OBJ+EVT |
-| IV | Desert | 无独立 bin（city02 控制） | `map_desert{01-03}_{var}_00{e\|o}.dat` | NPC+OBJ+EVT |
-| IV | Wilds | 无独立 bin（city02 控制） | `map_wilds01_{var}_{subvar}{e\|o}.dat` | NPC+OBJ+EVT |
+| IV | Crater | no standalone bin (controlled by city02) | `map_crater01_00_{var}{e\|o}.dat` | NPC+OBJ+EVT |
+| IV | Desert | no standalone bin (controlled by city02) | `map_desert{01-03}_{var}_00{e\|o}.dat` | NPC+OBJ+EVT |
+| IV | Wilds | no standalone bin (controlled by city02) | `map_wilds01_{var}_{subvar}{e\|o}.dat` | NPC+OBJ+EVT |
 
-说明：`{lang}` = `j`(日文)、`e`(英文) 等；`[_u]` = Ultimate 难度变体；`{var}` = 地图变体。
+Notes: `{lang}` = `j` (Japanese), `e` (English), etc.; `[_u]` = Ultimate difficulty variant; `{var}` = map variant.
 
-### 加载逻辑分类
+### Loading Logic Categories
 
-**1. 已支持：City/Lab（bin + 单 NPC dat + 单 OBJ dat）**
-- EP1 Pioneer II、EP2 Lab、EP4 Pioneer II
-- 流程：加载 bin → 加载 1 个 NPC dat + 1 个 OBJ dat → `synthesizeDat` → `parseBinDatToQuest`
+**1. Supported: City/Lab (bin + single NPC dat + single OBJ dat)**
+- EP1 Pioneer II, EP2 Lab, EP4 Pioneer II
+- Flow: load bin → load 1 NPC dat + 1 OBJ dat → `synthesizeDat` → `parseBinDatToQuest`
 
-**2. 纯脚本区域（bin only，无 dat）**
-- EP1 Forest、EP2 Jungle
-- 流程：加载 bin → 合成空 dat → `parseBinDatToQuest`
+**2. Script-only areas (bin only, no dat)**
+- EP1 Forest, EP2 Jungle
+- Flow: load bin → synthesize empty dat → `parseBinDatToQuest`
 
-**3. bin + 多区域 OBJ dat（无 NPC dat）**
-- EP1 Cave/Mine/Ruins、EP2 Temple/Seabed/CCA
-- 流程：加载 bin → 查找并加载多个 OBJ dat → 合并为单个 DAT（NPC 部分为空）→ `parseBinDatToQuest`
-- dat 文件按 `{area}{sub}_{variant}_{subvariant}o.dat` 命名，需遍历目录匹配
+**3. bin + multi-area OBJ dat (no NPC dat)**
+- EP1 Cave/Mine/Ruins, EP2 Temple/Seabed/CCA
+- Flow: load bin → find and load multiple OBJ dat → merge into single DAT (NPC section empty) → `parseBinDatToQuest`
+- dat files named as `{area}{sub}_{variant}_{subvariant}o.dat`, requires directory traversal to match
 
-**4. EP4 野外区域（无独立 bin，city02 控制）**
-- Crater/Desert/Wilds 由 `map_city02` bin 脚本通过 `bb_map_designate` 引用
-- 有 NPC+OBJ dat + EVT 事件文件
-- 方案：扩展 city02 加载时一并加载野外 dat；或暂不支持野外 dat 编辑，仅编辑脚本
+**4. EP4 outdoor areas (no standalone bin, controlled by city02)**
+- Crater/Desert/Wilds referenced by `map_city02` bin script via `bb_map_designate`
+- Have NPC+OBJ dat + EVT event files
+- Approach: extend city02 loading to also load outdoor dat; or defer outdoor dat editing, script editing only
 
-### 实现要点
-- `QuestLoader.kt`：扩展 `loadCityLobbyQuest` 或新建方法，支持多 dat 合并
-- `synthesizeDat`：改为接收多组 (areaId, objData, npcData)，每组生成一个 DAT table entry
-- `parseCityBinFilename`：扩展正则，识别所有 free roam bin 文件名
-- `QuestEditorToolbarController.kt`：扩展文件选择/保存流程
-- `extractRawEntityData`：保存时按区域拆分回多个 dat 文件
+### Implementation Notes
+- `QuestLoader.kt`: extend `loadCityLobbyQuest` or create new method, support multi-dat merging
+- `synthesizeDat`: change to accept multiple (areaId, objData, npcData) groups, each generating a DAT table entry
+- `parseCityBinFilename`: extend regex to recognize all free roam bin filenames
+- `QuestEditorToolbarController.kt`: extend file selection/save flow
+- `extractRawEntityData`: split back into multiple dat files by area when saving
 
-### 参考文件
-- `SetDataTableOn.rel` / `SetDataTableOff.rel`：游戏引擎地图数据配置表，定义各区域加载的数据前缀
-- `data/scene/`：3D 渲染资源（模型、碰撞、纹理），与实体 dat 分开
+### Reference Files
+- `SetDataTableOn.rel` / `SetDataTableOff.rel`: game engine map data config tables, define data prefixes loaded per area
+- `data/scene/`: 3D rendering resources (models, collision, textures), separate from entity dat
 
 ---
 
