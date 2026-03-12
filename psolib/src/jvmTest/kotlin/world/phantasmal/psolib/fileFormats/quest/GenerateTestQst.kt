@@ -74,11 +74,11 @@ class GenerateTestQst : LibTestSuite {
             result.value.online,
         )
 
-        // Output to project root (psolib is a subproject, go up one level)
         val projectRoot = File(System.getProperty("user.dir")).let {
             if (it.name == "psolib") it.parentFile else it
         }
-        val outputFile = File(projectRoot, "quest27_enemy_data.qst")
+        val outputFile = File(projectRoot, "tmp/quest27_enemy_data.qst")
+        outputFile.parentFile.mkdirs()
         outputFile.writeBytes(qstBuffer.byteArray.copyOf(qstBuffer.size))
 
         println("Generated: ${outputFile.absolutePath}")
