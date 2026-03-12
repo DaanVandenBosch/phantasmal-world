@@ -2780,22 +2780,22 @@ opcodes:
   - code: 0xf892
     mnemonic: get_physical_data
     params:
-      - type: short
+      - type: dlabel
 
   - code: 0xf893
     mnemonic: get_attack_data
     params:
-      - type: short
+      - type: dlabel
 
   - code: 0xf894
     mnemonic: get_resist_data
     params:
-      - type: short
+      - type: dlabel
 
   - code: 0xf895
     mnemonic: get_movement_data
     params:
-      - type: short
+      - type: dlabel
 
   - code: 0xf896
     mnemonic: get_eventflag16
@@ -3358,7 +3358,7 @@ opcodes:
         registers:
           - type: int
             read: true
-      - type: short
+      - type: dlabel
     stack: pop
 
   - code: 0xf8dc
@@ -3538,7 +3538,7 @@ opcodes:
     mnemonic: call_image_data
     params:
       - type: int
-      - type: short
+      - type: dlabel
     stack: pop
 
   - code: 0xf8ef
