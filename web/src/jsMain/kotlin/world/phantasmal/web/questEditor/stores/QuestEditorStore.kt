@@ -19,17 +19,23 @@ import world.phantasmal.web.core.undo.UndoStack
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.QuestRunner
+import world.phantasmal.web.questEditor.loading.DatOnlyAreaInfo
+import world.phantasmal.web.questEditor.loading.FreeRoamBinInfo
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.webui.stores.Store
 
 private val logger = KotlinLogging.logger {}
 
-class CityLobbyQuestResult(
+class FreeRoamQuestResult(
     val questModel: QuestModel,
     val binName: String,
-    val npcDatName: String,
-    val objDatName: String,
+    val datFilesByFloor: Map<Int, Pair<String, String>>,
+)
+
+class DatOnlyQuestResult(
+    val questModel: QuestModel,
+    val datFilesByFloor: Map<Int, Pair<String, String>>,
 )
 
 data class ContextMenuRequest(val clientX: Int, val clientY: Int)
@@ -316,15 +322,26 @@ class QuestEditorStore(
     suspend fun getDefaultQuest(episode: Episode): QuestModel =
         convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
 
-    suspend fun getCityLobbyQuest(
+    suspend fun getFreeRoamQuest(
         gameDirHandle: FileSystemDirectoryHandle,
-        episode: Episode,
-        offline: Boolean,
-        ultimate: Boolean,
-    ): CityLobbyQuestResult {
-        val result = questLoader.loadCityLobbyQuest(gameDirHandle, episode, offline, ultimate)
+        info: FreeRoamBinInfo,
+        v1: Int = 0,
+        v2: Int = 0,
+    ): FreeRoamQuestResult {
+        val result = questLoader.loadFreeRoamQuest(gameDirHandle, info, v1, v2)
         val questModel = convertQuestToModel(result.quest, areaStore::getVariant)
-        return CityLobbyQuestResult(questModel, result.binName, result.npcDatName, result.objDatName)
+        return FreeRoamQuestResult(questModel, result.binName, result.datFilesByFloor)
+    }
+
+    suspend fun getDatOnlyQuest(
+        gameDirHandle: FileSystemDirectoryHandle,
+        info: DatOnlyAreaInfo,
+        v1: Int = 0,
+        v2: Int = 0,
+    ): DatOnlyQuestResult {
+        val result = questLoader.loadDatOnlyQuest(gameDirHandle, info, v1, v2)
+        val questModel = convertQuestToModel(result.quest, areaStore::getVariant)
+        return DatOnlyQuestResult(questModel, result.datFilesByFloor)
     }
 
     fun <T> setQuestProperty(

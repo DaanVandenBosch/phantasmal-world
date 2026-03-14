@@ -56,11 +56,6 @@ sealed class Request : ClientMessage() {
     @Serializable
     class GetHighlights(override val id: Int, val lineNo: Int, val col: Int) : Request()
 
-    @Serializable
-    class GetRegisters(override val id: Int) : Request()
-
-    @Serializable
-    class GetSegments(override val id: Int) : Request()
 }
 
 @Serializable
@@ -76,6 +71,21 @@ sealed class ServerNotification : ServerMessage() {
     @Serializable
     class Problems(
         val problems: List<AssemblyProblem>,
+    ) : ServerNotification()
+
+    @Serializable
+    class Labels(
+        val labels: List<Label>,
+    ) : ServerNotification()
+
+    @Serializable
+    class Registers(
+        val registers: List<RegisterInfo>,
+    ) : ServerNotification()
+
+    @Serializable
+    class Segments(
+        val segments: List<SegmentInfo>,
     ) : ServerNotification()
 }
 
@@ -124,17 +134,6 @@ sealed class Response<T> : ServerMessage() {
         override val result: List<AsmRange>,
     ) : Response<List<AsmRange>>()
 
-    @Serializable
-    class GetRegisters(
-        override val id: Int,
-        override val result: List<RegisterInfo>,
-    ) : Response<List<RegisterInfo>>()
-
-    @Serializable
-    class GetSegments(
-        override val id: Int,
-        override val result: List<SegmentInfo>,
-    ) : Response<List<SegmentInfo>>()
 }
 
 @Serializable

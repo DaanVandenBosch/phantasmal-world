@@ -334,7 +334,7 @@ class AsmWidget(private val ctrl: AsmEditorController) : Widget() {
                 .pw-asm-overlay-panels {
                     position: absolute;
                     top: 4px;
-                    right: 0;
+                    right: 14px;
                     display: flex;
                     flex-direction: column;
                     gap: 4px;

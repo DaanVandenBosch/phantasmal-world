@@ -104,7 +104,7 @@ class OrbitalCameraInputManager(
 
         if (isFloorChange) {
             // Reset offset for floor changes - use the original lookAt behavior
-            console.log("Floor changed from $currentFloorId to $floorId, resetting user offset")
+
             lookAt(
                 sectionCenter.clone().add(Vector3(0.0, 600.0, 900.0)),
                 sectionCenter,

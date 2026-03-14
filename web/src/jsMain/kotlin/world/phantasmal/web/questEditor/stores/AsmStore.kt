@@ -2,14 +2,12 @@ package world.phantasmal.web.questEditor.stores
 
 import kotlinx.browser.window
 import mu.KotlinLogging
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import world.phantasmal.core.Severity
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.list.ListCell
-import world.phantasmal.cell.list.mutableListCell
 import world.phantasmal.cell.mutableCell
 import world.phantasmal.cell.mutateDeferred
 import world.phantasmal.psolib.asm.assemble
@@ -44,10 +42,6 @@ class AsmStore(
     private val _hexFormat = mutableCell(true)
     private val _hideNops = mutableCell(false)
     private var _textModel = mutableCell<ITextModel?>(null)
-    private val _labels = mutableListCell<Label>()
-    private val _registers = mutableListCell<RegisterInfo>()
-    private val _segments = mutableListCell<SegmentInfo>()
-
     private var setBytecodeIrTimeout: Int? = null
 
     /**
@@ -61,9 +55,9 @@ class AsmStore(
     val inlineStackArgs: Cell<Boolean> = _inlineStackArgs
     val hexFormat: Cell<Boolean> = _hexFormat
     val hideNops: Cell<Boolean> = _hideNops
-    val labels: ListCell<Label> = _labels
-    val registers: ListCell<RegisterInfo> = _registers
-    val segments: ListCell<SegmentInfo> = _segments
+    val labels: ListCell<Label> = asmAnalyser.labels
+    val registers: ListCell<RegisterInfo> = asmAnalyser.registers
+    val segments: ListCell<SegmentInfo> = asmAnalyser.segments
 
     val textModel: Cell<ITextModel?> = _textModel
 
@@ -146,17 +140,9 @@ class AsmStore(
     }
 
     fun goToLabel(labelId: Int) {
-        logger.info { "goToLabel called with labelId=$labelId" }
-        scope.launch {
-            val labels = asmAnalyser.getLabels()
-            logger.info { "getLabels returned ${labels.size} labels: ${labels.take(10).map { it.name }}" }
-            val label = labels.find { it.name == labelId }
-            if (label != null) {
-                logger.info { "Found label $labelId at line ${label.range.startLineNo}" }
-                _goToLabelEvent.emit(label.range)
-            } else {
-                logger.warn { "Label $labelId not found" }
-            }
+        val label = labels.value.find { it.name == labelId }
+        if (label != null) {
+            scope.launch { _goToLabelEvent.emit(label.range) }
         }
     }
 
@@ -176,25 +162,6 @@ class AsmStore(
         scope.launch { _goToLabelEvent.emit(range) }
     }
 
-    private fun refreshPanelData() {
-        // Wait for the worker to finish assembling (Throttle leading edge + processAsm).
-        scope.launch {
-            delay(200)
-            try { _labels.value = asmAnalyser.getLabels() }
-            catch (e: Exception) { logger.warn { "Failed to refresh labels: ${e.message}" } }
-        }
-        scope.launch {
-            delay(200)
-            try { _registers.value = asmAnalyser.getRegisters() }
-            catch (e: Exception) { logger.warn { "Failed to refresh registers: ${e.message}" } }
-        }
-        scope.launch {
-            delay(200)
-            try { _segments.value = asmAnalyser.getSegments() }
-            catch (e: Exception) { logger.warn { "Failed to refresh segments: ${e.message}" } }
-        }
-    }
-
     private fun setTextModel(quest: QuestModel?, inlineStackArgs: Boolean) {
         mutateDeferred {
             setBytecodeIrTimeout?.let { it ->
@@ -209,7 +176,6 @@ class AsmStore(
             val intFmt = if (hexFormat.value) "hex" else "dec"
             val asm = disassemble(quest.bytecodeIr, inlineStackArgs, intFmt, hideNops.value)
             asmAnalyser.setAsm(asm, inlineStackArgs)
-            refreshPanelData()
 
             _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
                 modelDisposer.add(disposable { model.dispose() })

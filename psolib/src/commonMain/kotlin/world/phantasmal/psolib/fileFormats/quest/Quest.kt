@@ -36,7 +36,7 @@ class Quest(
     val cmConfigPool: MutableList<DatCmConfigPool> = mutableListOf(),
     var bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
-    val floorMappings: List<FloorMapping> = emptyList(),
+    var floorMappings: List<FloorMapping> = emptyList(),
     var bytecodeOffset: Int? = null,
 )
 

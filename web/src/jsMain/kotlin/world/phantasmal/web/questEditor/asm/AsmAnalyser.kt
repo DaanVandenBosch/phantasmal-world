@@ -15,6 +15,9 @@ import world.phantasmal.cell.mutableCell
 import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.web.shared.JSON_FORMAT
 import world.phantasmal.web.shared.messages.*
+import world.phantasmal.web.shared.messages.Label
+import world.phantasmal.web.shared.messages.RegisterInfo
+import world.phantasmal.web.shared.messages.SegmentInfo
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
@@ -24,6 +27,9 @@ class AsmAnalyser {
     private var inlineStackArgs: Boolean = true
     private var _mapDesignations: MutableCell<List<FloorMapping>> = mutableCell(emptyList())
     private val _problems = mutableListCell<AssemblyProblem>()
+    private val _labels = mutableListCell<Label>()
+    private val _registers = mutableListCell<RegisterInfo>()
+    private val _segments = mutableListCell<SegmentInfo>()
 
     private val worker = Worker("/assembly-worker.js")
     private var nextRequestId = atomic(0)
@@ -35,6 +41,9 @@ class AsmAnalyser {
 
     val mapDesignations: Cell<List<FloorMapping>> = _mapDesignations
     val problems: ListCell<AssemblyProblem> = _problems
+    val labels: ListCell<Label> = _labels
+    val registers: ListCell<RegisterInfo> = _registers
+    val segments: ListCell<SegmentInfo> = _segments
 
     init {
         worker.onmessage = { e ->
@@ -71,12 +80,6 @@ class AsmAnalyser {
     suspend fun getHighlights(lineNo: Int, col: Int): List<AsmRange> =
         sendRequest { id -> Request.GetHighlights(id, lineNo, col) }
 
-    suspend fun getRegisters(): List<RegisterInfo> =
-        sendRequest { id -> Request.GetRegisters(id) }
-
-    suspend fun getSegments(): List<SegmentInfo> =
-        sendRequest { id -> Request.GetSegments(id) }
-
     private suspend fun <T> sendRequest(createRequest: (id: Int) -> Request): T {
         val id = nextRequestId.getAndIncrement()
 
@@ -106,6 +109,18 @@ class AsmAnalyser {
 
             is ServerNotification.Problems -> {
                 _problems.value = message.problems
+            }
+
+            is ServerNotification.Labels -> {
+                _labels.value = message.labels
+            }
+
+            is ServerNotification.Registers -> {
+                _registers.value = message.registers
+            }
+
+            is ServerNotification.Segments -> {
+                _segments.value = message.segments
             }
 
             is Response<*> -> {

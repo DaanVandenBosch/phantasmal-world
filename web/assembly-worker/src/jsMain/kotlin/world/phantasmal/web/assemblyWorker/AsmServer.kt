@@ -120,12 +120,6 @@ class AsmServer(
 
             is Request.GetHighlights ->
                 asmAnalyser.getHighlights(message.id, message.lineNo, message.col)
-
-            is Request.GetRegisters ->
-                asmAnalyser.getRegisters(message.id)
-
-            is Request.GetSegments ->
-                asmAnalyser.getSegments(message.id)
         }
 
         sendMessage(response)

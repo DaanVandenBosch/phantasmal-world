@@ -103,7 +103,6 @@ class QuestInputManager(
                     // For initial navigation, use the original approach with fixed offset
                     val cameraOffset = Vector3(0.0, 600.0, 900.0)
                     val cameraPosition = position.clone().add(cameraOffset)
-                    console.log("Initial navigation - Moving camera to: ${cameraPosition.x}, ${cameraPosition.y}, ${cameraPosition.z}")
                     cameraInputManager.lookAt(cameraPosition, position)
                 } else {
                     // For subsequent navigations, preserve the current viewpoint (camera position and orientation)

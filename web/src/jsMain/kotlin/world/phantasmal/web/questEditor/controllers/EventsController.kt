@@ -497,7 +497,6 @@ class EventsController(private val store: QuestEditorStore) : Controller() {
     fun goToSection(sectionId: Int) {
         store.goToSection(sectionId)
         // TODO: Add camera navigation implementation here
-        console.log("goToSection called for section $sectionId")
     }
 
     fun setActionSectionId(

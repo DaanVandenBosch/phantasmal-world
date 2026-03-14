@@ -161,6 +161,11 @@ class AsmAnalyser {
             }
         }
 
+        // Push labels, registers, and segments proactively.
+        notifications.add(ServerNotification.Labels(computeLabels()))
+        notifications.add(ServerNotification.Registers(computeRegisters()))
+        notifications.add(ServerNotification.Segments(computeSegments()))
+
         return notifications
     }
 
@@ -280,8 +285,11 @@ class AsmAnalyser {
         return Response.GetDefinition(requestId, result)
     }
 
-    fun getLabels(requestId: Int): Response.GetLabels {
-        val result = bytecodeIr.segments.asSequence()
+    fun getLabels(requestId: Int): Response.GetLabels =
+        Response.GetLabels(requestId, computeLabels())
+
+    private fun computeLabels(): List<Label> =
+        bytecodeIr.segments.asSequence()
             .flatMap { segment ->
                 segment.labels.mapIndexed { labelIdx, label ->
                     val range = segment.srcLoc.labels[labelIdx].toAsmRange()
@@ -290,10 +298,7 @@ class AsmAnalyser {
             }
             .toList()
 
-        return Response.GetLabels(requestId, result)
-    }
-
-    fun getRegisters(requestId: Int): Response.GetRegisters {
+    private fun computeRegisters(): List<RegisterInfo> {
         val readCounts = mutableMapOf<Int, Int>()
         val writeCounts = mutableMapOf<Int, Int>()
 
@@ -324,7 +329,6 @@ class AsmAnalyser {
                                 if (pushArg is IntArg) {
                                     val regId = pushArg.value
                                     if (pushInst.opcode.code == OP_ARG_PUSHR.code) {
-                                        // arg_pushr: register is being read
                                         readCounts[regId] = (readCounts[regId] ?: 0) + 1
                                     } else {
                                         val innerParams = (param.type as? RegType)?.registers
@@ -343,15 +347,13 @@ class AsmAnalyser {
         }
 
         val allRegIds = (readCounts.keys + writeCounts.keys).sorted()
-        val result = allRegIds.map { id ->
+        return allRegIds.map { id ->
             RegisterInfo(id, readCounts[id] ?: 0, writeCounts[id] ?: 0)
         }
-
-        return Response.GetRegisters(requestId, result)
     }
 
-    fun getSegments(requestId: Int): Response.GetSegments {
-        val result = bytecodeIr.segments.mapNotNull { segment ->
+    private fun computeSegments(): List<SegmentInfo> =
+        bytecodeIr.segments.mapNotNull { segment ->
             when (segment) {
                 is DataSegment -> {
                     val labelRanges = segment.srcLoc.labels
@@ -384,9 +386,6 @@ class AsmAnalyser {
                 else -> null
             }
         }
-
-        return Response.GetSegments(requestId, result)
-    }
 
     fun getHighlights(requestId: Int, lineNo: Int, col: Int): Response.GetHighlights {
         val results = mutableListOf<AsmRange>()
