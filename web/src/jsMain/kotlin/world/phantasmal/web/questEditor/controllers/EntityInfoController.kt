@@ -180,6 +180,13 @@ class EntityInfoController(
 
     val name: Cell<String> = questEditorStore.selectedEntity.map { it?.type?.simpleName ?: "" }
 
+    val appearFlag: Cell<String> = questEditorStore.selectedEntity
+        .map { entity ->
+            if (entity is QuestObjectModel) entity.entity.groupId.toString() else ""
+        }
+
+    val appearFlagHidden: Cell<Boolean> = questEditorStore.selectedEntity.map { it !is QuestObjectModel }
+
     val sectionId: Cell<Int> = questEditorStore.selectedEntity
         .flatMap { it?.sectionId ?: zeroIntCell() }
 

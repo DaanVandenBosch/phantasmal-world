@@ -26,7 +26,7 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 hidden(ctrl.unavailable)
 
                 tr {
-                    th { textContent = "ID:" }
+                    th { textContent = "Skin:" }
                     td { text(ctrl.id) }
                 }
                 tr {
@@ -36,6 +36,12 @@ class EntityInfoWidget(private val ctrl: EntityInfoController) : Widget(enabled 
                 tr {
                     th { textContent = "Name:" }
                     td { text(ctrl.name) }
+                }
+                tr {
+                    hidden(ctrl.appearFlagHidden)
+
+                    th { textContent = "Appear Flag:" }
+                    td { text(ctrl.appearFlag) }
                 }
                 tr {
                     val sectionInput = IntInput(
