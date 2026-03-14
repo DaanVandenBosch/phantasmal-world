@@ -158,7 +158,7 @@ suspend fun showSaveFilePicker(types: List<FileType>): FileHandle.System? {
 }
 
 suspend fun showDirectoryPicker(): FileSystemDirectoryHandle? {
-    require(UserAgentFeatures.fileSystemApi) {
+    require(UserAgentFeatures.directoryPickerApi) {
         "Directory picker is not supported by this user agent."
     }
 

@@ -386,6 +386,18 @@ class QuestEditorToolbarController(
     }
 
     private suspend fun loadFreeRoam(strategy: QuestLoadStrategy.FreeRoam) {
+        if (!UserAgentFeatures.directoryPickerApi) {
+            setResult(
+                PwResult.build<Nothing>(logger)
+                    .addProblem(
+                        Severity.Error,
+                        "Loading free roam maps requires a browser that supports the File System Access API (Chrome or Edge).",
+                    )
+                    .failure()
+            )
+            return
+        }
+
         var dirHandle = gameDirHandle
 
         if (dirHandle == null) {
@@ -423,6 +435,18 @@ class QuestEditorToolbarController(
     }
 
     private suspend fun loadDatOnly(strategy: QuestLoadStrategy.DatOnly) {
+        if (!UserAgentFeatures.directoryPickerApi) {
+            setResult(
+                PwResult.build<Nothing>(logger)
+                    .addProblem(
+                        Severity.Error,
+                        "Loading free roam maps requires a browser that supports the File System Access API (Chrome or Edge).",
+                    )
+                    .failure()
+            )
+            return
+        }
+
         val info = strategy.info
         var dirHandle = gameDirHandle
         if (dirHandle == null) {

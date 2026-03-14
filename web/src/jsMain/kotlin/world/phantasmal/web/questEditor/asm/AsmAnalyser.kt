@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.asm
 
 import kotlinx.atomicfu.atomic
+import kotlinx.browser.window
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -31,7 +32,20 @@ class AsmAnalyser {
     private val _registers = mutableListCell<RegisterInfo>()
     private val _segments = mutableListCell<SegmentInfo>()
 
-    private val worker = Worker("/assembly-worker.js")
+    private val worker = Worker(workerUrl())
+
+    companion object {
+        private fun workerUrl(): String {
+            val pathname = window.location.pathname
+            val basePath =
+                if (pathname.endsWith(".html")) {
+                    pathname.substring(0, pathname.lastIndexOf('/'))
+                } else {
+                    pathname.removeSuffix("/")
+                }
+            return "$basePath/assembly-worker.js"
+        }
+    }
     private var nextRequestId = atomic(0)
 
     /**
