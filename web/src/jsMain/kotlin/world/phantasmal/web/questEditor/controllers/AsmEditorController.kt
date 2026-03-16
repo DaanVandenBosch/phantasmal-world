@@ -71,6 +71,19 @@ class AsmEditorController(private val store: AsmStore) : Controller() {
         store.goToLabelRange(range)
     }
 
+    fun findRegisterMatches(regId: Int): Array<FindMatch> {
+        val model = store.textModel.value ?: return emptyArray()
+        // Match register reference like r0, r1, etc. as a word boundary token
+        return model.findMatches(
+            searchString = "\\br$regId\\b",
+            searchOnlyEditableRange = false,
+            isRegex = true,
+            matchCase = true,
+            wordSeparators = null,
+            captureMatches = false,
+        )
+    }
+
     fun findOpcodeMatches(mnemonic: String): Array<FindMatch> {
         val model = store.textModel.value ?: return emptyArray()
         // Match the mnemonic at the start of an instruction (after indentation)

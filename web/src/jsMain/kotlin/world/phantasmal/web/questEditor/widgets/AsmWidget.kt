@@ -23,6 +23,10 @@ class AsmWidget(private val ctrl: AsmEditorController) : Widget() {
     private var lastClickedMnemonic: String? = null
     private var lastClickedIndex: Int = -1
 
+    // Register navigation state
+    private var lastClickedRegId: Int? = null
+    private var lastClickedRegIndex: Int = -1
+
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-asm"
@@ -120,7 +124,11 @@ class AsmWidget(private val ctrl: AsmEditorController) : Widget() {
                         }
 
                         val row = div {
-                            className = "pw-asm-overlay-row"
+                            className = "pw-asm-overlay-row pw-asm-overlay-row-clickable"
+
+                            onclick = {
+                                navigateToRegister(reg.id)
+                            }
 
                             span {
                                 className = "pw-asm-overlay-row-name"
@@ -244,6 +252,22 @@ class AsmWidget(private val ctrl: AsmEditorController) : Widget() {
         }
     }
 
+    private fun navigateToRegister(regId: Int) {
+        val matches = ctrl.findRegisterMatches(regId)
+
+        if (matches.isEmpty()) return
+
+        // Advance to next occurrence, or start from 0 if different register
+        lastClickedRegIndex = if (regId == lastClickedRegId) {
+            (lastClickedRegIndex + 1) % matches.size
+        } else {
+            0
+        }
+        lastClickedRegId = regId
+
+        ctrl.goToMatch(matches[lastClickedRegIndex])
+    }
+
     private fun navigateToOpcode(mnemonic: String) {
         val matches = ctrl.findOpcodeMatches(mnemonic)
 
@@ -340,10 +364,12 @@ class AsmWidget(private val ctrl: AsmEditorController) : Widget() {
                     gap: 4px;
                     z-index: 20;
                     pointer-events: none;
+                    overflow-x: clip;
                 }
 
                 .pw-asm-overlay-panel {
                     pointer-events: auto;
+                    position: relative;
                     background: rgba(0, 0, 0, 0.85);
                     border-radius: 4px 0 0 4px;
                     min-width: 160px;
@@ -375,9 +401,17 @@ class AsmWidget(private val ctrl: AsmEditorController) : Widget() {
                 }
 
                 .pw-asm-overlay-panel-body {
+                    position: absolute;
+                    top: 100%;
+                    left: -3px;
+                    right: 0;
                     max-height: 0;
                     overflow: hidden;
                     transition: max-height 0.2s ease-out;
+                    background: rgba(0, 0, 0, 0.85);
+                    border-left: 3px solid hsl(210, 70%, 55%);
+                    border-radius: 0 0 0 4px;
+                    z-index: 1;
                 }
 
                 .pw-asm-overlay-panel:hover .pw-asm-overlay-panel-body {
