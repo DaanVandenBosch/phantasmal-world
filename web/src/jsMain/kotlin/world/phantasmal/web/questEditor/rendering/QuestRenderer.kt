@@ -57,7 +57,7 @@ class QuestRenderer(
     }
 
     override fun render() {
-        // Call parent render method (handles inputManager.beforeRender() and actual rendering)
+        meshManager.beforeRender()
         super.render()
     }
 }

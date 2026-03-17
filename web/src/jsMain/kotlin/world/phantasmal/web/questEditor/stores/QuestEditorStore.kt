@@ -345,20 +345,17 @@ class QuestEditorStore(
         _highlightedEntity.value = null
         _selectedEntity.value = null
         _currentArea.value = area
-        
-        // Load sections for the new area if quest is loaded
-        // Use setTimeout to ensure currentAreaVariant has been updated first
-        window.setTimeout({
-            currentQuest.value?.let { quest ->
-                currentAreaVariant.value?.let { areaVariant ->
-                    requestSectionLoading(areaVariant.episode, areaVariant)
-                }
-            }
-        }, 50)
     }
 
     fun setCurrentAreaVariant(variant: AreaVariantModel?) {
         _currentAreaVariant.value = variant
+
+        // Load sections for the new area variant if quest is loaded
+        if (variant != null) {
+            currentQuest.value?.let {
+                requestSectionLoading(variant.episode, variant)
+            }
+        }
     }
 
     fun addEvent(quest: QuestModel, index: Int, event: QuestEventModel) {
@@ -376,7 +373,29 @@ class QuestEditorStore(
     }
 
     fun setSelectedEvent(event: QuestEventModel?) {
-        // Simple implementation - just set the selected event
+        event?.let {
+            val wave = event.wave.value
+
+            highlightedEntity.value?.let { entity ->
+                if (entity is QuestNpcModel && entity.wave.value != wave) {
+                    setHighlightedEntity(null)
+                }
+            }
+
+            selectedEntity.value?.let { entity ->
+                if (entity is QuestNpcModel && entity.wave.value != wave) {
+                    setSelectedEntity(null)
+                }
+            }
+
+            // Cross-area navigation: switch to the event's area if different.
+            val quest = currentQuest.value
+
+            if (quest != null && _currentArea.value?.id != event.areaId) {
+                _currentArea.value = areaStore.getArea(quest.episode, event.areaId)
+            }
+        }
+
         _selectedEvent.value = event
 
         // Update multi-selection to match single selection

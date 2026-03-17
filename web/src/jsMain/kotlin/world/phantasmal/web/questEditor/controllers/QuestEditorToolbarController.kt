@@ -326,16 +326,16 @@ class QuestEditorToolbarController(
         val binFile = files.find { it.extension().equals("bin", ignoreCase = true) }
         val datFile = files.find { it.extension().equals("dat", ignoreCase = true) }
 
-        // Check if any file matches a free roam pattern (bin or dat).
+        // Regular bin+dat pair takes priority over free roam detection.
+        if (binFile != null && datFile != null) {
+            return QuestLoadStrategy.BinDat(binFile, datFile)
+        }
+
+        // Check if a single file matches a free roam pattern (bin or dat).
         val freeRoamFile = binFile ?: datFile
         if (freeRoamFile != null) {
             val freeRoamInfo = parseFreeRoamFilename(freeRoamFile.name)
             if (freeRoamInfo != null) return QuestLoadStrategy.FreeRoam(freeRoamInfo)
-        }
-
-        // Regular bin+dat pair (non-free-roam).
-        if (binFile != null && datFile != null) {
-            return QuestLoadStrategy.BinDat(binFile, datFile)
         }
 
         return null

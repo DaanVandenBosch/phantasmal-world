@@ -128,21 +128,24 @@ fun getMapDesignations(
 
                     // Get floor ID from base register
                     val floorIdValues = getRegisterValue(cfg, inst, baseRegister)
-                    if (floorIdValues.size > 1) {
+                    if (floorIdValues.size != 1L) {
                         logger.warn { "Could not determine floor ID from register R$baseRegister for ${inst.opcode.mnemonic}" }
                         continue
                     }
 
-                    // Get map ID from base+1 register
-                    val mapIdValues = getRegisterValue(cfg, inst, baseRegister + 1)
-                    if (mapIdValues.size > 1) {
-                        logger.warn { "Could not determine map ID from register R${baseRegister + 1} for ${inst.opcode.mnemonic}" }
-                        continue
-                    }
+                    val floorId = floorIdValues[0]!!
 
                     // For OP_MAP_DESIGNATE, map ID is same as floor ID, it only changes the map variant for the default floor
+                    val mapId: Int
                     if (inst.opcode == OP_MAP_DESIGNATE) {
-                        mapIdValues.setValue(floorIdValues[0]!!)
+                        mapId = floorId
+                    } else {
+                        val mapIdValues = getRegisterValue(cfg, inst, baseRegister + 1)
+                        if (mapIdValues.size != 1L) {
+                            logger.warn { "Could not determine map ID from register R${baseRegister + 1} for ${inst.opcode.mnemonic}" }
+                            continue
+                        }
+                        mapId = mapIdValues[0]!!
                     }
 
                     // map_designate R40 reads: R40, R41, R42, R43
@@ -150,13 +153,11 @@ fun getMapDesignations(
                     // Get variant ID from base+2 or base+3 register depending on opcode
                     val variantRegister = baseRegister + (if (inst.opcode == OP_MAP_DESIGNATE) 2 else 3)
                     val variantIdValues = getRegisterValue(cfg, inst, variantRegister)
-                    if (variantIdValues.size > 1) {
+                    if (variantIdValues.size != 1L) {
                         logger.warn { "Could not determine variant ID from register R$variantRegister for ${inst.opcode.mnemonic}" }
                         continue
                     }
 
-                    val floorId = floorIdValues[0]!!
-                    val mapId = mapIdValues[0]!!
                     val areaId = getAreaIdByMapId(mapId)
                     val variantId = variantIdValues[0]!!
 

@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.rendering
 
+import mu.KotlinLogging
 import world.phantasmal.cell.observeNow
 import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
@@ -7,6 +8,8 @@ import world.phantasmal.web.core.rendering.disposeObject3DResources
 import world.phantasmal.web.externals.three.*
 import world.phantasmal.web.questEditor.models.ChallengeMonsterSpawnModel
 import world.phantasmal.webui.obj
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * Container for challenge mode random monster spawn point instances.
@@ -24,7 +27,7 @@ class ChallengeMonsterSpawnContainer : TrackedDisposable() {
             color = COLOR
             transparent = false
         }),
-        count = 1000,
+        count = MAX_INSTANCES,
     ).apply {
         // Start with 0 instances
         count = 0
@@ -44,6 +47,10 @@ class ChallengeMonsterSpawnContainer : TrackedDisposable() {
     }
 
     fun addInstance(model: ChallengeMonsterSpawnModel) {
+        if (mesh.count >= MAX_INSTANCES) {
+            logger.warn { "InstancedMesh capacity ($MAX_INSTANCES) exceeded, ignoring spawn point." }
+            return
+        }
         val instanceIndex = mesh.count
         mesh.count++
 
@@ -91,6 +98,8 @@ class ChallengeMonsterSpawnContainer : TrackedDisposable() {
     }
 
     companion object {
+        private const val MAX_INSTANCES = 1000
+
         // Bright orange color for challenge mode monster visualization
         val COLOR = Color(0xFFB830)
 

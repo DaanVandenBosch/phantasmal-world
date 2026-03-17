@@ -422,10 +422,7 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
     val actionsCursor = cursor.take(cursor.bytesLeft)
     cursor.seekStart(16)
 
-    var eventIndex = 0
     repeat(eventCount) {
-        eventIndex++
-        cursor.position
 
         // ID is only 2 bytes (short), not 4 bytes (int)!
         val id = cursor.short().toInt()
@@ -448,8 +445,8 @@ private fun parseEvents(cursor: Cursor, areaId: Int, events: MutableList<DatEven
             cmWaveSettings = cursor.int()
         }
 
-        // Actions offset is only 2 bytes (short), relative to actions section start
-        val eventActionsOffsetRelative = cursor.short().toInt()
+        // Actions offset is only 2 bytes (unsigned short), relative to actions section start
+        val eventActionsOffsetRelative = cursor.uShort().toInt()
 
         // Skip 2 bytes (always 0x0000)
         cursor.seek(2)

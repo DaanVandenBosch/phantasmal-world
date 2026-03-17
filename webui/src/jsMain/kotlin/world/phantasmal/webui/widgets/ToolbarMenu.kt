@@ -347,7 +347,8 @@ class ToolbarMenu(
             when (item) {
                 is MenuItem.Separator -> null
                 is MenuItem.Action -> if (item.enabled.value) index else null
-                else -> index
+                is MenuItem.SubMenu -> if (item.visible.value) index else null
+                is MenuItem.Check -> index
             }
         }
 

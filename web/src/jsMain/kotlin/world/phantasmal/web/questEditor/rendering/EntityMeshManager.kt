@@ -135,6 +135,11 @@ class EntityMeshManager(
      */
     private val playbackLabels = mutableListOf<Group>()
 
+    /**
+     * Disposable for the current area variant's sections observer.
+     */
+    private var sectionsDisposer: world.phantasmal.core.disposable.Disposable? = null
+
     private var highlightedEntityInstance: EntityInstance? = null
     private var selectedEntityInstance: EntityInstance? = null
 
@@ -179,8 +184,6 @@ class EntityMeshManager(
         // Note: We don't observe currentQuest because currentAreaVariant is set after currentQuest,
         // and observing currentQuest would cause us to read stale area variant data
         if (enableSectionLabels) {
-            var sectionsDisposer: world.phantasmal.core.disposable.Disposable? = null
-
             observeNow(questEditorStore.currentAreaVariant) { areaVariant ->
                 // Dispose previous sections observer
                 sectionsDisposer?.dispose()
@@ -251,10 +254,14 @@ class EntityMeshManager(
         clearSelectedEntityRangeCircle()
         // Dispose section ID labels, door ID labels, and playback labels (only for enabled managers)
         if (enableSectionLabels) {
+            sectionsDisposer?.dispose()
+            sectionsDisposer = null
             clearSectionIdLabels()
             clearDoorIdLabels()
             clearPlaybackLabels()
         }
+        // Clear static ground height calculator
+        QuestNpcModel.setGroundHeightCalculator(null)
         // Dispose all SCL_TAMA circles
         clearAllSclTamaCircles()
         // Dispose challenge mode spawn container

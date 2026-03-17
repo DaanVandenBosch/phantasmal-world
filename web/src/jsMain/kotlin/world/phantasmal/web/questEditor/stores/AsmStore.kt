@@ -39,7 +39,7 @@ class AsmStore(
     private val undoManager: UndoManager,
 ) : Store() {
     private val _inlineStackArgs = mutableCell(true)
-    private val _hexFormat = mutableCell(true)
+    private val _hexFormat = mutableCell(false)
     private val _hideNops = mutableCell(false)
     private var _textModel = mutableCell<ITextModel?>(null)
     private var setBytecodeIrTimeout: Int? = null
