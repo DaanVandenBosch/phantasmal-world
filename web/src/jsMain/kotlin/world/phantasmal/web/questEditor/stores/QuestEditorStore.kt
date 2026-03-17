@@ -19,8 +19,7 @@ import world.phantasmal.web.core.undo.UndoStack
 import world.phantasmal.web.externals.three.Euler
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.QuestRunner
-import world.phantasmal.web.questEditor.loading.DatOnlyAreaInfo
-import world.phantasmal.web.questEditor.loading.FreeRoamBinInfo
+import world.phantasmal.web.questEditor.loading.FreeRoamAreaInfo
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.webui.stores.Store
@@ -29,12 +28,7 @@ private val logger = KotlinLogging.logger {}
 
 class FreeRoamQuestResult(
     val questModel: QuestModel,
-    val binName: String,
-    val datFilesByFloor: Map<Int, Pair<String, String>>,
-)
-
-class DatOnlyQuestResult(
-    val questModel: QuestModel,
+    val binName: String?,
     val datFilesByFloor: Map<Int, Pair<String, String>>,
 )
 
@@ -324,24 +318,13 @@ class QuestEditorStore(
 
     suspend fun getFreeRoamQuest(
         gameDirHandle: FileSystemDirectoryHandle,
-        info: FreeRoamBinInfo,
+        info: FreeRoamAreaInfo,
         v1: Int = 0,
         v2: Int = 0,
     ): FreeRoamQuestResult {
         val result = questLoader.loadFreeRoamQuest(gameDirHandle, info, v1, v2)
         val questModel = convertQuestToModel(result.quest, areaStore::getVariant)
         return FreeRoamQuestResult(questModel, result.binName, result.datFilesByFloor)
-    }
-
-    suspend fun getDatOnlyQuest(
-        gameDirHandle: FileSystemDirectoryHandle,
-        info: DatOnlyAreaInfo,
-        v1: Int = 0,
-        v2: Int = 0,
-    ): DatOnlyQuestResult {
-        val result = questLoader.loadDatOnlyQuest(gameDirHandle, info, v1, v2)
-        val questModel = convertQuestToModel(result.quest, areaStore::getVariant)
-        return DatOnlyQuestResult(questModel, result.datFilesByFloor)
     }
 
     fun <T> setQuestProperty(

@@ -60,16 +60,6 @@ class QuestEditorToolbarWidget(
                                     }
                                 },
                             ),
-                            MenuItem.Action(
-                                label = "Open Free Roam...",
-                                onAction = {
-                                    scope.launch {
-                                        ctrl.openFiles(
-                                            showOpenFilePicker(ctrl.freeRoamFileTypes, multiple = false)
-                                        )
-                                    }
-                                },
-                            ),
                             MenuItem.Separator,
                             MenuItem.Action(
                                 label = "Save",
