@@ -31,6 +31,76 @@ class QuestEditorToolbarControllerTests : WebTestSuite {
     }
 
     @Test
+    fun can_load_city_quest() = testAsync {
+        val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
+            components.areaStore,
+            components.questEditorStore,
+        ))
+
+        ctrl.loadCityQuest(Episode.I)
+
+        val quest = components.questEditorStore.currentQuest.value
+        assertNotNull(quest)
+        assertEquals(Episode.I, quest.episode)
+    }
+
+    @Test
+    fun can_load_lobby_quest() = testAsync {
+        val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
+            components.areaStore,
+            components.questEditorStore,
+        ))
+
+        ctrl.loadLobbyQuest(1)
+
+        val quest = components.questEditorStore.currentQuest.value
+        assertNotNull(quest)
+        assertEquals(Episode.I, quest.episode)
+    }
+
+    @Test
+    fun city_map_toggle_switches_quest_type() = testAsync {
+        val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
+            components.areaStore,
+            components.questEditorStore,
+        ))
+
+        // Start with default quest.
+        ctrl.createNewQuest(Episode.I)
+        assertFalse(ctrl.showCityMap.value)
+
+        // Toggle city map on.
+        ctrl.setShowCityMap(true)
+        assertTrue(ctrl.showCityMap.value)
+        assertNotNull(components.questEditorStore.currentQuest.value)
+
+        // Toggle city map off.
+        ctrl.setShowCityMap(false)
+        assertFalse(ctrl.showCityMap.value)
+        assertNotNull(components.questEditorStore.currentQuest.value)
+    }
+
+    @Test
+    fun city_map_state_preserved_across_episode_switch() = testAsync {
+        val ctrl = disposer.add(QuestEditorToolbarController(
+            components.uiStore,
+            components.areaStore,
+            components.questEditorStore,
+        ))
+
+        // Enable city map, then switch episode.
+        ctrl.loadCityQuest(Episode.I)
+        assertTrue(ctrl.showCityMap.value)
+
+        ctrl.createNewQuest(Episode.II)
+        assertTrue(ctrl.showCityMap.value, "City map state should be preserved")
+        assertEquals(Episode.II, components.questEditorStore.currentQuest.value?.episode)
+    }
+
+    @Test
     fun a_failure_is_exposed_when_openFiles_fails() = testAsync {
         val ctrl = disposer.add(QuestEditorToolbarController(
             components.uiStore,

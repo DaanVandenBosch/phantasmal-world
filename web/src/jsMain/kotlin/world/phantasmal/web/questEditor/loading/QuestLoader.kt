@@ -205,11 +205,11 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
 
     suspend fun loadCityQuest(episode: Episode): Quest {
         val ver = episode.toInt()
-        return loadQuest("/defaults/city_ep_$ver.qst")
+        return loadQuest("/city/city_ep_$ver.qst")
     }
 
     suspend fun loadLobbyQuest(variant: Int): Quest =
-        loadQuest("/defaults/lobby_${variant.toString().padStart(2, '0')}.qst")
+        loadQuest("/lobby/lobby_${variant.toString().padStart(2, '0')}.qst")
 
     /**
      * Load a free roam quest from the user's data directory (with data.gsl fallback).

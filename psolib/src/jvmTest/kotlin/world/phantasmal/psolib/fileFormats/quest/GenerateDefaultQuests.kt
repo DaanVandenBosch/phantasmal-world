@@ -161,7 +161,7 @@ class GenerateDefaultQuests : LibTestSuite {
         val projectRoot = File(System.getProperty("user.dir")).let {
             if (it.name == "psolib") it.parentFile else it
         }
-        val outputDir = File(projectRoot, "web/src/jsMain/resources/assets/quests/defaults")
+        val outputDir = File(projectRoot, "web/src/jsMain/resources/assets/quests/city")
         outputDir.mkdirs()
         val outputFile = File(outputDir, "city_ep_$epInt.qst")
         outputFile.writeBytes(qstBuffer.byteArray.copyOf(qstBuffer.size))
@@ -236,7 +236,7 @@ class GenerateDefaultQuests : LibTestSuite {
         val projectRoot = File(System.getProperty("user.dir")).let {
             if (it.name == "psolib") it.parentFile else it
         }
-        val outputDir = File(projectRoot, "web/src/jsMain/resources/assets/quests/defaults")
+        val outputDir = File(projectRoot, "web/src/jsMain/resources/assets/quests/lobby")
         outputDir.mkdirs()
         val outputFile = File(outputDir, "lobby_${String.format("%02d", lobby.variant)}.qst")
         outputFile.writeBytes(qstBuffer.byteArray.copyOf(qstBuffer.size))
