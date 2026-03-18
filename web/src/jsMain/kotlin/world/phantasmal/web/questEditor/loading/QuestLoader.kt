@@ -200,7 +200,7 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
 
     suspend fun loadDefaultQuest(episode: Episode): Quest {
         val ver = episode.toInt()
-        return loadQuest("/defaults/default_ep_$ver.qst")
+        return loadQuest("/defaults/city_ep_$ver.qst")
     }
 
     /**
