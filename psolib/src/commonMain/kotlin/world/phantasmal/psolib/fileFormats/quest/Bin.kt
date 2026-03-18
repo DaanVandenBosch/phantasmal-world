@@ -1,6 +1,7 @@
 package world.phantasmal.psolib.fileFormats.quest
 
 import mu.KotlinLogging
+import world.phantasmal.psolib.asm.BytecodeStringEncoding
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
@@ -45,6 +46,12 @@ enum class BinFormat {
      */
     BB,
 }
+
+val BinFormat.stringEncoding: BytecodeStringEncoding
+    get() = when (this) {
+        BinFormat.DC_GC -> BytecodeStringEncoding.ASCII
+        BinFormat.PC, BinFormat.BB -> BytecodeStringEncoding.UTF16
+    }
 
 /**
  * @param shiftJis hint that the file may use Shift-JIS encoding (e.g., from filename `_j` suffix).

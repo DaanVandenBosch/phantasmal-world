@@ -65,7 +65,7 @@ fun parseBytecode(
     bytecode: Buffer,
     labelOffsets: IntArray,
     entryLabels: Set<Int>,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
     lenient: Boolean,
 ): PwResult<BytecodeIr> {
     val cursor = BufferCursor(bytecode)
@@ -79,7 +79,7 @@ fun parseBytecode(
         entryLabels.associateWith { SegmentType.Instructions },
         offsetToSegment,
         lenient,
-        dcGcFormat,
+        stringEncoding,
     )
 
     val segments: MutableList<Segment> = mutableListOf()
@@ -118,7 +118,7 @@ fun parseBytecode(
                 cursor,
                 endOffset,
                 labels?.toMutableList() ?: mutableListOf(),
-                dcGcFormat,
+                stringEncoding,
             )
 
             if (!isInstructionsSegment) {
@@ -142,7 +142,7 @@ fun parseBytecode(
 
         segments.add(segment)
 
-        offset += segment.size(dcGcFormat)
+        offset += segment.size(stringEncoding)
     }
 
     // Add unreferenced labels to their segment.
@@ -187,7 +187,7 @@ private fun findAndParseSegments(
     labels: Map<Int, SegmentType>,
     offsetToSegment: MutableMap<Int, Segment>,
     lenient: Boolean,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ) {
     var newLabels = labels
     var startSegmentCount: Int
@@ -200,7 +200,7 @@ private fun findAndParseSegments(
 
         // Parse segments of which the type is known.
         for ((label, type) in newLabels) {
-            parseSegment(offsetToSegment, labelHolder, cursor, label, type, lenient, dcGcFormat)
+            parseSegment(offsetToSegment, labelHolder, cursor, label, type, lenient, stringEncoding)
         }
 
         // Find label references.
@@ -392,7 +392,7 @@ private fun parseSegment(
     label: Int,
     type: SegmentType,
     lenient: Boolean,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ) {
     try {
         val info = labelHolder.getInfo(label)
@@ -437,14 +437,14 @@ private fun parseSegment(
                     labels,
                     info.next?.label,
                     lenient,
-                    dcGcFormat,
+                    stringEncoding,
                 )
 
             SegmentType.Data ->
                 parseDataSegment(offsetToSegment, cursor, endOffset, labels)
 
             SegmentType.String ->
-                parseStringSegment(offsetToSegment, cursor, endOffset, labels, dcGcFormat)
+                parseStringSegment(offsetToSegment, cursor, endOffset, labels, stringEncoding)
         }
     } catch (e: Exception) {
         if (lenient) {
@@ -463,7 +463,7 @@ private fun parseInstructionsSegment(
     labels: MutableList<Int>,
     nextLabel: Int?,
     lenient: Boolean,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ) {
     val instructions = mutableListOf<Instruction>()
 
@@ -487,7 +487,7 @@ private fun parseInstructionsSegment(
 
         // Parse the arguments.
         try {
-            val args = parseInstructionArguments(cursor, opcode, dcGcFormat)
+            val args = parseInstructionArguments(cursor, opcode, stringEncoding)
             instructions.add(Instruction(opcode, args, srcLoc = null, valid = true))
         } catch (e: Exception) {
             if (lenient) {
@@ -523,7 +523,7 @@ private fun parseInstructionsSegment(
                 nextLabel,
                 SegmentType.Instructions,
                 lenient,
-                dcGcFormat,
+                stringEncoding,
             )
         }
     }
@@ -549,23 +549,23 @@ private fun parseStringSegment(
     cursor: Cursor,
     endOffset: Int,
     labels: MutableList<Int>,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ) {
     val startOffset = cursor.position
     val byteLength = endOffset - startOffset
     val segment = StringSegment(
         labels,
-        if (dcGcFormat) {
-            cursor.stringAscii(
+        when (stringEncoding) {
+            BytecodeStringEncoding.ASCII -> cursor.stringAscii(
                 byteLength,
                 nullTerminated = true,
-                dropRemaining = true
+                dropRemaining = true,
             )
-        } else {
-            cursor.stringUtf16(
+
+            BytecodeStringEncoding.UTF16 -> cursor.stringUtf16(
                 byteLength,
                 nullTerminated = true,
-                dropRemaining = true
+                dropRemaining = true,
             )
         },
         byteLength,
@@ -577,7 +577,7 @@ private fun parseStringSegment(
 private fun parseInstructionArguments(
     cursor: Cursor,
     opcode: Opcode,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ): List<Arg> {
     val args = mutableListOf<Arg>()
 
@@ -614,17 +614,17 @@ private fun parseInstructionArguments(
                     val maxBytes = min(4096, cursor.bytesLeft)
                     args.add(
                         StringArg(
-                            if (dcGcFormat) {
-                                cursor.stringAscii(
+                            when (stringEncoding) {
+                                BytecodeStringEncoding.ASCII -> cursor.stringAscii(
                                     maxBytes,
                                     nullTerminated = true,
-                                    dropRemaining = false
+                                    dropRemaining = false,
                                 )
-                            } else {
-                                cursor.stringUtf16(
+
+                                BytecodeStringEncoding.UTF16 -> cursor.stringUtf16(
                                     maxBytes,
                                     nullTerminated = true,
-                                    dropRemaining = false
+                                    dropRemaining = false,
                                 )
                             },
                         )
@@ -661,7 +661,7 @@ private fun tryParseInstructionsSegment(
     cursor: Cursor,
     endOffset: Int,
     labels: MutableList<Int>,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ): Boolean {
     val offset = cursor.position
 
@@ -697,7 +697,7 @@ private fun tryParseInstructionsSegment(
             labels,
             nextLabel = null,
             lenient = false,
-            dcGcFormat,
+            stringEncoding,
         )
 
         val segment = offsetToSegment[offset]
@@ -790,7 +790,10 @@ private fun tryParseInstructionsSegment(
     }
 }
 
-fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabelOffsets {
+fun writeBytecode(
+    bytecodeIr: BytecodeIr,
+    stringEncoding: BytecodeStringEncoding,
+): BytecodeAndLabelOffsets {
     val buffer = Buffer.withCapacity(100 * bytecodeIr.segments.size, Endianness.Little)
     val cursor = buffer.cursor()
     // Keep track of label offsets.
@@ -798,6 +801,8 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
     val labelOffsets = IntArray(largestLabel + 1) { -1 }
 
     for (segment in bytecodeIr.segments) {
+        val segmentStart = cursor.position
+
         for (label in segment.labels) {
             labelOffsets[label] = cursor.position
         }
@@ -809,7 +814,7 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
 
                     if (opcode.stack == StackInteraction.Pop) {
                         // Write push instructions before the Pop opcode.
-                        writePushInstructions(cursor, instruction, dcGcFormat)
+                        writePushInstructions(cursor, instruction, stringEncoding)
                     }
 
                     if (opcode.size == 2) {
@@ -819,23 +824,34 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                     cursor.writeByte(opcode.code.toByte())
 
                     if (opcode.stack != StackInteraction.Pop) {
-                        writeInlineArgs(cursor, instruction, dcGcFormat)
+                        writeInlineArgs(cursor, instruction, stringEncoding)
                     }
                 }
             }
 
             is StringSegment -> {
-                // String segments should be multiples of 4 bytes.
-                if (dcGcFormat) {
-                    cursor.writeStringAscii(segment.value, segment.size(dcGcFormat))
-                } else {
-                    cursor.writeStringUtf16(segment.value, segment.size(dcGcFormat))
+                val size = segment.size(stringEncoding)
+
+                when (stringEncoding) {
+                    BytecodeStringEncoding.ASCII ->
+                        cursor.writeStringAscii(segment.value, size)
+
+                    BytecodeStringEncoding.UTF16 ->
+                        cursor.writeStringUtf16(segment.value, size)
                 }
             }
 
             is DataSegment -> {
                 cursor.writeCursor(segment.data.cursor())
             }
+        }
+
+        val actualSize = cursor.position - segmentStart
+        val expectedSize = segment.size(stringEncoding)
+
+        check(actualSize == expectedSize) {
+            "Segment size mismatch: getSize()=$expectedSize but wrote $actualSize bytes " +
+                    "(labels=${segment.labels}, type=${segment.type})."
         }
     }
 
@@ -845,7 +861,7 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
 private fun writeInlineArgs(
     cursor: BufferCursor,
     instruction: Instruction,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ) {
     val opcode = instruction.opcode
 
@@ -881,8 +897,13 @@ private fun writeInlineArgs(
             StringType -> {
                 val str = arg.coerceString()
 
-                if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
-                else cursor.writeStringUtf16(str, 2 * str.length + 2)
+                when (stringEncoding) {
+                    BytecodeStringEncoding.ASCII ->
+                        cursor.writeStringAscii(str, str.length + 1)
+
+                    BytecodeStringEncoding.UTF16 ->
+                        cursor.writeStringUtf16(str, 2 * str.length + 2)
+                }
             }
 
             is RegType -> {
@@ -907,7 +928,7 @@ private fun writeInlineArgs(
 private fun writePushInstructions(
     cursor: BufferCursor,
     instruction: Instruction,
-    dcGcFormat: Boolean,
+    stringEncoding: BytecodeStringEncoding,
 ) {
     val opcode = instruction.opcode
 
@@ -950,8 +971,13 @@ private fun writePushInstructions(
                     cursor.writeByte(OP_ARG_PUSHS.code.toByte())
                     val str = arg.coerceString()
 
-                    if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
-                    else cursor.writeStringUtf16(str, 2 * str.length + 2)
+                    when (stringEncoding) {
+                        BytecodeStringEncoding.ASCII ->
+                            cursor.writeStringAscii(str, str.length + 1)
+
+                        BytecodeStringEncoding.UTF16 ->
+                            cursor.writeStringUtf16(str, 2 * str.length + 2)
+                    }
                 }
 
                 else -> error(

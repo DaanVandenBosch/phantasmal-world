@@ -1,9 +1,9 @@
 package world.phantasmal.psolib.asm
 
 import world.phantasmal.core.Success
-import world.phantasmal.psolib.fileFormats.quest.parseBin
-import world.phantasmal.psolib.fileFormats.quest.parseBytecode
-import world.phantasmal.psolib.fileFormats.quest.writeBytecode
+import world.phantasmal.psolib.compression.prs.prsDecompress
+import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psolib.fileFormats.quest.*
 import world.phantasmal.psolib.test.LibTestSuite
 import world.phantasmal.psolib.test.assertDeepEquals
 import world.phantasmal.psolib.test.readFile
@@ -31,7 +31,7 @@ class DisassemblyAssemblyRoundTripTests : LibTestSuite {
             bin.bytecode,
             bin.labelOffsets,
             setOf(0),
-            dcGcFormat = false,
+            stringEncoding = BytecodeStringEncoding.UTF16,
             lenient = false,
         ).unwrap()
 
@@ -61,7 +61,7 @@ class DisassemblyAssemblyRoundTripTests : LibTestSuite {
             bin.bytecode,
             bin.labelOffsets,
             setOf(0),
-            dcGcFormat = false,
+            stringEncoding = BytecodeStringEncoding.UTF16,
             lenient = false,
         ).unwrap()
 
@@ -103,7 +103,7 @@ class DisassemblyAssemblyRoundTripTests : LibTestSuite {
                     origBytecode,
                     origBin.labelOffsets,
                     setOf(0),
-                    dcGcFormat = false,
+                    stringEncoding = BytecodeStringEncoding.UTF16,
                     lenient = false,
                 ).unwrap(),
                 inlineStackArgs,
@@ -113,7 +113,65 @@ class DisassemblyAssemblyRoundTripTests : LibTestSuite {
         assertTrue(result is Success)
         assertTrue(result.problems.isEmpty())
 
-        val newBytecode = writeBytecode(result.value, dcGcFormat = false).bytecode
+        val newBytecode = writeBytecode(result.value, stringEncoding = BytecodeStringEncoding.UTF16).bytecode
+
+        assertDeepEquals(origBytecode, newBytecode)
+    }
+
+    /**
+     * Byte-for-byte round-trip for a GC (ASCII encoding) quest extracted from a .qst file.
+     * Covers the ASCII code path that the BB tests above don't exercise.
+     */
+    @Test
+    fun gc_quest_bytecode_round_trip() = testAsync {
+        val qst = parseQst(readFile("/lost_heat_sword_gc.qst")).unwrap()
+        val binFile = qst.files.first { it.filename.trim().lowercase().endsWith(".bin") }
+        val origBin = parseBin(prsDecompress(binFile.data.cursor()).unwrap())
+        assertEquals(BinFormat.DC_GC, origBin.format)
+
+        val origBytecode = origBin.bytecode
+
+        val ir = parseBytecode(
+            origBytecode,
+            origBin.labelOffsets,
+            setOf(0),
+            stringEncoding = BytecodeStringEncoding.ASCII,
+            lenient = false,
+        ).unwrap()
+
+        val newBytecode = writeBytecode(ir, BytecodeStringEncoding.ASCII).bytecode
+
+        assertDeepEquals(origBytecode, newBytecode)
+    }
+
+    /**
+     * GC (ASCII) disassemble → assemble → write round-trip.
+     */
+    @Test
+    fun gc_quest_disassemble_assemble_bytecode_round_trip() = testAsync {
+        val qst = parseQst(readFile("/lost_heat_sword_gc.qst")).unwrap()
+        val binFile = qst.files.first { it.filename.trim().lowercase().endsWith(".bin") }
+        val origBin = parseBin(prsDecompress(binFile.data.cursor()).unwrap())
+
+        val origBytecode = origBin.bytecode
+
+        val result = assemble(
+            disassemble(
+                parseBytecode(
+                    origBytecode,
+                    origBin.labelOffsets,
+                    setOf(0),
+                    stringEncoding = BytecodeStringEncoding.ASCII,
+                    lenient = false,
+                ).unwrap(),
+                true,
+            ), true
+        )
+
+        assertTrue(result is Success)
+        assertTrue(result.problems.isEmpty())
+
+        val newBytecode = writeBytecode(result.value, BytecodeStringEncoding.ASCII).bytecode
 
         assertDeepEquals(origBytecode, newBytecode)
     }

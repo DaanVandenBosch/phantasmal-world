@@ -5,6 +5,20 @@ import world.phantasmal.psolib.buffer.Buffer
 import kotlin.math.ceil
 
 /**
+ * Describes how strings are encoded in the bytecode binary format.
+ *
+ * This is independent of the push/pop calling convention, which is the same across all PSO
+ * versions.
+ */
+enum class BytecodeStringEncoding {
+    /** DC/GC: 1-byte-per-char ASCII (or Shift-JIS). */
+    ASCII,
+
+    /** PC/BB: 2-bytes-per-char UTF-16LE. */
+    UTF16,
+}
+
+/**
  * Intermediate representation of PSO bytecode. Used by most ASM/bytecode analysis code.
  */
 class BytecodeIr(
@@ -33,7 +47,7 @@ sealed class Segment(
     val labels: MutableList<Int>,
     val srcLoc: SegmentSrcLoc,
 ) {
-    abstract fun size(dcGcFormat: Boolean): Int
+    abstract fun size(stringEncoding: BytecodeStringEncoding): Int
     abstract fun copy(): Segment
 }
 
@@ -42,8 +56,8 @@ class InstructionSegment(
     val instructions: MutableList<Instruction>,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.Instructions, labels, srcLoc) {
-    override fun size(dcGcFormat: Boolean): Int =
-        instructions.sumOf { it.getSize(dcGcFormat) }
+    override fun size(stringEncoding: BytecodeStringEncoding): Int =
+        instructions.sumOf { it.getSize(stringEncoding) }
 
     override fun copy(): InstructionSegment =
         InstructionSegment(
@@ -58,7 +72,7 @@ class DataSegment(
     val data: Buffer,
     srcLoc: SegmentSrcLoc = SegmentSrcLoc(mutableListOf()),
 ) : Segment(SegmentType.Data, labels, srcLoc) {
-    override fun size(dcGcFormat: Boolean): Int =
+    override fun size(stringEncoding: BytecodeStringEncoding): Int =
         data.size
 
     override fun copy(): DataSegment =
@@ -81,13 +95,15 @@ class StringSegment(
             field = value
         }
 
-    override fun size(dcGcFormat: Boolean): Int =
+    override fun size(stringEncoding: BytecodeStringEncoding): Int =
         // String segments should be multiples of 4 bytes.
         bytecodeSize
-            ?: if (dcGcFormat) {
-                4 * ceil((value.length + 1) / 4.0).toInt()
-            } else {
-                4 * ceil((value.length + 1) / 2.0).toInt()
+            ?: when (stringEncoding) {
+                BytecodeStringEncoding.ASCII ->
+                    4 * ceil((value.length + 1) / 4.0).toInt()
+
+                BytecodeStringEncoding.UTF16 ->
+                    4 * ceil((value.length + 1) / 2.0).toInt()
             }
 
     override fun copy(): StringSegment =
@@ -160,12 +176,12 @@ class Instruction(
      * Returns the byte size of the entire instruction, i.e. the sum of the opcode size and all
      * argument sizes.
      */
-    fun getSize(dcGcFormat: Boolean): Int {
+    fun getSize(stringEncoding: BytecodeStringEncoding): Int {
         var size = opcode.size
 
         if (opcode.stack === StackInteraction.Pop) {
             // All known PSO versions use push instructions for Pop opcodes in binary format.
-            size += pushInstructionsSize(dcGcFormat)
+            size += pushInstructionsSize(stringEncoding)
             return size
         }
 
@@ -187,10 +203,10 @@ class Instruction(
                 -> 4
 
                 StringType -> {
-                    if (dcGcFormat) {
-                        (args[0] as StringArg).value.length + 1
-                    } else {
-                        2 * (args[0] as StringArg).value.length + 2
+                    val str = (args[0] as StringArg).value
+                    when (stringEncoding) {
+                        BytecodeStringEncoding.ASCII -> str.length + 1
+                        BytecodeStringEncoding.UTF16 -> 2 * str.length + 2
                     }
                 }
 
@@ -212,7 +228,7 @@ class Instruction(
     fun copy(): Instruction =
         Instruction(opcode, args, valid, srcLoc).also { it.paramToArgs = paramToArgs }
 
-    private fun pushInstructionsSize(dcGcFormat: Boolean): Int {
+    private fun pushInstructionsSize(stringEncoding: BytecodeStringEncoding): Int {
         var totalSize = 0
 
         for (i in opcode.params.indices) {
@@ -220,7 +236,7 @@ class Instruction(
             val args = getArgs(i)
 
             for (arg in args) {
-                totalSize += pushInstructionSize(arg, type, dcGcFormat)
+                totalSize += pushInstructionSize(arg, type, stringEncoding)
             }
         }
 
@@ -231,7 +247,7 @@ class Instruction(
 /**
  * Returns the byte size of a single push instruction for the given argument and parameter type.
  */
-fun pushInstructionSize(arg: Arg, paramType: AnyType, dcGcFormat: Boolean): Int {
+fun pushInstructionSize(arg: Arg, paramType: AnyType, stringEncoding: BytecodeStringEncoding): Int {
     // Opcode byte (1) + argument bytes.
     if (arg is IntArg && arg.isRegRef) {
         return 2 // arg_pushr: 1 opcode + 1 byte register
@@ -244,10 +260,9 @@ fun pushInstructionSize(arg: Arg, paramType: AnyType, dcGcFormat: Boolean): Int 
         StringType -> {
             val str = (arg as StringArg).value
             // arg_pushs: 1 opcode + null-terminated string
-            if (dcGcFormat) {
-                1 + str.length + 1
-            } else {
-                1 + 2 * str.length + 2
+            when (stringEncoding) {
+                BytecodeStringEncoding.ASCII -> 1 + str.length + 1
+                BytecodeStringEncoding.UTF16 -> 1 + 2 * str.length + 2
             }
         }
         else -> error("Cannot compute push instruction size for type ${paramType::class.simpleName}.")
