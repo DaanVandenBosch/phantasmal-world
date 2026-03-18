@@ -420,13 +420,17 @@ class AsmAnalyser {
                         processImmediateArg = { param, arg, argSrcLoc ->
                             if (positionInside(lineNo, col, argSrcLoc.coarse)) {
                                 (arg as? IntArg)?.let {
-                                    when (param.type) {
-                                        is LabelType -> {
+                                    when {
+                                        // Register reference via arg_pushr on a non-register param.
+                                        arg.isRegRef -> {
+                                            results.addAll(getRegisterReferences(arg.value))
+                                        }
+                                        param.type is LabelType -> {
                                             results.addAll(
                                                 getLabelDefinitionsAndReferences(arg.value)
                                             )
                                         }
-                                        is RegRefType -> {
+                                        param.type is RegRefType -> {
                                             results.addAll(getRegisterReferences(arg.value))
                                         }
                                         else -> Unit
@@ -542,9 +546,9 @@ class AsmAnalyser {
                         inst,
                         processParam = { VisitAction.Go },
                         processImmediateArg = { param, arg, argSrcLoc ->
-                            if (param.type is RegRefType &&
-                                arg is IntArg &&
-                                arg.value == register
+                            if (arg is IntArg &&
+                                arg.value == register &&
+                                (param.type is RegRefType || arg.isRegRef)
                             ) {
                                 results.add(argSrcLoc.precise.toAsmRange())
                             }
