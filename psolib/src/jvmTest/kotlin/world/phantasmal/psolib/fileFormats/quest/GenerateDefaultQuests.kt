@@ -63,12 +63,40 @@ class GenerateDefaultQuests : LibTestSuite {
     /** Lazy-initialized GSL index for fallback reads. */
     private val gslIndex: Map<String, Pair<Int, Int>> by lazy { loadGslIndex() }
 
+    private data class LobbyDef(
+        val variant: Int,
+        val objDat: String,
+        val label: String,
+    )
+
+    private val lobbies = listOf(
+        LobbyDef(1, "map_lobby_01o.dat", "Lobby 01"),
+        LobbyDef(2, "map_lobby_02o.dat", "Lobby 02"),
+        LobbyDef(3, "map_lobby_03o.dat", "Lobby 03"),
+        LobbyDef(4, "map_lobby_04o.dat", "Lobby 04"),
+        LobbyDef(5, "map_lobby_05o.dat", "Lobby 05"),
+        LobbyDef(6, "map_lobby_06o.dat", "Lobby 06"),
+        LobbyDef(7, "map_lobby_07o.dat", "Lobby 07"),
+        LobbyDef(8, "map_lobby_08o.dat", "Lobby 08"),
+        LobbyDef(9, "map_lobby_09o.dat", "Lobby 09"),
+        LobbyDef(10, "map_lobby_10o.dat", "Lobby 10"),
+        LobbyDef(11, "map_lobby_green_be00o.dat", "EP3 Lobby Green"),
+        LobbyDef(12, "map_lobby_red_be00o.dat", "EP3 Lobby Red"),
+        LobbyDef(13, "map_lobby_yellow_be00o.dat", "EP3 Lobby Yellow"),
+        LobbyDef(14, "map_lobby_soccer01o.dat", "Lobby Soccer 1"),
+        LobbyDef(15, "map_lobby_soccer02o.dat", "Lobby Soccer 2"),
+    )
+
     @Test
     fun generate_default_quests() {
         assertTrue(dataDir.isDirectory, "Data directory not found: $dataDir")
 
         for (city in cities) {
             generateDefaultQuest(city)
+        }
+
+        for (lobby in lobbies) {
+            generateLobbyQuest(lobby)
         }
     }
 
@@ -145,6 +173,77 @@ class GenerateDefaultQuests : LibTestSuite {
         println("  Segments: ${quest.bytecodeIr.segments.size}")
         assertTrue(outputFile.exists())
         assertTrue(outputFile.length() > 100, "Generated file too small")
+    }
+
+    private fun generateLobbyQuest(lobby: LobbyDef) {
+        val objBuf = tryReadDataFile(lobby.objDat)
+        if (objBuf == null) {
+            println("SKIP: ${lobby.objDat} not found")
+            return
+        }
+
+        val floorId = 15 // Lobby is always floor 15 in EP1
+        val mapId = 0x0F
+        val datBuf = synthesizeDat(floorId, objBuf, Buffer.withSize(0, Endianness.Little))
+        val dat = parseDat(datBuf.cursor())
+
+        val objects = dat.objs.mapTo(mutableListOf()) { QuestObject(it.areaId, it.data) }
+
+        // Build minimal bytecode: set_episode 0, bb_map_designate, set_floor_handler, ret.
+        val floorHandlerLabel = 10000
+        val bytecodeIr = BytecodeIr(listOf(
+            InstructionSegment(
+                mutableListOf(0),
+                mutableListOf(
+                    Instruction(OP_SET_EPISODE, listOf(IntArg(0)), valid = true, srcLoc = null),
+                    Instruction(
+                        OP_BB_MAP_DESIGNATE,
+                        listOf(IntArg(floorId), IntArg(mapId), IntArg(0), IntArg(0)),
+                        valid = true, srcLoc = null,
+                    ),
+                    Instruction(
+                        OP_SET_FLOOR_HANDLER,
+                        listOf(IntArg(floorId), IntArg(floorHandlerLabel)),
+                        valid = true, srcLoc = null,
+                    ),
+                    Instruction(OP_RET, emptyList(), valid = true, srcLoc = null),
+                ),
+            ),
+            InstructionSegment(
+                mutableListOf(floorHandlerLabel),
+                mutableListOf(Instruction(OP_RET, emptyList(), valid = true, srcLoc = null)),
+            ),
+        ))
+
+        val quest = Quest(
+            id = 0,
+            language = 0,
+            name = lobby.label,
+            shortDescription = lobby.label,
+            longDescription = "${lobby.label}\nPSO Episode I lobby area.",
+            episode = Episode.I,
+            objects = objects,
+            npcs = mutableListOf(),
+            events = mutableListOf(),
+            datUnknowns = mutableListOf(),
+            bytecodeIr = bytecodeIr,
+            shopItems = uintArrayOf(),
+            floorMappings = listOf(FloorMapping(floorId, mapId, floorId, 0, Episode.I)),
+        )
+
+        val qstBuffer = writeQuestToQst(quest, "lobby_${lobby.variant}", Version.BB, online = true)
+
+        val projectRoot = File(System.getProperty("user.dir")).let {
+            if (it.name == "psolib") it.parentFile else it
+        }
+        val outputDir = File(projectRoot, "web/src/jsMain/resources/assets/quests/defaults")
+        outputDir.mkdirs()
+        val outputFile = File(outputDir, "lobby_${String.format("%02d", lobby.variant)}.qst")
+        outputFile.writeBytes(qstBuffer.byteArray.copyOf(qstBuffer.size))
+
+        println("Generated: ${outputFile.absolutePath} (${outputFile.length()} bytes)")
+        println("  ${lobby.label}: Objects=${quest.objects.size}")
+        assertTrue(outputFile.exists())
     }
 
     /**

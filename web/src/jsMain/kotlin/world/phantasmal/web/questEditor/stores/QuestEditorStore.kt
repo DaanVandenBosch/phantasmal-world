@@ -316,6 +316,12 @@ class QuestEditorStore(
     suspend fun getDefaultQuest(episode: Episode): QuestModel =
         convertQuestToModel(questLoader.loadDefaultQuest(episode), areaStore::getVariant)
 
+    suspend fun getCityQuest(episode: Episode): QuestModel =
+        convertQuestToModel(questLoader.loadCityQuest(episode), areaStore::getVariant)
+
+    suspend fun getLobbyQuest(variant: Int): QuestModel =
+        convertQuestToModel(questLoader.loadLobbyQuest(variant), areaStore::getVariant)
+
     suspend fun getFreeRoamQuest(
         gameDirHandle: FileSystemDirectoryHandle,
         info: FreeRoamAreaInfo,

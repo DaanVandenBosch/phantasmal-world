@@ -49,6 +49,38 @@ class QuestEditorToolbarWidget(
                                     ),
                                 ),
                             ),
+                            MenuItem.SubMenu(
+                                label = "Open Lobby",
+                                items = (1..10).map { v ->
+                                    MenuItem.Action(
+                                        label = "Lobby ${v.toString().padStart(2, '0')}",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(v) } },
+                                    )
+                                } + listOf(
+                                    MenuItem.Separator,
+                                    MenuItem.Action(
+                                        label = "EP3 Green",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(11) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "EP3 Red",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(12) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "EP3 Yellow",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(13) } },
+                                    ),
+                                    MenuItem.Separator,
+                                    MenuItem.Action(
+                                        label = "Soccer 1",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(14) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "Soccer 2",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(15) } },
+                                    ),
+                                ),
+                            ),
                             MenuItem.Action(
                                 label = "Open File...",
                                 shortcut = "Ctrl+O",
@@ -109,6 +141,13 @@ class QuestEditorToolbarWidget(
                                 tooltip = "Show the world coordinate origin point at position (0,0,0)",
                                 checked = ctrl.showOriginPoint,
                                 onChange = ctrl::setShowOriginPoint,
+                            ),
+                            MenuItem.Separator,
+                            MenuItem.Check(
+                                label = "City Map",
+                                tooltip = "Toggle between default and city map for the current episode",
+                                checked = ctrl.showCityMap,
+                                onChange = { scope.launch { ctrl.setShowCityMap(it) } },
                             ),
                         ),
                     ),

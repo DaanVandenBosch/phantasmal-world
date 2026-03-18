@@ -49,6 +49,10 @@ class QuestEditorToolbarController(
     private val _selectedAreaAndLabel = mutableCell<AreaAndLabel?>(null)
     private var gameDirHandle: FileSystemDirectoryHandle? = null
 
+    // City map toggle (View menu)
+    private val _showCityMap = mutableCell(false)
+    val showCityMap: Cell<Boolean> = _showCityMap
+
     // Free roam variant state
     private val _freeRoamState = mutableCell<FreeRoamState?>(null)
     private val _freeRoamV1 = mutableCell<Int?>(null)
@@ -290,9 +294,38 @@ class QuestEditorToolbarController(
         )
     }
 
+    /** Episode of the currently loaded quest, defaults to Episode I. */
+    val currentEpisode: Episode
+        get() = questEditorStore.currentQuest.value?.episode ?: Episode.I
+
     suspend fun createNewQuest(episode: Episode) {
         clearFreeRoamState()
-        setCurrentQuest(fileHolder = null, Version.BB, questEditorStore.getDefaultQuest(episode))
+        val quest = if (_showCityMap.value) {
+            questEditorStore.getCityQuest(episode)
+        } else {
+            questEditorStore.getDefaultQuest(episode)
+        }
+        setCurrentQuest(fileHolder = null, Version.BB, quest)
+    }
+
+    suspend fun loadCityQuest(episode: Episode) {
+        clearFreeRoamState()
+        _showCityMap.value = true
+        setCurrentQuest(fileHolder = null, Version.BB, questEditorStore.getCityQuest(episode))
+    }
+
+    suspend fun loadLobbyQuest(variant: Int) {
+        clearFreeRoamState()
+        _showCityMap.value = false
+        setCurrentQuest(fileHolder = null, Version.BB, questEditorStore.getLobbyQuest(variant))
+    }
+
+    suspend fun setShowCityMap(show: Boolean) {
+        if (show) {
+            loadCityQuest(currentEpisode)
+        } else {
+            createNewQuest(currentEpisode)
+        }
     }
 
     suspend fun openFiles(newFiles: List<FileHandle>?) {
