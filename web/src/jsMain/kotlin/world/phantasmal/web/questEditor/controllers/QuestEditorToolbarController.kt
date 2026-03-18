@@ -8,6 +8,8 @@ import world.phantasmal.core.externals.browser.FileSystemDirectoryHandle
 import world.phantasmal.core.externals.browser.arrayBuffer
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.compression.prs.prsCompress
+import world.phantasmal.psolib.cursor.cursor
 import world.phantasmal.psolib.fileFormats.quest.*
 import world.phantasmal.web.questEditor.loading.FreeRoamAreaInfo
 import world.phantasmal.web.questEditor.loading.extractRawEntityDataByFloor
@@ -61,6 +63,7 @@ class QuestEditorToolbarController(
     private val fileHolder = mutableCell<FileHolder?>(null)
     private val _filename = mutableCell("")
     private val _version = mutableCell(Version.BB)
+    private val _compressed = mutableCell(true)
 
     // Result
 
@@ -91,6 +94,7 @@ class QuestEditorToolbarController(
     val showSaveAsDialogNameField: Boolean = !UserAgentFeatures.fileSystemApi
     val filename: Cell<String> = _filename
     val version: Cell<Version> = _version
+    val compressed: Cell<Boolean> = _compressed
 
     // Undo
 
@@ -357,17 +361,19 @@ class QuestEditorToolbarController(
 
     private suspend fun loadBinDat(strategy: QuestLoadStrategy.BinDat) {
         clearFreeRoamState()
-        val parseResult = parseBinDatToQuest(
+        val shiftJis = isJapaneseFilename(strategy.binFile.name)
+        val parseResult = parseBinDatToQuestAutoDetect(
             strategy.binFile.cursor(Endianness.Little),
             strategy.datFile.cursor(Endianness.Little),
+            shiftJis = shiftJis,
         )
         setResult(parseResult)
 
         if (parseResult is Success) {
             setCurrentQuest(
-                FileHolder.BinDat(strategy.binFile, strategy.datFile),
+                FileHolder.BinDat(strategy.binFile, strategy.datFile, parseResult.value.compressed),
                 Version.BB,
-                parseResult.value,
+                parseResult.value.quest,
             )
         }
     }
@@ -430,6 +436,7 @@ class QuestEditorToolbarController(
                             headerFilename,
                             version.value,
                             online = true,
+                            compressed = compressed.value,
                         )
 
                         holder.file.writeBuffer(buffer)
@@ -443,10 +450,15 @@ class QuestEditorToolbarController(
                     if (holder.binFile is FileHandle.System &&
                         holder.datFile is FileHandle.System
                     ) {
-                        val (bin, dat) = writeQuestToBinDat(
+                        var (bin, dat) = writeQuestToBinDat(
                             convertQuestFromModel(quest),
                             version.value,
                         )
+
+                        if (compressed.value) {
+                            bin = prsCompress(bin.cursor()).buffer()
+                            dat = prsCompress(dat.cursor()).buffer()
+                        }
 
                         holder.binFile.writeBuffer(bin)
                         holder.datFile.writeBuffer(dat)
@@ -491,6 +503,10 @@ class QuestEditorToolbarController(
         _version.value = version
     }
 
+    fun setCompressed(compressed: Boolean) {
+        _compressed.value = compressed
+    }
+
     suspend fun saveAsDialogSave() {
         if (!saveAsEnabled.value) return
 
@@ -509,6 +525,7 @@ class QuestEditorToolbarController(
                 headerFilename,
                 version.value,
                 online = true,
+                compressed = compressed.value,
             )
 
             if (UserAgentFeatures.fileSystemApi) {
@@ -761,6 +778,14 @@ class QuestEditorToolbarController(
     }
 
     private fun setFileHolder(fileHolder: FileHolder?) {
+        // Default compression based on source format.
+        setCompressed(when (fileHolder) {
+            is FileHolder.Qst -> true
+            is FileHolder.BinDat -> fileHolder.compressed
+            is FileHolder.FreeRoamDir -> false
+            null -> true
+        })
+
         setFilename(
             when (fileHolder) {
                 is FileHolder.Qst -> fileHolder.file.basename() ?: fileHolder.file.name
@@ -895,7 +920,7 @@ class QuestEditorToolbarController(
 
     private sealed class FileHolder {
         class Qst(val file: FileHandle) : FileHolder()
-        class BinDat(val binFile: FileHandle, val datFile: FileHandle) : FileHolder()
+        class BinDat(val binFile: FileHandle, val datFile: FileHandle, val compressed: Boolean) : FileHolder()
         class FreeRoamDir(
             val dirHandle: FileSystemDirectoryHandle,
             val binName: String?,
@@ -904,5 +929,13 @@ class QuestEditorToolbarController(
         ) : FileHolder()
     }
 
-    companion object
+    companion object {
+        /**
+         * Detects Japanese quest files by filename suffix (e.g., `quest01_j.bin`).
+         */
+        fun isJapaneseFilename(filename: String): Boolean {
+            val base = filename.substringBeforeLast('.')
+            return base.endsWith("_j")
+        }
+    }
 }

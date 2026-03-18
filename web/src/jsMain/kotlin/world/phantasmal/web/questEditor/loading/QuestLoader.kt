@@ -277,14 +277,18 @@ class QuestLoader(private val assetLoader: AssetLoader) : DisposableContainer() 
         val datCursor = synthesizeDat(sections)
 
         val quest = if (binBuf != null) {
+            val shiftJis = binName?.substringBeforeLast('.')?.endsWith("_j") == true
             val q = parseBinDatToQuest(
                 binCursor = binBuf.cursor(Endianness.Little),
                 datCursor = datCursor,
                 lenient = true,
                 compressed = false,
+                shiftJis = shiftJis,
             ).unwrap()
 
             q.episode = episode
+            // Free roam bin files may have invalid language values; clamp to 0.
+            if (q.language < 0) q.language = 0
             for (npc in q.npcs) { npc.episode = episode }
 
             // Always use our floor mappings — the bin's map_designate may not match

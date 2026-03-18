@@ -230,6 +230,14 @@ class QuestEditorToolbarWidget(
                         )
                         addWidget(versionSelect.label!!)
                         addWidget(versionSelect)
+
+                        val compressedCheckbox = Checkbox(
+                            label = "PRS Compressed",
+                            checked = ctrl.compressed,
+                            onChange = ctrl::setCompressed,
+                        )
+                        addWidget(compressedCheckbox)
+                        addWidget(compressedCheckbox.label!!)
                     }
                 },
                 footer = {

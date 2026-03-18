@@ -38,6 +38,8 @@ class Quest(
     val shopItems: UIntArray,
     var floorMappings: List<FloorMapping> = emptyList(),
     var bytecodeOffset: Int? = null,
+    /** Whether DC/GC text fields use Shift-JIS encoding (Japanese). */
+    var shiftJis: Boolean = false,
 )
 
 /**
@@ -48,6 +50,7 @@ fun parseBinDatToQuest(
     datCursor: Cursor,
     lenient: Boolean = false,
     compressed: Boolean = true,
+    shiftJis: Boolean = false,
 ): PwResult<Quest> {
     val result = PwResult.build<Quest>(logger)
 
@@ -67,7 +70,7 @@ fun parseBinDatToQuest(
         binData = binCursor
     }
 
-    val bin = parseBin(binData)
+    val bin = parseBin(binData, shiftJis)
 
     val datData: Cursor
 
@@ -181,7 +184,78 @@ fun parseBinDatToQuest(
         shopItems = bin.shopItems,
         floorMappings,
         bytecodeOffset = bin.bytecodeOffset,
+        shiftJis = bin.shiftJis,
     ))
+}
+
+class BinDatQuestData(
+    val quest: Quest,
+    val compressed: Boolean,
+)
+
+/**
+ * Detects whether the BIN data is PRS-compressed or raw by checking the first 4 bytes.
+ * An uncompressed BIN starts with its bytecode offset (468, 920, or 4652).
+ */
+private fun looksLikeUncompressedBin(binCursor: Cursor): Boolean {
+    if (binCursor.bytesLeft < 4) return false
+    val firstInt = binCursor.int()
+    binCursor.seekStart(0)
+    return firstInt == 468 || firstInt == 920 || firstInt == 4652
+}
+
+/**
+ * Auto-detects whether BIN/DAT files are PRS-compressed or raw, then parses.
+ */
+fun parseBinDatToQuestAutoDetect(
+    binCursor: Cursor,
+    datCursor: Cursor,
+    lenient: Boolean = false,
+    shiftJis: Boolean = false,
+): PwResult<BinDatQuestData> {
+    val compressed = !looksLikeUncompressedBin(binCursor)
+
+    try {
+        val result = parseBinDatToQuest(binCursor, datCursor, lenient, compressed, shiftJis)
+
+        if (result is Success) {
+            return Success(BinDatQuestData(result.value, compressed), result.problems)
+        }
+
+        // If detection was wrong, try the other mode.
+        binCursor.seekStart(0)
+        datCursor.seekStart(0)
+
+        val retryResult = parseBinDatToQuest(binCursor, datCursor, lenient, !compressed, shiftJis)
+
+        if (retryResult is Success) {
+            return Success(BinDatQuestData(retryResult.value, !compressed), retryResult.problems)
+        }
+
+        return PwResult.build<BinDatQuestData>(logger)
+            .addResult(result)
+            .failure()
+    } catch (e: Exception) {
+        // First attempt threw; try the other mode.
+        binCursor.seekStart(0)
+        datCursor.seekStart(0)
+
+        try {
+            val retryResult = parseBinDatToQuest(binCursor, datCursor, lenient, !compressed, shiftJis)
+
+            if (retryResult is Success) {
+                return Success(BinDatQuestData(retryResult.value, !compressed), retryResult.problems)
+            }
+
+            return PwResult.build<BinDatQuestData>(logger)
+                .addResult(retryResult)
+                .failure()
+        } catch (e2: Exception) {
+            return PwResult.build<BinDatQuestData>(logger)
+                .addProblem(Severity.Error, "Couldn't parse file.", cause = e2)
+                .failure()
+        }
+    }
 }
 
 class QuestData(
@@ -228,10 +302,14 @@ fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestDat
         return result.addProblem(Severity.Error, "File contains no BIN file.").failure()
     }
 
+    val binBase = binFile.filename.trim().substringBeforeLast('.')
+    val shiftJis = binBase.endsWith("_j")
+
     val questResult = parseBinDatToQuest(
         binFile.data.cursor(),
         datFile.data.cursor(),
         lenient,
+        shiftJis = shiftJis,
     )
     result.addResult(questResult)
 
@@ -324,6 +402,7 @@ fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
         labelOffsets,
         quest.shopItems,
         quest.bytecodeOffset,
+        shiftJis = quest.shiftJis,
     ))
 
     return Pair(bin, dat)
@@ -332,11 +411,20 @@ fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
 /**
  * Creates a .qst file from [quest].
  */
-fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Boolean): Buffer {
+fun writeQuestToQst(
+    quest: Quest,
+    filename: String,
+    version: Version,
+    online: Boolean,
+    compressed: Boolean = true,
+): Buffer {
     val (bin, dat) = writeQuestToBinDat(quest, version)
 
     val baseFilename = (filenameBase(filename) ?: filename).take(11)
     val questName = quest.name.take(if (version == Version.BB) 23 else 31)
+
+    fun maybeCompress(buf: Buffer): Buffer =
+        if (compressed) prsCompress(buf.cursor()).buffer() else buf
 
     return writeQst(QstContent(
         version,
@@ -346,13 +434,13 @@ fun writeQuestToQst(quest: Quest, filename: String, version: Version, online: Bo
                 id = quest.id,
                 filename = "$baseFilename.dat",
                 questName = questName,
-                data = prsCompress(dat.cursor()).buffer(),
+                data = maybeCompress(dat),
             ),
             QstContainedFile(
                 id = quest.id,
                 filename = "$baseFilename.bin",
                 questName = questName,
-                data = prsCompress(bin.cursor()).buffer(),
+                data = maybeCompress(bin),
             ),
         ),
     ))

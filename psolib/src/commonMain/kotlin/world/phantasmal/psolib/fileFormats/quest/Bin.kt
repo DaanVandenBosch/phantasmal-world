@@ -4,6 +4,9 @@ import mu.KotlinLogging
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
+import world.phantasmal.psolib.encoding.decodeShiftJis
+import world.phantasmal.psolib.encoding.encodeShiftJis
+import kotlin.math.min
 
 private val logger = KotlinLogging.logger {}
 
@@ -22,6 +25,8 @@ class BinFile(
     val labelOffsets: IntArray,
     val shopItems: UIntArray,
     var bytecodeOffset: Int? = null,
+    /** Whether DC/GC text fields use Shift-JIS encoding (Japanese). */
+    var shiftJis: Boolean = false,
 )
 
 enum class BinFormat {
@@ -41,7 +46,12 @@ enum class BinFormat {
     BB,
 }
 
-fun parseBin(cursor: Cursor): BinFile {
+/**
+ * @param shiftJis hint that the file may use Shift-JIS encoding (e.g., from filename `_j` suffix).
+ *                 For DC/GC format, Shift-JIS is used when this hint is true OR the language field
+ *                 in the header is 0 (Japanese). Has no effect on PC/BB formats which use UTF-16.
+ */
+fun parseBin(cursor: Cursor, shiftJis: Boolean = false): BinFile {
     val bytecodeOffset = cursor.int()
     val labelOffsetTableOffset = cursor.int() // Relative offsets
     val size = cursor.int()
@@ -79,9 +89,16 @@ fun parseBin(cursor: Cursor): BinFile {
         cursor.seek(1)
         language = cursor.byte().toInt()
         questId = cursor.short().toInt()
-        questName = cursor.stringAscii(32, nullTerminated = true, dropRemaining = true)
-        shortDescription = cursor.stringAscii(128, nullTerminated = true, dropRemaining = true)
-        longDescription = cursor.stringAscii(288, nullTerminated = true, dropRemaining = true)
+
+        if (shiftJis) {
+            questName = readShiftJisString(cursor, 32)
+            shortDescription = readShiftJisString(cursor, 128)
+            longDescription = readShiftJisString(cursor, 288)
+        } else {
+            questName = cursor.stringAscii(32, nullTerminated = true, dropRemaining = true)
+            shortDescription = cursor.stringAscii(128, nullTerminated = true, dropRemaining = true)
+            longDescription = cursor.stringAscii(288, nullTerminated = true, dropRemaining = true)
+        }
     } else {
         if (format == BinFormat.PC) {
             language = cursor.short().toInt()
@@ -116,6 +133,8 @@ fun parseBin(cursor: Cursor): BinFile {
         .seekStart(bytecodeOffset)
         .buffer(labelOffsetTableOffset - bytecodeOffset)
 
+    val useShiftJis = format == BinFormat.DC_GC && shiftJis
+
     return BinFile(
         format,
         questId,
@@ -127,6 +146,7 @@ fun parseBin(cursor: Cursor): BinFile {
         labelOffsets,
         shopItems,
         preservedOffset,
+        shiftJis = useShiftJis,
     )
 }
 
@@ -166,9 +186,17 @@ fun writeBin(bin: BinFile): Buffer {
         cursor.writeByte(0)
         cursor.writeByte(bin.language.toByte())
         cursor.writeShort(bin.questId.toShort())
-        cursor.writeStringAscii(bin.questName, 32)
-        cursor.writeStringAscii(bin.shortDescription, 128)
-        cursor.writeStringAscii(bin.longDescription, 288)
+
+        if (bin.shiftJis) {
+            // Japanese: Shift-JIS encoding.
+            writeShiftJisString(cursor, bin.questName, 32)
+            writeShiftJisString(cursor, bin.shortDescription, 128)
+            writeShiftJisString(cursor, bin.longDescription, 288)
+        } else {
+            cursor.writeStringAscii(bin.questName, 32)
+            cursor.writeStringAscii(bin.shortDescription, 128)
+            cursor.writeStringAscii(bin.longDescription, 288)
+        }
     } else {
         if (bin.format == BinFormat.PC) {
             cursor.writeShort(bin.language.toShort())
@@ -205,4 +233,30 @@ fun writeBin(bin: BinFile): Buffer {
     }
 
     return buffer
+}
+
+/**
+ * Reads [byteLength] bytes from [cursor], decodes as Shift-JIS, and strips null terminator.
+ */
+private fun readShiftJisString(cursor: Cursor, byteLength: Int): String {
+    val bytes = cursor.byteArray(byteLength)
+    // Find null terminator.
+    val end = bytes.indexOf(0)
+    val trimmed = if (end >= 0) bytes.copyOf(end) else bytes
+    return decodeShiftJis(trimmed)
+}
+
+/**
+ * Encodes [str] as Shift-JIS and writes exactly [byteLength] bytes to [cursor], padding with nulls.
+ */
+private fun writeShiftJisString(cursor: world.phantasmal.psolib.cursor.WritableCursor, str: String, byteLength: Int) {
+    val encoded = encodeShiftJis(str)
+    val len = min(byteLength, encoded.size)
+
+    for (i in 0 until len) {
+        cursor.writeByte(encoded[i])
+    }
+    for (i in len until byteLength) {
+        cursor.writeByte(0)
+    }
 }
