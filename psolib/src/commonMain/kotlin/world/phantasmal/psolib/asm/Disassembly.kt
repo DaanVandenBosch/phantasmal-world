@@ -9,26 +9,21 @@ private const val INDENT_WIDTH = 4
 private val INDENT = " ".repeat(INDENT_WIDTH)
 
 /**
- * @param inlineStackArgs If true, will output stack arguments inline instead of outputting stack
- * management instructions (argpush variants).
  * @param intFormat How to format integer arguments: "hex" for 0x prefixed hexadecimal, "dec" for
  * decimal. Labels and registers are not affected.
  * @param hideNops If true, NOP instructions will be omitted from the output.
  */
 fun disassemble(
     bytecodeIr: BytecodeIr,
-    inlineStackArgs: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") inlineStackArgs: Boolean = true,
     intFormat: String = "dec",
     hideNops: Boolean = false,
 ): List<String> {
     logger.trace {
-        "Disassembling ${bytecodeIr.segments.size} segments with ${
-            if (inlineStackArgs) "inline stack arguments" else "stack push instructions"
-        }."
+        "Disassembling ${bytecodeIr.segments.size} segments."
     }
 
     val lines = mutableListOf<String>()
-    val stack = mutableListOf<ArgWithType>()
     var sectionType: SegmentType? = null
 
     for (segment in bytecodeIr.segments) {
@@ -58,57 +53,26 @@ fun disassemble(
         // Code or data lines.
         when (segment) {
             is InstructionSegment -> {
-                var inVaList = false
-
-                segment.instructions.forEachIndexed { i, instruction ->
+                for (instruction in segment.instructions) {
                     val opcode = instruction.opcode
 
                     if (hideNops && opcode.code == OP_NOP.code) {
-                        return@forEachIndexed
+                        continue
                     }
 
-                    if (opcode.code == OP_VA_START.code) {
-                        inVaList = true
-                    } else if (opcode.code == OP_VA_END.code) {
-                        inVaList = false
-                    }
+                    val sb = StringBuilder(INDENT)
+                    sb.append(opcode.mnemonic)
 
-                    if (inlineStackArgs &&
-                        !inVaList &&
-                        opcode.stack == StackInteraction.Push &&
-                        canInlinePushedArg(segment, i)
-                    ) {
-                        stack.addAll(addTypeToArgs(opcode.params, instruction.args))
-                    } else {
-                        val sb = StringBuilder(INDENT)
-                        sb.append(opcode.mnemonic)
+                    val useHex = intFormat == "hex"
 
-                        val useHex = intFormat == "hex"
+                    // All instructions (including Pop) now have inlined args in normalized IR.
+                    sb.appendArgs(
+                        opcode.params,
+                        addTypeToArgs(opcode.params, instruction.args),
+                        useHex = useHex,
+                    )
 
-                        if (opcode.stack == StackInteraction.Pop) {
-                            if (inlineStackArgs) {
-                                sb.appendArgs(
-                                    opcode.params,
-                                    stack.takeLast(opcode.params.size),
-                                    stack = true,
-                                    useHex = useHex,
-                                )
-                            }
-                        } else {
-                            sb.appendArgs(
-                                opcode.params,
-                                addTypeToArgs(opcode.params, instruction.args),
-                                stack = false,
-                                useHex = useHex,
-                            )
-                        }
-
-                        if (opcode.stack != StackInteraction.Push) {
-                            stack.clear()
-                        }
-
-                        lines.add(sb.toString())
-                    }
+                    lines.add(sb.toString())
                 }
             }
 
@@ -154,37 +118,6 @@ fun disassemble(
 
 private data class ArgWithType(val arg: Arg, val type: AnyType)
 
-private fun canInlinePushedArg(segment: InstructionSegment, index: Int): Boolean {
-    var pushedArgCount = 0
-
-    for (i in index until segment.instructions.size) {
-        val opcode = segment.instructions[i].opcode
-
-        when (opcode.stack) {
-            StackInteraction.Push -> pushedArgCount++
-
-            StackInteraction.Pop -> {
-                var paramCount = 0
-                var varArgs = false
-
-                for (param in opcode.params) {
-                    when (param.type) {
-                        is ILabelVarType -> varArgs = true
-                        is RegVarType -> varArgs = true
-                        else -> paramCount++
-                    }
-                }
-
-                return pushedArgCount <= paramCount || (pushedArgCount > paramCount && varArgs)
-            }
-
-            null -> return false
-        }
-    }
-
-    return false
-}
-
 private fun addTypeToArgs(params: List<Param>, args: List<Arg>): List<ArgWithType> {
     val argsWithType = mutableListOf<ArgWithType>()
 
@@ -207,7 +140,6 @@ private fun addTypeToArgs(params: List<Param>, args: List<Arg>): List<ArgWithTyp
 private fun StringBuilder.appendArgs(
     params: List<Param>,
     args: List<ArgWithType>,
-    stack: Boolean,
     useHex: Boolean = false,
 ) {
     var i = 0
@@ -224,18 +156,13 @@ private fun StringBuilder.appendArgs(
         if (i < args.size) {
             val (arg, argType) = args[i]
 
-            if (argType is RegType) {
+            if (argType is RegType || (arg is IntArg && arg.isRegRef)) {
                 append("r")
                 append(arg.value)
             } else {
                 when (paramType) {
                     FloatType -> {
-                        // Floats are pushed onto the stack as integers with arg_pushl.
-                        if (stack) {
-                            append(Float.fromBits((arg as IntArg).value))
-                        } else {
-                            append(arg.value)
-                        }
+                        append(arg.coerceFloat())
                     }
 
                     ILabelVarType -> {

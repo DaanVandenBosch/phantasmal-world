@@ -176,7 +176,9 @@ fun parseBytecode(
         }
     }
 
-    return result.success(BytecodeIr(segments))
+    val ir = BytecodeIr(segments)
+    normalizeStackArgs(ir)
+    return result.success(ir)
 }
 
 private fun findAndParseSegments(
@@ -329,6 +331,23 @@ private fun getArgLabelValues(
     val instruction = instructionSegment.instructions[instructionIdx]
 
     if (instruction.opcode.stack === StackInteraction.Pop) {
+        // Post-normalization: args are inlined directly on the Pop instruction.
+        if (instruction.args.isNotEmpty()) {
+            val arg = instruction.args.getOrNull(paramIdx) as? IntArg ?: return false
+            val value = arg.value
+            val oldType = labels[value]
+
+            if (
+                oldType == null ||
+                SEGMENT_PRIORITY.getValue(segmentType) > SEGMENT_PRIORITY.getValue(oldType)
+            ) {
+                labels[value] = segmentType
+            }
+
+            return true
+        }
+
+        // Pre-normalization: args are on the stack, use data flow analysis.
         val stackValues = getStackValue(
             cfg,
             instruction,
@@ -788,6 +807,11 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                 for (instruction in segment.instructions) {
                     val opcode = instruction.opcode
 
+                    if (opcode.stack == StackInteraction.Pop) {
+                        // Write push instructions before the Pop opcode.
+                        writePushInstructions(cursor, instruction, dcGcFormat)
+                    }
+
                     if (opcode.size == 2) {
                         cursor.writeByte((opcode.code ushr 8).toByte())
                     }
@@ -795,59 +819,7 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
                     cursor.writeByte(opcode.code.toByte())
 
                     if (opcode.stack != StackInteraction.Pop) {
-                        for (i in opcode.params.indices) {
-                            val param = opcode.params[i]
-                            val args = instruction.getArgs(i)
-                            val arg = args.firstOrNull()
-
-                            if (arg == null) {
-                                logger.warn {
-                                    "No argument passed to ${opcode.mnemonic} for parameter ${i + 1}."
-                                }
-                                continue
-                            }
-
-                            when (param.type) {
-                                ByteType -> cursor.writeByte(arg.coerceInt().toByte())
-                                ShortType -> cursor.writeShort(arg.coerceInt().toShort())
-                                IntType -> cursor.writeInt(arg.coerceInt())
-                                FloatType -> cursor.writeFloat(arg.coerceFloat())
-                                // Ensure this case is before the LabelType case because
-                                // ILabelVarType extends LabelType.
-                                ILabelVarType -> {
-                                    cursor.writeByte(args.size.toByte())
-
-                                    for (a in args) {
-                                        cursor.writeShort(a.coerceInt().toShort())
-                                    }
-                                }
-
-                                is LabelType -> cursor.writeShort(arg.coerceInt().toShort())
-
-                                StringType -> {
-                                    val str = arg.coerceString()
-
-                                    if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
-                                    else cursor.writeStringUtf16(str, 2 * str.length + 2)
-                                }
-
-                                is RegType -> {
-                                    cursor.writeByte(arg.coerceInt().toByte())
-                                }
-
-                                RegVarType -> {
-                                    cursor.writeByte(args.size.toByte())
-
-                                    for (a in args) {
-                                        cursor.writeByte(a.coerceInt().toByte())
-                                    }
-                                }
-
-                                else -> error(
-                                    "Parameter type ${param.type::class.simpleName} not supported."
-                                )
-                            }
-                        }
+                        writeInlineArgs(cursor, instruction, dcGcFormat)
                     }
                 }
             }
@@ -868,6 +840,292 @@ fun writeBytecode(bytecodeIr: BytecodeIr, dcGcFormat: Boolean): BytecodeAndLabel
     }
 
     return BytecodeAndLabelOffsets(buffer, labelOffsets)
+}
+
+private fun writeInlineArgs(
+    cursor: BufferCursor,
+    instruction: Instruction,
+    dcGcFormat: Boolean,
+) {
+    val opcode = instruction.opcode
+
+    for (i in opcode.params.indices) {
+        val param = opcode.params[i]
+        val args = instruction.getArgs(i)
+        val arg = args.firstOrNull()
+
+        if (arg == null) {
+            logger.warn {
+                "No argument passed to ${opcode.mnemonic} for parameter ${i + 1}."
+            }
+            continue
+        }
+
+        when (param.type) {
+            ByteType -> cursor.writeByte(arg.coerceInt().toByte())
+            ShortType -> cursor.writeShort(arg.coerceInt().toShort())
+            IntType -> cursor.writeInt(arg.coerceInt())
+            FloatType -> cursor.writeFloat(arg.coerceFloat())
+            // Ensure this case is before the LabelType case because
+            // ILabelVarType extends LabelType.
+            ILabelVarType -> {
+                cursor.writeByte(args.size.toByte())
+
+                for (a in args) {
+                    cursor.writeShort(a.coerceInt().toShort())
+                }
+            }
+
+            is LabelType -> cursor.writeShort(arg.coerceInt().toShort())
+
+            StringType -> {
+                val str = arg.coerceString()
+
+                if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
+                else cursor.writeStringUtf16(str, 2 * str.length + 2)
+            }
+
+            is RegType -> {
+                cursor.writeByte(arg.coerceInt().toByte())
+            }
+
+            RegVarType -> {
+                cursor.writeByte(args.size.toByte())
+
+                for (a in args) {
+                    cursor.writeByte(a.coerceInt().toByte())
+                }
+            }
+
+            else -> error(
+                "Parameter type ${param.type::class.simpleName} not supported."
+            )
+        }
+    }
+}
+
+private fun writePushInstructions(
+    cursor: BufferCursor,
+    instruction: Instruction,
+    dcGcFormat: Boolean,
+) {
+    val opcode = instruction.opcode
+
+    for (i in opcode.params.indices) {
+        val paramType = opcode.params[i].type
+        val args = instruction.getArgs(i)
+
+        for (arg in args) {
+            if (arg is IntArg && arg.isRegRef) {
+                // arg_pushr
+                cursor.writeByte(OP_ARG_PUSHR.code.toByte())
+                cursor.writeByte(arg.value.toByte())
+            } else when (paramType) {
+                ByteType, is RegType -> {
+                    // arg_pushb
+                    cursor.writeByte(OP_ARG_PUSHB.code.toByte())
+                    cursor.writeByte(arg.coerceInt().toByte())
+                }
+
+                ShortType, is LabelType -> {
+                    // arg_pushw
+                    cursor.writeByte(OP_ARG_PUSHW.code.toByte())
+                    cursor.writeShort(arg.coerceInt().toShort())
+                }
+
+                IntType -> {
+                    // arg_pushl
+                    cursor.writeByte(OP_ARG_PUSHL.code.toByte())
+                    cursor.writeInt(arg.coerceInt())
+                }
+
+                FloatType -> {
+                    // arg_pushl (floats are pushed as int bits)
+                    cursor.writeByte(OP_ARG_PUSHL.code.toByte())
+                    cursor.writeInt(arg.coerceFloat().toRawBits())
+                }
+
+                StringType -> {
+                    // arg_pushs
+                    cursor.writeByte(OP_ARG_PUSHS.code.toByte())
+                    val str = arg.coerceString()
+
+                    if (dcGcFormat) cursor.writeStringAscii(str, str.length + 1)
+                    else cursor.writeStringUtf16(str, 2 * str.length + 2)
+                }
+
+                else -> error(
+                    "Parameter type ${paramType::class.simpleName} not supported for push."
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Normalizes the bytecode IR by inlining stack arguments into Pop instructions.
+ * After normalization, Push instructions preceding Pop instructions are removed and their
+ * arguments are placed directly on the Pop instruction.
+ */
+private fun normalizeStackArgs(ir: BytecodeIr) {
+    data class PushInfo(
+        val segmentIdx: Int,
+        val instructionIdx: Int,
+        val arg: Arg,
+        val opcode: Opcode,
+    )
+
+    // Collect all instructions across all segments in order.
+    val allSegments = ir.segments.filterIsInstance<InstructionSegment>()
+    val stack = mutableListOf<PushInfo>()
+    var inVaBlock = false
+
+    // First pass: identify push/pop relationships.
+    // We track which push instructions to remove and which pop instructions to augment.
+    data class PopNormalization(
+        val segmentIdx: Int,
+        val instructionIdx: Int,
+        val args: List<Arg>,
+        val pushesToRemove: List<PushInfo>,
+    )
+
+    val normalizations = mutableListOf<PopNormalization>()
+    // Track pushes to remove (by segment index and instruction index).
+    val pushesToRemove = mutableSetOf<Pair<Int, Int>>()
+
+    for (segIdx in allSegments.indices) {
+        val segment = allSegments[segIdx]
+
+        for (instIdx in segment.instructions.indices) {
+            val inst = segment.instructions[instIdx]
+            val opcode = inst.opcode
+
+            when {
+                opcode.code == OP_VA_START.code -> {
+                    inVaBlock = true
+                }
+
+                opcode.code == OP_VA_END.code -> {
+                    inVaBlock = false
+                    stack.clear()
+                }
+
+                inVaBlock -> {
+                    // Inside va_start/va_end blocks, don't normalize.
+                    if (opcode.stack == StackInteraction.Push) {
+                        stack.add(PushInfo(segIdx, instIdx, inst.args.firstOrNull() ?: IntArg(0), opcode))
+                    }
+                }
+
+                opcode.stack == StackInteraction.Push -> {
+                    val arg = inst.args.firstOrNull() ?: IntArg(0)
+                    stack.add(PushInfo(segIdx, instIdx, arg, opcode))
+                }
+
+                opcode.stack == StackInteraction.Pop -> {
+                    val paramCount = opcode.params.size
+
+                    if (stack.size >= paramCount) {
+                        // Consume args from stack (stack is LIFO, params are in reverse order).
+                        val consumed = stack.subList(stack.size - paramCount, stack.size).toList()
+
+                        // Convert args based on parameter types.
+                        val normalizedArgs = mutableListOf<Arg>()
+
+                        for (j in consumed.indices) {
+                            val pushInfo = consumed[j]
+                            val paramType = opcode.params[j].type
+
+                            val normalizedArg = normalizeArg(pushInfo.arg, pushInfo.opcode, paramType)
+                            normalizedArgs.add(normalizedArg)
+                        }
+
+                        normalizations.add(
+                            PopNormalization(segIdx, instIdx, normalizedArgs, consumed)
+                        )
+
+                        for (p in consumed) {
+                            pushesToRemove.add(Pair(p.segmentIdx, p.instructionIdx))
+                        }
+
+                        // Remove consumed entries from stack.
+                        repeat(paramCount) { stack.removeAt(stack.lastIndex) }
+                    } else {
+                        // Not enough pushes on the stack; skip normalization for this pop.
+                        stack.clear()
+                    }
+                }
+
+                else -> {
+                    // Non-push, non-pop instructions clear the conceptual stack.
+                    // Actually, only certain instructions clear the stack. Be conservative:
+                    // ret, jmp, etc. would clear it. But for simplicity, we only clear on
+                    // control flow changes. Actually let's not clear - the push/pop pattern
+                    // is strictly sequential in PSO bytecode.
+                }
+            }
+        }
+    }
+
+    // Apply normalizations in reverse order to preserve indices.
+    // First, remove push instructions.
+    for (segIdx in allSegments.indices.reversed()) {
+        val segment = allSegments[segIdx]
+
+        for (instIdx in segment.instructions.indices.reversed()) {
+            if (Pair(segIdx, instIdx) in pushesToRemove) {
+                segment.instructions.removeAt(instIdx)
+            }
+        }
+    }
+
+    // Now apply pop normalizations. We need to recalculate indices since we removed pushes.
+    // Actually, it's simpler to apply both in one pass. Let me redo this.
+    // The issue is that removing push instructions changes indices of subsequent instructions.
+    // Let's rebuild the instruction lists instead.
+
+    // Revert the removal above - let me take a different approach.
+    // Actually the removal already happened. Let me find the pop instructions and set their args.
+
+    // After removal, instruction indices have shifted. Find pops by opcode match.
+    for (norm in normalizations) {
+        val segment = allSegments[norm.segmentIdx]
+        // Find the Pop instruction - its index may have shifted due to removals in the same segment.
+        // Count how many pushes were removed before this instruction in the same segment.
+        val removedBefore = pushesToRemove.count { (sIdx, iIdx) ->
+            sIdx == norm.segmentIdx && iIdx < norm.instructionIdx
+        }
+        val adjustedIdx = norm.instructionIdx - removedBefore
+
+        if (adjustedIdx >= 0 && adjustedIdx < segment.instructions.size) {
+            val oldInst = segment.instructions[adjustedIdx]
+
+            if (oldInst.opcode.stack == StackInteraction.Pop) {
+                segment.instructions[adjustedIdx] = Instruction(
+                    oldInst.opcode,
+                    norm.args,
+                    oldInst.valid,
+                    oldInst.srcLoc,
+                )
+            }
+        }
+    }
+}
+
+private fun normalizeArg(arg: Arg, pushOpcode: Opcode, paramType: AnyType): Arg {
+    return when {
+        // arg_pushr targeting a non-register parameter → mark as register reference.
+        pushOpcode.code == OP_ARG_PUSHR.code && paramType !is RegType -> {
+            IntArg(arg.coerceInt(), isRegRef = true)
+        }
+        // arg_pushl/b/w targeting a float parameter → convert to FloatArg.
+        (pushOpcode.code == OP_ARG_PUSHL.code ||
+                pushOpcode.code == OP_ARG_PUSHB.code ||
+                pushOpcode.code == OP_ARG_PUSHW.code) && paramType == FloatType -> {
+            FloatArg(Float.fromBits(arg.coerceInt()))
+        }
+        else -> arg
+    }
 }
 
 class BytecodeAndLabelOffsets(

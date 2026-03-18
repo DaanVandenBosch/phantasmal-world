@@ -120,21 +120,19 @@ class Instruction(
             val paramToArgs: MutableList<List<Arg>> = mutableListOf()
             this.paramToArgs = paramToArgs
 
-            if (opcode.stack !== StackInteraction.Pop) {
-                for (i in opcode.params.indices) {
-                    val param = opcode.params[i]
+            for (i in opcode.params.indices) {
+                val param = opcode.params[i]
 
-                    // Variable length arguments are always last, so we can just gobble up all
-                    // arguments from this point.
-                    val pArgs = if (param.varargs) {
-                        check(i == opcode.params.lastIndex)
-                        args.drop(i)
-                    } else {
-                        listOfNotNull(args.getOrNull(i))
-                    }
-
-                    paramToArgs.add(pArgs)
+                // Variable length arguments are always last, so we can just gobble up all
+                // arguments from this point.
+                val pArgs = if (param.varargs) {
+                    check(i == opcode.params.lastIndex)
+                    args.drop(i)
+                } else {
+                    listOfNotNull(args.getOrNull(i))
                 }
+
+                paramToArgs.add(pArgs)
             }
         }
 
@@ -165,7 +163,11 @@ class Instruction(
     fun getSize(dcGcFormat: Boolean): Int {
         var size = opcode.size
 
-        if (opcode.stack === StackInteraction.Pop) return size
+        if (opcode.stack === StackInteraction.Pop) {
+            // All known PSO versions use push instructions for Pop opcodes in binary format.
+            size += pushInstructionsSize(dcGcFormat)
+            return size
+        }
 
         for (i in opcode.params.indices) {
             val type = opcode.params[i].type
@@ -209,6 +211,47 @@ class Instruction(
 
     fun copy(): Instruction =
         Instruction(opcode, args, valid, srcLoc).also { it.paramToArgs = paramToArgs }
+
+    private fun pushInstructionsSize(dcGcFormat: Boolean): Int {
+        var totalSize = 0
+
+        for (i in opcode.params.indices) {
+            val type = opcode.params[i].type
+            val args = getArgs(i)
+
+            for (arg in args) {
+                totalSize += pushInstructionSize(arg, type, dcGcFormat)
+            }
+        }
+
+        return totalSize
+    }
+}
+
+/**
+ * Returns the byte size of a single push instruction for the given argument and parameter type.
+ */
+fun pushInstructionSize(arg: Arg, paramType: AnyType, dcGcFormat: Boolean): Int {
+    // Opcode byte (1) + argument bytes.
+    if (arg is IntArg && arg.isRegRef) {
+        return 2 // arg_pushr: 1 opcode + 1 byte register
+    }
+
+    return when (paramType) {
+        ByteType, is RegType -> 2 // arg_pushb: 1 opcode + 1 byte
+        ShortType, is LabelType -> 3 // arg_pushw: 1 opcode + 2 bytes
+        IntType, FloatType -> 5 // arg_pushl: 1 opcode + 4 bytes
+        StringType -> {
+            val str = (arg as StringArg).value
+            // arg_pushs: 1 opcode + null-terminated string
+            if (dcGcFormat) {
+                1 + str.length + 1
+            } else {
+                1 + 2 * str.length + 2
+            }
+        }
+        else -> error("Cannot compute push instruction size for type ${paramType::class.simpleName}.")
+    }
 }
 
 /**
@@ -222,7 +265,7 @@ sealed class Arg {
     abstract fun coerceString(): String
 }
 
-data class IntArg(override val value: Int) : Arg() {
+data class IntArg(override val value: Int, val isRegRef: Boolean = false) : Arg() {
     override fun coerceInt(): Int = value
     override fun coerceFloat(): Float = Float.fromBits(value)
     override fun coerceString(): String = value.toString()

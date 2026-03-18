@@ -72,11 +72,9 @@ class QuestTests : LibTestSuite {
         assertTrue(0 in seg1.labels)
         assertEquals(OP_SET_EPISODE, seg1.instructions[0].opcode)
         assertEquals(0, seg1.instructions[0].args[0].value)
-        assertEquals(OP_ARG_PUSHL, seg1.instructions[1].opcode)
+        assertEquals(OP_SET_FLOOR_HANDLER, seg1.instructions[1].opcode)
         assertEquals(0, seg1.instructions[1].args[0].value)
-        assertEquals(OP_ARG_PUSHW, seg1.instructions[2].opcode)
-        assertEquals(150, seg1.instructions[2].args[0].value)
-        assertEquals(OP_SET_FLOOR_HANDLER, seg1.instructions[3].opcode)
+        assertEquals(150, seg1.instructions[1].args[1].value)
 
         val seg2 = quest.bytecodeIr.segments[1]
         assertTrue(seg2 is InstructionSegment)

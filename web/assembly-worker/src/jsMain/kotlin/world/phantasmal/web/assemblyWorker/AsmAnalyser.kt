@@ -489,8 +489,8 @@ class AsmAnalyser {
             }
 
             if (segment is InstructionSegment) {
-                // Loop over instructions in reverse order so stack popping instructions will be
-                // handled before the related stack pushing instructions when inlineStackArgs is on.
+                // Loop over instructions in reverse order so popping instructions will be
+                // handled before related pushing instructions for source location mapping.
                 for (i in segment.instructions.lastIndex downTo 0) {
                     val inst = segment.instructions[i]
 
@@ -674,14 +674,15 @@ class AsmAnalyser {
     }
 
     /**
-     * Visits all arguments of [instruction], including stack arguments.
+     * Visits all arguments of [instruction]. After normalization, all args are inline.
      */
+    @Suppress("UNUSED_PARAMETER")
     private fun visitArgs(
         instruction: Instruction,
         processParam: (Param) -> VisitAction,
         processImmediateArg: (Param, Arg, ArgSrcLoc) -> VisitAction,
-        processStackArgSrcLoc: (Param, ArgSrcLoc) -> VisitAction,
-        processStackArg: (Param, ValueSet, Instruction?, ArgSrcLoc) -> VisitAction,
+        processStackArgSrcLoc: (Param, ArgSrcLoc) -> VisitAction = { _, _ -> VisitAction.Continue },
+        processStackArg: (Param, ValueSet, Instruction?, ArgSrcLoc) -> VisitAction = { _, _, _, _ -> VisitAction.Continue },
     ) {
         for ((paramIdx, param) in instruction.opcode.params.withIndex()) {
             when (processParam(param)) {
@@ -691,47 +692,19 @@ class AsmAnalyser {
                 VisitAction.Return -> return
             }
 
-            if (instruction.opcode.stack !== StackInteraction.Pop) {
-                // Immediate arguments.
-                val args = instruction.getArgs(paramIdx)
-                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
+            // After normalization, all instructions (including Pop) have inlined args.
+            val args = instruction.getArgs(paramIdx)
+            val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
 
-                for (i in 0 until min(args.size, argSrcLocs.size)) {
-                    val arg = args[i]
-                    val srcLoc = argSrcLocs[i]
+            for (i in 0 until min(args.size, argSrcLocs.size)) {
+                val arg = args[i]
+                val srcLoc = argSrcLocs[i]
 
-                    when (processImmediateArg(param, arg, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue // Same as Down.
-                        VisitAction.Return -> return
-                    }
-                }
-            } else {
-                // Stack arguments.
-                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
-
-                // Never varargs.
-                for (srcLoc in argSrcLocs) {
-                    when (processStackArgSrcLoc(param, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue
-                        VisitAction.Return -> return
-                    }
-
-                    val (labelValues, pushInstruction) = getStackValue(
-                        cfg,
-                        instruction,
-                        instruction.opcode.params.lastIndex - paramIdx,
-                    )
-
-                    when (processStackArg(param, labelValues, pushInstruction, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue // Same as Down.
-                        VisitAction.Return -> return
-                    }
+                when (processImmediateArg(param, arg, srcLoc)) {
+                    VisitAction.Go -> Unit // Keep going.
+                    VisitAction.Break -> break
+                    VisitAction.Continue -> continue // Same as Down.
+                    VisitAction.Return -> return
                 }
             }
         }

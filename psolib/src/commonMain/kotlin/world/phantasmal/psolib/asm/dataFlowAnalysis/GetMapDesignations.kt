@@ -181,27 +181,19 @@ fun getMapDesignations(
                 }
 
                 OP_SET_FLOOR_HANDLER -> {
-                    if (cfg == null) {
-                        cfg = createCfg()
-                    }
-
                     try {
-                        // Get floor number from stack (position 1, since stack is LIFO and floor is first param)
-                        val (floorIdValue, _) = getStackValue(cfg, inst, 1)
+                        // After normalization, args are inlined: arg[0] = floorId, arg[1] = label.
+                        val floorId = (inst.args[0] as IntArg).value
+                        val mapId = getMapId(episode, floorId)
+                        val variantId = 0 // Default variant
 
-                        if (floorIdValue.size == 1L) {
-                            val floorId = floorIdValue.first()
-                            val mapId = getMapId(episode, floorId)
-                            val variantId = 0 // Default variant
-
-                            // Low priority: only fills in floors not yet mapped by map_designate / bb_map_designate.
-                            // areaId defaults to floorId because set_floor_handler doesn't carry an explicit area.
-                            if (!floorMappings.containsKey(floorId)) {
-                                floorMappings[floorId] = FloorMapping(floorId, mapId, floorId, variantId, findEpisodeByMapId(mapId))
-                            }
+                        // Low priority: only fills in floors not yet mapped by map_designate / bb_map_designate.
+                        // areaId defaults to floorId because set_floor_handler doesn't carry an explicit area.
+                        if (!floorMappings.containsKey(floorId)) {
+                            floorMappings[floorId] = FloorMapping(floorId, mapId, floorId, variantId, findEpisodeByMapId(mapId))
                         }
                     } catch (e: Exception) {
-                        logger.warn { "Error getting stack values for OP_SET_FLOOR_HANDLER: ${e.message}" }
+                        logger.warn { "Error getting values for OP_SET_FLOOR_HANDLER: ${e.message}" }
                     }
                 }
             }

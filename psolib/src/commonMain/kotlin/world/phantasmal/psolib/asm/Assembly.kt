@@ -21,15 +21,13 @@ class AssemblyProblem(
 
 fun assemble(
     asm: List<String>,
-    inlineStackArgs: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") inlineStackArgs: Boolean = true,
 ): PwResult<BytecodeIr> {
     logger.trace {
-        "Assembling ${asm.size} lines with ${
-            if (inlineStackArgs) "inline stack arguments" else "stack push instructions"
-        }."
+        "Assembling ${asm.size} lines."
     }
 
-    val (result, time) = measureTimedValue { Assembler(asm, inlineStackArgs).assemble() }
+    val (result, time) = measureTimedValue { Assembler(asm).assemble() }
 
     logger.trace {
         val warnings = result.problems.count { it.severity == Severity.Warning }
@@ -41,7 +39,7 @@ fun assemble(
     return result
 }
 
-private class Assembler(private val asm: List<String>, private val inlineStackArgs: Boolean) {
+private class Assembler(private val asm: List<String>) {
     private var lineNo = 1
     private val tokenizer = LineTokenizer()
     private var ir: MutableList<Segment> = mutableListOf()
@@ -361,25 +359,12 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
         if (opcode == null) {
             addError("Unknown opcode.")
         } else {
-            if (opcode.stack !== StackInteraction.Pop) {
-                // Arguments should be inlined immediately after the opcode.
-                parseArgs(
-                    opcode,
-                    mnemonicSrcLoc,
-                    stack = false,
-                )
-            } else {
-                // Arguments should be passed to the opcode via the stack.
-                parseArgs(
-                    opcode,
-                    mnemonicSrcLoc,
-                    stack = true,
-                )
-            }
+            // All arguments are inlined into the instruction (normalized IR).
+            parseArgs(opcode, mnemonicSrcLoc)
         }
     }
 
-    private fun parseArgs(opcode: Opcode, mnemonicSrcLoc: SrcLoc, stack: Boolean) {
+    private fun parseArgs(opcode: Opcode, mnemonicSrcLoc: SrcLoc) {
         val immediateArgs = mutableListOf<Arg>()
         val srcLocs = mutableListOf<ArgSrcLoc>()
         var argCount = 0
@@ -485,9 +470,10 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     }
 
                     Token.Register -> {
-                        typeMatch = stack ||
-                                paramType === RegVarType ||
-                                paramType is RegType
+                        typeMatch = paramType === RegVarType ||
+                                paramType is RegType ||
+                                // Pop instructions accept register references for any param type.
+                                opcode.stack === StackInteraction.Pop
 
                         value as Int
 
@@ -495,7 +481,11 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                             addError(col, len, "Invalid register reference, expected r0-r255.")
                         }
 
-                        IntArg(value)
+                        if (opcode.stack === StackInteraction.Pop && paramType !is RegType) {
+                            IntArg(value, isRegRef = true)
+                        } else {
+                            IntArg(value)
+                        }
                     }
 
                     Token.Str -> {
@@ -514,10 +504,7 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                     coarse = SrcLoc(lineNo, coarseCol, coarseLen),
                 )
 
-                if (!stack) {
-                    immediateArgs.add(arg)
-                }
-
+                immediateArgs.add(arg)
                 srcLocs.add(srcLoc)
 
                 if (!typeMatch) {
@@ -554,107 +541,10 @@ private class Assembler(private val asm: List<String>, private val inlineStackAr
                         addError(col, len, "Expected ${typeStr}.")
                     }
                 }
-
-                // Inject stack push instructions if necessary. Don't inject push instruction if
-                // there's no parameter for the argument (i.e. too many arguments).
-                if (stack && paramType != null) {
-                    // If the token is a register, push it as a register, otherwise coerce type.
-                    if (token === Token.Register) {
-                        if (paramType is RegType) {
-                            addInstruction(
-                                OP_ARG_PUSHB,
-                                listOf(arg),
-                                mnemonicSrcLoc = null,
-                                valid = true,
-                                listOf(srcLoc),
-                                trailingArgSeparator = false,
-                            )
-                        } else {
-                            addInstruction(
-                                OP_ARG_PUSHR,
-                                listOf(arg),
-                                mnemonicSrcLoc = null,
-                                valid = true,
-                                listOf(srcLoc),
-                                trailingArgSeparator = false,
-                            )
-                        }
-                    } else {
-                        when (paramType) {
-                            ByteType,
-                            is RegType,
-                            -> {
-                                addInstruction(
-                                    OP_ARG_PUSHB,
-                                    listOf(arg),
-                                    mnemonicSrcLoc = null,
-                                    valid = true,
-                                    listOf(srcLoc),
-                                    trailingArgSeparator = false,
-                                )
-                            }
-
-                            ShortType,
-                            is LabelType,
-                            -> {
-                                addInstruction(
-                                    OP_ARG_PUSHW,
-                                    listOf(arg),
-                                    mnemonicSrcLoc = null,
-                                    valid = true,
-                                    listOf(srcLoc),
-                                    trailingArgSeparator = false,
-                                )
-                            }
-
-                            IntType -> {
-                                addInstruction(
-                                    OP_ARG_PUSHL,
-                                    listOf(arg),
-                                    mnemonicSrcLoc = null,
-                                    valid = true,
-                                    listOf(srcLoc),
-                                    trailingArgSeparator = false,
-                                )
-                            }
-
-                            // Floats are pushed as ints.
-                            FloatType -> {
-                                addInstruction(
-                                    OP_ARG_PUSHL,
-                                    listOf(IntArg((arg as FloatArg).value.toRawBits())),
-                                    mnemonicSrcLoc = null,
-                                    valid = true,
-                                    listOf(srcLoc),
-                                    trailingArgSeparator = false,
-                                )
-                            }
-
-                            StringType -> {
-                                addInstruction(
-                                    OP_ARG_PUSHS,
-                                    listOf(arg),
-                                    mnemonicSrcLoc = null,
-                                    valid = true,
-                                    listOf(srcLoc),
-                                    trailingArgSeparator = false,
-                                )
-                            }
-
-                            else -> {
-                                logger.error {
-                                    "Line $lineNo: Type ${paramType::class} not implemented."
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
 
-        val paramCount =
-            if (!inlineStackArgs && opcode.stack === StackInteraction.Pop) 0
-            else opcode.params.size
+        val paramCount = opcode.params.size
 
         val trailingArgSeparator = prevToken === Token.ArgSeparator
 

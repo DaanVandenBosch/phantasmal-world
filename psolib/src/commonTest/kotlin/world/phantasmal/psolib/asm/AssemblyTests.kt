@@ -58,28 +58,8 @@ class AssemblyTests : LibTestSuite {
                                 valid = true,
                             ),
                             Instruction(
-                                opcode = OP_ARG_PUSHL,
-                                args = listOf(IntArg(0)),
-                                srcLoc = InstructionSrcLoc(
-                                    mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(4, 23, 1), SrcLoc(4, 22, 3))),
-                                    trailingArgSeparator = false,
-                                ),
-                                valid = true,
-                            ),
-                            Instruction(
-                                opcode = OP_ARG_PUSHW,
-                                args = listOf(IntArg(150)),
-                                srcLoc = InstructionSrcLoc(
-                                    mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(4, 26, 3), SrcLoc(4, 25, 5))),
-                                    trailingArgSeparator = false,
-                                ),
-                                valid = true,
-                            ),
-                            Instruction(
                                 opcode = OP_SET_FLOOR_HANDLER,
-                                args = emptyList(),
+                                args = listOf(IntArg(0), IntArg(150)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(4, 5, 17),
                                     args = listOf(
@@ -107,18 +87,8 @@ class AssemblyTests : LibTestSuite {
                         labels = mutableListOf(150),
                         instructions = mutableListOf(
                             Instruction(
-                                opcode = OP_ARG_PUSHL,
-                                args = listOf(IntArg(1)),
-                                srcLoc = InstructionSrcLoc(
-                                    mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(7, 18, 1), SrcLoc(7, 17, 3))),
-                                    trailingArgSeparator = false,
-                                ),
-                                valid = true,
-                            ),
-                            Instruction(
                                 opcode = OP_SET_MAINWARP,
-                                args = emptyList(),
+                                args = listOf(IntArg(1)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(7, 5, 12),
                                     args = listOf(
@@ -181,18 +151,8 @@ class AssemblyTests : LibTestSuite {
                                 valid = true,
                             ),
                             Instruction(
-                                opcode = OP_ARG_PUSHR,
-                                args = listOf(IntArg(255)),
-                                srcLoc = InstructionSrcLoc(
-                                    mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(3, 10, 4), SrcLoc(3, 9, 6))),
-                                    trailingArgSeparator = false,
-                                ),
-                                valid = true,
-                            ),
-                            Instruction(
                                 opcode = OP_EXIT,
-                                args = emptyList(),
+                                args = listOf(IntArg(255, isRegRef = true)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(3, 5, 4),
                                     args = listOf(
@@ -243,28 +203,8 @@ class AssemblyTests : LibTestSuite {
                         labels = mutableListOf(0),
                         instructions = mutableListOf(
                             Instruction(
-                                opcode = OP_ARG_PUSHB,
-                                args = listOf(IntArg(200)),
-                                srcLoc = InstructionSrcLoc(
-                                    mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(2, 15, 4), SrcLoc(2, 14, 6))),
-                                    trailingArgSeparator = false,
-                                ),
-                                valid = true,
-                            ),
-                            Instruction(
-                                opcode = OP_ARG_PUSHL,
-                                args = listOf(IntArg(3)),
-                                srcLoc = InstructionSrcLoc(
-                                    mnemonic = null,
-                                    args = listOf(ArgSrcLoc(SrcLoc(2, 21, 1), SrcLoc(2, 20, 3))),
-                                    trailingArgSeparator = false,
-                                ),
-                                valid = true,
-                            ),
-                            Instruction(
                                 opcode = OP_P_DEAD_V3,
-                                args = emptyList(),
+                                args = listOf(IntArg(200), IntArg(3)),
                                 srcLoc = InstructionSrcLoc(
                                     mnemonic = SrcLoc(2, 5, 9),
                                     args = listOf(
