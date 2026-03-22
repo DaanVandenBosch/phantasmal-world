@@ -17,6 +17,7 @@ class DockWidget(
     visible: Cell<Boolean> = trueCell(),
     private val ctrl: DockController,
     private val createWidget: (id: String) -> Widget,
+    private val maximizableWidgetIds: Set<String> = emptySet(),
 ) : Widget(visible) {
     private var goldenLayout: GoldenLayout? = null
     private val idToChildWidget = mutableMapOf<String, Widget>()
@@ -34,7 +35,11 @@ class DockWidget(
             scope.launch {
                 val dockedWidgetIds = mutableSetOf<String>()
 
-                val config = createConfig(ctrl.initialConfig(), dockedWidgetIds)
+                val config = createConfig(
+                    ctrl.initialConfig(),
+                    dockedWidgetIds,
+                    showMaximise = maximizableWidgetIds.isNotEmpty(),
+                )
 
                 if (disposed) return@launch
 
@@ -66,6 +71,10 @@ class DockWidget(
 
                 addDisposable(size.observeChange { (size) ->
                     goldenLayout.updateSize(size.width, size.height)
+                })
+
+                addDisposable(ctrl.activateWidgetEvent.observe { widgetId ->
+                    activateTab(goldenLayout, widgetId)
                 })
             }
         }
@@ -106,6 +115,25 @@ class DockWidget(
         })
     }
 
+    private fun activateTab(goldenLayout: GoldenLayout, widgetId: String) {
+        try {
+            @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+            val root = goldenLayout.asDynamic().root as? GoldenLayout.ContentItem ?: return
+            val items = root.getItemsByFilter { contentItem ->
+                val cfg = contentItem.config.unsafeCast<GoldenLayout.ComponentConfig>()
+                cfg.componentName == widgetId
+            }
+            val item = items.firstOrNull() ?: return
+            val parent = item.parent
+
+            if (parent.type == "stack") {
+                parent.setActiveContentItem(item)
+            }
+        } catch (e: Exception) {
+            logger.warn(e) { "Failed to activate widget: $widgetId" }
+        }
+    }
+
     private fun onStateChanged() {
         val content = goldenLayout?.toConfig()?.content
 
@@ -127,6 +155,18 @@ class DockWidget(
                 idToChildWidget[config.componentName]?.focus()
             }
         })
+
+        // Hide the maximise button for stacks that don't contain any maximizable widget.
+        if (maximizableWidgetIds.isNotEmpty()) {
+            val hasMaximizable = stack.contentItems.any { child ->
+                val cfg = child.config.unsafeCast<GoldenLayout.ComponentConfig>()
+                cfg.componentName != undefined && cfg.componentName in maximizableWidgetIds
+            }
+            if (!hasMaximizable) {
+                // Hide the maximise control via the stack header's controls container (jQuery element).
+                stack.asDynamic().header?.controlsContainer?.find(".lm_maximise")?.hide()
+            }
+        }
     }
 
     companion object {
@@ -140,11 +180,12 @@ class DockWidget(
         private fun createConfig(
             item: DockedItem,
             dockedWidgetIds: MutableSet<String>,
+            showMaximise: Boolean = false,
         ): GoldenLayout.Config =
             obj {
                 settings = obj<GoldenLayout.Settings> {
                     showPopoutIcon = false
-                    showMaximiseIcon = false
+                    showMaximiseIcon = showMaximise
                     showCloseIcon = false
                 }
                 dimensions = obj<GoldenLayout.Dimensions> {
@@ -264,6 +305,10 @@ class DockWidget(
                 .pw-core-dock {
                     overflow: hidden;
                 }
+
+                #pw-root .lm_maximised {
+                    background-color: var(--pw-bg-color);
+                }
                 
                 #pw-root .lm_header {
                     box-sizing: border-box;
@@ -304,6 +349,19 @@ class DockWidget(
                     cursor: default;
                 }
                 
+                #pw-root .lm_header .lm_controls .lm_maximise {
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='9'%3E%3Crect x='0.5' y='0.5' width='8' height='8' fill='none' stroke='white' stroke-width='1'/%3E%3C/svg%3E");
+                    background-position: center center;
+                    background-repeat: no-repeat;
+                    cursor: pointer;
+                    opacity: 0.4;
+                    transition: opacity 300ms ease;
+                }
+
+                #pw-root .lm_header .lm_controls .lm_maximise:hover {
+                    opacity: 1;
+                }
+
                 #pw-root .lm_header .lm_controls .lm_close {
                     /* a white 9x9 X shape */
                     background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAQUlEQVR4nHXOQQ4AMAgCQeT/f6aXpsGK3jSTuCVJAAr7iBdoAwCKd0nwfaAdHbYERw5b44+E8JoBjEYGMBq5gAYP3usUDu2IvoUAAAAASUVORK5CYII=);
@@ -313,7 +371,7 @@ class DockWidget(
                     opacity: 0.4;
                     transition: opacity 300ms ease;
                 }
-                
+
                 #pw-root .lm_header .lm_controls .lm_close:hover {
                     opacity: 1;
                 }

@@ -32,6 +32,10 @@ class Application(
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
     clock: Clock,
 ) : DisposableContainer() {
+    companion object {
+        const val VERSION = "1.2.0"
+    }
+
     init {
         addDisposables(
             // Disable native undo/redo.
@@ -85,7 +89,7 @@ class Application(
     }
 
     private fun keydown(e: KeyboardEvent) {
-        if (e.ctrlKey && !e.altKey && e.key.uppercase() == "Z") {
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.uppercase() == "Z") {
             e.preventDefault()
         }
     }

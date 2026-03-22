@@ -157,6 +157,23 @@ suspend fun showSaveFilePicker(types: List<FileType>): FileHandle.System? {
     }
 }
 
+suspend fun showDirectoryPicker(): FileSystemDirectoryHandle? {
+    require(UserAgentFeatures.directoryPickerApi) {
+        "Directory picker is not supported by this user agent."
+    }
+
+    return try {
+        window.showDirectoryPicker().await()
+    } catch (e: Throwable) {
+        // Return null when the user cancels.
+        if (e.asDynamic().name == "AbortError") {
+            null
+        } else {
+            throw e
+        }
+    }
+}
+
 fun downloadFile(data: ArrayBuffer, filename: String): FileHandle.Simple {
     val a = document.createElement("a") as HTMLAnchorElement
     val blob = Blob(

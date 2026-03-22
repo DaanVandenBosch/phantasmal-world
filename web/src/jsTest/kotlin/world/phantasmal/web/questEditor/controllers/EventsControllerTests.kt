@@ -1,5 +1,6 @@
 package world.phantasmal.web.questEditor.controllers
 
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.web.questEditor.models.QuestEventActionModel
 import world.phantasmal.web.questEditor.models.QuestEventModel
 import world.phantasmal.web.test.WebTestSuite
@@ -14,12 +15,12 @@ class EventsControllerTests : WebTestSuite {
     fun addEvent() = testAsync {
         // Setup.
         val store = components.questEditorStore
-        val quest = createQuestModel(mapDesignations = mapOf(1 to 0))
+        val quest = createQuestModel(floorMappings = listOf(FloorMapping(1, 1, 1, 0)))
         store.setCurrentQuest(quest)
         store.setCurrentArea(quest.areaVariants.value.first().area)
         store.makeMainUndoCurrent()
 
-        val ctrl = disposer.add(EventsController(store))
+        val ctrl = disposer.add(EventsController(store, components.playbackVisualizationStore))
 
         // Add an event.
         ctrl.addEvent()
@@ -49,12 +50,12 @@ class EventsControllerTests : WebTestSuite {
     fun addAction() = testAsync {
         // Setup.
         val store = components.questEditorStore
-        val quest = createQuestModel(mapDesignations = mapOf(1 to 0))
+        val quest = createQuestModel(floorMappings = listOf(FloorMapping(1, 1, 1, 0)))
         store.setCurrentQuest(quest)
         store.setCurrentArea(quest.areaVariants.value.first().area)
         store.makeMainUndoCurrent()
 
-        val ctrl = disposer.add(EventsController(store))
+        val ctrl = disposer.add(EventsController(store, components.playbackVisualizationStore))
 
         // Add an event and an action.
         ctrl.addEvent()
@@ -84,7 +85,7 @@ class EventsControllerTests : WebTestSuite {
         val store = components.questEditorStore
         // Quest with two events, the first event triggers the second event.
         val quest = createQuestModel(
-            mapDesignations = mapOf(1 to 0),
+            floorMappings = listOf(FloorMapping(1, 1, 1, 0)),
             events = listOf(
                 QuestEventModel(
                     id = 100,
@@ -109,7 +110,7 @@ class EventsControllerTests : WebTestSuite {
         store.setCurrentQuest(quest)
         store.setCurrentArea(quest.areaVariants.value.first().area)
 
-        val ctrl = disposer.add(EventsController(store))
+        val ctrl = disposer.add(EventsController(store, components.playbackVisualizationStore))
 
         val canGoToEvent = ctrl.canGoToEvent(
             (ctrl.events[0].actions[0] as QuestEventActionModel.TriggerEvent).eventId

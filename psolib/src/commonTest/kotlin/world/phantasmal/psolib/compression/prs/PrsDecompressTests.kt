@@ -72,15 +72,15 @@ class PrsDecompressTests : LibTestSuite {
 
     @Test
     fun decompress_towards_the_future() = testAsync {
-        val orig = readFile("/quest118_e_decompressed.bin")
-        val test = prsDecompress(readFile("/quest118_e.bin")).unwrap()
+        val orig = readFile("/towards_the_future_decompressed.bin")
+        val test = prsDecompress(readFile("/towards_the_future.bin")).unwrap()
 
         assertCursorEquals(orig, test)
     }
 
     @Test
     fun compress_and_decompress_towards_the_future() = testAsync {
-        val orig = readFile("/quest118_e_decompressed.bin")
+        val orig = readFile("/towards_the_future_decompressed.bin")
         val test = prsDecompress(prsCompress(orig)).unwrap()
         orig.seekStart(0)
 

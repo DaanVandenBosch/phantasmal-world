@@ -5,7 +5,7 @@ plugins {
     id("world.phantasmal.jvm")
     kotlin("plugin.serialization")
     application
-    id("org.graalvm.buildtools.native") version "0.9.2"
+    id("org.graalvm.buildtools.native") version "0.11.1"
 }
 
 version = "0.0.1"
@@ -71,13 +71,17 @@ val nativeAgentRun by tasks.registering(JavaExec::class) {
     )
 }
 
-nativeBuild {
-    imageName.set("psoserv")
-    mainClass.set(mainClassFqn)
-    buildArgs.addAll(
-        "--allow-incomplete-classpath",
-        "-H:ConfigurationFileDirectories=$nativeAgentOutputDir",
-    )
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("psoserv")
+            mainClass.set(mainClassFqn)
+            buildArgs.addAll(
+                "--allow-incomplete-classpath",
+                "-H:ConfigurationFileDirectories=$nativeAgentOutputDir",
+            )
+        }
+    }
 }
 
 tasks.withType<BuildNativeImageTask>().configureEach {

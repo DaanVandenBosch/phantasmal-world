@@ -181,6 +181,7 @@ external interface ICodeEditor : IEditor {
     fun onDidCompositionStart(listener: () -> Unit): IDisposable
     fun onDidCompositionEnd(listener: () -> Unit): IDisposable
     fun onDidAttemptReadOnlyEdit(listener: () -> Unit): IDisposable
+    fun onMouseDown(listener: (e: IEditorMouseEvent) -> Unit): IDisposable
     fun onMouseUp(listener: (e: IEditorMouseEvent) -> Unit): IDisposable
     fun hasWidgetFocus(): Boolean
     override fun getModel(): ITextModel?

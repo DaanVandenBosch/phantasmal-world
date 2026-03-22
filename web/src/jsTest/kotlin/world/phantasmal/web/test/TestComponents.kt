@@ -19,7 +19,11 @@ import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
+import world.phantasmal.web.questEditor.stores.AsmStore
+import world.phantasmal.web.questEditor.stores.PlaybackVisualizationStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.QuestEditorUiStore
+import world.phantasmal.web.questEditor.stores.ViewportStore
 import world.phantasmal.web.viewer.loading.AnimationAssetLoader
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
 import world.phantasmal.web.viewer.stores.ViewerStore
@@ -71,8 +75,18 @@ class TestComponents(private val ctx: TestContext) {
         ViewerStore(characterClassAssetLoader, animationAssetLoader, uiStore)
     }
 
+    var viewportStore: ViewportStore by default { ViewportStore() }
+
+    var playbackVisualizationStore: PlaybackVisualizationStore by default { PlaybackVisualizationStore() }
+
+    var questEditorUiStore: QuestEditorUiStore by default { QuestEditorUiStore(uiStore) }
+
     var questEditorStore: QuestEditorStore by default {
-        QuestEditorStore(questLoader, uiStore, areaStore, undoManager, initializeNewQuest = false)
+        QuestEditorStore(questLoader, uiStore, areaStore, undoManager, viewportStore, initializeNewQuest = false)
+    }
+
+    var asmStore: AsmStore by default {
+        AsmStore(questEditorStore, undoManager)
     }
 
     var huntMethodStore: HuntMethodStore by default {

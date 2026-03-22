@@ -49,6 +49,7 @@ class QuestEditorWidget(
                         else -> error("Invalid id: $id.")
                     }
                 },
+                maximizableWidgetIds = setOf(QUEST_RENDERER_WIDGET_ID),
             ))
         }
 

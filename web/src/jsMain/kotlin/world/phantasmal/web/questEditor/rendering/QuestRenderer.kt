@@ -7,12 +7,16 @@ import world.phantasmal.web.externals.three.PerspectiveCamera
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.rendering.input.QuestInputManager
-import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.*
 
 class QuestRenderer(
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
     questEditorStore: QuestEditorStore,
+    questEditorUiStore: QuestEditorUiStore,
+    playbackVisualizationStore: PlaybackVisualizationStore,
+    viewportStore: ViewportStore,
+    areaStore: AreaStore,
     createThreeRenderer: (HTMLCanvasElement) -> DisposableThreeRenderer,
 ) : Renderer() {
     override val context = addDisposable(QuestRenderContext(
@@ -27,17 +31,21 @@ class QuestRenderer(
 
     override val threeRenderer = addDisposable(createThreeRenderer(context.canvas)).renderer
 
-    override val inputManager = addDisposable(QuestInputManager(questEditorStore, context))
+    override val inputManager = addDisposable(QuestInputManager(questEditorStore, questEditorUiStore, viewportStore, context))
+
+    private val meshManager = addDisposable(
+        QuestEditorMeshManager(
+            areaAssetLoader,
+            entityAssetLoader,
+            questEditorStore,
+            questEditorUiStore,
+            playbackVisualizationStore,
+            areaStore,
+            context,
+        ),
+    )
 
     init {
-        addDisposables(
-            QuestEditorMeshManager(
-                areaAssetLoader,
-                entityAssetLoader,
-                questEditorStore,
-                context,
-            ),
-        )
 
         var prevQuest = questEditorStore.currentQuest.value
         var prevAreaVariant = questEditorStore.currentAreaVariant.value
@@ -50,5 +58,10 @@ class QuestRenderer(
                 prevAreaVariant = av
             }
         }
+    }
+
+    override fun render() {
+        meshManager.beforeRender()
+        super.render()
     }
 }

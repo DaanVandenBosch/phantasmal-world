@@ -2,10 +2,7 @@ package world.phantasmal.web.assemblyWorker
 
 import world.phantasmal.core.*
 import world.phantasmal.psolib.asm.*
-import world.phantasmal.psolib.asm.dataFlowAnalysis.ControlFlowGraph
-import world.phantasmal.psolib.asm.dataFlowAnalysis.ValueSet
-import world.phantasmal.psolib.asm.dataFlowAnalysis.getMapDesignations
-import world.phantasmal.psolib.asm.dataFlowAnalysis.getStackValue
+import world.phantasmal.psolib.asm.dataFlowAnalysis.*
 import world.phantasmal.web.shared.messages.*
 import world.phantasmal.web.shared.messages.AssemblyProblem
 import kotlin.math.max
@@ -14,7 +11,6 @@ import world.phantasmal.psolib.asm.AssemblyProblem as LibAssemblyProblem
 
 class AsmAnalyser {
     // User input.
-    private var inlineStackArgs: Boolean = true
     private val asm: JsArray<String> = jsArrayOf()
 
     // Output.
@@ -29,12 +25,11 @@ class AsmAnalyser {
             return _cfg!!
         }
 
-    private var mapDesignations: Map<Int, Int>? = null
+    private var floorMappings: List<FloorMapping>? = null
 
-    fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
-        this.inlineStackArgs = inlineStackArgs
+    fun setAsm(asm: List<String>) {
         this.asm.splice(0, this.asm.length, *asm.toTypedArray())
-        mapDesignations = null
+        floorMappings = null
     }
 
     fun updateAsm(changes: List<AsmChange>) {
@@ -137,7 +132,7 @@ class AsmAnalyser {
         _cfg = null
 
         val notifications = mutableListOf<ServerNotification>()
-        val assemblyResult = assemble(asm.asArray().toList(), inlineStackArgs)
+        val assemblyResult = assemble(asm.asArray().toList())
 
         @Suppress("UNCHECKED_CAST")
         val problems =
@@ -154,17 +149,19 @@ class AsmAnalyser {
             bytecodeIr = assemblyResult.value
 
             val instructionSegments = bytecodeIr.instructionSegments()
+            val newFloorMappings = getFloorMappings(instructionSegments) { cfg }
 
-            instructionSegments.find { 0 in it.labels }?.let { label0Segment ->
-                val designations = getMapDesignations(label0Segment) { cfg }
-
-                if (designations != mapDesignations) {
-                    mapDesignations = designations
-                    notifications.add(
-                        ServerNotification.MapDesignations(designations)
-                    )
-                }
+            if (newFloorMappings != floorMappings) {
+                floorMappings = newFloorMappings
+                notifications.add(
+                    ServerNotification.FloorMappings(newFloorMappings)
+                )
             }
+
+            // Only push labels, registers, and segments when assembly succeeds.
+            notifications.add(ServerNotification.Labels(computeLabels()))
+            notifications.add(ServerNotification.Registers(computeRegisters()))
+            notifications.add(ServerNotification.Segments(computeSegments()))
         }
 
         return notifications
@@ -271,23 +268,17 @@ class AsmAnalyser {
                     result = getLabelDefinitionsAndReferences(label, references = false)
                     VisitAction.Return
                 },
-                processStackArg = { labels, _, _ ->
-                    if (labels.size <= 5) {
-                        result = labels.flatMap {
-                            getLabelDefinitionsAndReferences(it, references = false)
-                        }
-                    }
-
-                    VisitAction.Return
-                },
             )
         }
 
         return Response.GetDefinition(requestId, result)
     }
 
-    fun getLabels(requestId: Int): Response.GetLabels {
-        val result = bytecodeIr.segments.asSequence()
+    fun getLabels(requestId: Int): Response.GetLabels =
+        Response.GetLabels(requestId, computeLabels())
+
+    private fun computeLabels(): List<Label> =
+        bytecodeIr.segments.asSequence()
             .flatMap { segment ->
                 segment.labels.mapIndexed { labelIdx, label ->
                     val range = segment.srcLoc.labels[labelIdx].toAsmRange()
@@ -296,8 +287,72 @@ class AsmAnalyser {
             }
             .toList()
 
-        return Response.GetLabels(requestId, result)
+    private fun computeRegisters(): List<RegisterInfo> {
+        val readCounts = mutableMapOf<Int, Int>()
+        val writeCounts = mutableMapOf<Int, Int>()
+
+        for (segment in bytecodeIr.segments) {
+            if (segment is InstructionSegment) {
+                for (inst in segment.instructions) {
+                    visitArgs(
+                        inst,
+                        processParam = { VisitAction.Go },
+                        processImmediateArg = { param, arg, _ ->
+                            if (arg is IntArg && (param.type is RegRefType || arg.isRegRef)) {
+                                val regId = arg.value
+                                val innerParams = (param.type as? RegType)?.registers
+                                val hasRead = innerParams?.any { it.read } ?: true
+                                val hasWrite = innerParams?.any { it.write } ?: false
+                                if (hasRead) readCounts[regId] = (readCounts[regId] ?: 0) + 1
+                                if (hasWrite) writeCounts[regId] = (writeCounts[regId] ?: 0) + 1
+                            }
+                            VisitAction.Go
+                        },
+                    )
+                }
+            }
+        }
+
+        val allRegIds = (readCounts.keys + writeCounts.keys).sorted()
+        return allRegIds.map { id ->
+            RegisterInfo(id, readCounts[id] ?: 0, writeCounts[id] ?: 0)
+        }
     }
+
+    private fun computeSegments(): List<SegmentInfo> =
+        bytecodeIr.segments.mapNotNull { segment ->
+            when (segment) {
+                is DataSegment -> {
+                    val labelRanges = segment.srcLoc.labels
+                    val range = if (labelRanges.isNotEmpty()) {
+                        labelRanges.first().toAsmRange()
+                    } else {
+                        AsmRange(0, 0, 0, 0)
+                    }
+                    SegmentInfo(
+                        type = SegmentInfoType.Data,
+                        labels = segment.labels.toList(),
+                        range = range,
+                        size = segment.data.size,
+                    )
+                }
+                is StringSegment -> {
+                    val labelRanges = segment.srcLoc.labels
+                    val range = if (labelRanges.isNotEmpty()) {
+                        labelRanges.first().toAsmRange()
+                    } else {
+                        AsmRange(0, 0, 0, 0)
+                    }
+                    SegmentInfo(
+                        type = SegmentInfoType.String,
+                        labels = segment.labels.toList(),
+                        range = range,
+                        size = segment.value.length,
+                    )
+                }
+                else -> null
+            }
+        }
 
     fun getHighlights(requestId: Int, lineNo: Int, col: Int): Response.GetHighlights {
         val results = mutableListOf<AsmRange>()
@@ -332,13 +387,17 @@ class AsmAnalyser {
                         processImmediateArg = { param, arg, argSrcLoc ->
                             if (positionInside(lineNo, col, argSrcLoc.coarse)) {
                                 (arg as? IntArg)?.let {
-                                    when (param.type) {
-                                        is LabelType -> {
+                                    when {
+                                        // Register reference via arg_pushr on a non-register param.
+                                        arg.isRegRef -> {
+                                            results.addAll(getRegisterReferences(arg.value))
+                                        }
+                                        param.type is LabelType -> {
                                             results.addAll(
                                                 getLabelDefinitionsAndReferences(arg.value)
                                             )
                                         }
-                                        is RegRefType -> {
+                                        param.type is RegRefType -> {
                                             results.addAll(getRegisterReferences(arg.value))
                                         }
                                         else -> Unit
@@ -350,32 +409,6 @@ class AsmAnalyser {
                                 VisitAction.Continue
                             }
                         },
-                        processStackArgSrcLoc = { _, argSrcLoc ->
-                            if (positionInside(lineNo, col, argSrcLoc.coarse)) {
-                                VisitAction.Go
-                            } else {
-                                VisitAction.Continue
-                            }
-                        },
-                        processStackArg = { param, _, pushInst, _ ->
-                            if (pushInst != null) {
-                                val pushArg = pushInst.args.firstOrNull()
-
-                                if (pushArg is IntArg) {
-                                    if (pushInst.opcode.code == OP_ARG_PUSHR.code ||
-                                        param.type is RegRefType
-                                    ) {
-                                        results.addAll(getRegisterReferences(pushArg.value))
-                                    } else if (param.type is LabelType) {
-                                        results.addAll(
-                                            getLabelDefinitionsAndReferences(pushArg.value)
-                                        )
-                                    }
-                                }
-                            }
-
-                            VisitAction.Return
-                        }
                     )
                 }
             }
@@ -401,8 +434,8 @@ class AsmAnalyser {
             }
 
             if (segment is InstructionSegment) {
-                // Loop over instructions in reverse order so stack popping instructions will be
-                // handled before the related stack pushing instructions when inlineStackArgs is on.
+                // Loop over instructions in reverse order so popping instructions will be
+                // handled before related pushing instructions for source location mapping.
                 for (i in segment.instructions.lastIndex downTo 0) {
                     val inst = segment.instructions[i]
 
@@ -454,32 +487,15 @@ class AsmAnalyser {
                         inst,
                         processParam = { VisitAction.Go },
                         processImmediateArg = { param, arg, argSrcLoc ->
-                            if (param.type is RegRefType &&
-                                arg is IntArg &&
-                                arg.value == register
+                            if (arg is IntArg &&
+                                arg.value == register &&
+                                (param.type is RegRefType || arg.isRegRef)
                             ) {
                                 results.add(argSrcLoc.precise.toAsmRange())
                             }
 
                             VisitAction.Go
                         },
-                        processStackArgSrcLoc = { param, _ ->
-                            if (param.type is RegRefType) VisitAction.Go
-                            else VisitAction.Continue
-                        },
-                        processStackArg = { _, _, pushInst, argSrcLoc ->
-                            if (pushInst != null &&
-                                pushInst.opcode.code != OP_ARG_PUSHR.code
-                            ) {
-                                val pushArg = pushInst.args.firstOrNull()
-
-                                if (pushArg is IntArg && pushArg.value == register) {
-                                    results.add(argSrcLoc.precise.toAsmRange())
-                                }
-                            }
-
-                            VisitAction.Go
-                        }
                     )
                 }
             }
@@ -532,19 +548,6 @@ class AsmAnalyser {
 
                                 VisitAction.Go
                             },
-                            processStackArg = { labelArg, pushInst, argSrcLoc ->
-                                // Filter out arg_pushr labels, because register values could be
-                                // used for anything.
-                                if (pushInst != null &&
-                                    pushInst.opcode.code != OP_ARG_PUSHR.code &&
-                                    labelArg.size == 1L &&
-                                    label in labelArg
-                                ) {
-                                    results.add(argSrcLoc.precise.toAsmRange())
-                                }
-
-                                VisitAction.Go
-                            },
                         )
                     }
                 }
@@ -561,23 +564,15 @@ class AsmAnalyser {
         instruction: Instruction,
         accept: (ArgSrcLoc) -> Boolean,
         processImmediateArg: (label: Int, ArgSrcLoc) -> VisitAction,
-        processStackArg: (label: ValueSet, Instruction?, ArgSrcLoc) -> VisitAction,
     ) {
         visitArgs(
             instruction,
             processParam = { if (it.type is LabelType) VisitAction.Go else VisitAction.Continue },
             processImmediateArg = { _, arg, srcLoc ->
-                if (accept(srcLoc) && arg is IntArg) {
+                if (accept(srcLoc) && arg is IntArg && !arg.isRegRef) {
                     processImmediateArg(arg.value, srcLoc)
                 } else VisitAction.Continue
             },
-            processStackArgSrcLoc = { _, srcLoc ->
-                if (accept(srcLoc)) VisitAction.Go
-                else VisitAction.Continue
-            },
-            processStackArg = { _, value, pushInst, srcLoc ->
-                processStackArg(value, pushInst, srcLoc)
-            }
         )
     }
 
@@ -586,14 +581,12 @@ class AsmAnalyser {
     }
 
     /**
-     * Visits all arguments of [instruction], including stack arguments.
+     * Visits all arguments of [instruction]. After normalization, all args are inline.
      */
     private fun visitArgs(
         instruction: Instruction,
         processParam: (Param) -> VisitAction,
         processImmediateArg: (Param, Arg, ArgSrcLoc) -> VisitAction,
-        processStackArgSrcLoc: (Param, ArgSrcLoc) -> VisitAction,
-        processStackArg: (Param, ValueSet, Instruction?, ArgSrcLoc) -> VisitAction,
     ) {
         for ((paramIdx, param) in instruction.opcode.params.withIndex()) {
             when (processParam(param)) {
@@ -603,47 +596,19 @@ class AsmAnalyser {
                 VisitAction.Return -> return
             }
 
-            if (instruction.opcode.stack !== StackInteraction.Pop) {
-                // Immediate arguments.
-                val args = instruction.getArgs(paramIdx)
-                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
+            // After normalization, all instructions (including Pop) have inlined args.
+            val args = instruction.getArgs(paramIdx)
+            val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
 
-                for (i in 0 until min(args.size, argSrcLocs.size)) {
-                    val arg = args[i]
-                    val srcLoc = argSrcLocs[i]
+            for (i in 0 until min(args.size, argSrcLocs.size)) {
+                val arg = args[i]
+                val srcLoc = argSrcLocs[i]
 
-                    when (processImmediateArg(param, arg, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue // Same as Down.
-                        VisitAction.Return -> return
-                    }
-                }
-            } else {
-                // Stack arguments.
-                val argSrcLocs = instruction.getArgSrcLocs(paramIdx)
-
-                // Never varargs.
-                for (srcLoc in argSrcLocs) {
-                    when (processStackArgSrcLoc(param, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue
-                        VisitAction.Return -> return
-                    }
-
-                    val (labelValues, pushInstruction) = getStackValue(
-                        cfg,
-                        instruction,
-                        instruction.opcode.params.lastIndex - paramIdx,
-                    )
-
-                    when (processStackArg(param, labelValues, pushInstruction, srcLoc)) {
-                        VisitAction.Go -> Unit // Keep going.
-                        VisitAction.Break -> break
-                        VisitAction.Continue -> continue // Same as Down.
-                        VisitAction.Return -> return
-                    }
+                when (processImmediateArg(param, arg, srcLoc)) {
+                    VisitAction.Go -> Unit // Keep going.
+                    VisitAction.Break -> break
+                    VisitAction.Continue -> continue // Same as Down.
+                    VisitAction.Return -> return
                 }
             }
         }

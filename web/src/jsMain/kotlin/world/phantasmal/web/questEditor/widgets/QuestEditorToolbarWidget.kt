@@ -3,65 +3,187 @@ package world.phantasmal.web.questEditor.widgets
 import kotlinx.coroutines.launch
 import org.w3c.dom.Node
 import org.w3c.dom.events.KeyboardEvent
-import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.Version
 import world.phantasmal.cell.cell
 import world.phantasmal.cell.list.listCell
+import world.phantasmal.cell.mutableCell
+import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.fileFormats.quest.Version
+import world.phantasmal.web.questEditor.controllers.CompatibilityController
 import world.phantasmal.web.questEditor.controllers.QuestEditorToolbarController
-import world.phantasmal.webui.dom.Icon
+import world.phantasmal.web.questEditor.controllers.SaveFormat
 import world.phantasmal.webui.dom.div
+import world.phantasmal.webui.files.showOpenFilePicker
 import world.phantasmal.webui.widgets.*
 
-class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) : Widget() {
+class QuestEditorToolbarWidget(
+    private val ctrl: QuestEditorToolbarController,
+    private val compatibilityCtrl: CompatibilityController,
+) : Widget() {
+    private val compatibilityDialogVisible = mutableCell(false)
+    private val aboutDialogVisible = mutableCell(false)
+
     override fun Node.createElement() =
         div {
             className = "pw-quest-editor-toolbar"
 
+
             addChild(Toolbar(
                 children = listOf(
-                    Dropdown(
-                        text = "New quest",
-                        iconLeft = Icon.NewFile,
-                        items = listCell(Episode.I),
-                        itemToString = { "Episode $it" },
-                        onSelect = { scope.launch { ctrl.createNewQuest(it) } },
+                    // File Menu
+                    ToolbarMenu(
+                        text = "File",
+                        items = listOf(
+                            MenuItem.SubMenu(
+                                label = "New Quest",
+                                items = listOf(
+                                    MenuItem.Action(
+                                        label = "Episode I",
+                                        onAction = { scope.launch { ctrl.createNewQuest(Episode.I) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "Episode II",
+                                        onAction = { scope.launch { ctrl.createNewQuest(Episode.II) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "Episode IV",
+                                        onAction = { scope.launch { ctrl.createNewQuest(Episode.IV) } },
+                                    ),
+                                ),
+                            ),
+                            MenuItem.SubMenu(
+                                label = "Open Lobby",
+                                items = (1..10).map { v ->
+                                    MenuItem.Action(
+                                        label = "Lobby ${v.toString().padStart(2, '0')}",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(v) } },
+                                    )
+                                } + listOf(
+                                    MenuItem.Separator,
+                                    MenuItem.Action(
+                                        label = "EP3 Green",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(11) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "EP3 Red",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(12) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "EP3 Yellow",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(13) } },
+                                    ),
+                                    MenuItem.Separator,
+                                    MenuItem.Action(
+                                        label = "Soccer 1",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(14) } },
+                                    ),
+                                    MenuItem.Action(
+                                        label = "Soccer 2",
+                                        onAction = { scope.launch { ctrl.loadLobbyQuest(15) } },
+                                    ),
+                                ),
+                            ),
+                            MenuItem.Action(
+                                label = "Open File...",
+                                shortcut = "Ctrl+O",
+                                onAction = {
+                                    scope.launch {
+                                        ctrl.openFiles(
+                                            showOpenFilePicker(ctrl.supportedFileTypes, multiple = true)
+                                        )
+                                    }
+                                },
+                            ),
+                            MenuItem.Separator,
+                            MenuItem.Action(
+                                label = "Save",
+                                shortcut = "Ctrl+S",
+                                enabled = ctrl.saveEnabled,
+                                onAction = { scope.launch { ctrl.save() } },
+                            ),
+                            MenuItem.Action(
+                                label = "Save As...",
+                                shortcut = "Ctrl+Shift+S",
+                                enabled = ctrl.saveAsEnabled,
+                                onAction = { ctrl.saveAs() },
+                            ),
+                        ),
                     ),
-                    FileButton(
-                        text = "Open file...",
-                        tooltip = cell("Open a quest file (Ctrl-O)"),
-                        iconLeft = Icon.File,
-                        types = ctrl.supportedFileTypes,
-                        multiple = true,
-                        filesSelected = { files -> scope.launch { ctrl.openFiles(files) } },
+                    // View Menu
+                    ToolbarMenu(
+                        text = "View",
+                        items = listOf(
+                            MenuItem.Check(
+                                label = "Simple View",
+                                tooltip = "Whether the collision or the render geometry should be shown",
+                                checked = ctrl.showCollisionGeometry,
+                                onChange = ctrl::setShowCollisionGeometry,
+                            ),
+                            MenuItem.Separator,
+                            MenuItem.Check(
+                                label = "Section IDs",
+                                tooltip = "Whether to show section ID numbers in each section",
+                                checked = ctrl.showSectionIds,
+                                onChange = ctrl::setShowSectionIds,
+                            ),
+                            MenuItem.Check(
+                                label = "Door & Fence IDs",
+                                tooltip = "Whether to show door and fence ID labels",
+                                checked = ctrl.showDoorIds,
+                                onChange = ctrl::setShowDoorIds,
+                            ),
+                            MenuItem.Check(
+                                label = "Spawn Ground",
+                                tooltip = "Whether monsters should spawn directly at ground level (section height)",
+                                checked = ctrl.spawnMonstersOnGround,
+                                onChange = ctrl::setSpawnMonstersOnGround,
+                            ),
+                            MenuItem.Check(
+                                label = "Origin Point",
+                                tooltip = "Show the world coordinate origin point at position (0,0,0)",
+                                checked = ctrl.showOriginPoint,
+                                onChange = ctrl::setShowOriginPoint,
+                            ),
+                            MenuItem.Separator,
+                            MenuItem.Check(
+                                label = "City Map",
+                                tooltip = "Toggle between default and city map for the current episode",
+                                checked = ctrl.showCityMap,
+                                onChange = { scope.launch { ctrl.setShowCityMap(it) } },
+                            ),
+                        ),
                     ),
-                    Button(
-                        text = "Save",
-                        iconLeft = Icon.Save,
-                        enabled = ctrl.saveEnabled,
-                        tooltip = ctrl.saveTooltip,
-                        onClick = { scope.launch { ctrl.save() } },
+                    // Tools Menu
+                    ToolbarMenu(
+                        text = "Tools",
+                        items = listOf(
+                            MenuItem.Action(
+                                label = "Compatibility Check",
+                                onAction = { compatibilityDialogVisible.value = true },
+                            ),
+                            MenuItem.Separator,
+                            MenuItem.Action(
+                                label = "About",
+                                onAction = { aboutDialogVisible.value = true },
+                            ),
+                        ),
                     ),
-                    Button(
-                        text = "Save as...",
-                        iconLeft = Icon.Save,
-                        enabled = ctrl.saveAsEnabled,
-                        tooltip = cell("Save this quest to a new file (Ctrl-Shift-S)"),
-                        onClick = { ctrl.saveAs() },
-                    ),
+                    // Undo
                     Button(
                         text = "Undo",
-                        iconLeft = Icon.Undo,
+                        iconLeft = world.phantasmal.webui.dom.Icon.Undo,
                         enabled = ctrl.undoEnabled,
                         tooltip = ctrl.undoTooltip,
                         onClick = { ctrl.undo() },
                     ),
+                    // Redo
                     Button(
                         text = "Redo",
-                        iconLeft = Icon.Redo,
+                        iconLeft = world.phantasmal.webui.dom.Icon.Redo,
                         enabled = ctrl.redoEnabled,
                         tooltip = ctrl.redoTooltip,
                         onClick = { ctrl.redo() },
                     ),
+                    // Area selector
                     Select(
                         enabled = ctrl.areaSelectEnabled,
                         items = ctrl.areas,
@@ -69,23 +191,42 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         selected = ctrl.currentArea,
                         onSelect = ctrl::setCurrentArea,
                     ),
-                    Checkbox(
-                        label = "Simple view",
-                        tooltip = cell(
-                            "Whether the collision or the render geometry should be shown",
-                        ),
-                        checked = ctrl.showCollisionGeometry,
-                        onChange = ctrl::setShowCollisionGeometry,
-                    )
+                    // Goto Section (moved after Area selector)
+                    ComboBox(
+                        className = "pw-goto-section",
+                        label = "Goto Section:",
+                        enabled = ctrl.gotoSectionEnabled,
+                        items = ctrl.filteredSections,
+                        itemToString = { "${it.id}" },
+                        selected = ctrl.selectedSection,
+                        onSelect = { ctrl.selectSection(it) },
+                        filter = { ctrl.filterSections(it) },
+                    ),
                 )
             ))
 
+            // Save As Dialog
             val saveAsDialog = addDisposable(Dialog(
                 visible = ctrl.saveAsDialogVisible,
                 title = cell("Save As"),
                 content = {
                     div {
                         className = "pw-quest-editor-toolbar-save-as"
+
+                        val formatSelect = Select(
+                            label = "Format:",
+                            items = listCell(*ctrl.availableSaveFormats.toTypedArray()),
+                            selected = ctrl.saveFormat,
+                            itemToString = {
+                                when (it) {
+                                    SaveFormat.QST -> "QST (.qst)"
+                                    SaveFormat.BIN_DAT -> "BIN + DAT"
+                                }
+                            },
+                            onSelect = ctrl::setSaveFormat,
+                        )
+                        addWidget(formatSelect.label!!)
+                        addWidget(formatSelect)
 
                         if (ctrl.showSaveAsDialogNameField) {
                             val filenameInput = TextInput(
@@ -113,6 +254,15 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                         )
                         addWidget(versionSelect.label!!)
                         addWidget(versionSelect)
+
+                        val compressedCheckbox = Checkbox(
+                            visible = ctrl.compressedVisible,
+                            label = "PRS Compressed",
+                            checked = ctrl.compressed,
+                            onChange = ctrl::setCompressed,
+                        )
+                        addWidget(compressedCheckbox)
+                        addWidget(compressedCheckbox.label!!)
                     }
                 },
                 footer = {
@@ -139,6 +289,21 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
                 result = ctrl.result,
                 onDismiss = ctrl::dismissResultDialog,
             ))
+
+            addDisposable(
+                CompatibilityDialog(
+                    visible = compatibilityDialogVisible,
+                    ctrl = compatibilityCtrl,
+                    onDismiss = { compatibilityDialogVisible.value = false },
+                )
+            )
+
+            addDisposable(
+                AboutDialog(
+                    visible = aboutDialogVisible,
+                    onDismiss = { aboutDialogVisible.value = false },
+                )
+            )
         }
 
     companion object {
@@ -146,6 +311,18 @@ class QuestEditorToolbarWidget(private val ctrl: QuestEditorToolbarController) :
             @Suppress("CssUnusedSymbol")
             // language=css
             style("""
+                .pw-goto-section {
+                    width: 40px;
+                }
+
+                .pw-goto-section .pw-combobox-button {
+                    display: none;
+                }
+
+                .pw-free-roam-select {
+                    width: 60px;
+                }
+
                 .pw-quest-editor-toolbar-save-as {
                     display: grid;
                     grid-template-columns: 100px max-content;

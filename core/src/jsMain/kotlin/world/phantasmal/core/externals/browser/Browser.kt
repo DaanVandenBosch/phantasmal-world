@@ -70,3 +70,22 @@ fun Window.showSaveFilePicker(
     options: ShowSaveFilePickerOptions,
 ): Promise<FileSystemFileHandle> =
     asDynamic().showSaveFilePicker(options).unsafeCast<Promise<FileSystemFileHandle>>()
+
+external interface FileSystemGetHandleOptions {
+    var create: Boolean
+}
+
+external class FileSystemDirectoryHandle : FileSystemHandle {
+    fun getFileHandle(
+        name: String,
+        options: FileSystemGetHandleOptions = definedExternally,
+    ): Promise<FileSystemFileHandle>
+
+    fun getDirectoryHandle(
+        name: String,
+        options: FileSystemGetHandleOptions = definedExternally,
+    ): Promise<FileSystemDirectoryHandle>
+}
+
+fun Window.showDirectoryPicker(): Promise<FileSystemDirectoryHandle> =
+    asDynamic().showDirectoryPicker().unsafeCast<Promise<FileSystemDirectoryHandle>>()

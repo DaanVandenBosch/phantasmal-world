@@ -19,7 +19,7 @@ class EntityInfoControllerTests : WebTestSuite {
     @Test
     fun test_unavailable_and_enabled() = testAsync {
         val ctrl =
-            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore, components.asmStore))
 
         assertTrue(ctrl.unavailable.value)
         assertFalse(ctrl.enabled.value)
@@ -39,7 +39,7 @@ class EntityInfoControllerTests : WebTestSuite {
     @Test
     fun can_read_regular_properties() = testAsync {
         val ctrl =
-            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore, components.asmStore))
 
         val questNpc = QuestNpc(NpcType.Booma, Episode.I, areaId = 10, wave = 5)
         questNpc.sectionId = 7
@@ -65,7 +65,7 @@ class EntityInfoControllerTests : WebTestSuite {
     @Test
     fun can_set_regular_properties_undo_and_redo() = testAsync {
         val ctrl =
-            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore))
+            disposer.add(EntityInfoController(components.areaStore, components.questEditorStore, components.asmStore))
 
         val npc = createQuestNpcModel(NpcType.Principal, Episode.I)
         components.questEditorStore.setCurrentQuest(createQuestModel(npcs = listOf(npc)))
@@ -122,7 +122,7 @@ class EntityInfoControllerTests : WebTestSuite {
     @Test
     fun when_focused_main_undo_becomes_current_undo() = testAsync {
         val store = components.questEditorStore
-        val ctrl = disposer.add(EntityInfoController(components.areaStore, store))
+        val ctrl = disposer.add(EntityInfoController(components.areaStore, store, components.asmStore))
 
         // Put something on the undo stack.
         val npc = createQuestNpcModel(NpcType.Principal, Episode.I)
@@ -142,7 +142,7 @@ class EntityInfoControllerTests : WebTestSuite {
     @Test
     fun go_to_event() = testAsync {
         val store = components.questEditorStore
-        val ctrl = disposer.add(EntityInfoController(components.areaStore, store))
+        val ctrl = disposer.add(EntityInfoController(components.areaStore, store, components.asmStore))
 
         val obj = createQuestObjectModel(ObjectType.EventCollision)
         val event = QuestEventModel(id = 100, 0, 0, 0, 0, 0, mutableListOf())
