@@ -18,5 +18,8 @@ enum class Episode {
             4 -> IV
             else -> error("$episode is invalid.")
         }
+
+        /** Maps the `set_episode` bytecode argument (0=I, 1=II, 2=IV) to an Episode. */
+        fun fromBytecodeValue(value: Int): Episode? = entries.getOrNull(value)
     }
 }

@@ -4,7 +4,7 @@ import world.phantasmal.core.*
 import world.phantasmal.psolib.asm.*
 import world.phantasmal.psolib.asm.dataFlowAnalysis.ControlFlowGraph
 import world.phantasmal.psolib.asm.dataFlowAnalysis.ValueSet
-import world.phantasmal.psolib.asm.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.psolib.asm.dataFlowAnalysis.getFloorMappings
 import world.phantasmal.psolib.asm.dataFlowAnalysis.getStackValue
 import world.phantasmal.web.shared.messages.*
 import world.phantasmal.web.shared.messages.AssemblyProblem
@@ -155,8 +155,11 @@ class AsmAnalyser {
 
             val instructionSegments = bytecodeIr.instructionSegments()
 
-            instructionSegments.find { 0 in it.labels }?.let { label0Segment ->
-                val designations = getMapDesignations(label0Segment) { cfg }
+            instructionSegments.find { 0 in it.labels }?.let {
+                val floorMappings = getFloorMappings(instructionSegments) { cfg }
+                val designations = floorMappings
+                    .associate { it.areaId to it.variantId }
+                    .toMutableMap()
 
                 if (designations != mapDesignations) {
                     mapDesignations = designations

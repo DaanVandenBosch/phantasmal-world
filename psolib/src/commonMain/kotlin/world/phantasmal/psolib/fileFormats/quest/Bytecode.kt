@@ -21,6 +21,11 @@ private const val MAX_SEQUENTIAL_NOPS = 10
 private const val MAX_UNKNOWN_OPCODE_RATIO = 0.2
 private const val MAX_STACK_POP_WITHOUT_PRECEDING_PUSH_RATIO = 0.2
 private const val MAX_UNKNOWN_LABEL_RATIO = 0.2
+/**
+ * Segments with this many or fewer instructions are considered "short" for the purpose of
+ * unknown-opcode rejection. See the heuristic in [tryParseInstructionsSegment] for details.
+ */
+private const val MAX_SHORT_SEGMENT_SIZE = 10
 
 val SEGMENT_PRIORITY = mapOf(
     SegmentType.Instructions to 2,
@@ -761,6 +766,33 @@ private fun tryParseInstructionsSegment(
 
         if (unknownOpcodeRatio > MAX_UNKNOWN_OPCODE_RATIO) {
             logReason("${100 * unknownOpcodeRatio}% of its opcodes are unknown")
+            return false
+        }
+
+        // Stricter check for short segments: reject if ANY unknown opcode is present.
+        //
+        // Background: unreferenced labels (not discovered by findAndParseSegments) are
+        // classified by this heuristic. Some labels point to non-code data (e.g. UTF-16
+        // strings) whose bytes happen to decode as a mix of valid and unknown opcodes.
+        //
+        // The general unknownOpcodeRatio check above uses a 20% threshold, which can
+        // produce inconsistent results for the same label across parse passes when push
+        // normalization changes instruction encoding sizes (e.g. arg_pushl 5B → arg_pushw
+        // 3B for LabelType params). This shifts neighboring segment boundaries, changing
+        // the byte range evaluated for the unreferenced label, and the ratio may cross
+        // the threshold in one direction only.
+        //
+        // For short segments (≤10 instructions), even one unknown opcode is a strong
+        // signal that the bytes are data, not code. Rejecting unconditionally makes the
+        // classification deterministic regardless of segment boundary variations.
+        //
+        // Observed in: clarie's deal.qst (EP4), label 64 — UTF-16 Japanese string data
+        // misclassified as InstructionSegment on first parse, DataSegment after round-trip.
+        if (unknownOpcodeCount > 0 && instructions.size <= MAX_SHORT_SEGMENT_SIZE) {
+            logReason(
+                "short segment (${instructions.size} instructions) contains " +
+                    "$unknownOpcodeCount unknown opcode(s)"
+            )
             return false
         }
 

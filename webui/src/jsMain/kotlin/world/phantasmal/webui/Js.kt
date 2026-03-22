@@ -6,6 +6,7 @@ import world.phantasmal.core.filenameExtension
 
 object UserAgentFeatures {
     val fileSystemApi: Boolean = window.asDynamic().showOpenFilePicker != null
+    val directoryPickerApi: Boolean = window.asDynamic().showDirectoryPicker != null
 }
 
 inline fun <T> obj(block: T.() -> Unit): T =

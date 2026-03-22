@@ -7,7 +7,8 @@ import world.phantasmal.psolib.asm.BytecodeIr
 import world.phantasmal.psolib.asm.InstructionSegment
 import world.phantasmal.psolib.asm.OP_SET_EPISODE
 import world.phantasmal.psolib.asm.dataFlowAnalysis.ControlFlowGraph
-import world.phantasmal.psolib.asm.dataFlowAnalysis.getMapDesignations
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
+import world.phantasmal.psolib.asm.dataFlowAnalysis.getFloorMappings
 import world.phantasmal.psolib.buffer.Buffer
 import world.phantasmal.psolib.compression.prs.prsCompress
 import world.phantasmal.psolib.compression.prs.prsDecompress
@@ -15,6 +16,15 @@ import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
 
 private val logger = KotlinLogging.logger {}
+
+/**
+ * Groups challenge mode specific data from the DAT file.
+ */
+data class QuestChallengeData(
+    val cmRandomSpawns: List<DatCmRandomSpawn> = emptyList(),
+    val cmMonsterMappings: List<DatCmMonsterMapping> = emptyList(),
+    val cmConfigPool: List<DatCmConfigPool> = emptyList(),
+)
 
 class Quest(
     var id: Int,
@@ -33,6 +43,8 @@ class Quest(
     var bytecodeIr: BytecodeIr,
     val shopItems: UIntArray,
     val mapDesignations: MutableMap<Int, Int>,
+    val challengeData: QuestChallengeData = QuestChallengeData(),
+    var floorMappings: List<FloorMapping> = emptyList(),
 )
 
 /**
@@ -42,33 +54,51 @@ fun parseBinDatToQuest(
     binCursor: Cursor,
     datCursor: Cursor,
     lenient: Boolean = false,
+    compressed: Boolean = true,
 ): PwResult<Quest> {
     val result = PwResult.build<Quest>(logger)
 
     // Decompress and parse files.
-    val binDecompressed = prsDecompress(binCursor)
-    result.addResult(binDecompressed)
+    val binData: Cursor
 
-    if (binDecompressed !is Success) {
-        return result.failure()
+    if (compressed) {
+        val binDecompressed = prsDecompress(binCursor)
+        result.addResult(binDecompressed)
+
+        if (binDecompressed !is Success) {
+            return result.failure()
+        }
+
+        binData = binDecompressed.value
+    } else {
+        binData = binCursor
     }
 
-    val bin = parseBin(binDecompressed.value)
+    val bin = parseBin(binData)
 
-    val datDecompressed = prsDecompress(datCursor)
-    result.addResult(datDecompressed)
+    val datData: Cursor
 
-    if (datDecompressed !is Success) {
-        return result.failure()
+    if (compressed) {
+        val datDecompressed = prsDecompress(datCursor)
+        result.addResult(datDecompressed)
+
+        if (datDecompressed !is Success) {
+            return result.failure()
+        }
+
+        datData = datDecompressed.value
+    } else {
+        datData = datCursor
     }
 
-    val dat = parseDat(datDecompressed.value)
+    val dat = parseDat(datData)
     val objects = dat.objs.mapTo(mutableListOf()) { QuestObject(it.areaId, it.data) }
     // Initialize NPCs with random episode and correct it later.
     val npcs = dat.npcs.mapTo(mutableListOf()) { QuestNpc(Episode.I, it.areaId, it.data) }
 
-    // Extract episode and map designations from byte code.
+    // Extract episode and floor mappings from byte code.
     var episode = Episode.I
+    var floorMappings = emptyList<FloorMapping>()
     var mapDesignations = mutableMapOf<Int, Int>()
 
     val parseBytecodeResult = parseBytecode(
@@ -108,8 +138,39 @@ fun parseBinDatToQuest(
                 npc.episode = episode
             }
 
-            mapDesignations =
-                getMapDesignations(label0Segment) { ControlFlowGraph.create(bytecodeIr) }
+            // Extract floor mappings from all instruction segments
+            floorMappings = getFloorMappings(instructionSegments) {
+                ControlFlowGraph.create(bytecodeIr)
+            }
+
+            // Derive mapDesignations from floorMappings for backward compatibility
+            mapDesignations = floorMappings
+                .associate { it.areaId to it.variantId }
+                .toMutableMap()
+
+            // Update NPC gameAreaId based on floor mappings from map_designate instructions
+            // gameAreaId is used for NPC type detection, while areaId remains as floorId for variant mapping
+            if (floorMappings.isNotEmpty()) {
+                for (npc in npcs) {
+                    /*
+                     * Use FloorMapping.floorId to match NPC.areaId.
+                     *
+                     * Reason:
+                     * - FloorMapping.floorId represents the original logical floor.
+                     * - NPC.areaId also stores the original floor ID.
+                     * - FloorMapping.areaId is derived from mapId and may differ
+                     *   from floorId when multiple floors share the same map.
+                     *
+                     * Example:
+                     *   Floor 17 -> Tower (mapId 35), variant 0
+                     *   Floor 16 -> Tower (mapId 35), variant 1
+                     */
+                    val mapping = floorMappings.find { it.floorId == npc.areaId }
+                    if (mapping != null) {
+                        npc.gameAreaId = mapping.areaId
+                    }
+                }
+            }
         } else {
             result.addProblem(Severity.Warning, "No instruction segment for label 0 found.")
         }
@@ -124,12 +185,91 @@ fun parseBinDatToQuest(
         episode,
         objects,
         npcs,
-        events = dat.events,
-        datUnknowns = dat.unknowns,
+        events = dat.events.toMutableList(),
+        datUnknowns = dat.unknowns.toMutableList(),
         bytecodeIr,
         shopItems = bin.shopItems,
         mapDesignations,
+        challengeData = QuestChallengeData(
+            cmRandomSpawns = dat.cmRandomSpawns,
+            cmMonsterMappings = dat.cmMonsterMappings,
+            cmConfigPool = dat.cmConfigPool,
+        ),
+        floorMappings,
     ))
+}
+
+class BinDatQuestData(
+    val quest: Quest,
+    val compressed: Boolean,
+)
+
+/**
+ * Detects whether the BIN data is PRS-compressed or raw by checking the first 4 bytes.
+ * An uncompressed BIN starts with its bytecode offset (468, 920, or 4652).
+ */
+private fun looksLikeUncompressedBin(binCursor: Cursor): Boolean {
+    if (binCursor.bytesLeft < 4) return false
+    val firstInt = binCursor.int()
+    binCursor.seekStart(0)
+    return firstInt == 468 || firstInt == 920 || firstInt == 4652
+}
+
+/**
+ * Attempts to parse BIN/DAT data, catching any exceptions and converting them to a [Failure].
+ */
+private fun tryParseBinDat(
+    binCursor: Cursor,
+    datCursor: Cursor,
+    lenient: Boolean,
+    compressed: Boolean,
+): PwResult<BinDatQuestData> =
+    try {
+        val result = parseBinDatToQuest(binCursor, datCursor, lenient, compressed)
+
+        if (result is Success) {
+            Success(BinDatQuestData(result.value, compressed), result.problems)
+        } else {
+            result as Failure
+        }
+    } catch (e: Exception) {
+        PwResult.build<BinDatQuestData>(logger)
+            .addProblem(Severity.Error, "Couldn't parse file.", cause = e)
+            .failure()
+    }
+
+/**
+ * Auto-detects whether BIN/DAT files are PRS-compressed or raw, then parses.
+ */
+fun parseBinDatToQuestAutoDetect(
+    binCursor: Cursor,
+    datCursor: Cursor,
+    lenient: Boolean = false,
+): PwResult<BinDatQuestData> {
+    val compressed = !looksLikeUncompressedBin(binCursor)
+
+    val result = tryParseBinDat(binCursor, datCursor, lenient, compressed)
+
+    if (result is Success) return result
+
+    // If detection was wrong, try the other mode.
+    binCursor.seekStart(0)
+    datCursor.seekStart(0)
+
+    val retryResult = tryParseBinDat(binCursor, datCursor, lenient, !compressed)
+
+    if (retryResult is Success) return retryResult
+
+    // Both attempts failed. Report each attempt's errors with labels so the user
+    // can tell which compression assumption failed and why.
+    val firstLabel = if (compressed) "compressed" else "uncompressed"
+    val retryLabel = if (compressed) "uncompressed" else "compressed"
+    return PwResult.build<BinDatQuestData>(logger)
+        .addProblem(Severity.Error, "Parsing as $firstLabel (auto-detected) failed:")
+        .addResult(result)
+        .addProblem(Severity.Error, "Retry as $retryLabel also failed:")
+        .addResult(retryResult)
+        .failure()
 }
 
 class QuestData(
@@ -157,13 +297,17 @@ fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestDat
     val files = qstResult.value.files
     var datFile: QstContainedFile? = null
     var binFile: QstContainedFile? = null
+    var datCount = 0
+    var binCount = 0
 
     for (file in files) {
         val fileName = file.filename.trim().lowercase()
 
         if (fileName.endsWith(".dat")) {
+            if (++datCount > 1) result.addProblem(Severity.Warning, "QST contains multiple DAT files; using last: ${file.filename.trim()}.")
             datFile = file
         } else if (fileName.endsWith(".bin")) {
+            if (++binCount > 1) result.addProblem(Severity.Warning, "QST contains multiple BIN files; using last: ${file.filename.trim()}.")
             binFile = file
         }
     }
@@ -176,7 +320,7 @@ fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestDat
         return result.addProblem(Severity.Error, "File contains no BIN file.").failure()
     }
 
-    val questResult = parseBinDatToQuest(
+    val questResult = parseBinDatToQuestAutoDetect(
         binFile.data.cursor(),
         datFile.data.cursor(),
         lenient,
@@ -188,7 +332,7 @@ fun parseQstToQuest(cursor: Cursor, lenient: Boolean = false): PwResult<QuestDat
     }
 
     return result.success(QuestData(
-        questResult.value,
+        questResult.value.quest,
         version,
         online,
     ))
@@ -204,6 +348,11 @@ private fun getEpisode(rb: PwResultBuilder<*>, func0Segment: InstructionSegment)
 
     if (setEpisode == null) {
         logger.debug { "Function 0 has no set_episode instruction." }
+        return Episode.I
+    }
+
+    if (setEpisode.args.isEmpty()) {
+        rb.addProblem(Severity.Warning, "set_episode instruction in function 0 has no arguments.")
         return Episode.I
     }
 
@@ -248,6 +397,9 @@ fun writeQuestToBinDat(quest: Quest, version: Version): Pair<Buffer, Buffer> {
         npcs = quest.npcs.mapTo(mutableListOf()) { DatEntity(it.areaId, it.data) },
         events = quest.events,
         unknowns = quest.datUnknowns,
+        cmRandomSpawns = quest.challengeData.cmRandomSpawns,
+        cmMonsterMappings = quest.challengeData.cmMonsterMappings,
+        cmConfigPool = quest.challengeData.cmConfigPool,
     ))
 
     val binFormat = when (version) {
