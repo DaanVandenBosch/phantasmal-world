@@ -59,7 +59,7 @@ class AsmServer(
                     for (message in messages) {
                         when (message) {
                             is ClientNotification.SetAsm ->
-                                asmAnalyser.setAsm(message.asm, message.inlineStackArgs)
+                                asmAnalyser.setAsm(message.asm)
 
                             is ClientNotification.UpdateAsm ->
                                 asmAnalyser.updateAsm(message.changes)

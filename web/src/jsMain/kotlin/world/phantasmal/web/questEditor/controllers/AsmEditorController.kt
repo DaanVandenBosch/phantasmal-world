@@ -21,25 +21,8 @@ class AsmEditorController(private val store: AsmStore) : Controller() {
     val didUndo: Observable<Unit> = store.didUndo
     val didRedo: Observable<Unit> = store.didRedo
 
-    val inlineStackArgs: Cell<Boolean> = store.inlineStackArgs
-    val inlineStackArgsEnabled: Cell<Boolean> = store.problems.map { it.isEmpty() }
-    val inlineStackArgsTooltip: Cell<String> =
-        inlineStackArgsEnabled.map { enabled ->
-            buildString {
-                append("Transform arg_push* opcodes to be inline with the opcode the arguments are given to.")
-
-                if (!enabled) {
-                    append("\nThis mode cannot be toggled because there are issues in the script.")
-                }
-            }
-        }
-
     fun makeUndoCurrent() {
         store.makeUndoCurrent()
-    }
-
-    fun setInlineStackArgs(inline: Boolean) {
-        store.setInlineStackArgs(inline)
     }
 
     companion object {

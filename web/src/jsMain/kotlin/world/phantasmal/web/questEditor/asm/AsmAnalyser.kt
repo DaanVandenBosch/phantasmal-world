@@ -5,8 +5,6 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.w3c.dom.Worker
 import world.phantasmal.cell.Cell
@@ -14,28 +12,17 @@ import world.phantasmal.cell.MutableCell
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.mutableListCell
 import world.phantasmal.cell.mutableCell
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.web.shared.JSON_FORMAT
-import world.phantasmal.web.shared.messages.AsmChange
-import world.phantasmal.web.shared.messages.AsmRange
-import world.phantasmal.web.shared.messages.AssemblyProblem
-import world.phantasmal.web.shared.messages.ClientMessage
-import world.phantasmal.web.shared.messages.ClientNotification
-import world.phantasmal.web.shared.messages.CompletionItem
-import world.phantasmal.web.shared.messages.Hover
+import world.phantasmal.web.shared.messages.*
 import world.phantasmal.web.shared.messages.Label
-import world.phantasmal.web.shared.messages.Request
-import world.phantasmal.web.shared.messages.Response
-import world.phantasmal.web.shared.messages.ServerMessage
-import world.phantasmal.web.shared.messages.ServerNotification
-import world.phantasmal.web.shared.messages.SignatureHelp
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
 private val logger = KotlinLogging.logger {}
 
 class AsmAnalyser {
-    private var inlineStackArgs: Boolean = true
-    private var _mapDesignations: MutableCell<Map<Int, Int>> = mutableCell(emptyMap())
+    private var _floorMappings: MutableCell<List<FloorMapping>> = mutableCell(emptyList())
     private val _problems = mutableListCell<AssemblyProblem>()
 
     private val worker = Worker("/assembly-worker.js")
@@ -46,7 +33,7 @@ class AsmAnalyser {
      */
     private val inFlightRequests = mutableMapOf<Int, CancellableContinuation<*>>()
 
-    val mapDesignations: Cell<Map<Int, Int>> = _mapDesignations
+    val floorMappings: Cell<List<FloorMapping>> = _floorMappings
     val problems: ListCell<AssemblyProblem> = _problems
 
     init {
@@ -56,10 +43,9 @@ class AsmAnalyser {
         }
     }
 
-    fun setAsm(asm: List<String>, inlineStackArgs: Boolean) {
-        this.inlineStackArgs = inlineStackArgs
+    fun setAsm(asm: List<String>) {
         _problems.clear()
-        sendMessage(ClientNotification.SetAsm(asm, inlineStackArgs))
+        sendMessage(ClientNotification.SetAsm(asm))
     }
 
     fun updateAsm(changes: List<AsmChange>) {
@@ -107,13 +93,17 @@ class AsmAnalyser {
 
     private fun receiveMessage(message: ServerMessage) =
         when (message) {
-            is ServerNotification.MapDesignations -> {
-                _mapDesignations.value = message.mapDesignations
+            is ServerNotification.FloorMappings -> {
+                _floorMappings.value = message.floorMappings
             }
 
             is ServerNotification.Problems -> {
                 _problems.value = message.problems
             }
+
+            is ServerNotification.Labels -> Unit
+            is ServerNotification.Registers -> Unit
+            is ServerNotification.Segments -> Unit
 
             is Response<*> -> {
                 val continuation = inFlightRequests.remove(message.id)

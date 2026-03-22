@@ -1,6 +1,7 @@
 package world.phantasmal.web.questEditor.stores
 
 import world.phantasmal.psolib.Episode
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 import world.phantasmal.psolib.fileFormats.quest.DatEvent
 import world.phantasmal.psolib.fileFormats.quest.DatEventAction
 import world.phantasmal.psolib.fileFormats.quest.Quest
@@ -17,7 +18,7 @@ fun convertQuestToModel(
         quest.shortDescription,
         quest.longDescription,
         quest.episode,
-        quest.mapDesignations,
+        quest.floorMappings.associate { it.areaId to it.variantId },
         quest.npcs.mapTo(mutableListOf()) { QuestNpcModel(it, it.wave.toInt()) },
         quest.objects.mapTo(mutableListOf()) { QuestObjectModel(it) },
         quest.events.mapTo(mutableListOf()) { event ->
@@ -97,7 +98,9 @@ fun convertQuestFromModel(quest: QuestModel): Quest =
             )
         },
         quest.datUnknowns.toMutableList(),
-        quest.bytecodeIr,
-        quest.shopItems,
-        quest.mapDesignations.value.toMutableMap(),
+        bytecodeIr = quest.bytecodeIr,
+        shopItems = quest.shopItems,
+        floorMappings = quest.mapDesignations.value.map { (areaId, variantId) ->
+            FloorMapping(floorId = areaId, mapId = 0, areaId = areaId, variantId = variantId)
+        },
     )

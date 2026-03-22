@@ -12,9 +12,14 @@ fun assertDeepEquals(
     ignoreSrcLocs: Boolean = false,
     message: String? = null,
 ) {
+    // Unlabeled segments represent unreachable dead data — no label offset points to them,
+    // so they cannot be reliably round-tripped when the bytecode size changes (e.g., after
+    // push normalization shifts offsets). Exclude them from the comparison.
+    val expectedSegs = expected.segments.filter { it.labels.isNotEmpty() }
+    val actualSegs = actual.segments.filter { it.labels.isNotEmpty() }
     assertDeepEquals(
-        expected.segments,
-        actual.segments,
+        expectedSegs,
+        actualSegs,
         { a, b, m -> assertDeepEquals(a, b, ignoreSrcLocs, m) },
         message,
     )

@@ -43,7 +43,7 @@ class DisassemblyTests : LibTestSuite {
             |
         """.trimMargin()
 
-        testWithAllOptions(ir, asm, asm)
+        testDisassembly(ir, asm)
     }
 
     // arg_push* instructions should always be output when in a va list whether inline stack
@@ -102,28 +102,18 @@ class DisassemblyTests : LibTestSuite {
             |
         """.trimMargin()
 
-        testWithAllOptions(ir, asm, asm)
+        testDisassembly(ir, asm)
     }
 
-    private fun testWithAllOptions(
+    private fun testDisassembly(
         ir: BytecodeIr,
-        expectedInlineAsm: String,
-        expectedManualAsm: String,
+        expectedAsm: String,
     ) {
-        val asmInline = disassemble(ir, inlineStackArgs = true)
+        val result = disassemble(ir)
 
         assertEquals(
-            expectedInlineAsm.split('\n'),
-            asmInline,
-            "With inlineStackArgs",
-        )
-
-        val asmManual = disassemble(ir, inlineStackArgs = false)
-
-        assertEquals(
-            expectedManualAsm.split('\n'),
-            asmManual,
-            "Without inlineStackArgs",
+            expectedAsm.split('\n'),
+            result,
         )
     }
 }

@@ -7,16 +7,25 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
     val episode = npc.episode
     val special = npc.special
     val skin = npc.skin
-    val areaId = npc.areaId
+    // Use gameAreaId for NPC type detection (mapped from floor mapping, e.g., 17 for Tower)
+    // This ensures correct type identification for quests using map_designate instructions
+    val areaId = npc.gameAreaId
 
     return when (npc.typeId.toInt()) {
+        0x001 -> NpcType.FemaleBase
+        0x002 -> NpcType.FemaleChild
+        0x003 -> NpcType.FemaleDwarf
         0x004 -> NpcType.FemaleFat
         0x005 -> NpcType.FemaleMacho
+        0x006 -> NpcType.FemaleOld
         0x007 -> NpcType.FemaleTall
+        0x008 -> NpcType.MaleBase
+        0x009 -> NpcType.MaleChild
         0x00A -> NpcType.MaleDwarf
         0x00B -> NpcType.MaleFat
         0x00C -> NpcType.MaleMacho
         0x00D -> NpcType.MaleOld
+        0x00E -> NpcType.MaleTall
         0x019 -> NpcType.BlueSoldier
         0x01A -> NpcType.RedSoldier
         0x01B -> NpcType.Principal
@@ -25,6 +34,27 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         0x01E -> NpcType.Scientist
         0x01F -> NpcType.Nurse
         0x020 -> NpcType.Irene
+        0x021 -> NpcType.NpcHUmar
+        0x022 -> NpcType.NpcHUnewearl
+        0x024 -> NpcType.NpcRAmar
+        0x025 -> NpcType.NpcRAcast
+        0x026 -> NpcType.NpcRAcaseal
+        0x027 -> NpcType.NpcFOmarl
+        0x028 -> NpcType.NpcFOnewm
+        0x029 -> NpcType.NpcFOnewearl
+        0x02B -> NpcType.NpcHUnewearl2
+        0x02C -> NpcType.NpcHUcast
+        0x02D -> NpcType.NpcRAmar2
+        0x030 -> NpcType.NpcFOmarl2
+        0x031 -> NpcType.NpcFOnewm2
+        0x032 -> NpcType.NpcFOnewearl2
+        0x033 -> {
+            val subtype = npc.data.getInt(32)
+            val mapId = getMapId(episode, areaId) ?: 0
+            resolveStageNpc(mapId, subtype) ?: NpcType.NpcEnemy
+        }
+        0x045 -> NpcType.NpcLappy
+        0x046 -> NpcType.NpcMoja
         0x040 -> when (skin % 2) {
             0 -> if (episode == Episode.II) NpcType.Hildebear2 else NpcType.Hildebear
             else -> if (episode == Episode.II) NpcType.Hildeblue2 else NpcType.Hildeblue
@@ -53,7 +83,7 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         }
         0x060 -> if (episode == Episode.II) NpcType.GrassAssassin2 else NpcType.GrassAssassin
         0x061 -> when {
-            areaId > 15 -> NpcType.DelLily
+            areaId == 17 -> NpcType.DelLily  // Tower (EP2 area 17)
             special -> if (episode == Episode.II) NpcType.NarLily2 else NpcType.NarLily
             else -> if (episode == Episode.II) NpcType.PoisonLily2 else NpcType.PoisonLily
         }
@@ -77,6 +107,7 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         0x0A0 -> if (episode == Episode.II) NpcType.Delsaber2 else NpcType.Delsaber
         0x0A1 -> if (episode == Episode.II) NpcType.ChaosSorcerer2 else NpcType.ChaosSorcerer
         0x0A2 -> NpcType.DarkGunner
+        0x0A3 -> NpcType.DarkGunnerCenter
         0x0A4 -> NpcType.ChaosBringer
         0x0A5 -> if (episode == Episode.II) NpcType.DarkBelra2 else NpcType.DarkBelra
         0x0A6 -> when (skin % 3) {
@@ -86,14 +117,23 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         }
         0x0A7 -> NpcType.Bulclaw
         0x0A8 -> NpcType.Claw
+        0x0A9 -> NpcType.NpcBringer
         0x0C0 -> if (episode == Episode.II) NpcType.GalGryphon else NpcType.Dragon
         0x0C1 -> NpcType.DeRolLe
         0x0C2 -> NpcType.VolOptPart1
+        0x0C3 -> NpcType.VolOptPart1Sub
+        0x0C4 -> NpcType.VolOptCore
         0x0C5 -> NpcType.VolOptPart2
+        0x0C6 -> NpcType.VolOptMonitor
+        0x0C7 -> NpcType.VolOptHiraisin
         0x0C8 -> NpcType.DarkFalz
         0x0CA -> NpcType.OlgaFlow
         0x0CB -> NpcType.BarbaRay
         0x0CC -> NpcType.GolDragon
+        0x0D0 -> NpcType.Kenkyu
+        0x0D1 -> NpcType.Soutokufu
+        0x0D2 -> NpcType.Hosa
+        0x0D3 -> NpcType.KenkyuFemale
         0x0D4 -> when (skin % 2) {
             0 -> NpcType.SinowBerill
             else -> NpcType.SinowSpigell
@@ -123,13 +163,28 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
         0x0DE -> NpcType.Morfos
         0x0DF -> NpcType.Recobox
         0x0E0 -> when {
-            areaId > 15 -> NpcType.Epsilon
+            areaId == 17 -> NpcType.Epsilon  // Tower (EP2 area 17)
             skin % 2 == 0 -> NpcType.SinowZoa
             else -> NpcType.SinowZele
         }
         0x0E1 -> NpcType.IllGill
+        0x0F0 -> NpcType.Hosa2
         0x0F1 -> NpcType.ItemShop
+        0x0F2 -> NpcType.DefaultFomar
+        0x0F3 -> NpcType.Karen
+        0x0F4 -> NpcType.Leo
+        0x0F5 -> NpcType.Pagini
+        0x0F6 -> NpcType.Unknown246
+        0x0F7 -> NpcType.Nol
+        0x0F8 -> NpcType.Elly
+        0x0F9 -> NpcType.Unknown249
+        0x0FA -> NpcType.ItemShop2
+        0x0FB -> NpcType.WeaponShop
+        0x0FC -> NpcType.SecurityGuard
+        0x0FD -> NpcType.HuntersGuild
         0x0FE -> NpcType.Nurse2
+        0x0FF -> NpcType.Unknown255
+        0x100 -> NpcType.Momoka
         0x110 -> NpcType.Astark
         0x111 -> if (special) NpcType.Yowie else NpcType.SatelliteLizard
         0x112 -> when (skin % 2) {
@@ -155,6 +210,7 @@ fun npcTypeFromQuestNpc(npc: QuestNpc): NpcType {
             1 -> NpcType.PyroGoran
             else -> NpcType.GoranDetonator
         }
+        0x118 -> NpcType.Rupika
         0x119 -> when {
             special -> NpcType.Kondrieu
             skin % 2 == 0 -> NpcType.SaintMilion

@@ -6,7 +6,7 @@ plugins {
     id("world.phantasmal.karma-resources")
 }
 
-val coroutinesVersion: String by project.ext
+val coroutinesVersion: String by project.extra
 val kotlinLoggingVersion: String by project.extra
 val log4jVersion: String by project.extra
 

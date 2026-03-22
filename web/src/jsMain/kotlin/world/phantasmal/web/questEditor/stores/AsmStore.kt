@@ -31,7 +31,6 @@ class AsmStore(
     private val questEditorStore: QuestEditorStore,
     private val undoManager: UndoManager,
 ) : Store() {
-    private val _inlineStackArgs = mutableCell(true)
     private var _textModel = mutableCell<ITextModel?>(null)
 
     private var setBytecodeIrTimeout: Int? = null
@@ -44,8 +43,6 @@ class AsmStore(
 
     private val undo = addDisposable(TextModelUndo(undoManager, "Script edits", _textModel))
 
-    val inlineStackArgs: Cell<Boolean> = _inlineStackArgs
-
     val textModel: Cell<ITextModel?> = _textModel
 
     val editingEnabled: Cell<Boolean> = questEditorStore.questEditingEnabled
@@ -57,20 +54,13 @@ class AsmStore(
 
     init {
         observeNow(questEditorStore.currentQuest) { quest ->
-            setTextModel(quest, inlineStackArgs.value)
+            setTextModel(quest)
         }
 
-        observeNow(inlineStackArgs) { inlineStackArgs ->
-            // Ensure we have the most up-to-date bytecode before we disassemble it again.
-            if (setBytecodeIrTimeout != null) {
-                setBytecodeIr()
-            }
-
-            setTextModel(questEditorStore.currentQuest.value, inlineStackArgs)
-        }
-
-        observe(asmAnalyser.mapDesignations) {
-            scope.launch { questEditorStore.setMapDesignations(it) }
+        observe(asmAnalyser.floorMappings) {
+            scope.launch { questEditorStore.setMapDesignations(
+                it.associate { fm -> fm.areaId to fm.variantId }
+            ) }
         }
 
         observeNow(problems) { problems ->
@@ -107,11 +97,7 @@ class AsmStore(
         undoManager.setCurrent(undo)
     }
 
-    fun setInlineStackArgs(inline: Boolean) {
-        _inlineStackArgs.value = inline
-    }
-
-    private fun setTextModel(quest: QuestModel?, inlineStackArgs: Boolean) {
+    private fun setTextModel(quest: QuestModel?) {
         mutateDeferred {
             setBytecodeIrTimeout?.let { it ->
                 window.clearTimeout(it)
@@ -122,8 +108,8 @@ class AsmStore(
 
             quest ?: return@mutateDeferred
 
-            val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
-            asmAnalyser.setAsm(asm, inlineStackArgs)
+            val asm = disassemble(quest.bytecodeIr)
+            asmAnalyser.setAsm(asm)
 
             _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
                 modelDisposer.add(disposable { model.dispose() })
@@ -158,7 +144,7 @@ class AsmStore(
         val model = textModel.value ?: return
         val quest = questEditorStore.currentQuest.value ?: return
 
-        assemble(model.getLinesContent().toList(), inlineStackArgs.value)
+        assemble(model.getLinesContent().toList())
             .getOrNull()
             ?.let(quest::setBytecodeIr)
     }
