@@ -99,8 +99,12 @@ class PmtWeapon(
 fun parseItemPmt(cursor: Cursor): ItemPmt {
     val index = parseRel(cursor, parseIndex = true).index
 
-    // This size (65268) of this table seems wrong, so we pass in a hard-coded value.
-    val statBoosts = parseStatBoosts(cursor, index[305].offset, 52)
+    // index[305] is in Region C of the First System (First[291-313]), where entries are single
+    // int32 pointer values (Second System ptrs), not [size, offset] pairs. So index[305].size
+    // is actually the adjacent Second[13] (WeaponSFX) pointer value, not a record count.
+    // Derive the correct count via pointer arithmetic: (Second[16] - Second[14]) / 6.
+    val statBoostCount = maxOf(0, (index[307].offset - index[305].offset) / 6)
+    val statBoosts = parseStatBoosts(cursor, index[305].offset, statBoostCount)
     val frames = parseFrames(cursor, index[7].offset, index[7].size)
     val barriers = parseFrames(cursor, index[8].offset, index[8].size)
     val units = parseUnits(cursor, index[9].offset, index[9].size)
