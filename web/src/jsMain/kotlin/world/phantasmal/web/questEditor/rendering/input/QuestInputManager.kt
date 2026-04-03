@@ -7,9 +7,12 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.events.FocusEvent
 import org.w3c.dom.events.KeyboardEvent
 import org.w3c.dom.pointerevents.PointerEvent
+import world.phantasmal.cell.mutateDeferred
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.web.core.rendering.InputManager
 import world.phantasmal.web.core.rendering.OrbitalCameraInputManager
+import world.phantasmal.web.externals.three.Plane
+import world.phantasmal.web.externals.three.Raycaster
 import world.phantasmal.web.externals.three.Vector2
 import world.phantasmal.web.externals.three.Vector3
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
@@ -17,12 +20,16 @@ import world.phantasmal.web.questEditor.rendering.input.state.IdleState
 import world.phantasmal.web.questEditor.rendering.input.state.State
 import world.phantasmal.web.questEditor.rendering.input.state.StateContext
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.QuestEditorUiStore
+import world.phantasmal.web.questEditor.stores.ViewportStore
 import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
 
 class QuestInputManager(
     private val questEditorStore: QuestEditorStore,
+    private val questEditorUiStore: QuestEditorUiStore,
+    private val viewportStore: ViewportStore,
     private val renderContext: QuestRenderContext,
 ) : DisposableContainer(), InputManager {
     private val stateContext: StateContext
@@ -41,6 +48,9 @@ class QuestInputManager(
      */
     private val pointerTrap = document.createElement("div") as HTMLElement
 
+    private val raycaster = Raycaster()
+    private val groundPlane = Plane(Vector3(0.0, 1.0, 0.0), 0.0) // Y = 0 plane
+
     private val cameraInputManager: OrbitalCameraInputManager
 
     /**
@@ -52,6 +62,9 @@ class QuestInputManager(
             field = enabled
             returnToIdleState()
         }
+
+    /** True until the first camera navigation, used to decide whether to apply a fixed offset. */
+    private var cameraIsAtInitialPosition: Boolean = true
 
     init {
         onPointerMoveListener =
@@ -81,10 +94,33 @@ class QuestInputManager(
             screenSpacePanning = false,
         )
 
-        stateContext = StateContext(questEditorStore, renderContext, cameraInputManager)
+        stateContext = StateContext(questEditorStore, questEditorUiStore, renderContext, cameraInputManager)
         state = IdleState(stateContext, entityManipulationEnabled)
 
+        // Observe quest editing enabled state
         observeNow(questEditorStore.questEditingEnabled) { entityManipulationEnabled = it }
+
+        // Reset initial camera flag when a new quest is loaded.
+        observe(questEditorStore.currentQuest) { cameraIsAtInitialPosition = true }
+        
+        // Observe target camera position for navigation — preserves current zoom level.
+        // After handling, immediately clear the cell so subsequent navigations to the same
+        // position still trigger the observer (SimpleCell deduplicates equal values).
+        observe(viewportStore.targetCameraPosition) { targetPosition ->
+            targetPosition?.let { position ->
+                if (cameraIsAtInitialPosition) {
+                    cameraIsAtInitialPosition = false
+                    val cameraOffset = Vector3(0.0, 600.0, 900.0)
+                    val cameraPosition = position.clone().add(cameraOffset)
+                    cameraInputManager.lookAt(cameraPosition, position)
+                } else {
+                    val currentFloorId = getCurrentFloorId()
+                    cameraInputManager.lookAtPreservingViewpoint(position, currentFloorId)
+                }
+
+                mutateDeferred { viewportStore.setTargetCameraPosition(null) }
+            }
+        }
 
         pointerTrap.className = "pw-quest-editor-input-manager-pointer-trap"
         pointerTrap.hidden = true
@@ -119,6 +155,9 @@ class QuestInputManager(
     override fun beforeRender() {
         state.beforeRender()
         cameraInputManager.beforeRender()
+
+        // Update user offset when camera controls change the target (e.g., during pan operations)
+        cameraInputManager.updateUserOffset()
     }
 
     private fun onFocus() {
@@ -126,6 +165,8 @@ class QuestInputManager(
     }
 
     private fun onPointerDown(e: PointerEvent) {
+        viewportStore.dismissContextMenu()
+
         processPointerEvent(e)
 
         state = state.processEvent(
@@ -165,6 +206,14 @@ class QuestInputManager(
                     movedSinceLastPointerDown,
                 )
             )
+
+            // Show context menu on single right-click (no drag).
+            // Temporarily disable OrbitControls to prevent the click from applying a rotation.
+            if (e.button.toInt() == 2 && !movedSinceLastPointerDown) {
+                cameraInputManager.enabled = false
+                cameraInputManager.enabled = true
+                viewportStore.requestContextMenu(e.clientX, e.clientY)
+            }
         } finally {
             onPointerUpListener?.dispose()
             onPointerUpListener = null
@@ -201,6 +250,9 @@ class QuestInputManager(
 
     private fun onPointerOut(e: PointerEvent) {
         processPointerEvent(type = null, e.clientX, e.clientY)
+
+        // Clear mouse world position when pointer leaves canvas
+        viewportStore.setMouseWorldPosition(null)
 
         state = state.processEvent(
             PointerOutEvt(
@@ -264,6 +316,9 @@ class QuestInputManager(
         pointerDevicePosition.copy(pointerPosition)
         renderContext.pointerPosToDeviceCoords(pointerDevicePosition)
 
+        // Calculate world position using raycaster
+        updateMouseWorldPosition()
+
         when (type) {
             "pointerdown" -> {
                 movedSinceLastPointerDown = false
@@ -276,6 +331,46 @@ class QuestInputManager(
         }
 
         lastPointerPosition.copy(pointerPosition)
+    }
+
+    /** Reusable Vector3 for ground-plane intersection to avoid per-event allocation. */
+    private val intersectionPoint = Vector3()
+
+    private fun updateMouseWorldPosition() {
+        try {
+            // Set up raycaster from camera through mouse position
+            raycaster.setFromCamera(pointerDevicePosition, renderContext.camera)
+
+            // Intersect with ground plane (Y = 0)
+            val intersected = raycaster.ray.intersectPlane(groundPlane, intersectionPoint)
+
+            if (intersected != null) {
+                // Clone before storing — intersectionPoint is reused across events.
+                viewportStore.setMouseWorldPosition(intersected.clone())
+            } else {
+                viewportStore.setMouseWorldPosition(null)
+            }
+        } catch (e: Exception) {
+            // If there's any error, clear the position
+            viewportStore.setMouseWorldPosition(null)
+        }
+    }
+
+    private fun getCurrentFloorId(): Int? {
+        val quest = questEditorStore.currentQuest.value ?: return null
+        val currentVariant = questEditorStore.currentAreaVariant.value ?: return null
+
+        // For quests with floor mappings, find the floor ID that matches current area and variant.
+        // Fall back to area ID if no mapping matches, to avoid returning null which would cause
+        // unnecessary camera offset resets.
+        if (quest.floorMappings.isNotEmpty()) {
+            val floorMapping = quest.floorMappings.find { mapping ->
+                mapping.areaId == currentVariant.area.id && mapping.variantId == currentVariant.id
+            }
+            return floorMapping?.floorId ?: currentVariant.area.id
+        }
+
+        return currentVariant.area.id
     }
 
     private fun returnToIdleState() {

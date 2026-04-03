@@ -24,13 +24,12 @@ class ViewerWidget(
             div {
                 className = "pw-viewer-viewer-content"
 
-                addChild(SelectionWidget(
-                    items = ctrl.characterClasses,
-                    selected = ctrl.currentCharacterClass,
-                    onSelect = { char ->
-                        scope.launch { ctrl.setCurrentCharacterClass(char) }
+                addChild(GroupedSelectionWidget(
+                    groups = ctrl.modelGroups,
+                    selected = ctrl.currentModel,
+                    onSelect = { model ->
+                        scope.launch { ctrl.setCurrentModel(model) }
                     },
-                    itemToString = { it.uiName },
                 ))
                 addChild(createCharacterClassOptionsWidget())
                 addChild(TabContainer(ctrl = ctrl, createWidget = { tab ->
@@ -60,14 +59,14 @@ class ViewerWidget(
                     display: flex;
                     flex-direction: column;
                 }
-                
+
                 .pw-viewer-viewer-content {
                     flex-grow: 1;
                     display: flex;
                     flex-direction: row;
                     overflow: hidden;
                 }
-                
+
                 .pw-viewer-viewer-content > .pw-tab-container {
                     flex-grow: 1;
                 }

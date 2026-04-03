@@ -7,11 +7,7 @@ import world.phantasmal.core.Success
 import world.phantasmal.psolib.Endianness
 import world.phantasmal.psolib.cursor.Cursor
 import world.phantasmal.psolib.cursor.cursor
-import world.phantasmal.psolib.fileFormats.ninja.NinjaObject
-import world.phantasmal.psolib.fileFormats.ninja.XvrTexture
-import world.phantasmal.psolib.fileFormats.ninja.parseNj
-import world.phantasmal.psolib.fileFormats.ninja.parseXj
-import world.phantasmal.psolib.fileFormats.ninja.parseXvm
+import world.phantasmal.psolib.fileFormats.ninja.*
 import world.phantasmal.psolib.fileFormats.quest.EntityType
 import world.phantasmal.psolib.fileFormats.quest.NpcType
 import world.phantasmal.psolib.fileFormats.quest.ObjectType
@@ -19,11 +15,7 @@ import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.loading.LoadingCache
 import world.phantasmal.web.core.rendering.conversion.ninjaObjectToInstancedMesh
 import world.phantasmal.web.core.rendering.disposeObject3DResources
-import world.phantasmal.web.externals.three.Color
-import world.phantasmal.web.externals.three.CylinderGeometry
-import world.phantasmal.web.externals.three.DoubleSide
-import world.phantasmal.web.externals.three.InstancedMesh
-import world.phantasmal.web.externals.three.MeshLambertMaterial
+import world.phantasmal.web.externals.three.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.obj
 
@@ -61,6 +53,7 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
         val ninjaObject = when (geomFormat) {
             GeomFormat.Nj -> parseGeometry(type, geomParts, ::parseNj)
             GeomFormat.Xj -> parseGeometry(type, geomParts, ::parseXj)
+            GeomFormat.Rel -> parseGeometry(type, geomParts, ::parseRelNj)
         } ?: return null
 
         val textures = loadTextures(type, model)
@@ -75,16 +68,20 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
                 side = DoubleSide
             }),
             boundingVolumes = true,
-        ).apply { name = type.uniqueName }
+        ).apply {
+            name = type.uniqueName
+            // Apply entity-specific scaling
+            applyEntityTypeScale(type)
+        }
     }
 
     private suspend fun loadTextures(type: EntityType, model: Int?): List<XvrTexture> {
         val suffix =
             if (
                 type === ObjectType.FloatingRocks ||
-                (type === ObjectType.BigBrownRock && model == null)
+                type === ObjectType.BigBrownRock
             ) {
-                "-0"
+                "-${model ?: 0}"
             } else {
                 ""
             }
@@ -162,12 +159,28 @@ class EntityAssetLoader(private val assetLoader: AssetLoader) : DisposableContai
     }
 }
 
+/**
+ * Apply entity-specific scaling. Clones the geometry first to avoid mutating shared cached geometry.
+ */
+private fun InstancedMesh.applyEntityTypeScale(type: EntityType) {
+    val scaleFactor = when (type) {
+        NpcType.Delbiter -> 0.5
+        else -> return
+    }
+
+    geometry = geometry.clone().apply {
+        scale(scaleFactor, scaleFactor, scaleFactor)
+        computeBoundingBox()
+        computeBoundingSphere()
+    }
+}
+
 private enum class AssetType {
     Geometry, Texture
 }
 
 private enum class GeomFormat {
-    Nj, Xj
+    Nj, Xj, Rel
 }
 
 /**
@@ -222,6 +235,7 @@ private fun geometryParts(type: EntityType): List<String?> =
         ObjectType.BigBrownRock -> listOf("-0") // TODO: use correct part.
         ObjectType.BigBlackRocks -> listOf("")
         ObjectType.BeeHive -> listOf("", "-0", "-1")
+        ObjectType.ForestConsole -> listOf("") // All model variants share the same geometry.
         else -> listOf(null)
     }
 
@@ -231,7 +245,26 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
             when (type) {
                 NpcType.Dubswitch,
                 NpcType.Dubswitch2,
+                NpcType.VolOptMonitor,
                 -> GeomFormat.Xj
+
+                // Player class NPCs use .rel format
+                NpcType.NpcHUmar,
+                NpcType.NpcHUnewearl,
+                NpcType.NpcRAmar,
+                NpcType.NpcRAcast,
+                NpcType.NpcRAcaseal,
+                NpcType.NpcFOmarl,
+                NpcType.NpcFOnewm,
+                NpcType.NpcFOnewearl,
+                NpcType.NpcHUnewearl2,
+                NpcType.NpcHUcast,
+                NpcType.NpcRAmar2,
+                NpcType.NpcFOmarl2,
+                NpcType.NpcFOnewm2,
+                NpcType.NpcFOnewearl2,
+                NpcType.Rupika, // Redirects to NpcFOnewearl (.rel)
+                -> GeomFormat.Rel
 
                 else -> GeomFormat.Nj
             }
@@ -255,6 +288,8 @@ private fun entityTypeToGeometryFormat(type: EntityType): GeomFormat =
                 ObjectType.FallingRock,
                 ObjectType.DesertFixedTypeBoxBreakableCrystals,
                 ObjectType.BeeHive,
+                ObjectType.LobbyPigeon,
+                ObjectType.ContainerJungEnemy,
                 -> GeomFormat.Nj
 
                 else -> GeomFormat.Xj
@@ -283,6 +318,7 @@ private fun entityTypeToPath(
         AssetType.Geometry -> when (geomFormat) {
             GeomFormat.Nj -> "nj"
             GeomFormat.Xj -> "xj"
+            GeomFormat.Rel -> "rel"
         }
 
         AssetType.Texture -> "xvm"
@@ -293,17 +329,22 @@ private fun entityTypeToPath(
             when (type) {
                 // We don't have a model for these NPCs.
                 NpcType.Unknown,
-                NpcType.Migium,
-                NpcType.Hidoom,
-                NpcType.VolOptPart1,
-                NpcType.DeathGunner,
-                NpcType.StRappy,
-                NpcType.HalloRappy,
-                NpcType.EggRappy,
-                NpcType.Migium2,
-                NpcType.Hidoom2,
-                NpcType.Recon,
+                NpcType.NpcEnemy,
                 -> null
+
+                // Rupika is FOnewearl, share her model.
+                NpcType.Rupika ->
+                    entityTypeToPath(NpcType.NpcFOnewearl, assetType, suffix, model, geomFormat)
+
+                // Friendly NPC versions of enemies share enemy models.
+                NpcType.NpcLappy ->
+                    entityTypeToPath(NpcType.RagRappy, assetType, suffix, model, geomFormat)
+
+                NpcType.NpcMoja ->
+                    entityTypeToPath(NpcType.Hildebear, assetType, suffix, model, geomFormat)
+
+                NpcType.NpcBringer ->
+                    entityTypeToPath(NpcType.ChaosBringer, assetType, suffix, model, geomFormat)
 
                 // Episode II VR Temple
 
@@ -354,6 +395,12 @@ private fun entityTypeToPath(
                 NpcType.PanArms2 ->
                     entityTypeToPath(NpcType.PanArms, assetType, suffix, model, geomFormat)
 
+                NpcType.Migium2 ->
+                    entityTypeToPath(NpcType.Migium, assetType, suffix, model, geomFormat)
+
+                NpcType.Hidoom2 ->
+                    entityTypeToPath(NpcType.Hidoom, assetType, suffix, model, geomFormat)
+
                 NpcType.Dubchic2 ->
                     entityTypeToPath(NpcType.Dubchic, assetType, suffix, model, geomFormat)
 
@@ -396,9 +443,9 @@ private fun entityTypeToPath(
                 ObjectType.RadarCollision,
                 ObjectType.FogCollisionSW,
                 ObjectType.ImageBoard,
-                ObjectType.UnknownItem29,
-                ObjectType.UnknownItem30,
-                ObjectType.UnknownItem31,
+                ObjectType.StarLight2D,
+                ObjectType.LensFlare2,
+                ObjectType.RadarHideCollision,
                 ObjectType.MenuActivation,
                 ObjectType.BoxDetectObject,
                 ObjectType.SymbolChatObject,
@@ -406,10 +453,10 @@ private fun entityTypeToPath(
                 ObjectType.TargetableObject,
                 ObjectType.EffectObject,
                 ObjectType.CountDownObject,
-                ObjectType.UnknownItem38,
-                ObjectType.UnknownItem39,
-                ObjectType.UnknownItem40,
-                ObjectType.UnknownItem41,
+                ObjectType.ChatSensor,
+                ObjectType.RadarIcon,
+                ObjectType.EnvSoundEx,
+                ObjectType.EnvSoundGlobal,
                 ObjectType.TelepipeLocation,
                 ObjectType.BGMCollision,
                 ObjectType.Pioneer2InvisibleTouchplate,
@@ -425,20 +472,20 @@ private fun entityTypeToPath(
                 ObjectType.EmptyTypeBoxBlue,
                 ObjectType.FloatingSoul,
                 ObjectType.Butterfly,
-                ObjectType.UnknownItem400,
+                ObjectType.Camera,
                 ObjectType.CcaAreaTeleporter,
-                ObjectType.UnknownItem523,
+                ObjectType.LightningController,
                 ObjectType.WhiteBird,
                 ObjectType.OrangeBird,
-                ObjectType.UnknownItem529,
-                ObjectType.UnknownItem530,
+                ObjectType.BiwaMushi,
+                ObjectType.JungleDesign,
                 ObjectType.Seagull,
-                ObjectType.UnknownItem576,
+                ObjectType.Ep2Particle,
                 ObjectType.WarpInBarbaRayRoom,
-                ObjectType.UnknownItem672,
+                ObjectType.LiveCamera,
                 ObjectType.InstaWarp,
                 ObjectType.LabInvisibleObject,
-                ObjectType.UnknownItem700,
+                ObjectType.AreaWarpEndingJung,
                 ObjectType.Ep4LightSource,
                 ObjectType.BreakableBrownRock,
                 ObjectType.UnknownItem897,
@@ -450,11 +497,17 @@ private fun entityTypeToPath(
                 ObjectType.UnknownItem905,
                 ObjectType.UnknownItem906,
                 ObjectType.DesertPlantHasCollision,
-                ObjectType.UnknownItem910,
-                ObjectType.UnknownItem912,
+                ObjectType.Ep4TestDoor,
+                ObjectType.Ep4TestParticle,
                 ObjectType.Heat,
                 ObjectType.TopOfSaintMillionEgg,
-                ObjectType.UnknownItem961,
+                ObjectType.Ep4BossRockSpawner,
+                ObjectType.UnknownItem16,
+                ObjectType.Battery,
+                ObjectType.LobbyGameMenu,
+                ObjectType.GBAStation,
+                ObjectType.UnknownItem832,
+                ObjectType.UnknownItem833,
                 -> null
 
                 else -> {

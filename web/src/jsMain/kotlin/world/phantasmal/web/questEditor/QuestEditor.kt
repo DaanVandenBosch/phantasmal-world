@@ -17,9 +17,7 @@ import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.persistence.QuestEditorUiPersister
 import world.phantasmal.web.questEditor.rendering.EntityImageRenderer
 import world.phantasmal.web.questEditor.rendering.QuestRenderer
-import world.phantasmal.web.questEditor.stores.AreaStore
-import world.phantasmal.web.questEditor.stores.AsmStore
-import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.*
 import world.phantasmal.web.questEditor.widgets.*
 import world.phantasmal.webui.DisposableContainer
 import world.phantasmal.webui.dom.disposableListener
@@ -47,12 +45,16 @@ class QuestEditor(
 
         // Stores
         val areaStore = addDisposable(AreaStore(areaAssetLoader))
+        val questEditorUiStore = addDisposable(QuestEditorUiStore(uiStore))
+        val playbackVisualizationStore = addDisposable(PlaybackVisualizationStore())
+        val viewportStore = addDisposable(ViewportStore())
         val questEditorStore = addDisposable(
             QuestEditorStore(
                 questLoader,
                 uiStore,
                 areaStore,
                 undoManager,
+                viewportStore,
                 initializeNewQuest = true,
             )
         )
@@ -65,16 +67,30 @@ class QuestEditor(
                 uiStore,
                 areaStore,
                 questEditorStore,
+                questEditorUiStore,
             )
         )
         val questInfoController = addDisposable(QuestInfoController(questEditorStore))
         val npcCountsController = addDisposable(NpcCountsController(questEditorStore))
-        val entityInfoController = addDisposable(EntityInfoController(areaStore, questEditorStore))
+        val entityInfoController = addDisposable(EntityInfoController(
+            areaStore,
+            questEditorStore,
+            asmStore,
+            onActivateAsmEditor = {
+                questEditorController.requestActivateWidget(
+                    QuestEditorController.ASM_WIDGET_ID
+                )
+            },
+        ))
         val asmController = addDisposable(AsmEditorController(asmStore))
-        val npcListController = addDisposable(EntityListController(questEditorStore, npcs = true))
+        val npcListController = addDisposable(EntityListController(questEditorStore, questEditorUiStore, npcs = true))
         val objectListController =
-            addDisposable(EntityListController(questEditorStore, npcs = false))
-        val eventsController = addDisposable(EventsController(questEditorStore))
+            addDisposable(EntityListController(questEditorStore, questEditorUiStore, npcs = false))
+        val eventsController = addDisposable(EventsController(questEditorStore, playbackVisualizationStore))
+        val areaNpcListController = addDisposable(AreaNpcListController(questEditorStore, viewportStore))
+        val areaObjectListController = addDisposable(AreaObjectListController(questEditorStore, viewportStore))
+        val monsterRandomnessController = addDisposable(MonsterRandomnessController(questEditorStore))
+        val compatibilityController = addDisposable(CompatibilityController(questEditorStore, asmStore))
 
         // Rendering
         val renderer = addDisposable(
@@ -82,6 +98,10 @@ class QuestEditor(
                 areaAssetLoader,
                 entityAssetLoader,
                 questEditorStore,
+                questEditorUiStore,
+                playbackVisualizationStore,
+                viewportStore,
+                areaStore,
                 createThreeRenderer,
             )
         )
@@ -102,14 +122,26 @@ class QuestEditor(
         // Main Widget
         return QuestEditorWidget(
             questEditorController,
-            { QuestEditorToolbarWidget(toolbarController) },
+            { QuestEditorToolbarWidget(toolbarController, compatibilityController) },
             { QuestInfoWidget(questInfoController) },
             { NpcCountsWidget(npcCountsController) },
             { EntityInfoWidget(entityInfoController) },
-            { QuestEditorRendererWidget(renderer) },
+            {
+                QuestEditorRendererWidget(
+                    renderer,
+                    viewportStore.mouseWorldPosition,
+                    playbackVisualizationStore.playbackActionText,
+                    questEditorStore,
+                    questEditorUiStore,
+                    viewportStore,
+                    monsterRandomnessController,
+                    areaNpcListController,
+                    areaObjectListController,
+                )
+            },
             { AsmWidget(asmController) },
-            { EntityListWidget(npcListController, entityImageRenderer) },
-            { EntityListWidget(objectListController, entityImageRenderer) },
+            { EntityListWidget(npcListController, entityImageRenderer, questEditorUiStore, isNpcList = true) },
+            { EntityListWidget(objectListController, entityImageRenderer, questEditorUiStore, isNpcList = false) },
             { EventsWidget(eventsController) },
         )
     }

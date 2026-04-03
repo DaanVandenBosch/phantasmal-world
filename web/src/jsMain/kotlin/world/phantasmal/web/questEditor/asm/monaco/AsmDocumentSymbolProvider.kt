@@ -1,38 +1,54 @@
 package world.phantasmal.web.questEditor.asm.monaco
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.promise
 import world.phantasmal.web.externals.monacoEditor.*
 import world.phantasmal.web.questEditor.asm.AsmAnalyser
-import world.phantasmal.webui.obj
 import kotlin.js.Promise
 
-// Sometimes produces stack overflows in monaco perf monitoring code due to a monaco bug. Things
-// still work as they should, though.
-// Chrome error: "Uncaught (in promise) RangeError: Maximum call stack size exceeded"
-// https://github.com/microsoft/monaco-editor/issues/2586
-// TODO: See whether monaco perf monitoring bug will get fixed or not.
-class AsmDocumentSymbolProvider(private val asmAnalyser: AsmAnalyser) :
-    MonacoProvider(), DocumentSymbolProvider {
-    override val displayName: String? = null
+/**
+ * Creates a plain JS object implementing [DocumentSymbolProvider] to avoid Monaco's objectHash
+ * stack overflow (monaco-editor#2586). Kotlin class instances have deep prototype chains that
+ * cause infinite recursion when Monaco tries to hash the provider object.
+ */
+fun createDocumentSymbolProvider(scope: CoroutineScope, asmAnalyser: AsmAnalyser): DocumentSymbolProvider {
 
-    override fun provideDocumentSymbols(
-        model: ITextModel,
-        token: CancellationToken
-    ): Promise<Array<DocumentSymbol>> =
+    val provider: dynamic = js("({})")
+    provider.displayName = null
+
+    provider.provideDocumentSymbols = { model: ITextModel, token: CancellationToken ->
         scope.promise {
             val labels = asmAnalyser.getLabels()
 
-            Array(labels.size) { index ->
-                val label = labels[index]
-
-                obj {
-                    name = label.name.toString()
-                    detail = ""
-                    kind = SymbolKind.Function
-                    tags = emptyArray()
-                    range = label.range.toIRange()
-                    selectionRange = range
-                }
+            val result: dynamic = js("[]")
+            for (label in labels) {
+                val r = label.range
+                val sym: dynamic = js("({})")
+                sym.name = "${label.name}"
+                sym.detail = ""
+                sym.kind = 11 // SymbolKind.Function
+                sym.tags = js("[]")
+                val range: dynamic = js("({})")
+                range.startLineNumber = r.startLineNo
+                range.startColumn = r.startCol
+                range.endLineNumber = r.endLineNo
+                range.endColumn = r.endCol
+                sym.range = range
+                val selRange: dynamic = js("({})")
+                selRange.startLineNumber = r.startLineNo
+                selRange.startColumn = r.startCol
+                selRange.endLineNumber = r.endLineNo
+                selRange.endColumn = r.endCol
+                sym.selectionRange = selRange
+                sym.children = null
+                result.push(sym)
             }
+
+            @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+            result as Array<DocumentSymbol>
         }
+    }
+
+    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+    return provider as DocumentSymbolProvider
 }

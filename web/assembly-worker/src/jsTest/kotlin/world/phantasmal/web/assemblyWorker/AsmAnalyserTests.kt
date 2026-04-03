@@ -264,7 +264,7 @@ class AsmAnalyserTests : AssemblyWorkerTestSuite() {
 
     private fun createAsmAnalyser(asm: String): AsmAnalyser {
         val analyser = AsmAnalyser()
-        analyser.setAsm(asm.split("\n"), inlineStackArgs = true)
+        analyser.setAsm(asm.split("\n"))
         analyser.processAsm()
         return analyser
     }

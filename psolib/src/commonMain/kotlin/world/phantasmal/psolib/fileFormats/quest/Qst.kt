@@ -465,8 +465,15 @@ private fun writeFileHeaders(
     }
 
     for (file in files) {
-        require(file.id == null || (file.id in 0..maxId)) {
-            "Quest ID should be between 0 and $maxId, inclusive."
+        val fileId = if (file.id != null && file.id !in 0..maxId) {
+            val truncatedId = file.id and maxId
+            logger.warn {
+                "Quest ID ${file.id} is outside the valid range 0-$maxId for ${version} quests. " +
+                        "Truncating to $truncatedId."
+            }
+            truncatedId
+        } else {
+            file.id
         }
         require(file.questName == null || file.questName.length <= maxQuestNameLength) {
             "File ${file.filename} has a quest name longer than $maxQuestNameLength characters (${file.questName})."
@@ -478,7 +485,7 @@ private fun writeFileHeaders(
         when (version) {
             Version.DC -> {
                 cursor.writeUByte((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUByte())
-                cursor.writeUByte(file.id?.toUByte() ?: 0u)
+                cursor.writeUByte(fileId?.toUByte() ?: 0u)
                 cursor.writeUShort(headerSize.toUShort())
                 cursor.writeStringAscii(file.questName ?: file.filename, 32)
                 cursor.writeByte(0)
@@ -491,7 +498,7 @@ private fun writeFileHeaders(
 
             Version.GC -> {
                 cursor.writeUByte((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUByte())
-                cursor.writeUByte(file.id?.toUByte() ?: 0u)
+                cursor.writeUByte(fileId?.toUByte() ?: 0u)
                 cursor.writeUShort(headerSize.toUShort())
                 cursor.writeStringAscii(file.questName ?: file.filename, 32)
                 cursor.writeInt(0)
@@ -502,7 +509,7 @@ private fun writeFileHeaders(
             Version.PC -> {
                 cursor.writeUShort(headerSize.toUShort())
                 cursor.writeUByte((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUByte())
-                cursor.writeUByte(file.id?.toUByte() ?: 0u)
+                cursor.writeUByte(fileId?.toUByte() ?: 0u)
                 cursor.writeStringAscii(file.questName ?: file.filename, 32)
                 cursor.writeInt(0)
                 cursor.writeStringAscii(file.filename, 16)
@@ -512,7 +519,7 @@ private fun writeFileHeaders(
             Version.BB -> {
                 cursor.writeUShort(headerSize.toUShort())
                 cursor.writeUShort((if (online) ONLINE_QUEST else DOWNLOAD_QUEST).toUShort())
-                cursor.writeUShort(file.id?.toUShort() ?: 0u)
+                cursor.writeUShort(fileId?.toUShort() ?: 0u)
                 repeat(38) { cursor.writeByte(0) }
                 cursor.writeStringAscii(file.filename, 16)
                 cursor.writeInt(file.data.size)

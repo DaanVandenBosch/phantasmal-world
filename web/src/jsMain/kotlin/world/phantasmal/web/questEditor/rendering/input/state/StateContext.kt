@@ -19,6 +19,7 @@ import world.phantasmal.web.questEditor.loading.AreaUserData
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.QuestEditorUiStore
 import kotlin.math.PI
 import kotlin.math.atan2
 
@@ -26,6 +27,7 @@ private val logger = KotlinLogging.logger {}
 
 class StateContext(
     private val questEditorStore: QuestEditorStore,
+    private val questEditorUiStore: QuestEditorUiStore,
     val renderContext: QuestRenderContext,
     val cameraInputManager: OrbitalCameraInputManager,
 ) {
@@ -34,7 +36,7 @@ class StateContext(
      */
     private var highlightedMesh: Pair<Mesh, List<Color>>? = null
 
-    val devMode: Cell<Boolean> = questEditorStore.devMode
+    val devMode: Cell<Boolean> = questEditorUiStore.devMode
     val quest: Cell<QuestModel?> = questEditorStore.currentQuest
     val area: Cell<AreaModel?> = questEditorStore.currentArea
     val wave: Cell<WaveModel?> = questEditorStore.selectedEvent.flatMapNull { it?.wave }

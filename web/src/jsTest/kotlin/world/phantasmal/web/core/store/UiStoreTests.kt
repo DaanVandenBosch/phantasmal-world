@@ -13,8 +13,8 @@ class UiStoreTests : WebTestSuite {
         val applicationUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(applicationUrl))
 
-        assertEquals(PwToolType.Viewer, uiStore.currentTool.value)
-        assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.pathAndParams)
+        assertEquals(PwToolType.QuestEditor, uiStore.currentTool.value)
+        assertEquals("/${PwToolType.QuestEditor.slug}", applicationUrl.pathAndParams)
     }
 
     @Test
@@ -35,13 +35,13 @@ class UiStoreTests : WebTestSuite {
         val applicationUrl = TestApplicationUrl("/")
         val uiStore = disposer.add(UiStore(applicationUrl))
 
-        assertEquals(PwToolType.Viewer, uiStore.currentTool.value)
-        assertEquals("/${PwToolType.Viewer.slug}", applicationUrl.pathAndParams)
+        assertEquals(PwToolType.QuestEditor, uiStore.currentTool.value)
+        assertEquals("/${PwToolType.QuestEditor.slug}", applicationUrl.pathAndParams)
 
         listOf("/models", "/textures", "/animations").forEach { prefix ->
             uiStore.setPathPrefix(prefix, replace = false)
 
-            assertEquals("/${PwToolType.Viewer.slug}${prefix}", applicationUrl.pathAndParams)
+            assertEquals("/${PwToolType.QuestEditor.slug}${prefix}", applicationUrl.pathAndParams)
         }
     }
 

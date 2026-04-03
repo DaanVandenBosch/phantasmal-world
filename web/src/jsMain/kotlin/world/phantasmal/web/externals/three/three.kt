@@ -535,6 +535,8 @@ open external class BufferGeometry : EventDispatcher {
     fun rotateY(radians: Double): BufferGeometry
     fun rotateZ(radians: Double): BufferGeometry
 
+    fun clone(): BufferGeometry
+
     fun scale(x: Double, y: Double, z: Double): BufferGeometry
 
     fun computeBoundingBox()

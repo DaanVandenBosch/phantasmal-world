@@ -12,6 +12,12 @@ class QuestNpc(
     override var areaId: Int,
     override val data: Buffer,
 ) : QuestEntity<NpcType> {
+    /**
+     * Game area ID mapped from floor mapping (e.g., 17 for Tower).
+     * Defaults to areaId if no floor mapping exists.
+     * Used for NPC type detection while areaId is used for floor/variant mapping.
+     */
+    var gameAreaId: Int = areaId
     constructor(
         type: NpcType,
         episode: Episode,

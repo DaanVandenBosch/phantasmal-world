@@ -3,18 +3,23 @@ package world.phantasmal.web.questEditor.rendering
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import world.phantasmal.core.disposable.Disposable
-import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.ListChangeEvent
+import world.phantasmal.core.disposable.Disposable
+import world.phantasmal.core.disposable.DisposableSupervisedScope
 import world.phantasmal.psolib.Episode
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.EntityAssetLoader
 import world.phantasmal.web.questEditor.models.AreaVariantModel
 import world.phantasmal.web.questEditor.models.QuestNpcModel
 import world.phantasmal.web.questEditor.models.QuestObjectModel
+import world.phantasmal.web.questEditor.stores.AreaStore
+import world.phantasmal.web.questEditor.stores.PlaybackVisualizationStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.QuestEditorUiStore
 import world.phantasmal.webui.DisposableContainer
+import world.phantasmal.web.core.rendering.disposeObject3DResources
+import world.phantasmal.web.externals.three.Group
 
 /**
  * Loads the necessary area and entity 3D models into [QuestRenderer].
@@ -22,17 +27,40 @@ import world.phantasmal.webui.DisposableContainer
 abstract class QuestMeshManager protected constructor(
     areaAssetLoader: AreaAssetLoader,
     entityAssetLoader: EntityAssetLoader,
-    questEditorStore: QuestEditorStore,
-    renderContext: QuestRenderContext,
+    private val questEditorStore: QuestEditorStore,
+    questEditorUiStore: QuestEditorUiStore,
+    playbackVisualizationStore: PlaybackVisualizationStore,
+    areaStore: AreaStore,
+    private val renderContext: QuestRenderContext,
 ) : DisposableContainer() {
     private val scope = addDisposable(DisposableSupervisedScope(this::class, Dispatchers.Default))
     private val areaMeshManager = AreaMeshManager(renderContext, areaAssetLoader)
     private val npcMeshManager = addDisposable(
-        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader)
+        EntityMeshManager(
+            questEditorStore,
+            questEditorUiStore,
+            playbackVisualizationStore,
+            renderContext,
+            entityAssetLoader,
+            areaStore,
+            enableSectionLabels = true
+        ) // Only NPC manager handles section labels
     )
     private val objectMeshManager = addDisposable(
-        EntityMeshManager(questEditorStore, renderContext, entityAssetLoader)
+        EntityMeshManager(
+            questEditorStore,
+            questEditorUiStore,
+            playbackVisualizationStore,
+            renderContext,
+            entityAssetLoader,
+            areaStore,
+            enableSectionLabels = false
+        ) // Object manager doesn't handle section labels
     )
+
+    // Origin point rendering
+    private val originPointRenderer = OriginPointRenderer()
+    private var originGroup: Group? = null
 
     private var areaLoadJob: Job? = null
     private var npcLoadJob: Job? = null
@@ -40,6 +68,22 @@ abstract class QuestMeshManager protected constructor(
 
     private var npcObserver: Disposable? = null
     private var objectObserver: Disposable? = null
+
+    init {
+        // Observe origin point show/hide state
+        observeNow(questEditorUiStore.showOriginPoint) { showOrigin ->
+            updateOriginPointVisibility(showOrigin)
+        }
+    }
+
+    override fun dispose() {
+        originGroup?.let { group ->
+            renderContext.scene.remove(group)
+            disposeObject3DResources(group)
+            originGroup = null
+        }
+        super.dispose()
+    }
 
     protected fun loadAreaMeshes(episode: Episode?, areaVariant: AreaVariantModel?) {
         areaLoadJob?.cancel()
@@ -83,6 +127,37 @@ abstract class QuestMeshManager protected constructor(
         for (change in event.changes) {
             change.removed.forEach(objectMeshManager::remove)
             change.inserted.forEach(objectMeshManager::add)
+        }
+    }
+
+    /**
+     * Updates the visibility of the origin point based on the store state.
+     */
+    private fun updateOriginPointVisibility(showOrigin: Boolean) {
+        if (showOrigin) {
+            if (originGroup == null) {
+                originGroup = originPointRenderer.createOriginPointVisualization()
+                renderContext.scene.add(originGroup!!)
+            }
+        } else {
+            originGroup?.let { group ->
+                renderContext.scene.remove(group)
+                disposeObject3DResources(group)
+                originGroup = null
+            }
+        }
+    }
+
+    /**
+     * Called before each render to update text scales for constant screen size.
+     */
+    fun beforeRender() {
+        // Update text scales in the NPC mesh manager (which handles section labels and playback labels)
+        npcMeshManager.beforeRender()
+
+        // Update origin point axis labels (billboard + constant screen size)
+        originGroup?.let { group ->
+            originPointRenderer.updateLabels(renderContext.camera, group)
         }
     }
 }

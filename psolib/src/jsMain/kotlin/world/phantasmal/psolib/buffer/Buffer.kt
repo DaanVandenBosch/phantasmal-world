@@ -215,7 +215,7 @@ actual class Buffer private constructor(
         require(offset >= 0 && offset <= this.size) {
             "Offset $offset is out of bounds."
         }
-        require(destinationOffset >= 0 && destinationOffset <= this.size) {
+        require(destinationOffset >= 0 && destinationOffset <= destination.size) {
             "Destination offset $destinationOffset is out of bounds."
         }
         require(

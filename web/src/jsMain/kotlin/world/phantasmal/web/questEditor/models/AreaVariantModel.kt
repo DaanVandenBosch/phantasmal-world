@@ -1,15 +1,14 @@
 package world.phantasmal.web.questEditor.models
 
-import world.phantasmal.core.requireNonNegative
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.list.mutableListCell
+import world.phantasmal.core.requireNonNegative
+import world.phantasmal.psolib.Episode
 
-class AreaVariantModel(val id: Int, val area: AreaModel) {
+class AreaVariantModel(val id: Int, val area: AreaModel, val episode: Episode) {
     private val _sections = mutableListCell<SectionModel>()
 
-    // Exception for Seaside Area at Night, variant 1.
-    // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
-    val name: String = if (area.id == 16 && id == 1) "West Tower" else area.name
+    val name: String = area.name
 
     val sections: ListCell<SectionModel> = _sections
 
@@ -25,8 +24,13 @@ class AreaVariantModel(val id: Int, val area: AreaModel) {
         if (this === other) return true
         if (other == null || this::class.js != other::class.js) return false
         other as AreaVariantModel
-        return id == other.id && area.id == other.area.id
+        return id == other.id && area.id == other.area.id && episode == other.episode
     }
 
-    override fun hashCode(): Int = 31 * id + area.hashCode()
+    override fun hashCode(): Int {
+        var result = id
+        result = 31 * result + area.hashCode()
+        result = 31 * result + episode.hashCode()
+        return result
+    }
 }
