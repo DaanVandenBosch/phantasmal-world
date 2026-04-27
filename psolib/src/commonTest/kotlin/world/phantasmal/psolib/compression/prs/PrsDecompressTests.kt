@@ -6,8 +6,10 @@ import world.phantasmal.psolib.cursor.cursor
 import world.phantasmal.psolib.test.LibTestSuite
 import world.phantasmal.psolib.test.readFile
 import kotlin.random.Random
+import world.phantasmal.core.Success
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class PrsDecompressTests : LibTestSuite {
     @Test
@@ -70,17 +72,41 @@ class PrsDecompressTests : LibTestSuite {
         assertCursorEquals(cursor, decompressedCursor)
     }
 
+    /**
+     * Verify that PRS decompression succeeds when the compressed stream is truncated
+     * (lacks the 00 00 end-of-stream marker). Exercises the PrsEndOfInput recovery path.
+     */
+    @Test
+    fun decompress_truncated_stream_without_terminator() {
+        // Compress known data, then strip the last 2 bytes (the 00 00 terminator).
+        val original = Buffer.withSize(100).fillByte(42)
+        val compressed = prsCompress(original.cursor())
+        val compressedSize = compressed.size
+
+        // Create a truncated copy missing the final 2 bytes.
+        compressed.seekStart(0)
+        val truncated = Buffer.withSize(compressedSize - 2)
+        for (i in 0 until compressedSize - 2) {
+            truncated.setByte(i, compressed.byte())
+        }
+
+        val result = prsDecompress(truncated.cursor())
+        assertTrue(result is Success, "Truncated PRS stream should decompress successfully")
+        // The decompressed data should match (at least the bytes that were encoded before truncation).
+        assertTrue(result.value.size > 0, "Decompressed output should not be empty")
+    }
+
     @Test
     fun decompress_towards_the_future() = testAsync {
-        val orig = readFile("/quest118_e_decompressed.bin")
-        val test = prsDecompress(readFile("/quest118_e.bin")).unwrap()
+        val orig = readFile("/towards_the_future_decompressed.bin")
+        val test = prsDecompress(readFile("/towards_the_future.bin")).unwrap()
 
         assertCursorEquals(orig, test)
     }
 
     @Test
     fun compress_and_decompress_towards_the_future() = testAsync {
-        val orig = readFile("/quest118_e_decompressed.bin")
+        val orig = readFile("/towards_the_future_decompressed.bin")
         val test = prsDecompress(prsCompress(orig)).unwrap()
         orig.seekStart(0)
 

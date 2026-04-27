@@ -2,6 +2,7 @@ package world.phantasmal.web.shared.messages
 
 import kotlinx.serialization.Serializable
 import world.phantasmal.core.Severity
+import world.phantasmal.psolib.asm.dataFlowAnalysis.FloorMapping
 
 /*
  * The protocol between the AsmAnalyser and the assembly web worker is loosely based on the language
@@ -18,10 +19,17 @@ sealed class ClientMessage
 
 @Serializable
 sealed class ClientNotification : ClientMessage() {
+    /**
+     * Replaces the entire ASM text in the assembly worker.
+     *
+     * Previously carried an `inlineStackArgs: Boolean` flag that let the UI toggle whether
+     * push arguments were inlined into Pop opcodes. This is now handled unconditionally at
+     * bytecode parse time by [normalizeStackArgs][world.phantasmal.psolib.fileFormats.quest.parseBytecode],
+     * so the flag is no longer needed.
+     */
     @Serializable
     class SetAsm(
         val asm: List<String>,
-        val inlineStackArgs: Boolean,
     ) : ClientNotification()
 
     @Serializable
@@ -54,6 +62,7 @@ sealed class Request : ClientMessage() {
 
     @Serializable
     class GetHighlights(override val id: Int, val lineNo: Int, val col: Int) : Request()
+
 }
 
 @Serializable
@@ -62,13 +71,28 @@ sealed class ServerMessage
 @Serializable
 sealed class ServerNotification : ServerMessage() {
     @Serializable
-    class MapDesignations(
-        val mapDesignations: Map<Int, Int>,
+    class FloorMappings(
+        val floorMappings: List<FloorMapping>,
     ) : ServerNotification()
 
     @Serializable
     class Problems(
         val problems: List<AssemblyProblem>,
+    ) : ServerNotification()
+
+    @Serializable
+    class Labels(
+        val labels: List<Label>,
+    ) : ServerNotification()
+
+    @Serializable
+    class Registers(
+        val registers: List<RegisterInfo>,
+    ) : ServerNotification()
+
+    @Serializable
+    class Segments(
+        val segments: List<SegmentInfo>,
     ) : ServerNotification()
 }
 
@@ -116,6 +140,7 @@ sealed class Response<T> : ServerMessage() {
         override val id: Int,
         override val result: List<AsmRange>,
     ) : Response<List<AsmRange>>()
+
 }
 
 @Serializable
@@ -198,3 +223,23 @@ class Label(
     val name: Int,
     val range: AsmRange,
 )
+
+@Serializable
+class RegisterInfo(
+    val id: Int,
+    val reads: Int,
+    val writes: Int,
+)
+
+@Serializable
+class SegmentInfo(
+    val type: SegmentInfoType,
+    val labels: List<Int>,
+    val range: AsmRange,
+    val size: Int,
+)
+
+@Serializable
+enum class SegmentInfoType {
+    Data, String
+}

@@ -44,6 +44,21 @@ inline fun Node.h2(block: HTMLHeadingElement.() -> Unit = {}): HTMLHeadingElemen
     return appendHtmlEl("H2", block)
 }
 
+inline fun Node.h3(block: HTMLHeadingElement.() -> Unit = {}): HTMLHeadingElement {
+    contract { callsInPlace(block, EXACTLY_ONCE) }
+    return appendHtmlEl("H3", block)
+}
+
+inline fun Node.h4(block: HTMLHeadingElement.() -> Unit = {}): HTMLHeadingElement {
+    contract { callsInPlace(block, EXACTLY_ONCE) }
+    return appendHtmlEl("H4", block)
+}
+
+inline fun Node.h5(block: HTMLHeadingElement.() -> Unit = {}): HTMLHeadingElement {
+    contract { callsInPlace(block, EXACTLY_ONCE) }
+    return appendHtmlEl("H5", block)
+}
+
 inline fun Node.header(block: HTMLElement.() -> Unit = {}): HTMLElement {
     contract { callsInPlace(block, EXACTLY_ONCE) }
     return appendHtmlEl("HEADER", block)

@@ -7,7 +7,7 @@ import world.phantasmal.web.core.controllers.PathAwareTabContainerController
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.web.viewer.ViewerUrls
 import world.phantasmal.web.viewer.models.AnimationModel
-import world.phantasmal.web.viewer.models.CharacterClass
+import world.phantasmal.web.viewer.models.ViewerModel
 import world.phantasmal.web.viewer.stores.ViewerStore
 
 sealed class ViewerTab(
@@ -26,14 +26,14 @@ class ViewerController(
     PwToolType.Viewer,
     tabs = listOf(ViewerTab.Mesh, ViewerTab.Texture),
 ) {
-    val characterClasses: List<CharacterClass> = CharacterClass.VALUES_LIST
-    val currentCharacterClass: Cell<CharacterClass?> = store.currentCharacterClass
+    val modelGroups: List<ViewerModel.Group> = ViewerModel.GROUPS
+    val currentModel: Cell<ViewerModel?> = store.currentModel
 
-    val animations: List<AnimationModel> = store.animations
+    val animations: Cell<List<AnimationModel>> = store.animations
     val currentAnimation: Cell<AnimationModel?> = store.currentAnimation
 
-    suspend fun setCurrentCharacterClass(char: CharacterClass?) {
-        store.setCurrentCharacterClass(char)
+    suspend fun setCurrentModel(model: ViewerModel?) {
+        store.setCurrentModel(model)
     }
 
     suspend fun setCurrentAnimation(animation: AnimationModel) {

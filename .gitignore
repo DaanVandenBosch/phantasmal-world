@@ -16,3 +16,6 @@ karma.config.generated.js
 
 # Kotlin
 /.kotlin
+
+# Override global gitignore
+!docs/

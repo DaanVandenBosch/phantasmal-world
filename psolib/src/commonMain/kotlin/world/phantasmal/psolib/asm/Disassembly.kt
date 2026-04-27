@@ -8,19 +8,26 @@ private val logger = KotlinLogging.logger {}
 private const val INDENT_WIDTH = 4
 private val INDENT = " ".repeat(INDENT_WIDTH)
 
+enum class IntFormat {
+    HEX,
+    DECIMAL,
+}
+
 /**
- * @param inlineStackArgs If true, will output stack arguments inline instead of outputting stack
- * management instructions (argpush variants).
+ * @param intFormat How to format integer arguments: [IntFormat.HEX] for 0x prefixed hexadecimal,
+ * [IntFormat.DECIMAL] for decimal. Labels and registers are not affected.
+ * @param hideNops If true, NOP instructions will be omitted from the output.
  */
-fun disassemble(bytecodeIr: BytecodeIr, inlineStackArgs: Boolean = true): List<String> {
+fun disassemble(
+    bytecodeIr: BytecodeIr,
+    intFormat: IntFormat = IntFormat.DECIMAL,
+    hideNops: Boolean = false,
+): List<String> {
     logger.trace {
-        "Disassembling ${bytecodeIr.segments.size} segments with ${
-            if (inlineStackArgs) "inline stack arguments" else "stack push instructions"
-        }."
+        "Disassembling ${bytecodeIr.segments.size} segments."
     }
 
     val lines = mutableListOf<String>()
-    val stack = mutableListOf<ArgWithType>()
     var sectionType: SegmentType? = null
 
     for (segment in bytecodeIr.segments) {
@@ -50,73 +57,56 @@ fun disassemble(bytecodeIr: BytecodeIr, inlineStackArgs: Boolean = true): List<S
         // Code or data lines.
         when (segment) {
             is InstructionSegment -> {
-                var inVaList = false
-
-                segment.instructions.forEachIndexed { i, instruction ->
+                for (instruction in segment.instructions) {
                     val opcode = instruction.opcode
 
-                    if (opcode.code == OP_VA_START.code) {
-                        inVaList = true
-                    } else if (opcode.code == OP_VA_END.code) {
-                        inVaList = false
+                    if (hideNops && opcode.code == OP_NOP.code) {
+                        continue
                     }
 
-                    if (inlineStackArgs &&
-                        !inVaList &&
-                        opcode.stack == StackInteraction.Push &&
-                        canInlinePushedArg(segment, i)
-                    ) {
-                        stack.addAll(addTypeToArgs(opcode.params, instruction.args))
-                    } else {
-                        val sb = StringBuilder(INDENT)
-                        sb.append(opcode.mnemonic)
+                    val sb = StringBuilder(INDENT)
+                    sb.append(opcode.mnemonic)
 
-                        if (opcode.stack == StackInteraction.Pop) {
-                            if (inlineStackArgs) {
-                                sb.appendArgs(
-                                    opcode.params,
-                                    stack.takeLast(opcode.params.size),
-                                    stack = true,
-                                )
-                            }
-                        } else {
-                            sb.appendArgs(
-                                opcode.params,
-                                addTypeToArgs(opcode.params, instruction.args),
-                                stack = false
-                            )
-                        }
+                    val useHex = intFormat == IntFormat.HEX
 
-                        if (opcode.stack != StackInteraction.Push) {
-                            stack.clear()
-                        }
+                    // All instructions (including Pop) now have inlined args in normalized IR.
+                    sb.appendArgs(
+                        opcode.params,
+                        addTypeToArgs(opcode.params, instruction.args),
+                        useHex = useHex,
+                    )
 
-                        lines.add(sb.toString())
-                    }
+                    lines.add(sb.toString())
                 }
             }
 
             is DataSegment -> {
-                val sb = StringBuilder(INDENT)
+                if (segment.data.size == 0) {
+                    // Zero-byte segment: emit an empty line so the label is not orphaned
+                    // and the segment round-trips correctly through the assembler.
+                    lines.add(INDENT)
+                } else {
+                    val sb = StringBuilder(INDENT)
 
-                for (i in 0 until segment.data.size) {
-                    sb.append("0x")
-                    sb.append(segment.data.getUByte(i).toString(16).padStart(2, '0'))
+                    for (i in 0 until segment.data.size) {
+                        sb.append("0x")
+                        sb.append(segment.data.getUByte(i).toString(16).uppercase().padStart(2, '0'))
 
-                    when {
-                        // Last line.
-                        i == segment.data.size - 1 -> {
-                            lines.add(sb.toString())
-                        }
-                        // Start a new line after every 16 bytes.
-                        i % 16 == 15 -> {
-                            lines.add(sb.toString())
-                            sb.setLength(0)
-                            sb.append(INDENT)
-                        }
-                        // Add a space between each byte.
-                        else -> {
-                            sb.append(" ")
+                        when {
+                            // Last line.
+                            i == segment.data.size - 1 -> {
+                                lines.add(sb.toString())
+                            }
+                            // Start a new line after every 16 bytes.
+                            i % 16 == 15 -> {
+                                lines.add(sb.toString())
+                                sb.setLength(0)
+                                sb.append(INDENT)
+                            }
+                            // Add a space between each byte.
+                            else -> {
+                                sb.append(" ")
+                            }
                         }
                     }
                 }
@@ -138,37 +128,6 @@ fun disassemble(bytecodeIr: BytecodeIr, inlineStackArgs: Boolean = true): List<S
 
 private data class ArgWithType(val arg: Arg, val type: AnyType)
 
-private fun canInlinePushedArg(segment: InstructionSegment, index: Int): Boolean {
-    var pushedArgCount = 0
-
-    for (i in index until segment.instructions.size) {
-        val opcode = segment.instructions[i].opcode
-
-        when (opcode.stack) {
-            StackInteraction.Push -> pushedArgCount++
-
-            StackInteraction.Pop -> {
-                var paramCount = 0
-                var varArgs = false
-
-                for (param in opcode.params) {
-                    when (param.type) {
-                        is ILabelVarType -> varArgs = true
-                        is RegVarType -> varArgs = true
-                        else -> paramCount++
-                    }
-                }
-
-                return pushedArgCount <= paramCount || (pushedArgCount > paramCount && varArgs)
-            }
-
-            null -> return false
-        }
-    }
-
-    return false
-}
-
 private fun addTypeToArgs(params: List<Param>, args: List<Arg>): List<ArgWithType> {
     val argsWithType = mutableListOf<ArgWithType>()
 
@@ -188,7 +147,11 @@ private fun addTypeToArgs(params: List<Param>, args: List<Arg>): List<ArgWithTyp
     return argsWithType
 }
 
-private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType>, stack: Boolean) {
+private fun StringBuilder.appendArgs(
+    params: List<Param>,
+    args: List<ArgWithType>,
+    useHex: Boolean = false,
+) {
     var i = 0
 
     while (i < params.size) {
@@ -203,35 +166,21 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
         if (i < args.size) {
             val (arg, argType) = args[i]
 
-            if (argType is RegType) {
+            if (argType is RegType || (arg is IntArg && arg.isRegRef)) {
                 append("r")
                 append(arg.value)
             } else {
                 when (paramType) {
                     FloatType -> {
-                        // Floats are pushed onto the stack as integers with arg_pushl.
-                        if (stack) {
-                            append(Float.fromBits((arg as IntArg).value))
-                        } else {
-                            append(arg.value)
-                        }
+                        append(arg.coerceFloat())
                     }
 
                     ILabelVarType -> {
-                        while (i < args.size) {
-                            append(args[i].arg.value)
-                            if (i < args.lastIndex) append(", ")
-                            i++
-                        }
+                        i = appendVarArgs(args, i, prefix = "")
                     }
 
                     RegVarType -> {
-                        while (i < args.size) {
-                            append("r")
-                            append(args[i].arg.value)
-                            if (i < args.lastIndex) append(", ")
-                            i++
-                        }
+                        i = appendVarArgs(args, i, prefix = "r")
                     }
 
                     is RegType -> {
@@ -244,7 +193,7 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
                     }
 
                     else -> {
-                        append(arg.value)
+                        appendValueArg(arg, paramType, useHex)
                     }
                 }
             }
@@ -252,6 +201,56 @@ private fun StringBuilder.appendArgs(params: List<Param>, args: List<ArgWithType
 
         i++
     }
+}
+
+/**
+ * Appends all remaining varargs starting at [startIndex], separated by commas. Each arg value is
+ * prefixed with [prefix] (e.g. "r" for register references, "" for labels). Returns the index of
+ * the last consumed arg (the caller will increment it once more).
+ */
+private fun StringBuilder.appendVarArgs(
+    args: List<ArgWithType>,
+    startIndex: Int,
+    prefix: String,
+): Int {
+    var i = startIndex
+
+    while (i < args.size) {
+        append(prefix)
+        append(args[i].arg.value)
+        if (i < args.lastIndex) append(", ")
+        i++
+    }
+
+    // Return the last index consumed; the caller will increment once more.
+    return i - 1
+}
+
+/**
+ * Appends a value-type argument, using hex formatting when [useHex] is true and the parameter type
+ * is a non-label value type.
+ */
+private fun StringBuilder.appendValueArg(arg: Arg, paramType: AnyType, useHex: Boolean) {
+    if (useHex && paramType is ValueType && paramType !is LabelType) {
+        val bitSize = when (paramType) {
+            ByteType -> 8
+            ShortType -> 16
+            else -> 32
+        }
+        appendHexInt(arg.value, bitSize)
+    } else {
+        append(arg.value)
+    }
+}
+
+private fun StringBuilder.appendHexInt(value: Any?, bitSize: Int = 32) {
+    val intVal = (value as? Number)?.toInt() ?: 0
+    val unsigned = intVal.toUInt()
+    val mask = if (bitSize >= 32) UInt.MAX_VALUE else ((1u shl bitSize) - 1u)
+    val masked = unsigned and mask
+    val hexDigits = bitSize / 4
+    append("0x")
+    append(masked.toString(16).uppercase().padStart(hexDigits, '0'))
 }
 
 private fun StringBuilder.appendStringArg(value: String): StringBuilder {

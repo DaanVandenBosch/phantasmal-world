@@ -21,6 +21,13 @@ class TextArea(
     private val fontFamily: String? = null,
     private val rows: Int? = null,
     private val cols: Int? = null,
+    /**
+     * When true, [onChange] fires on every keystroke (HTML `input` event)
+     * instead of only on focus loss (HTML `change` event). Useful when the
+     * surrounding UI needs live feedback (e.g. clearing a parse-error label
+     * as soon as the user starts editing).
+     */
+    private val triggerOnInput: Boolean = false,
 ) : LabelledControl(
     visible,
     enabled,
@@ -40,7 +47,11 @@ class TextArea(
                 observeNow(this@TextArea.enabled) { disabled = !it }
 
                 if (onChange != null) {
-                    onchange = { onChange.invoke(value) }
+                    if (triggerOnInput) {
+                        oninput = { onChange.invoke(value) }
+                    } else {
+                        onchange = { onChange.invoke(value) }
+                    }
                 }
 
                 observeNow(this@TextArea.value) { value = it }

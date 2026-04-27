@@ -2,7 +2,6 @@ package world.phantasmal.web
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.datetime.Clock
 import mu.KotlinLoggingConfiguration
 import mu.KotlinLoggingLevel
 import org.w3c.dom.HTMLCanvasElement
@@ -12,6 +11,7 @@ import world.phantasmal.core.disposable.Disposer
 import world.phantasmal.core.disposable.TrackedDisposable
 import world.phantasmal.core.disposable.disposable
 import world.phantasmal.web.application.Application
+import world.phantasmal.web.core.Clock
 import world.phantasmal.web.core.loading.AssetLoader
 import world.phantasmal.web.core.persistence.LocalStorageKeyValueStore
 import world.phantasmal.web.core.rendering.DisposableThreeRenderer

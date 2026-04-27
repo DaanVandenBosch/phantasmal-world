@@ -2,8 +2,8 @@ package world.phantasmal.web.test
 
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-import kotlinx.datetime.Clock
 import org.w3c.dom.HTMLCanvasElement
+import world.phantasmal.web.core.Clock
 import world.phantasmal.core.disposable.Disposable
 import world.phantasmal.testUtils.TestContext
 import world.phantasmal.web.core.loading.AssetLoader
@@ -19,9 +19,14 @@ import world.phantasmal.web.huntOptimizer.stores.HuntMethodStore
 import world.phantasmal.web.questEditor.loading.AreaAssetLoader
 import world.phantasmal.web.questEditor.loading.QuestLoader
 import world.phantasmal.web.questEditor.stores.AreaStore
+import world.phantasmal.web.questEditor.stores.AsmStore
+import world.phantasmal.web.questEditor.stores.PlaybackVisualizationStore
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.QuestEditorUiStore
+import world.phantasmal.web.questEditor.stores.ViewportStore
 import world.phantasmal.web.viewer.loading.AnimationAssetLoader
 import world.phantasmal.web.viewer.loading.CharacterClassAssetLoader
+import world.phantasmal.web.viewer.loading.NpcAssetLoader
 import world.phantasmal.web.viewer.stores.ViewerStore
 
 /**
@@ -39,6 +44,10 @@ class TestComponents(private val ctx: TestContext) {
 
     var characterClassAssetLoader: CharacterClassAssetLoader by default {
         CharacterClassAssetLoader(assetLoader)
+    }
+
+    var npcAssetLoader: NpcAssetLoader by default {
+        NpcAssetLoader(assetLoader)
     }
 
     var animationAssetLoader: AnimationAssetLoader by default {
@@ -68,11 +77,21 @@ class TestComponents(private val ctx: TestContext) {
     var areaStore: AreaStore by default { AreaStore(areaAssetLoader) }
 
     var viewerStore: ViewerStore by default {
-        ViewerStore(characterClassAssetLoader, animationAssetLoader, uiStore)
+        ViewerStore(characterClassAssetLoader, npcAssetLoader, animationAssetLoader, uiStore)
     }
 
+    var viewportStore: ViewportStore by default { ViewportStore() }
+
+    var playbackVisualizationStore: PlaybackVisualizationStore by default { PlaybackVisualizationStore() }
+
+    var questEditorUiStore: QuestEditorUiStore by default { QuestEditorUiStore(uiStore) }
+
     var questEditorStore: QuestEditorStore by default {
-        QuestEditorStore(questLoader, uiStore, areaStore, undoManager, initializeNewQuest = false)
+        QuestEditorStore(questLoader, uiStore, areaStore, undoManager, viewportStore, initializeNewQuest = false)
+    }
+
+    var asmStore: AsmStore by default {
+        AsmStore(questEditorStore, undoManager)
     }
 
     var huntMethodStore: HuntMethodStore by default {

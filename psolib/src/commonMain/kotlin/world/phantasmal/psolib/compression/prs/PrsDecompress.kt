@@ -65,6 +65,11 @@ private class PrsDecompressor(private val src: Cursor) {
             }
 
             return Success(dst.seekStart(0))
+        } catch (e: PrsEndOfInput) {
+            // Some PRS streams lack a proper end-of-stream marker. Treat running
+            // out of input data the same as encountering the 00 00 terminator,
+            // matching newserv's behaviour.
+            return Success(dst.seekStart(0))
         } catch (e: Exception) {
             return PwResult.build<Cursor>(logger)
                 .addProblem(Severity.Error, "PRS-compressed stream is corrupt.", cause = e)
@@ -86,12 +91,19 @@ private class PrsDecompressor(private val src: Cursor) {
     }
 
     private fun copyByte() {
+        if (src.bytesLeft < 1) throw PrsEndOfInput()
         dst.writeByte(src.byte())
     }
 
-    private fun readUByte(): Int = src.byte().toInt() and 0xFF
+    private fun readUByte(): Int {
+        if (src.bytesLeft < 1) throw PrsEndOfInput()
+        return src.byte().toInt() and 0xFF
+    }
 
-    private fun readUShort(): Int = src.short().toInt() and 0xFFFF
+    private fun readUShort(): Int {
+        if (src.bytesLeft < 2) throw PrsEndOfInput()
+        return src.short().toInt() and 0xFFFF
+    }
 
     private fun offsetCopy(offset: Int, size: Int) {
         require(offset in -8192..0) {
@@ -117,3 +129,5 @@ private class PrsDecompressor(private val src: Cursor) {
         dst.writeCursor(buf.take(size % bufSize))
     }
 }
+
+private class PrsEndOfInput : Exception()

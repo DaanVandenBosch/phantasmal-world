@@ -31,7 +31,6 @@ kotlin {
                 implementation(project(":web:shared"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
                 implementation(npm("golden-layout", "^1.5.9"))
                 implementation(npm("monaco-editor", "0.26.1"))
                 implementation(npm("three", "^0.128.0"))
@@ -39,6 +38,8 @@ kotlin {
 
                 implementation(devNpm("file-loader", "^6.2.0"))
                 implementation(devNpm("monaco-editor-webpack-plugin", "4.1.1"))
+                implementation(devNpm("compression-webpack-plugin", "^10.0.0"))
+                implementation(devNpm("html-webpack-plugin", "^5.6.0"))
             }
         }
 

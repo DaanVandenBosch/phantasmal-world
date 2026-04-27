@@ -5,7 +5,7 @@ import world.phantasmal.core.fastReplace
 import world.phantasmal.core.getCodePointAt
 import world.phantasmal.core.isDigit
 
-private val HEX_INT_REGEX = Regex("""^0[xX][0-9a-fA-F]+$""")
+private val HEX_INT_REGEX = Regex("""^-?0[xX][0-9a-fA-F]+$""")
 private val FLOAT_REGEX = Regex("""^-?\d+(\.\d+)?(e-?\d+)?$""")
 
 enum class Token {
@@ -150,6 +150,8 @@ class LineTokenizer {
     private fun tokenizeNumberOrLabel() {
         val firstChar = next()
         var isLabel = false
+        // Track if we've seen '-' followed by '0' for negative hex detection.
+        val isNegative = firstChar == '-'
 
         while (hasNext()) {
             val char = peek()
@@ -157,7 +159,9 @@ class LineTokenizer {
             if (char == '.' || char == 'e') {
                 tokenizeFloat()
                 return
-            } else if (firstChar == '0' && (char == 'x' || char == 'X')) {
+            } else if ((char == 'x' || char == 'X') &&
+                (firstChar == '0' || (isNegative && slice() == "-0"))
+            ) {
                 tokenizeHexNumber()
                 return
             } else if (char == ':') {
@@ -188,9 +192,23 @@ class LineTokenizer {
         val hexStr = slice()
 
         if (HEX_INT_REGEX.matches(hexStr)) {
-            value = hexStr.drop(2).toIntOrNull(16)
+            val negative = hexStr.startsWith('-')
+            val digits = if (negative) hexStr.drop(3) else hexStr.drop(2) // drop "-0x" or "0x"
+            // Use toUIntOrNull instead of toLongOrNull to avoid Kotlin/JS Long emulation issues.
+            val parsed = digits.toUIntOrNull(16)
 
-            if (value != null) {
+            if (parsed != null) {
+                if (negative && parsed > 0x80000000u) {
+                    // Negating values > 0x80000000 would overflow a 32-bit signed integer.
+                    type = Token.InvalidNumber
+                    return
+                }
+                value = if (negative) {
+                    // -0x80000000 = Int.MIN_VALUE; handle explicitly to avoid overflow.
+                    if (parsed == 0x80000000u) Int.MIN_VALUE else -(parsed.toInt())
+                } else {
+                    parsed.toInt()
+                }
                 type = Token.Int32
                 return
             }
