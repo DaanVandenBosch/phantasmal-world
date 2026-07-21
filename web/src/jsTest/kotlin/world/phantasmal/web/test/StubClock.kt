@@ -1,8 +1,7 @@
 package world.phantasmal.web.test
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import world.phantasmal.web.core.Clock
 
-class StubClock(var currentTime: Instant = Instant.DISTANT_PAST) : Clock {
-    override fun now(): Instant = currentTime
+class StubClock(var currentTimeMillis: Double = 0.0) : Clock {
+    override fun nowMillis(): Double = currentTimeMillis
 }

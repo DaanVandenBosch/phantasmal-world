@@ -18,7 +18,7 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
         ObjectType.Particle -> {
             data.setShort(4, 5639)
             data.setShort(6, 10)
-            data.setFloat(40, 38f) // Scale x
+            data.setFloat(40, 38f) // Particle type (param1, per newserv TObjParticle)
             data.setInt(64, 1351475840)
         }
 
@@ -206,7 +206,7 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, -252124544)
         }
 
-        ObjectType.UnknownItem39 -> {
+        ObjectType.RadarIcon -> {
             data.setShort(4, 30728)
             data.setShort(6, 1)
             data.setInt(56, 65641)
@@ -474,17 +474,17 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setShort(4, 28167)
             data.setShort(6, 11)
             data.setFloat(40, 0f) // Color
-            data.setFloat(44, 8f) // Collision width
-            data.setFloat(48, 25f) // Collision depth
+            data.setFloat(44, 8f) // Collision depth (transverse to lasers)
+            data.setFloat(48, 25f) // Collision width (parallel to lasers)
             data.setInt(64, -526061696)
         }
 
         ObjectType.FloorPanel1 -> {
             data.setShort(4, 1556)
             data.setShort(6, 4)
-            data.setFloat(40, 1.000000238418579f) // Scale  x
-            data.setFloat(44, 1.000000238418579f) // Scale  y
-            data.setFloat(48, 0.9990062713623047f) // Scale  z
+            data.setFloat(40, 1.000000238418579f) // Scale x
+            data.setFloat(44, 1.000000238418579f) // Scale y
+            data.setFloat(48, 0.9990062713623047f) // Scale z
             data.setInt(64, -1929651776)
         }
 
@@ -1160,13 +1160,13 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, 1082650496)
         }
 
-        ObjectType.UnknownItem529 -> {
+        ObjectType.BiwaMushi -> {
             data.setShort(4, 2139)
             data.setShort(6, 6)
             data.setInt(64, 71348128)
         }
 
-        ObjectType.UnknownItem530 -> {
+        ObjectType.JungleDesign -> {
             data.setShort(4, 2046)
             data.setShort(6, 9)
             data.setInt(64, 206357088)
@@ -1386,7 +1386,7 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, 36805664)
         }
 
-        ObjectType.UnknownItem910 -> {
+        ObjectType.Ep4TestDoor -> {
             data.setShort(4, 1309)
             data.setShort(6, 6)
         }
@@ -1409,7 +1409,7 @@ internal fun setObjectDefaultData(type: ObjectType, data: Buffer) {
             data.setInt(64, 26818944)
         }
 
-        ObjectType.UnknownItem961 -> {
+        ObjectType.Ep4BossRockSpawner -> {
             data.setShort(4, 1322)
             data.setShort(6, 9)
             data.setInt(64, 207524384)

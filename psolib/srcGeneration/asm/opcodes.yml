@@ -16,6 +16,7 @@ opcodes:
 
   - code: 0x03
     mnemonic: exit
+    doc: "Exits entirely"
     params:
       - type: int
     stack: pop
@@ -146,23 +147,32 @@ opcodes:
 
   - code: 0x13
     mnemonic: gset
+    doc: "Sets flagA to 1. Sends 6x75."
     params:
       - type: short
 
   - code: 0x14
     mnemonic: gclear
+    doc: "Clears flagA to 0. Sends 6x75 on BB, but does not send anything on other versions."
     params:
       - type: short
 
   - code: 0x15
     mnemonic: grev
+    doc: "Inverts flagA. Like the above two opcodes, sends 6x75 if the flag is set by this opcode. Only BB sends 6x75 if the flag is cleared by this opcode."
     params:
       - type: short
 
   - code: 0x16
     mnemonic: glet
+    doc: "If regB is nonzero, sets flagA; otherwise, clears it"
     params:
       - type: short
+        name: "flag"
+      - type: reg
+        registers:
+          - type: int
+            read: true
 
   - code: 0x17
     mnemonic: gget
@@ -172,11 +182,11 @@ opcodes:
       - type: reg
         registers:
           - type: short
-            name: flag
             write: true
 
   - code: 0x18
     mnemonic: add
+    doc: "regA += regB"
     params:
       - type: reg
         registers:
@@ -190,6 +200,7 @@ opcodes:
 
   - code: 0x19
     mnemonic: addi
+    doc: "regA += valueB"
     params:
       - type: reg
         registers:
@@ -199,6 +210,7 @@ opcodes:
 
   - code: 0x1a
     mnemonic: sub
+    doc: "regA -= regB"
     params:
       - type: reg
         registers:
@@ -212,6 +224,7 @@ opcodes:
 
   - code: 0x1b
     mnemonic: subi
+    doc: "regA -= valueB"
     params:
       - type: reg
         registers:
@@ -221,6 +234,7 @@ opcodes:
 
   - code: 0x1c
     mnemonic: mul
+    doc: "regA *= regB"
     params:
       - type: reg
         registers:
@@ -234,6 +248,7 @@ opcodes:
 
   - code: 0x1d
     mnemonic: muli
+    doc: "regA *= valueB"
     params:
       - type: reg
         registers:
@@ -243,6 +258,7 @@ opcodes:
 
   - code: 0x1e
     mnemonic: div
+    doc: "regA /= regB"
     params:
       - type: reg
         registers:
@@ -256,6 +272,7 @@ opcodes:
 
   - code: 0x1f
     mnemonic: divi
+    doc: "regA /= valueB"
     params:
       - type: reg
         registers:
@@ -265,6 +282,7 @@ opcodes:
 
   - code: 0x20
     mnemonic: and
+    doc: "regA &= regB"
     params:
       - type: reg
         registers:
@@ -278,6 +296,7 @@ opcodes:
 
   - code: 0x21
     mnemonic: andi
+    doc: "regA &= valueB"
     params:
       - type: reg
         registers:
@@ -287,6 +306,7 @@ opcodes:
 
   - code: 0x22
     mnemonic: or
+    doc: "regA |= regB"
     params:
       - type: reg
         registers:
@@ -300,6 +320,7 @@ opcodes:
 
   - code: 0x23
     mnemonic: ori
+    doc: "regA |= valueB"
     params:
       - type: reg
         registers:
@@ -309,6 +330,7 @@ opcodes:
 
   - code: 0x24
     mnemonic: xor
+    doc: "regA ^= regB"
     params:
       - type: reg
         registers:
@@ -322,6 +344,7 @@ opcodes:
 
   - code: 0x25
     mnemonic: xori
+    doc: "regA ^= valueB"
     params:
       - type: reg
         registers:
@@ -331,6 +354,7 @@ opcodes:
 
   - code: 0x26
     mnemonic: mod
+    doc: "regA %= regB Note: This does signed division, so if the value is negative, you might get unexpected results."
     params:
       - type: reg
         registers:
@@ -344,6 +368,7 @@ opcodes:
 
   - code: 0x27
     mnemonic: modi
+    doc: "regA %= valueB Note: Unlike mod, this does unsigned division."
     params:
       - type: reg
         registers:
@@ -353,16 +378,19 @@ opcodes:
 
   - code: 0x28
     mnemonic: jmp
+    doc: "Jumps to labelA"
     params:
       - type: ilabel
 
   - code: 0x29
     mnemonic: call
+    doc: "Pushes the script offset immediately after this opcode and jumps to labelA Note: This opcode doesn't directly clear the args list, but we assume during disassembly that the code being called does so."
     params:
       - type: ilabel
 
   - code: 0x2a
     mnemonic: jmp_on
+    doc: "If all values in regsB are nonzero, jumps to labelA"
     params:
       - type: ilabel
       - type: reg_var
@@ -370,6 +398,7 @@ opcodes:
 
   - code: 0x2b
     mnemonic: jmp_off
+    doc: "If all values in regsB are zero, jumps to labelA"
     params:
       - type: ilabel
       - type: reg_var
@@ -377,6 +406,7 @@ opcodes:
 
   - code: 0x2c
     mnemonic: jmp_=
+    doc: "If regA == regB, jumps to labelC"
     params:
       - type: reg
         registers:
@@ -390,6 +420,7 @@ opcodes:
 
   - code: 0x2d
     mnemonic: jmpi_=
+    doc: "If regA == valueB, jumps to labelC"
     params:
       - type: reg
         registers:
@@ -400,6 +431,7 @@ opcodes:
 
   - code: 0x2e
     mnemonic: jmp_!=
+    doc: "If regA != regB, jumps to labelC"
     params:
       - type: reg
         registers:
@@ -413,6 +445,7 @@ opcodes:
 
   - code: 0x2f
     mnemonic: jmpi_!=
+    doc: "If regA != valueB, jumps to labelC"
     params:
       - type: reg
         registers:
@@ -423,6 +456,7 @@ opcodes:
 
   - code: 0x30
     mnemonic: ujmp_>
+    doc: "If regA > regB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -436,6 +470,7 @@ opcodes:
 
   - code: 0x31
     mnemonic: ujmpi_>
+    doc: "If regA > valueB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -446,6 +481,7 @@ opcodes:
 
   - code: 0x32
     mnemonic: jmp_>
+    doc: "If regA > regB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -459,6 +495,7 @@ opcodes:
 
   - code: 0x33
     mnemonic: jmpi_>
+    doc: "If regA > valueB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -469,6 +506,7 @@ opcodes:
 
   - code: 0x34
     mnemonic: ujmp_<
+    doc: "If regA < regB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -482,6 +520,7 @@ opcodes:
 
   - code: 0x35
     mnemonic: ujmpi_<
+    doc: "If regA < valueB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -492,6 +531,7 @@ opcodes:
 
   - code: 0x36
     mnemonic: jmp_<
+    doc: "If regA < regB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -505,6 +545,7 @@ opcodes:
 
   - code: 0x37
     mnemonic: jmpi_<
+    doc: "If regA < valueB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -515,6 +556,7 @@ opcodes:
 
   - code: 0x38
     mnemonic: ujmp_>=
+    doc: "If regA >= regB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -528,6 +570,7 @@ opcodes:
 
   - code: 0x39
     mnemonic: ujmpi_>=
+    doc: "If regA >= valueB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -538,6 +581,7 @@ opcodes:
 
   - code: 0x3a
     mnemonic: jmp_>=
+    doc: "If regA >= regB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -551,6 +595,7 @@ opcodes:
 
   - code: 0x3b
     mnemonic: jmpi_>=
+    doc: "If regA >= valueB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -561,6 +606,7 @@ opcodes:
 
   - code: 0x3c
     mnemonic: ujmp_<=
+    doc: "If regA <= regB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -574,6 +620,7 @@ opcodes:
 
   - code: 0x3d
     mnemonic: ujmpi_<=
+    doc: "If regA <= valueB (unsigned), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -584,6 +631,7 @@ opcodes:
 
   - code: 0x3e
     mnemonic: jmp_<=
+    doc: "If regA <= regB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -597,6 +645,7 @@ opcodes:
 
   - code: 0x3f
     mnemonic: jmpi_<=
+    doc: "If regA <= valueB (signed), jumps to labelC"
     params:
       - type: reg
         registers:
@@ -607,6 +656,7 @@ opcodes:
 
   - code: 0x40
     mnemonic: switch_jmp
+    doc: "Jumps to labelsB[regA]; if regA is out of range of labelsB, does nothing"
     params:
       - type: reg
         registers:
@@ -616,6 +666,7 @@ opcodes:
 
   - code: 0x41
     mnemonic: switch_call
+    doc: "Calls labelsB[regA]; if regA is out of range of labelsB, does nothing Note: This opcode doesn't directly clear the args list, but we assume during disassembly that the code being called does so."
     params:
       - type: reg
         registers:
@@ -625,6 +676,7 @@ opcodes:
 
   - code: 0x42
     mnemonic: stack_push
+    doc: "Does nothing"
     params:
       - type: reg
         registers:
@@ -633,6 +685,7 @@ opcodes:
 
   - code: 0x43
     mnemonic: stack_pop
+    doc: "Pops a value from the stack and puts it into regA"
     params:
       - type: reg
         registers:
@@ -711,18 +764,20 @@ opcodes:
     stack: push
 
   - code: 0x4f
+    mnemonic: unknown_4f
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0x50
     mnemonic: message
+    doc: "Creates dialogue with an object/NPC (valueA) starting with message strB"
     params:
       - type: int
       - type: string
@@ -744,54 +799,74 @@ opcodes:
 
   - code: 0x52
     mnemonic: fadein
+    doc: "Fades from black"
     params: []
 
   - code: 0x53
     mnemonic: fadeout
+    doc: "Fades to black"
     params: []
 
   - code: 0x54
     mnemonic: se
+    doc: "Plays a sound effect"
     params:
       - type: int
     stack: pop
 
   - code: 0x55
     mnemonic: bgm
+    doc: "Plays a fanfare (clear.adx if valueA is 0, or miniclear.adx if it's 1). There is no bounds check on this; values other than 0 or 1 will result in undefined behavior."
     params:
       - type: int
     stack: pop
 
+  - code: 0x56
+    mnemonic: nop_56
+    doc: "Does nothing"
+    params: []
+
+  - code: 0x57
+    mnemonic: nop_57
+    doc: "Does nothing"
+    params: []
+
   - code: 0x58
     mnemonic: enable
+    doc: "Does nothing"
     params:
       - type: int
     stack: pop
 
   - code: 0x59
     mnemonic: disable
+    doc: "Does nothing"
     params:
       - type: int
     stack: pop
 
   - code: 0x5a
     mnemonic: window_msg
+    doc: "Displays a message. Special tokens are interpolated within the string; these special tokens are: <rXX> => value of rXX as %d (signed integer) <fXX> => value of rXX as %f (floating-point) (v3 and later) <color X> => changes text color like $CX would (supported on 11/2000 and later); X must be numeric and in the range 0-7, so <color 8>, <color 9>, and <color G> do not work (though \\tC8, \\tC9, and \\tCG can be used directly in the text, and do work) <cr> => newline <hero name> or <name hero> => character's name <hero job> or <name job> => character's class <time> => always \"01:12\" (seems like an oversight that was never fixed) <award item> => name of the chosen challenge mode reward (v2 and later) <challenge title> => character's challenge rank text (v2 and later) <pl_name> => name of character selected with get_pl_name (v2 and later) <pl_job> => class of character selected with get_pl_job (v2 and later) <last_word> => challenge mode grave message (v2 and later) <team_name> => name of the game (set by 8A command) (v2 and later) <last_chat> => last chat message (v2 and later) <meseta_slot_prize> => the description of the last item sent by the server in a 6xE3 command (BB only)"
     params:
       - type: string
     stack: pop
 
   - code: 0x5b
     mnemonic: add_msg
+    doc: "Adds a message to an existing message (or window_msg). Tokens are interpolated as for window_msg."
     params:
       - type: string
     stack: pop
 
   - code: 0x5c
     mnemonic: mesend
+    doc: "Closes the current message box"
     params: []
 
   - code: 0x5d
     mnemonic: gettime
+    doc: "Gets the current time, in seconds since 00:00:00 on 1 January 2000"
     params:
       - type: reg
         registers:
@@ -800,78 +875,101 @@ opcodes:
 
   - code: 0x5e
     mnemonic: winend
+    doc: "Closes a window_msg"
     params: []
 
   - code: 0x60
     mnemonic: npc_crt_v3
+    doc: "Creates an NPC as client ID 1. Sends 6x69 with command = 0"
     params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            read: true
+      - type: int
+        name: "initial state"
+        doc: "initial state (see npc_crp; 0 = alive, 1 = dead, 2 = invisible text box)"
+      - type: int
+        name: "template index"
+        doc: "template index (see 6x69 in CommandFormats.hh)"
+    stack: pop
 
   - code: 0x61
     mnemonic: npc_stop
+    doc: "Tells an NPC (by client ID) to stop following"
     params:
       - type: int
     stack: pop
 
   - code: 0x62
     mnemonic: npc_play
+    doc: "Tells an NPC (by client ID) to follow the player"
     params:
       - type: int
     stack: pop
 
   - code: 0x63
     mnemonic: npc_kill
+    doc: "Destroys an NPC (by client ID)"
     params:
       - type: int
     stack: pop
 
   - code: 0x64
     mnemonic: npc_nont
+    doc: "Disables or enables the ability to talk to NPCs"
     params: []
 
   - code: 0x65
     mnemonic: npc_talk
+    doc: "Disables or enables the ability to talk to NPCs"
     params: []
 
   - code: 0x66
     mnemonic: npc_crp_v3
+    doc: "Creates an NPC as client ID 1. Sends 6x69 with command = 0. valueB is required in pre-v3 but is ignored"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
+          - type: int
+            read: true
+            name: "position X"
           - type: any
             read: true
+            name: "position Y"
           - type: any
             read: true
-          - type: any
-            read: true
+            name: "position Z"
           - type: ilabel
             read: true
+            name: "angle"
           - type: any
             read: true
+            name: "initial state"
+            doc: "initial state (0 = alive, 1 = dead, 2 = invisible text box, according to qedit.info)"
           - type: any
             read: true
+            name: "template index"
+            doc: "template index (see 6x69 in CommandFormats.hh)"
 
   - code: 0x68
     mnemonic: create_pipe
+    doc: "Creates a pipe. valueA is client ID"
     params:
       - type: int
     stack: pop
 
   - code: 0x69
     mnemonic: p_hpstat_v3
+    doc: "Checks player HP, but not in a straightforward manner: sets regA to 1 if (current_hp / max_hp) < (1 / valueA) for the client specified by valueB. Sets regA to 0 otherwise."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: int
+        name: "client ID"
     stack: pop
 
   - code: 0x6a
     mnemonic: p_dead_v3
+    doc: "Sets regA to 1 if player in slot (valueB) is dead, or 0 if alive."
     params:
       - type: reg
         registers:
@@ -883,52 +981,78 @@ opcodes:
 
   - code: 0x6b
     mnemonic: p_disablewarp
+    doc: "Disables/enables telepipes/Ryuker"
     params: []
 
   - code: 0x6c
     mnemonic: p_enablewarp
+    doc: "Disables/enables telepipes/Ryuker"
     params: []
 
   - code: 0x6d
     mnemonic: p_move_v3
+    doc: "Moves a player. valueB is required in pre-v3 but is ignored"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "destination X"
+          - type: int
+            read: true
+            name: "destination Y"
+          - type: int
+            read: true
+            name: "destination Z"
+          - type: int
+            read: true
+            name: "angle"
+          - type: int
+            read: true
+            name: "client ID"
 
   - code: 0x6e
     mnemonic: p_look
+    doc: "Causes the player with client ID valueA to look at an unspecified other player. The specified player looks at the player with the lowest client ID (except for the specified player). TODO: TObjPlayer::state is involved in determining which player to look at; figure out exactly what this does"
     params:
       - type: int
+        name: "client ID"
     stack: pop
 
   - code: 0x70
     mnemonic: p_action_disable
+    doc: "Disables/enables attacks for all players"
     params: []
 
   - code: 0x71
     mnemonic: p_action_enable
+    doc: "Disables/enables attacks for all players"
     params: []
 
   - code: 0x72
     mnemonic: disable_movement1
+    doc: "Disables/enables movement for the given player"
     params:
       - type: int
+        name: "client ID"
     stack: pop
 
   - code: 0x73
     mnemonic: enable_movement1
+    doc: "Disables/enables movement for the given player"
     params:
       - type: int
+        name: "client ID"
     stack: pop
 
   - code: 0x74
     mnemonic: p_noncol
+    doc: "These appear to do nothing at all. On v3, they set and clear a flag that is never read. On DC NTE and v1, code exists to read this flag, but it belongs to an object that appears to never be constructed anywhere."
     params: []
 
   - code: 0x75
     mnemonic: p_col
+    doc: "These appear to do nothing at all. On v3, they set and clear a flag that is never read. On DC NTE and v1, code exists to read this flag, but it belongs to an object that appears to never be constructed anywhere."
     params: []
 
   - code: 0x76
@@ -941,120 +1065,208 @@ opcodes:
         doc: Coordinates and rotation around y-axis.
         registers:
           - type: int
-            name: x
             read: true
+            name: "position X"
           - type: int
-            name: y
             read: true
+            name: "position Y"
           - type: int
-            name: z
             read: true
+            name: "position Z"
           - type: int
-            name: y_rot
             read: true
+            name: "angle"
     stack: pop
 
   - code: 0x77
     mnemonic: p_return_guild
+    doc: "Returns players to the Hunter's Guild counter."
     params: []
 
   - code: 0x78
     mnemonic: p_talk_guild
+    doc: "Opens the Hunter's Guild counter menu. valueA should be the player's client ID."
     params:
       - type: int
+        name: "client ID"
     stack: pop
 
   - code: 0x79
     mnemonic: npc_talk_pl_v3
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            read: true
-
-  - code: 0x7a
-    mnemonic: npc_talk_kill
-    params:
-      - type: int
-    stack: pop
-
-  - code: 0x7b
-    mnemonic: npc_crtpk_v3
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            read: true
-
-  - code: 0x7c
-    mnemonic: npc_crppk_v3
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            read: true
-
-  - code: 0x7d
-    mnemonic: npc_crptalk_v3
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            read: true
-
-  - code: 0x7e
-    mnemonic: p_look_at_v1
-    params:
-      - type: int
-      - type: int
-    stack: pop
-
-  - code: 0x7f
-    mnemonic: npc_crp_id_v3
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            read: true
-
-  - code: 0x80
-    mnemonic: cam_quake
-    params: []
-
-  - code: 0x81
-    mnemonic: cam_adj
-    params: []
-
-  - code: 0x82
-    mnemonic: cam_zmin
-    params: []
-
-  - code: 0x83
-    mnemonic: cam_zmout
-    params: []
-
-  - code: 0x84
-    mnemonic: cam_pan_v3
+    doc: "Creates an NPC which only appears near a given location"
     params:
       - type: reg
         registers:
           - type: int
             read: true
+            name: "position X"
           - type: int
             read: true
+            name: "position Y"
           - type: int
             read: true
+            name: "position Z"
           - type: int
             read: true
+            name: "visibility radius"
+          - type: int
+            read: true
+            name: "angle"
+          - type: int
+            read: true
+            name: "template index"
+            doc: "template index (see 6x69 in CommandFormats.hh)"
+          - type: int
+            read: true
+            name: "initial state"
+            doc: "initial state (0 = alive, 1 = dead, 2 = invisible text box, according to qedit.info)"
+          - type: int
+            read: true
+            name: "client ID"
+
+  - code: 0x7a
+    mnemonic: npc_talk_kill
+    doc: "Destroys an NPC created with npc_talk_pl. This opcode cannot be executed multiple times on the same frame; if it is, only the last one will take effect."
+    params:
+      - type: int
+    stack: pop
+
+  - code: 0x7b
+    mnemonic: npc_crtpk
+    doc: "Creates attacker NPC"
+    params:
+      - type: int
+      - type: int
+    stack: pop
+
+  - code: 0x7c
+    mnemonic: npc_crppk_v3
+    doc: "Creates attacker NPC"
+    params:
+      - type: reg
+        registers:
           - type: int
             read: true
 
+  - code: 0x7d
+    mnemonic: npc_crptalk_v3
+    doc: "Creates an NPC with client ID 1. It is not recommended to use this opcode if a player can be in that slot; use npc_crptalk_id instead"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "position X"
+          - type: int
+            read: true
+            name: "position Y"
+          - type: int
+            read: true
+            name: "position Z"
+          - type: int
+            read: true
+            name: "angle"
+          - type: int
+            read: true
+            name: "initial state"
+            doc: "initial state (0 = alive, 1 = dead, 2 = invisible text box, according to qedit.info)"
+          - type: int
+            read: true
+            name: "template index"
+            doc: "template index (see 6x69 in CommandFormats.hh)"
+
+  - code: 0x7e
+    mnemonic: p_look_at_v1
+    doc: "Causes client ID valueA to look at client ID valueB. Sends 6x3E."
+    params:
+      - type: int
+        name: "client ID"
+      - type: int
+        name: "target client ID"
+    stack: pop
+
+  - code: 0x7f
+    mnemonic: npc_crp_id_v3
+    doc: "Creates an NPC"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "position X"
+          - type: int
+            read: true
+            name: "position Y"
+          - type: int
+            read: true
+            name: "position Z"
+          - type: int
+            read: true
+            name: "angle"
+          - type: int
+            read: true
+            name: "initial state"
+            doc: "initial state (0 = alive, 1 = dead, 2 = invisible text box, according to qedit.info)"
+          - type: int
+            read: true
+            name: "client ID"
+          - type: int
+            read: true
+            name: "template index"
+            doc: "template index (see 6x69 in CommandFormats.hh)"
+
+  - code: 0x80
+    mnemonic: cam_quake
+    doc: "Causes the camera to shake."
+    params: []
+
+  - code: 0x81
+    mnemonic: cam_adj
+    doc: "Moves the camera to where your character is looking."
+    params: []
+
+  - code: 0x82
+    mnemonic: cam_zmin
+    doc: "Zooms the camera in or out."
+    params: []
+
+  - code: 0x83
+    mnemonic: cam_zmout
+    doc: "Zooms the camera in or out."
+    params: []
+
+  - code: 0x84
+    mnemonic: cam_pan_v3
+    doc: "Pans the camera"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "destination X"
+          - type: int
+            read: true
+            name: "destination Y"
+          - type: int
+            read: true
+            name: "destination Z"
+          - type: int
+            read: true
+            name: "pan time"
+            doc: "pan time (in frames; 30 frames/sec)"
+          - type: int
+            read: true
+            name: "end time"
+            doc: "end time (in frames; 30 frames/sec)"
+
   - code: 0x85
     mnemonic: game_lev_super
+    doc: "Temporarily sets the game's difficulty to Very Hard (even on v2). On v3 and later, does nothing."
     params: []
 
   - code: 0x86
     mnemonic: game_lev_reset
+    doc: "Restores the previous difficulty level after game_lev_super. On v3 and later, does nothing."
     params: []
 
   - code: 0x87
@@ -1064,20 +1276,22 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: x
             read: true
+            name: "location X"
           - type: int
-            name: y
             read: true
+            name: "location Y"
           - type: int
-            name: z
             read: true
+            name: "location Z"
           - type: int
-            name: slot
             read: true
+            name: "owner client ID"
+            doc: "owner client ID (player or NPC must exist in the game)"
 
   - code: 0x88
     mnemonic: if_zone_clear
+    doc: "Checks if all set events (enemies) have been destroyed in a given room"
     params:
       - type: reg
         registers:
@@ -1087,8 +1301,10 @@ opcodes:
         registers:
           - type: int
             read: true
+            name: "floor number"
           - type: int
             read: true
+            name: "room ID"
 
   - code: 0x89
     mnemonic: chk_ene_num
@@ -1101,18 +1317,23 @@ opcodes:
 
   - code: 0x8a
     mnemonic: unhide_obj
+    doc: "Constructs all objects or enemies that match the conditions"
     params:
       - type: reg
         registers:
           - type: int
             read: true
+            name: "floor"
           - type: int
             read: true
+            name: "room ID"
           - type: int
             read: true
+            name: "group"
 
   - code: 0x8b
     mnemonic: unhide_ene
+    doc: "Constructs all objects or enemies that match the conditions:"
     params:
       - type: reg
         registers:
@@ -1127,22 +1348,29 @@ opcodes:
 
   - code: 0x8c
     mnemonic: at_coords_call
+    doc: "Starts a new thread when the player is close enough to the given point. The collision is created on the current floor; the thread is created when the player enters the given radius. After executing this opcode, regsA[0] is replaced with the object's token, which can be used in del_obj_param, move_coords_object, etc"
     params:
       - type: reg
         registers:
           - type: int
             read: true
+            name: "location X"
           - type: int
             read: true
+            name: "location Y"
           - type: int
             read: true
+            name: "location Z"
           - type: int
             read: true
+            name: "radius"
           - type: ilabel
             read: true
+            name: "label index where thread should start"
 
   - code: 0x8d
     mnemonic: at_coords_talk
+    doc: "Like at_coords_call, but the thread is not started automatically. Instead, the player's primary action button becomes \"talk\" within the radius, and the label is called when the player presses that button."
     params:
       - type: reg
         registers:
@@ -1159,6 +1387,7 @@ opcodes:
 
   - code: 0x8e
     mnemonic: col_npcin
+    doc: "Like at_coords_call, but only triggers if an NPC enters the radius."
     params:
       - type: reg
         registers:
@@ -1175,32 +1404,55 @@ opcodes:
 
   - code: 0x8f
     mnemonic: col_npcinr
+    doc: "Like at_coords_call, but triggers when a player within the event radius is also within the player radius of any other player"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
+          - type: int
+            read: true
+            name: "event radius"
+            doc: "event radius (centered at x, y, z defined above)"
+          - type: int
+            read: true
+            name: "player radius"
+            doc: "player radius (centered at player)"
+          - type: int
+            read: true
+            name: "label index where thread should start"
 
   - code: 0x90
     mnemonic: switch_on
+    doc: "Enables/disables a switch flag (valueA). Does NOT send 6x05, so other players will not know about this change! Use sw_send instead to keep switch flag state synced."
     params:
       - type: int
     stack: pop
 
   - code: 0x91
     mnemonic: switch_off
+    doc: "Enables/disables a switch flag (valueA). Does NOT send 6x05, so other players will not know about this change! Use sw_send instead to keep switch flag state synced."
     params:
       - type: int
     stack: pop
 
   - code: 0x92
     mnemonic: playbgm_epi
+    doc: "Plays a BGM. Values for valueA: 1: epi1.adx 2: epi2.adx 3: ED_PIANO.adx 4: matter.adx 5: open.adx 6: dreams.adx 7: mambo.adx 8: carnaval.adx 9: hearts.adx 10: smile.adx 11: nomal.adx 12: chu_f.adx 13: ENDING_LOOP.adx 14: DreamS_KIDS.adx 15: ESCAPE.adx 16: LIVE.adx 17: MILES.adx"
     params:
       - type: int
     stack: pop
 
   - code: 0x93
     mnemonic: set_mainwarp
+    doc: "Enables access to a floor (valueA) via the Pioneer 2 Ragol warp. Floors are 0-17 for Episode 1, 18-35 for Episode 2, 36-46 for Episode 4."
     params:
       - type: int
     stack: pop
@@ -1212,23 +1464,23 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: x
             read: true
+            name: "location X"
           - type: int
-            name: y
             read: true
+            name: "location Y"
           - type: int
-            name: z
             read: true
+            name: "location Z"
           - type: int
-            name: radius
             read: true
+            name: "target radius"
           - type: ilabel
-            name: func
             read: true
+            name: "label number to call"
           - type: int
-            name: cursor_y
             read: true
+            name: "distance from ground to target"
       - type: reg
         doc: Object handle.
         registers:
@@ -1237,8 +1489,10 @@ opcodes:
 
   - code: 0x95
     mnemonic: set_floor_handler
+    doc: "Causes the labelB to be called on a new thread when the player warps to floorA. If the given floor already has a registered handler, it is replaced with the new one (each floor may have at most one handler)."
     params:
       - type: int
+        name: "floor"
         doc: Floor number.
       - type: ilabel
         doc: Handler function label.
@@ -1246,84 +1500,147 @@ opcodes:
 
   - code: 0x96
     mnemonic: clr_floor_handler
+    doc: "Deletes the handler for floorA."
     params:
       - type: int
+        name: "floor"
         doc: Floor number.
     stack: pop
 
   - code: 0x97
     mnemonic: col_plinaw
+    doc: "Creates a collision object that checks if the NPC with client ID 1 is too far away from the player, when the player enters its check radius"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "check location X"
+          - type: int
+            read: true
+            name: "check location Y"
+          - type: int
+            read: true
+            name: "check location Z"
+          - type: int
+            read: true
+            name: "check radius"
+          - type: int
+            read: true
+            name: "label index for triggered function"
+          - type: int
+            read: true
+            name: "player radius"
+            doc: "player radius (if NPC is closer, label is not called)"
+          - type: int
+            read: true
+            name: "warp location X"
+          - type: int
+            read: true
+            name: "warp location Y"
+          - type: int
+            read: true
+            name: "warp location Z"
 
   - code: 0x98
     mnemonic: hud_hide
+    doc: "Hides or shows the HUD."
     params: []
 
   - code: 0x99
     mnemonic: hud_show
+    doc: "Hides or shows the HUD."
     params: []
 
   - code: 0x9a
     mnemonic: cine_enable
+    doc: "Enables/disables the cinema effect (black bars above/below screen)"
     params: []
 
   - code: 0x9b
     mnemonic: cine_disable
+    doc: "Enables/disables the cinema effect (black bars above/below screen)"
     params: []
+
+  - code: 0xa0
+    mnemonic: nop_a0_debug
+    doc: "Unused opcode. It's not clear what this was supposed to do. The behavior appears to be the same on all versions of PSO, from DC NTE through BB. argA is ignored. The game constructs a message list object from strB; the game will softlock unless this string contains exactly 2 messages (separated by \\n). After doing this, it destroys the message list and does nothing else."
+    params:
+      - type: int
+      - type: string
+    stack: pop
 
   - code: 0xa1
     mnemonic: set_qt_failure
+    doc: "Sets a function to be called (on a new thread) when the quest is failed. The quest is considered failed when you talk to the Hunter's Guild counter and r253 has the value 1 (specifically 1; other nonzero values do not trigger this function)."
     params:
       - type: ilabel
 
   - code: 0xa2
     mnemonic: set_qt_success
+    doc: "Like set_qt_failure, but uses r255 instead. If r255 and r253 both have the value 1 when the player talks to the Hunter's Guild counter, the success label is called and the failure label is not called."
     params:
       - type: ilabel
 
   - code: 0xa3
     mnemonic: clr_qt_failure
+    doc: "Clears the quest failure handler (opposite of set_qt_failure)."
     params: []
 
   - code: 0xa4
     mnemonic: clr_qt_success
+    doc: "Clears the quest success handler (opposite of set_qt_success)."
     params: []
 
   - code: 0xa5
     mnemonic: set_qt_cancel
+    doc: "Sets a function to be called when the quest is cancelled via the Hunter's Guild counter."
     params:
       - type: ilabel
 
   - code: 0xa6
     mnemonic: clr_qt_cancel
+    doc: "Clears the quest cancel handler (opposite of set_qt_cancel)."
     params: []
 
   - code: 0xa8
     mnemonic: pl_walk_v3
+    doc: "Makes a player or NPC walk to a location"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
+          - type: int
+            read: true
+            name: "client ID"
 
   - code: 0xb0
     mnemonic: pl_add_meseta
+    doc: "Gives valueB Meseta to the player with client ID valueA. Negative values do not appear to be handled properly; if this opcode attempts to take more meseta than the player has, the player ends up with 999999 Meseta."
     params:
       - type: int
+        name: "client ID"
       - type: int
+        name: "amount"
     stack: pop
 
   - code: 0xb1
     mnemonic: thread_stg
+    doc: "Starts a new thread at labelA in the quest script."
     params:
       - type: ilabel
 
   - code: 0xb2
     mnemonic: del_obj_param
+    doc: "Deletes an interactable object previously created by set_obj_param. valueA is the object's token, as returned by regB from set_obj_param, or regsA[0] from e.g. at_coords_call."
     params:
       - type: reg
         doc: Object handle.
@@ -1333,39 +1650,83 @@ opcodes:
 
   - code: 0xb3
     mnemonic: item_create
+    doc: "Creates an item in the player's inventory. If the item is successfully created, this opcode sends 6x2B on all versions except BB. On BB, this opcode sends 6xCA, and the server sends 6xBE to create the item; the requested item must match one of the item creation masks in the quest script's header"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "item.data1[0-2] [0]"
+          - type: int
+            read: true
+            name: "item.data1[0-2] [1]"
+          - type: int
+            read: true
+            name: "item.data1[0-2] [2]"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xb4
     mnemonic: item_create2
+    doc: "Like item_create, but regsA specify all of item.data1 instead of only the first 3 bytes."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xb5
     mnemonic: item_delete
+    doc: "Deletes an item from the player's inventory. Sends 6x29 if ths item is found and deleted. If the item is stackable, only one of it is deleted; the rest of the stack is not deleted. regsB must not wrap around (that is, the first register in regsB cannot be in the range [r245, r255]). If the item is not found, regsB[0] is set to 0xFFFFFFFF and the rest of regsB are not affected"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "item.data1[0-11] for deleted item [0]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [1]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [2]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [3]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [4]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [5]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [6]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [7]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [8]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [9]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [10]"
+          - type: int
+            read: true
+            name: "item.data1[0-11] for deleted item [11]"
 
   - code: 0xb6
     mnemonic: item_delete2
@@ -1375,29 +1736,75 @@ opcodes:
         registers:
           - type: int
             read: true
+            name: "item.data1[0-2] to search for [0]"
           - type: int
             read: true
+            name: "item.data1[0-2] to search for [1]"
           - type: int
             read: true
+            name: "item.data1[0-2] to search for [2]"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "item.data1[0-11] for deleted item [0]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [1]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [2]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [3]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [4]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [5]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [6]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [7]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [8]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [9]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [10]"
+          - type: int
+            write: true
+            name: "item.data1[0-11] for deleted item [11]"
 
   - code: 0xb7
     mnemonic: item_check
+    doc: "Searches the player's inventory for an item and returns its item ID. The condition depends on the item's type: Weapons: data1[0-2] must match, and data1[4] (special/flags) must be 0 Armor/shield/unit: data1[0-2] must match Mag: data1[0-1] must match; regsA[2] is ignored Tool: data1[0-2] must match; if it's a tech disk, data1[4] must be 0"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "item.data1[0-2] to search for, as above [0]"
+          - type: int
+            read: true
+            name: "item.data1[0-2] to search for, as above [1]"
+          - type: int
+            read: true
+            name: "item.data1[0-2] to search for, as above [2]"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xb8
     mnemonic: setevt
+    doc: "Triggers set event valueA on the current floor. Sends 6x67."
     params:
       - type: int
     stack: pop
@@ -1415,62 +1822,111 @@ opcodes:
 
   - code: 0xba
     mnemonic: set_qt_exit
+    doc: "Sets a label to be called (in a new thread) when the quest exits. This happens during the unload procedure when leaving the game, so most opcodes cannot be used in these handlers. Generally they should only be used for setting quest flags, event flags, or quest counters."
     params:
       - type: ilabel
 
   - code: 0xbb
     mnemonic: clr_qt_exit
+    doc: "Clears the quest exit handler (opposite of set_qt_exit)."
     params: []
+
+  - code: 0xbc
+    mnemonic: nop_bc
+    doc: "This opcode does nothing, even on 11/2000."
+    params:
+      - type: string
+    stack: pop
 
   - code: 0xc0
     mnemonic: particle_v3
+    doc: "Creates a timed particle emitter at integer world coordinates (numerically converted to float by the client)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
+          - type: int
+            read: true
+            name: "particle effect ID"
+          - type: int
+            read: true
+            name: "duration"
+            doc: "duration (in frames; 30 frames/sec)"
 
   - code: 0xc1
     mnemonic: npc_text
+    doc: "Specifies what NPCs should say in various situations. This opcode sets strings for all NPCs; to set strings for only specific NPCs, use npc_text_id (on v3 and later). 00: NPC engaging in combat 01: NPC in danger (HP <= 75% if near player, <= 25% if far away?) 02: NPC casting any technique except those in cases 16 and 17 below 03: NPC has 20% or less TP 04: NPC died 05: NPC has been dead for a while 06: Unknown (possibly unused) 07: NPC lost sight of player 08: NPC locked on to an enemy 09: Player received a status effect 0A: Unknown (possibly unused) 0B: NPC standing still for 3 minutes 0C: Player in danger? (Like 01 but players reversed?) 0D: NPC completed 3-hit combo 0E: NPC hit for > 30% of max HP 0F: NPC hit for > 20% of max HP (and <= 30%) 10: NPC hit for > 1% of max HP (and <= 20%) 11: NPC healed by another player 12: Room cleared (wave cleared which did not trigger another wave) 13: NPC used a recovery item 14: NPC cannot heal / recover 15: Wave but not room cleared (wave triggered by another wave) 16: NPC casting Resta or Anti 17: NPC casting Foie, Zonde, or Barta 18: NPC regained sight of player (not valid on 11/2000)"
     params:
       - type: int
+        name: "situation number"
+        doc: "situation number:"
       - type: string
+        name: "string for NPC to say"
+        doc: "string for NPC to say (up to 52 characters)"
     stack: pop
 
   - code: 0xc2
     mnemonic: npc_chkwarp
+    doc: "Warps an NPC to a predetermined location. See npc_check_straggle for more details."
     params: []
 
   - code: 0xc3
     mnemonic: pl_pkoff
+    doc: "Disables PK mode (battle mode) for a specific player. Sends 6x1C."
     params: []
 
   - code: 0xc4
     mnemonic: map_designate
+    doc: "Specifies how objects and enemies should be populated for a floor. On v2, the ability to reassign areas was added, which can be done with map_designate_ex (F80D)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "floor number"
+          - type: int
+            read: true
+            name: "type"
+            doc: "type (0: use layout, 1: use offline template, 2: use online template, 3: nothing)"
+          - type: int
+            read: true
+            name: "major variation"
+            doc: "major variation (minor variation is set to zero)"
+          - type: int
+            read: true
+            name: "ignored"
 
   - code: 0xc5
     mnemonic: masterkey_on
+    doc: "Locks (masterkey_on) or unlocks (masterkey_off) all doors"
     params: []
 
   - code: 0xc6
     mnemonic: masterkey_off
+    doc: "Locks (masterkey_on) or unlocks (masterkey_off) all doors"
     params: []
 
   - code: 0xc7
     mnemonic: window_time
+    doc: "Enables/disables the timer window"
     params: []
 
   - code: 0xc8
     mnemonic: winend_time
+    doc: "Enables/disables the timer window"
     params: []
 
   - code: 0xc9
     mnemonic: winset_time
+    doc: "Sets the time displayed in the timer window. The value in regA should be a number of seconds."
     params:
       - type: reg
         registers:
@@ -1479,112 +1935,161 @@ opcodes:
 
   - code: 0xca
     mnemonic: getmtime
+    doc: "Returns the time from the system clock. The value returned in regA depends on the client's architecture: - On DC, reads from hardware registers - On GC, reads from the TBRs - On PCv2, XB, and BB, calls QueryPerformanceCounter"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xcb
     mnemonic: set_quest_board_handler
+    doc: "Creates an item in the quest board. Executing this opcode is not enough for the item to appear! The item only appears if its corresponding display register is also set to 1. The display registers are r74-r79 (for QB indexes 0-5, respectively)"
     params:
       - type: int
+        name: "index of item"
+        doc: "index of item (0-5)"
       - type: ilabel
+        name: "label to call when selected"
       - type: string
+        name: "name of item in the Quest Board window"
     stack: pop
 
   - code: 0xcc
     mnemonic: clear_quest_board_handler
+    doc: "Deletes an item by index from the quest board."
     params:
       - type: int
     stack: pop
 
   - code: 0xcd
     mnemonic: particle_id_v3
+    doc: "Creates a timed particle emitter at an entity's current position plus a Y offset"
     params:
       - type: reg
         registers:
           - type: int
             read: true
+            name: "particle effect ID"
           - type: int
             read: true
+            name: "duration in frames"
           - type: int
             read: true
+            name: "entity"
+            doc: "entity (client ID, 0x1000 + enemy ID, or 0x4000 + object ID)"
           - type: int
             read: true
+            name: "y offset"
+            doc: "y offset (as integer)"
 
   - code: 0xce
     mnemonic: npc_crptalk_id_v3
+    doc: "Creates an NPC"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "position X"
+          - type: int
+            read: true
+            name: "position Y"
+          - type: int
+            read: true
+            name: "position Z"
+          - type: int
+            read: true
+            name: "angle"
+          - type: int
+            read: true
+            name: "initial state"
+            doc: "initial state (0 = alive, 1 = dead, 2 = invisible text box, according to qedit.info)"
+          - type: int
+            read: true
+            name: "template index"
+            doc: "template index (see 6x69 in CommandFormats.hh)"
+          - type: int
+            read: true
+            name: "client ID"
 
   - code: 0xcf
     mnemonic: npc_lang_clean
+    doc: "Deletes all strings registered with npc_text."
     params: []
 
   - code: 0xd0
     mnemonic: pl_pkon
+    doc: "Enables PK mode (battle mode) for a specific player. Sends 6x1B."
     params: []
 
   - code: 0xd1
     mnemonic: pl_chk_item2
+    doc: "Like find_inventory_item, but regsA specifies data1[0-2] as well as data1[4]. The matching conditions are the same as in find_inventory_item except that data1[4] must match regsA[3], instead of zero. Returns the item ID in regB, or FFFFFFFF if not found."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xd2
     mnemonic: enable_mainmenu
+    doc: "Enables/disables the main menu and shortcut menu."
     params: []
 
   - code: 0xd3
     mnemonic: disable_mainmenu
+    doc: "Enables/disables the main menu and shortcut menu."
     params: []
 
   - code: 0xd4
     mnemonic: start_battlebgm
+    doc: "Enables or disables battle music override. When enabled, the battle segments of the BGM will play regardless of whether there are enemies nearby. Changing this value only takes effect after any currently-queued music segments are done playing. The override is cleared upon changing areas."
     params: []
 
   - code: 0xd5
     mnemonic: end_battlebgm
+    doc: "Enables or disables battle music override. When enabled, the battle segments of the BGM will play regardless of whether there are enemies nearby. Changing this value only takes effect after any currently-queued music segments are done playing. The override is cleared upon changing areas."
     params: []
 
   - code: 0xd6
     mnemonic: disp_msg_qb
+    doc: "Shows a message in the Quest Board message window"
     params:
       - type: string
     stack: pop
 
   - code: 0xd7
     mnemonic: close_msg_qb
+    doc: "Closes the Quest Board message window"
     params: []
 
   - code: 0xd8
     mnemonic: set_eventflag_v3
+    doc: "Writes the valueB (a single byte) to the event flag specified by valueA."
     params:
       - type: int
       - type: int
     stack: pop
 
   - code: 0xd9
-    mnemonic: sync_leti
+    mnemonic: sync_register
+    doc: "Sets regA to valueB, and sends 6x77 so other clients will also set their local regA to valueB."
     params:
       - type: reg
         registers:
           - type: int
             write: true
       - type: int
+    stack: pop
 
   - code: 0xda
     mnemonic: set_returnhunter
+    doc: "TODO: Document these"
     params: []
 
   - code: 0xdb
@@ -1593,19 +2098,44 @@ opcodes:
 
   - code: 0xdc
     mnemonic: load_pvr
+    doc: "TODO: Document this"
     params: []
 
   - code: 0xdd
     mnemonic: load_midi
+    doc: "TODO: Document this Does nothing on all non-DC versions."
     params: []
 
   - code: 0xde
     mnemonic: unknown_de
+    doc: "Finds an item in the player's bank, and clears its entry in the bank"
     params:
       - type: reg
         registers:
           - type: any
             read: true
+            name: "item.data1[0-5] [0]"
+            doc: "item.data1[0-5] (bank item must exactly match all bytes)"
+          - type: any
+            read: true
+            name: "item.data1[0-5] [1]"
+            doc: "item.data1[0-5] (bank item must exactly match all bytes)"
+          - type: any
+            read: true
+            name: "item.data1[0-5] [2]"
+            doc: "item.data1[0-5] (bank item must exactly match all bytes)"
+          - type: any
+            read: true
+            name: "item.data1[0-5] [3]"
+            doc: "item.data1[0-5] (bank item must exactly match all bytes)"
+          - type: any
+            read: true
+            name: "item.data1[0-5] [4]"
+            doc: "item.data1[0-5] (bank item must exactly match all bytes)"
+          - type: any
+            read: true
+            name: "item.data1[0-5] [5]"
+            doc: "item.data1[0-5] (bank item must exactly match all bytes)"
       - type: reg
         registers:
           - type: any
@@ -1613,52 +2143,125 @@ opcodes:
 
   - code: 0xdf
     mnemonic: npc_param_v3
+    doc: "Sets NPC AI behaviors. Normal: min(base level + 1, 199) Hard: min(base level + 26, 199) Very Hard: min(base level + 51, 199) Ultimate: min(base level + 151, 199) 00 = technique_flags=40 (no techniques) 01 = technique_flags=04 (has Resta, Anti, Foie, and Gifoie) 02 = technique_flags=08 (has Resta, Anti, Barta, and Gibarta) 03, 0A = technique_flags=C0 (no techniques, doesn't back off (see regsA[13])) 0B = technique_flags=84 (has Resta, Anti, Foie, and Gifoie, doesn't back off (see regsA[13])) 0C = technique_flags=88 (has Resta, Anti, Barta, and Gibarta, doesn't back off (see regsA[13])) 0D = technique_flags=90 (has Resta, Anti, Zonde, and Razonde, doesn't back off (see regsA[13])) Anything else = uninitialized value written to technique_flags NPCs that attack the player and do not have technique_flags & 0x80; could be backoff distance when attacked by a player"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+          - type: int
+            read: true
+            name: "base level. NPC's actual level depends on difficulty"
+            doc: "base level. NPC's actual level depends on difficulty:"
+          - type: int
+            read: true
+            name: "sets value of technique_flags in the TNpcPlayer object"
+            doc: "sets value of technique_flags in the TNpcPlayer object:"
+          - type: int
+            read: true
+            name: "enemy lock-on range"
+          - type: int
+            read: true
+            name: "unknown"
+            doc: "unknown (TODO)"
+          - type: int
+            read: true
+            name: "max distance from player"
+          - type: int
+            read: true
+            name: "enemy unlock range"
+          - type: int
+            read: true
+            name: "block range"
+          - type: int
+            read: true
+            name: "attack range"
+            doc: "attack range (not necessarily equal to weapon range)"
+          - type: int
+            read: true
+            name: "attack technique level"
+            doc: "attack technique level (which techniques is specified by technique_flags)"
+          - type: int
+            read: true
+            name: "support technique level"
+            doc: "support technique level (Resta/Anti)"
+          - type: int
+            read: true
+            name: "attack probability"
+            doc: "attack probability (in range [0, 100])"
+          - type: int
+            read: true
+            name: "attack technique probability"
+            doc: "attack technique probability (in range [0, 100])"
+          - type: int
+            read: true
+            name: "unknown"
+            doc: "unknown (TODO: see TNpcPlayer_FUN_801514c0); appears to be a distance range, and applies only for"
       - type: int
+        name: "NPC template to modify"
+        doc: "NPC template to modify (00-3F)"
     stack: pop
 
   - code: 0xe0
     mnemonic: pad_dragon
+    doc: "TODO(DX): Document this. It enables a flag that affects some logic in TBoss1Dragon::update. The flag is disabled when the Dragon's boss arena unloads, but not when it loads, so it can be set when the player is in a different area. It appears the flag is not cleared if the player never enters the Dragon arena, so it seems the only advisable place to use this would be immediately after the player enters the Dragon arena."
     params: []
 
   - code: 0xe1
     mnemonic: clear_mainwarp
+    doc: "Disables access to a floor (valueA) via the Pioneer 2 Ragol warp. This is the logical opposite of set_mainwarp."
     params:
       - type: int
     stack: pop
 
   - code: 0xe2
     mnemonic: pcam_param_v3
+    doc: "Sets camera parameters for the current frame"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "relative location of focus point from player [0]"
+          - type: int
+            read: true
+            name: "relative location of focus point from player [1]"
+          - type: int
+            read: true
+            name: "relative location of focus point from player [2]"
+          - type: int
+            read: true
+            name: "relative location of camera from player [0]"
+          - type: int
+            read: true
+            name: "relative location of camera from player [1]"
+          - type: int
+            read: true
+            name: "relative location of camera from player [2]"
 
   - code: 0xe3
-    mnemonic: start_setevt_v3
+    mnemonic: start_setevt
+    doc: "Triggers set event (valueB) on floor (valueA). Sends 6x67."
     params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            read: true
       - type: int
+        name: "floor"
+      - type: int
+        name: "event ID"
     stack: pop
 
   - code: 0xe4
     mnemonic: warp_on
+    doc: "Enables or disables warps"
     params: []
 
   - code: 0xe5
     mnemonic: warp_off
+    doc: "Enables or disables warps"
     params: []
 
   - code: 0xe6
     mnemonic: get_slotnumber
+    doc: "Returns the client ID of the local client"
     params:
       - type: reg
         registers:
@@ -1672,64 +2275,81 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            write: true # TODO: determine registers
+            write: true
 
   - code: 0xe8
     mnemonic: set_eventflag2
+    doc: "Sets an event flag from a register. In v3 and later, this is not needed, since set_eventflag can be called with F_ARGS, but it still exists."
     params:
       - type: int
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
     stack: pop
 
   - code: 0xe9
     mnemonic: res
+    doc: "regA %= regB This is exactly the same as the mod opcode (including its quirk)."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xea
+    mnemonic: unknown_ea
+    doc: "regA %= valueB This is exactly the same as the modi opcode (including its quirk)."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: int
 
   - code: 0xeb
     mnemonic: enable_bgmctrl
+    doc: "Changes the background music. create_bgmctrl must be run before doing this. The values for valueA are the same as for playbgm_epi."
     params:
       - type: int
     stack: pop
 
   - code: 0xec
     mnemonic: sw_send
+    doc: "Changes the state of a switch flag and sends the update to all players (unlike switch_on/switch_off)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "switch flag number"
+          - type: int
+            read: true
+            name: "floor number"
+          - type: int
+            read: true
+            name: "flags"
+            doc: "flags (see 6x05 definition in CommandFormats.hh)"
 
   - code: 0xed
     mnemonic: create_bgmctrl
+    doc: "Creates a BGM controller object. Use this before set_bgm."
     params: []
 
   - code: 0xee
     mnemonic: pl_add_meseta2
+    doc: "Like pl_add_meseta, but can only give Meseta to the local player."
     params:
       - type: int
     stack: pop
 
   - code: 0xef
-    mnemonic: sync_register
+    mnemonic: sync_register2
+    doc: "Like sync_register, but takes the value from another register rather than using an immediate value. On v3 and later, this is identical to sync_register."
     params:
       - type: reg
         registers:
@@ -1740,50 +2360,81 @@ opcodes:
 
   - code: 0xf0
     mnemonic: send_regwork
+    doc: "Same as sync_register2, but sends the value via UDP if UDP is enabled. This opcode was removed after GC NTE and is missing from v3 and v4."
     params: []
 
   - code: 0xf1
     mnemonic: leti_fixed_camera_v3
+    doc: "Sets the camera's location and angle"
     params:
       - type: reg
         registers:
           - type: int
             read: true
+            name: "camera location X"
           - type: int
             read: true
+            name: "camera location Y"
           - type: int
             read: true
+            name: "camera location Z"
           - type: int
             read: true
+            name: "camera focus location X"
           - type: int
             read: true
+            name: "camera focus location Y"
           - type: int
             read: true
+            name: "camera focus location Z"
 
   - code: 0xf2
     mnemonic: default_camera_pos1
+    doc: "Resets the camera to non-fixed (default behavior)."
     params: []
 
   - code: 0xfa
     mnemonic: get_gc_number
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xfb
+    mnemonic: unknown_fb
     params:
-      - type: short
+      - type: dlabel
+
+  - code: 0xf800
+    mnemonic: debug_f800
+    doc: "Same as 50, but uses fixed arguments - with the string \"俺は節政だ！！\", which Google Translate translates as \"I am frugal!!\""
+    params: []
 
   - code: 0xf801
     mnemonic: set_chat_callback
+    doc: "Creates a region that calls a label if a specified string is said (via chat) by a player within the region. This is implemented by the TOChatSensor object; see that object's comments on Map.cc for details. If the trigger string contains any newlines (\\n), it is truncated at the first newline. Before matching, the game prepends and appends a single space to the chat message (presumably so that callers can use strings like \" word \" to avoid matching substrings of longer words) and transforms the chat message to lowercase, so strB should not contain any uppercase letters. The lowercasing logic (probably accidentally) also affects some symbols, as follows: [ => { \\ => | ] => } ^ => ~ _ => <DEL> Curiously, the function that checks for matches appears to be used incorrectly. The function takes an array of char[0x20] and returns the index of the string that matched, or -1 if none matched. This list of match strings is expected to end with an empty string, but TOChatSensor doesn't correctly terminate it this way. However, the following field is the TQuestThread pointer, which is non-null only if the sensor has already triggered, so it doesn't misbehave"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
+          - type: int
+            read: true
+            name: "radius"
+          - type: int
+            read: true
+            name: "label index"
       - type: string
+        name: "trigger string"
+        doc: "trigger string (up to 31 characters)"
     stack: pop
 
   - code: 0xf808
@@ -1811,170 +2462,237 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: x
-            read: true
+            write: true
+            name: "returned location X"
           - type: int
-            name: y
-            read: true
+            write: true
+            name: "returned location Y"
           - type: int
-            name: z
-            read: true
+            write: true
+            name: "returned location Z"
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf80b
     mnemonic: enable_map
+    doc: "Enables or disables the area map and minimap."
     params: []
 
   - code: 0xf80c
     mnemonic: disable_map
+    doc: "Enables or disables the area map and minimap."
     params: []
 
   - code: 0xf80d
     mnemonic: map_designate_ex
+    doc: "Like map_designate, but allows changing the area assignment"
     params:
       - type: reg
         registers:
           - type: int
             read: true
+            name: "floor number"
           - type: int
             read: true
+            name: "area number"
           - type: int
             read: true
+            name: "type"
+            doc: "type (0: use layout, 1: use offline template, 2: use online template, 3: nothing)"
           - type: int
             read: true
+            name: "major variation"
           - type: int
             read: true
+            name: "minor variation"
 
   - code: 0xf80e
+    mnemonic: disable_weapon_drop
+    doc: "Enables or disables weapon dropping upon death for a player. Sends 6x81 (disable) or 6x82 (enable)."
     params:
       - type: int
+        name: "client ID"
     stack: pop
 
   - code: 0xf80f
+    mnemonic: enable_weapon_drop
+    doc: "Enables or disables weapon dropping upon death for a player. Sends 6x81 (disable) or 6x82 (enable)."
     params:
       - type: int
+        name: "client ID"
     stack: pop
 
   - code: 0xf810
     mnemonic: ba_initial_floor
+    doc: "Sets the floor where the players will start. This generally should be used in the start label (where map_designate, etc. are used). valueA specifies which floor to start on, but indirectly: valueA > 1 and < 0x12: Episode 1 areas (Pioneer 2, Forest 1, etc.) valueA >= 0x12: No effect Note that if the player doesn't start in the city (Pioneer 2 or Lab), the client will not reload the common and rare item tables (ItemPT and ItemRT). This means, for example, that starting an Episode 2 quest from an Episode 1 game will result in Episode 2 enemies' drop-anything rates being all zeroes, since the Episode 1 ItemPT is still loaded. This is only an issue in client drop mode; on newserv, you can forbid client drop mode in the quest's metadata JSON file if needed. (See q058.json for documentation on how to do this.)"
     params:
       - type: int
+        name: "0: Temple"
+        doc: "0: Temple (floor 0x10)"
     stack: pop
 
   - code: 0xf811
     mnemonic: set_ba_rules
+    doc: "Clears all battle rules."
     params: []
 
   - code: 0xf812
+    mnemonic: ba_set_tech
+    doc: "Sets the tech disk mode in battle. valueA (does NOT match enum): 0 => FORBID_ALL 1 => ALLOW 2 => LIMIT_LEVEL"
     params:
       - type: int
     stack: pop
 
   - code: 0xf813
+    mnemonic: ba_set_equip
+    doc: "Sets the weapon and armor mode in battle. valueA (does NOT match enum): 0 => FORBID_ALL 1 => ALLOW 2 => CLEAR_AND_ALLOW 3 => FORBID_RARES"
     params:
       - type: int
     stack: pop
 
   - code: 0xf814
+    mnemonic: ba_set_mag
+    doc: "Sets the mag mode in battle. valueA (does NOT match enum): 0 => FORBID_ALL 1 => ALLOW"
     params:
       - type: int
     stack: pop
 
   - code: 0xf815
+    mnemonic: ba_set_item
+    doc: "Sets the tool mode in battle. valueA (does NOT match enum): 0 => FORBID_ALL 1 => ALLOW 2 => CLEAR_AND_ALLOW"
     params:
       - type: int
     stack: pop
 
   - code: 0xf816
+    mnemonic: ba_set_trapmenu
+    doc: "Sets the trap mode in battle. valueA (matches enum): 0 => DEFAULT 1 => ALL_PLAYERS"
     params:
       - type: int
     stack: pop
 
   - code: 0xf817
+    mnemonic: ba_set_unused_f817
+    doc: "This appears to be unused - the value is copied into the main battle rules struct, but the field is never read from there. This may have been an early implementation of F851 that affected all trap types, but this field is no longer used."
     params:
       - type: int
     stack: pop
 
   - code: 0xf818
+    mnemonic: ba_set_respawn
+    doc: "Sets the respawn mode in battle. valueA (does NOT match enum): 0 => FORBID 1 => ALLOW 2 => LIMIT_LIVES"
     params:
       - type: int
     stack: pop
 
   - code: 0xf819
+    mnemonic: ba_set_char
+    doc: "Enables (1) or disables (0) character replacement in battle mode"
     params:
       - type: int
     stack: pop
 
   - code: 0xf81a
+    mnemonic: ba_dropwep
+    doc: "Enables (1) or disables (0) weapon dropping upon death in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf81b
+    mnemonic: ba_teams
+    doc: "Enables (1) or disables (0) teams in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf81c
     mnemonic: ba_disp_msg
+    doc: "Shows the rules window and starts the battle. This should be used after setting up all the rules with the various ba_* opcodes."
     params:
       - type: string
     stack: pop
 
   - code: 0xf81d
     mnemonic: death_lvl_up
+    doc: "Sets the number of levels to gain upon respawn in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf81e
-    mnemonic: death_tech_lvl_up
+    mnemonic: ba_set_meseta
+    doc: "Sets the Meseta mode in battle. valueA (matches enum): 0 => ALLOW 1 => FORBID_ALL 2 => CLEAR_AND_ALLOW"
     params:
       - type: int
     stack: pop
 
   - code: 0xf820
     mnemonic: cmode_stage
+    doc: "Sets the challenge mode stage number"
     params:
       - type: int
     stack: pop
 
+  - code: 0xf821
+    mnemonic: nop_f821
+    doc: "regsA[3-8] specify first 6 bytes of an ItemData. This opcode consumes an item ID, but does nothing else."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf822
+    mnemonic: nop_f822
+    doc: "This opcode does nothing. It has two branches (one for online, one for offline), but both branches do nothing."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
   - code: 0xf823
+    mnemonic: set_cmode_char_template
+    doc: "Set character template for challenge mode"
     params:
       - type: int
     stack: pop
 
   - code: 0xf824
+    mnemonic: set_cmode_diff
+    doc: "Set challenge mode difficulty: 0=normal, 1=hard, 2=very hard, 3=ultimate"
     params:
       - type: int
     stack: pop
 
   - code: 0xf825
     mnemonic: exp_multiplication
+    doc: "Sets the factor by which all EXP is multiplied in challenge mode. The multiplier value is regsA[0] + (regsA[1] / regsA[2])."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf826
     mnemonic: exp_division
+    doc: "Checks if any player is still alive in challenge mode. Returns 1 if all players are dead, or 0 if not."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf827
     mnemonic: get_user_is_dead
+    doc: "Checks if all players are still alive in challenge mode. Returns 1 if any player is dead, or 0 if not."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf828
@@ -1984,12 +2702,10 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
       - type: reg
         registers:
           - type: int
-            name: floor_id
             read: true
 
   - code: 0xf829
@@ -1999,33 +2715,50 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
       - type: reg
         registers:
           - type: int
-            name: num_kills
             write: true
+
+  - code: 0xf82a
+    mnemonic: reset_kills
+    doc: "Resets the kill count for the player specified by regA."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
 
   - code: 0xf82b
     mnemonic: unlock_door2
-    params: [ { type: int }, { type: int } ]
+    doc: "Sets or clears a switch flag, and synchronizes the value to all players"
+    params:
+      - type: int
+        name: "floor"
+      - type: int
+        name: "switch flag index"
     stack: pop
 
   - code: 0xf82c
     mnemonic: lock_door2
+    doc: "Sets or clears a switch flag, and synchronizes the value to all players."
     params: [ { type: int }, { type: int } ]
     stack: pop
 
   - code: 0xf82d
     mnemonic: if_switch_not_pressed
+    doc: "Checks a switch flag on the current floor"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             read: true
+            name: "switch flag index"
           - type: int
             write: true
+            name: "result"
+            doc: "result (0 or 1)"
 
   - code: 0xf82e
     mnemonic: if_switch_pressed
@@ -2034,319 +2767,532 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: floor_id
             read: true
+            name: "floor"
           - type: int
-            name: switch_id
             read: true
+            name: "switch flag index"
           - type: int
-            name: is_set
             write: true
+            name: "result"
+            doc: "result (0 or 1)"
 
   - code: 0xf82f
+    mnemonic: unknown_f82f
     params: [{ type: int }, { type: int }]
     stack: pop
 
   - code: 0xf830
     mnemonic: control_dragon
+    doc: "Enables a player to control the Dragon. valueA specifies the client ID."
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             read: true
 
   - code: 0xf831
     mnemonic: release_dragon
+    doc: "Disables player control of the Dragon."
     params: []
 
   - code: 0xf838
     mnemonic: shrink
+    doc: "Shrinks a player or returns them to normal size. regA specifies the client ID."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf839
     mnemonic: unshrink
+    doc: "Shrinks a player or returns them to normal size. regA specifies the client ID."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
+            read: true
+
+  - code: 0xf83a
+    mnemonic: set_shrink_cam1
+    doc: "These set some camera parameters for the specified player. These parameters appear to be unused, so these opcodes essentially do nothing"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "client ID"
+          - type: int
+            read: true
+            name: "a Vector3F X"
+          - type: int
+            read: true
+            name: "a Vector3F Y"
+          - type: int
+            read: true
+            name: "a Vector3F Z"
+
+  - code: 0xf83b
+    mnemonic: set_shrink_cam2
+    doc: "These set some camera parameters for the specified player. These parameters appear to be unused, so these opcodes essentially do nothing."
+    params:
+      - type: reg
+        registers:
+          - type: int
             read: true
 
   - code: 0xf83c
     mnemonic: display_clock2
+    doc: "Shows the timer window in challenge mode. regA is the time value to display, in seconds."
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             read: true
 
   - code: 0xf83d
+    mnemonic: set_area_total
+    doc: "Sets the total number of areas across all challenge quests for the current episode."
     params:
       - type: int
     stack: pop
 
   - code: 0xf83e
     mnemonic: delete_area_title
+    doc: "Sets the number of the current challenge mode area."
     params:
       - type: int
     stack: pop
 
   - code: 0xf840
     mnemonic: load_npc_data
+    doc: "Loads a custom visual config for creating NPCs. Generally the sequence should go like this: prepare_npc_visual label_containing_PlayerVisualConfig enable_npc_visual <opcode that creates an NPC> After any NPC is created, the effects of these opcodes are undone; if the script wants to create another NPC with a custom visual config, it must run these opcodes again."
     params: []
 
   - code: 0xf841
     mnemonic: get_npc_data
+    doc: "Loads a custom visual config for creating NPCs. Generally the sequence should go like this: prepare_npc_visual label_containing_PlayerVisualConfig enable_npc_visual <opcode that creates an NPC> After any NPC is created, the effects of these opcodes are undone; if the script wants to create another NPC with a custom visual config, it must run these opcodes again."
     params:
       - type: dlabel
 
   - code: 0xf848
     mnemonic: give_damage_score
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf849
     mnemonic: take_damage_score
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf84a
     mnemonic: unk_score_f84a
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf84b
     mnemonic: unk_score_f84b
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf84c
     mnemonic: kill_score
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf84d
     mnemonic: death_score
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf84e
     mnemonic: unk_score_f84e
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf84f
     mnemonic: enemy_death_score
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf850
     mnemonic: meseta_score
+    doc: "These are used to set the scores for each type of action in battle mode. The value used in each of these are regsA[0] + (regsA[1] / regsA[2]), treated as a floating-point value. For example, one way to specify the value 3.4 would be to set regsA to {3, 2, 5}. These values are not reset between battle quests or upon joining/leaving games, so battle quests should always explicitly set these! The scores which can be set are: ba_player_give_damage_score: Score earned per point of damage given to other players. (Default 0.05) ba_player_take_damage_score: Score lost per point of damage taken from other players. (Default 0.02) ba_enemy_give_damage_score: Score earned per point of damage given to non-player enemies. (Default 0.01) ba_enemy_take_damage_score: Score lost per point of damage taken from non-player enemies. (Default 0) ba_player_kill_score: Score earned by killing another player. (Default 10) ba_player_death_score: Score lost by dying to another player. (Default 7) ba_enemy_kill_score: Score earned by killing a non-player enemy. (Default 3) ba_enemy_death_score: Score lost by dying to a non-player enemy. (Default 7) ba_meseta_score: Score earned per Meseta in the player's inventory. (Default 0)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf851
+    mnemonic: ba_set_trap
+    doc: "Sets the number of traps players can use in battle mode. regsA[1] is the amount; regsA[0] is the trap type: 0 = Damage trap (internal type 0) 1 = Slow trap (internal type 2) 2 = Confuse trap (internal type 3) 3 = Freeze trap (internal type 1)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
 
   - code: 0xf852
+    mnemonic: ba_hide_target_reticle
+    doc: "Enables (0) or disables (1) the targeting reticle in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf853
     mnemonic: reverse_warps
+    doc: "Enables or disables overrides of warp destination floors. When enabled, area warps will always go to the next floor (current floor + 1); when disabled, they will go to the floor specified in their constructor args."
     params: []
 
   - code: 0xf854
     mnemonic: unreverse_warps
+    doc: "Enables or disables overrides of warp destination floors. When enabled, area warps will always go to the next floor (current floor + 1); when disabled, they will go to the floor specified in their constructor args."
     params: []
 
   - code: 0xf855
     mnemonic: set_ult_map
+    doc: "Enables or disables overriding graphical features with those used in Ultimate"
     params: []
 
   - code: 0xf856
     mnemonic: unset_ult_map
+    doc: "Enables or disables overriding graphical features with those used in Ultimate"
     params: []
 
   - code: 0xf857
     mnemonic: set_area_title
+    doc: "Sets the area title in challenge mode"
     params:
       - type: string
     stack: pop
 
+  - code: 0xf858
+    mnemonic: ba_show_self_traps
+    doc: "Enables or disables the ability to see your own traps."
+    params: []
+
+  - code: 0xf859
+    mnemonic: ba_hide_self_traps
+    doc: "Enables or disables the ability to see your own traps."
+    params: []
+
   - code: 0xf85a
     mnemonic: equip_item
+    doc: "Creates an item in a player's inventory and equips it"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             read: true
+            name: "client ID"
+          - type: int
+            read: true
+            name: "item.data1[0-2] [0]"
+          - type: int
+            read: true
+            name: "item.data1[0-2] [1]"
+          - type: int
+            read: true
+            name: "item.data1[0-2] [2]"
 
   - code: 0xf85b
     mnemonic: unequip_item
+    doc: "Unequips an item from a client. Sends 6x26 if an item is unequipped. 0 = weapon 1 = armor 2 = shield 3 = mag 4-7 = units 1-4"
     params:
       - type: int
+        name: "client ID"
+      - type: int
+        name: "equip slot, but not the same as the EquipSlot enum"
+        doc: "equip slot, but not the same as the EquipSlot enum:"
+    stack: pop
+
+  - code: 0xf85c
+    mnemonic: p_talk_guild_local
+    doc: "Same as p_talk_guild except it always refers to the local player. valueA is ignored."
+    params:
+      - type: int
+    stack: pop
+
+  - code: 0xf85d
+    mnemonic: set_allow_item_flags
+    doc: "Sets flags that forbid types of items from being used. To forbid multiple types of items, use this opcode multiple times. valueA: 0 = allow normal item usage (undoes all of the following) 1 = disallow weapons 2 = disallow armors 3 = disallow shields 4 = disallow units 5 = disallow mags 6 = disallow tools"
+    params:
       - type: int
     stack: pop
 
   - code: 0xf85e
+    mnemonic: ba_enable_sonar
+    doc: "Enables (1) or disables (0) sonar in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf85f
+    mnemonic: ba_sonar_count
+    doc: "Sets the number of sonar uses per character in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf860
+    mnemonic: clear_score_announce
+    doc: "Specifies when score announcements should occur during battle. The values are measured in minutes remaining. There can be up to 8 score announcements; any further set_score_announce calls are ignored. clear_score_announce deletes all announcement times."
     params: []
 
   - code: 0xf861
+    mnemonic: set_score_announce
+    doc: "Specifies when score announcements should occur during battle. The values are measured in minutes remaining. There can be up to 8 score announcements; any further set_score_announce calls are ignored. clear_score_announce deletes all announcement times."
     params:
       - type: int
     stack: pop
 
-  - code: 0xf864
-    mnemonic: cmode_rank
+  - code: 0xf862
+    mnemonic: give_s_rank_weapon
+    doc: "Creates an S-rank weapon in the player's inventory. This opcode is not used in challenge mode, presumably since it doesn't offer a mechanism for the player to choose their weapon's name. The award_item_give opcode is used instead. regA/valueA = client ID (must match local client ID) regB (must be a register, even on v3/v4) = item.data1[1]"
     params:
       - type: int
+      - type: reg
+        registers:
+          - type: int
+            read: true
       - type: string
+        name: "custom name"
+    stack: pop
+
+  - code: 0xf863
+    mnemonic: get_mag_levels
+    doc: "Returns the currently-equipped mag's levels. If no mag is equipped, regsA are unaffected! Make sure to initialize them before using this"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "returned DEF level"
+          - type: int
+            read: true
+            name: "returned POW level"
+          - type: int
+            read: true
+            name: "returned DEX level"
+          - type: int
+            read: true
+            name: "returned MIND level"
+
+  - code: 0xf864
+    mnemonic: cmode_rank
+    doc: "Sets the color and rank text if the player manages to complete the current challenge stage"
+    params:
+      - type: int
+        name: "color as XRGB8888"
+      - type: string
+        name: "rank text"
+        doc: "rank text (up to 11 characters)"
     stack: pop
 
   - code: 0xf865
     mnemonic: award_item_name
+    doc: "Shows the item name entry window and suspends the calling thread"
     params: []
 
   - code: 0xf866
     mnemonic: award_item_select
+    doc: "Shows the item choice window and suspends the calling thread"
     params: []
 
   - code: 0xf867
     mnemonic: award_item_give_to
+    doc: "Creates an item in the player's inventory, chosen via the previous award_item_name and award_item_select opcodes, and updates the player's challenge rank text and color according to the rank they achieved. Sends 07DF on BB; on other versions, sends nothing"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             read: true
+            name: "return value"
+            doc: "return value (1 if item successfully created; 0 otherwise)"
 
   - code: 0xf868
+    mnemonic: set_cmode_rank
+    doc: "Set challenge mode rank"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            write: true
+        registers:
+          - type: int
+            read: true
+            name: "rank"
+            doc: "rank (0 = B, 1 = A, 2 = S)"
+          - type: int
+            read: true
+            name: "time in seconds"
+            doc: "time in seconds (times faster than this are considered to be this rank or better)"
+          - type: int
+            read: true
+            name: "award flags mask"
+            doc: "award flags mask (generally should be (1 << regsA[0]))"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf869
+    mnemonic: check_rank_time
+    doc: "Check rank time threshold"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            write: true
+        registers:
+          - type: int
+            read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf86a
     mnemonic: item_create_cmode
+    doc: "Creates an item in the local player's bank, and saves the player's challenge rank and title color. Sends 07DF on BB. This is used for the A and B rank prizes"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "item.data1[0-5]"
+            doc: "first of 6 consecutive registers holding item.data1[0]..item.data1[5]"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "returned success code"
+            doc: "returned success code (1 = success, 0 = failed)"
 
   - code: 0xf86b
+    mnemonic: ba_box_drops
+    doc: "Sets the effective area for item drops in battle. valueA should be in the range [1, 10]."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf86c
     mnemonic: award_item_ok
+    doc: "Shows a confirmation window asking if the player is satsified with their choice of S rank prize and weapon name"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "result code"
+            doc: "result code (0 = OK, 1 = reconsider)"
+
+  - code: 0xf86d
+    mnemonic: ba_set_trapself
+    doc: "Enables or disables traps' ability to hurt the player who set them"
+    params: []
+
+  - code: 0xf86e
+    mnemonic: ba_clear_trapself
+    doc: "Enables or disables traps' ability to hurt the player who set them"
+    params: []
 
   - code: 0xf86f
     mnemonic: ba_set_lives
+    doc: "Sets the number of lives each player gets in battle when the LIMIT_LIVES respawn mode is used."
     params:
       - type: int
     stack: pop
 
   - code: 0xf870
     mnemonic: ba_set_tech_lvl
+    doc: "Sets the maximum level for any technique in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf871
     mnemonic: ba_set_lvl
+    doc: "Sets the character's overlay level in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf872
     mnemonic: ba_set_time_limit
+    doc: "Sets the battle time limit. valueA is measured in minutes"
     params:
       - type: int
     stack: pop
 
   - code: 0xf873
     mnemonic: boss_is_dead
+    doc: "Sets regA to 1 if Dark Falz has been defeated, or 0 otherwise."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+
+  - code: 0xf874
+    mnemonic: set_cmode_rank_override
+    doc: "Sets an override for the challenge rank text. At the time the rank is checked via check_rank_time, these overrides are applied in the order they were created. For each one, if the existing rank matches the check string, it is replaced with the override string and the color is replaced with the override color"
+    params:
+      - type: int
+        name: "override color"
+        doc: "override color (XRGB8888)"
+      - type: string
+        name: "check string and override string"
+        doc: "check string and override string (separated by \\t or \\n)"
+    stack: pop
+
+  - code: 0xf875
+    mnemonic: enable_stealth_suit_effect
+    doc: "Enables or disables the transparency effect, similar to the Stealth Suit. regA is the client ID."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf876
+    mnemonic: disable_stealth_suit_effect
+    doc: "Enables or disables the transparency effect, similar to the Stealth Suit. regA is the client ID."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
 
   - code: 0xf877
     mnemonic: enable_techs
@@ -2355,7 +3301,6 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf878
@@ -2365,7 +3310,6 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf879
@@ -2375,13 +3319,14 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
+            name: "client ID"
       - type: reg
         registers:
           - type: int
-            name: gender
             write: true
+            name: "returned gender"
+            doc: "returned gender (0 = male, 1 = female, 2 = no player present or invalid class flags)"
 
   - code: 0xf87a
     mnemonic: get_chara_class
@@ -2390,16 +3335,17 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
       - type: reg
         registers:
           - type: int
-            name: race
             write: true
+            name: "returned race"
+            doc: "returned race (0 = human, 1 = newman, 2 = android, 3 = no player present or invalid class flags)"
           - type: int
-            name: class
             write: true
+            name: "returned class"
+            doc: "returned class (0 = hunter, 1 = ranger, 2 = force, 3 = no player present or invalid class flags)"
 
   - code: 0xf87b
     mnemonic: take_slot_meseta
@@ -2408,34 +3354,74 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
+            name: "client ID"
           - type: int
-            name: amount
             read: true
+            name: "amount to subtract"
+            doc: "amount to subtract (positive integer)"
       - type: reg
         registers:
           - type: int
-            name: taken
             write: true
+            name: "result code if player is present"
+            doc: "result code if player is present (1 = taken, 0 = player didn't have enough)"
+          - type: int
+            write: true
+            name: "result code if player not present"
+            doc: "result code if player not present (set to 0 if there is no player with the specified client ID)"
+
+  - code: 0xf87c
+    mnemonic: get_guild_card_file_creation_time
+    doc: "Returns the Guild Card file creation time in seconds since 00:00:00 on 1 January 2000."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf87d
+    mnemonic: kill_player
+    doc: "Kills the player whose client ID is regA."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf87e
+    mnemonic: get_serial_number
+    doc: "Returns (in regA) the player's serial number. On BB, returns 0."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
 
   - code: 0xf87f
     mnemonic: read_guildcard_flag
+    doc: "Reads an event flag from the system file"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "event flag index"
+            doc: "event flag index (0x00-0xFF)"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "returned event flag value"
+            doc: "returned event flag value (1 byte)"
 
   - code: 0xf880
+    mnemonic: set_trap_damage
+    doc: "Normally, trap damage is computed with the following formula: (700.0 * area_factor[area] * 2.0 * (0.01 * level + 0.1)) This opcode overrides that computation. The value is specified with the integer and fractional parts split up: the actual value used by the game will be regsA[0] + (regsA[1] / regsA[2])."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf881
@@ -2445,7 +3431,6 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
   - code: 0xf882
     mnemonic: get_pl_job
@@ -2454,100 +3439,214 @@ opcodes:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
   - code: 0xf883
+    mnemonic: get_player_proximity
+    doc: "Counts the number of players near the specified player"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "client ID"
+          - type: int
+            write: true
+            name: "radius"
+            doc: "radius (as integer)"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+
+  - code: 0xf884
+    mnemonic: set_eventflag16
+    doc: "Writes 2 bytes to the event flags in the system file. regB/valueB = value"
+    params:
+      - type: int
+        name: "flag index"
+        doc: "flag index (must be 254 or less)"
+      - type: int
+    stack: pop
+
+  - code: 0xf885
+    mnemonic: set_eventflag32
+    doc: "Writes 4 bytes to the event flags in the system file. regB/valueB = value"
+    params:
+      - type: int
+        name: "flag index"
+        doc: "flag index (must be 252 or less)"
+      - type: int
+    stack: pop
+
+  - code: 0xf886
+    mnemonic: ba_get_place
+    doc: "Returns (in regB) the battle result place (1, 2, 3, or 4) of the player specified by regA."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+      - type: reg
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf887
+    mnemonic: ba_get_score
+    doc: "Returns (in regB) the battle score of the player specified by regA."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+      - type: reg
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf888
+    mnemonic: ba_close_msg
+    doc: "TODO: Document these"
+    params: []
+
+  - code: 0xf889
+    mnemonic: disable_win_pfx
+    params: []
 
   - code: 0xf88a
     mnemonic: get_player_status
+    doc: "Returns (in regB) the state of the player specified by regA. State values: 0 = no player present, or warping (non-BB) 1 = standing 2 = walking 3 = running 4 = attacking 5 = casting technique 6 = performing photon blast 7 = defending 8 = taking damage / knocked down 9 = dead 10 = cutscene 11 = reviving 12 = frozen 13 = warping (BB only)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf88b
     mnemonic: send_mail
+    doc: "Sends a Simple Mail message to the player. regA (v2) = sender's Guild Card number valueA (v3+) = number of register that holds sender's Guild Card number strB = sender name and message (separated by \\n)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: string
+        name: "sender name and message"
+        doc: "sender name and message (separated by \\n)"
     stack: pop
 
   - code: 0xf88c
     mnemonic: online_check
+    doc: "Returns the game's major version (2 on DCv2/PC/GCNTE, 3 on GC/Ep3, 4 on Xbox and BB)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf88d
     mnemonic: chl_set_timerecord
+    doc: "Sets the local player's stage completion time in challenge mode. The BB form takes a second register; on v2/v3 only the first register is used."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
+            read: true
+            name: "time in seconds"
+      - type: reg
+        registers:
+          - type: int
             read: true
 
   - code: 0xf88e
     mnemonic: chl_get_timerecord
+    doc: "Gets the current player's completion time for the current challenge stage in seconds. If the player's time is invalid or faster than the time set by chl_set_min_time_online (or 5 minutes, if offline), returns -2. If used in non-challenge mode, returns -1."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf88f
+    mnemonic: set_cmode_grave_rates
+    doc: "Set challenge mode grave/penalty rates"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            write: true
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf890
+    mnemonic: clear_mainwarp_all
+    doc: "Clears all levels from the main warp."
+    params: []
 
   - code: 0xf891
     mnemonic: load_enemy_data
+    doc: "Specifies which enemy should be affected by subsequent get_*_data opcodes (the following 4 definitions). valueA is the battle parameter index for the desired enemy."
     params:
       - type: int
     stack: pop
 
   - code: 0xf892
     mnemonic: get_physical_data
+    doc: "Replaces enemy stats with the given structures (PlayerStats, AttackData, ResistData, or MovementData) for the enemy previously specified with load_enemy_data."
     params:
-      - type: short
+      - type: dlabel
 
   - code: 0xf893
     mnemonic: get_attack_data
+    doc: "Replaces enemy stats with the given structures (PlayerStats, AttackData, ResistData, or MovementData) for the enemy previously specified with load_enemy_data."
     params:
-      - type: short
+      - type: dlabel
 
   - code: 0xf894
     mnemonic: get_resist_data
+    doc: "Replaces enemy stats with the given structures (PlayerStats, AttackData, ResistData, or MovementData) for the enemy previously specified with load_enemy_data."
     params:
-      - type: short
+      - type: dlabel
 
   - code: 0xf895
     mnemonic: get_movement_data
+    doc: "Replaces enemy stats with the given structures (PlayerStats, AttackData, ResistData, or MovementData) for the enemy previously specified with load_enemy_data."
     params:
-      - type: short
+      - type: dlabel
+
+  - code: 0xf896
+    mnemonic: get_eventflag16
+    doc: "Reads 2 bytes or 4 bytes from the event flags in the system file"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "event flag index"
+      - type: reg
+        registers:
+          - type: int
+            write: true
+            name: "returned value"
+
+  - code: 0xf897
+    mnemonic: get_eventflag32
+    doc: "Reads 2 bytes or 4 bytes from the event flags in the system file."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+      - type: reg
+        registers:
+          - type: int
+            write: true
 
   - code: 0xf898
     mnemonic: shift_left
+    doc: "regA <<= regB"
     params:
       - type: reg
         registers:
@@ -2560,6 +3659,7 @@ opcodes:
 
   - code: 0xf899
     mnemonic: shift_right
+    doc: "regA >>= regB"
     params:
       - type: reg
         registers:
@@ -2572,19 +3672,21 @@ opcodes:
 
   - code: 0xf89a
     mnemonic: get_random
+    doc: "Generates a random number by calling rand(). Note that the returned value is not uniform! The algorithm generates a uniform random number, scales it to the range 0 through (max-1) inclusive, then clamps it to the range min through (max-1). So, if the minimum value is not 0, the minimum value is more likely than all other possible results. To get an unbiased result with a minimum not equal to zero, use this with a minimum of zero, then use add or addi. Note also that this is implemented by calling rand(), which returns a 15-bit random integer. If your range of values is larger than 15 bits, call this multiple times and combine the results appropriately"
     params:
       - type: reg
         registers:
           - type: int
             read: true
+            name: "minimum value"
           - type: int
             read: true
+            name: "maximum value"
       - type: reg
         registers:
           - type: int
             write: true
 
-    # TODO: Do you have to change areas after calling this opcode?
   - code: 0xf89b
     mnemonic: reset_map
     doc: Sets all registers to 0 and resets the quest.
@@ -2592,46 +3694,222 @@ opcodes:
 
   - code: 0xf89c
     mnemonic: disp_chl_retry_menu
+    doc: "Returns the leader's choice when a challenge is failed in regA. Values: 0 = not chosen yet 1 = no (releases players to interact on Pioneer 2) 2 = yes (restarts the stage)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf89d
     mnemonic: chl_reverser
+    doc: "Creates the retry menu when a challenge stage is failed"
     params: []
 
   - code: 0xf89e
+    mnemonic: ba_forbid_scape_dolls
+    doc: "Enables (0) or disables (1) the use of scape dolls in battle"
     params:
       - type: int
     stack: pop
 
   - code: 0xf89f
+    mnemonic: player_recovery
+    doc: "Restores a player's HP and TP, clears status effects, and revives the player if dead"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
+            write: true
+            name: "client ID"
+
+  - code: 0xf8a0
+    mnemonic: disable_bosswarp_option
+    doc: "These opcodes set, clear, and check (respectively) a flag that appears to do nothing at all."
+    params: []
+
+  - code: 0xf8a1
+    mnemonic: enable_bosswarp_option
+    doc: "These opcodes set, clear, and check (respectively) a flag that appears to do nothing at all."
+    params: []
+
+  - code: 0xf8a2
+    mnemonic: is_bosswarp_opt_disabled
+    doc: "These opcodes set, clear, and check (respectively) a flag that appears to do nothing at all."
+    params:
+      - type: reg
+        registers:
+          - type: int
             write: true
 
+  - code: 0xf8a3
+    mnemonic: load_serial_number_to_flag_buf
+    doc: "Loads the player's serial number into the \"flag buffer\", which is a 4-byte buffer that can be written to event flags. It's not obvious why this can't just be done with get_serial_number and set_eventflag32. This opcode loads 0 to the flag buffer on BB."
+    params: []
+
+  - code: 0xf8a4
+    mnemonic: write_flag_buf_to_event_flags
+    doc: "Writes the flag buffer to event flags. regA specifies which event flag (the first of 4 consecutive flags)."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf8a5
+    mnemonic: set_chat_callback_no_filter
+    doc: "Like set_chat_callback, but without a filter string. The meaning of regsA is the same as for set_chat_callback."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf8a6
+    mnemonic: set_symbol_chat_collision
+    doc: "Creates a symbol chat collision object. See the description of TOSymbolchatColli in Map.cc for details on how this object behaves and what these arguments mean. PlayerSubordinates.hh). Note that this structure is not byteswapped properly, so GameCube quests that use this opcode should use the big-endian version of the struct. (Practically, this means the first 32-bit field and the following 4 16-bit fields must be byteswapped.)"
+    params:
+      - type: reg
+        registers:
+          - type: float
+            read: true
+            name: "location X"
+          - type: float
+            read: true
+            name: "location Y"
+          - type: float
+            read: true
+            name: "location Z"
+          - type: float
+            read: true
+            name: "radius"
+          - type: int
+            read: true
+            name: "specs 0-2 [0]"
+            doc: "specs 0-2 (see TOSymbolchatColli description)"
+          - type: int
+            read: true
+            name: "specs 0-2 [1]"
+            doc: "specs 0-2 (see TOSymbolchatColli description)"
+          - type: int
+            read: true
+            name: "specs 0-2 [2]"
+            doc: "specs 0-2 (see TOSymbolchatColli description)"
+          - type: int
+            read: true
+            name: "data labels for symbol chats 0-2; each points to a SymbolChat structure [0]"
+            doc: "data labels for symbol chats 0-2; each points to a SymbolChat structure (see SymbolChatT in"
+          - type: int
+            read: true
+            name: "data labels for symbol chats 0-2; each points to a SymbolChat structure [1]"
+            doc: "data labels for symbol chats 0-2; each points to a SymbolChat structure (see SymbolChatT in"
+          - type: int
+            read: true
+            name: "data labels for symbol chats 0-2; each points to a SymbolChat structure [2]"
+            doc: "data labels for symbol chats 0-2; each points to a SymbolChat structure (see SymbolChatT in"
+
+  - code: 0xf8a7
+    mnemonic: set_shrink_size
+    doc: "Sets the size that a player shrinks to when using the shrink opcode. regA specified the client ID. The actual shrink size used is regsB[0] + (regsB[1] / regsB[2]). If regsB[2] is 0, the fractional part is considered to be zero and not used."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
   - code: 0xf8a8
+    mnemonic: death_tech_lvl_up2
+    doc: "Sets the amount by which techniques level up upon respawn in battle."
     params:
       - type: int
     stack: pop
 
   - code: 0xf8a9
+    mnemonic: vol_opt_is_dead
+    doc: "Returns 1 if Vol Opt has been defeated in the current game/quest."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf8aa
+    mnemonic: is_there_grave_message
+    doc: "Returns 1 if the local player has a challenge mode grave message."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf8ab
+    mnemonic: get_ba_record
+    doc: "Returns the local player's battle mode records. The values returned are the first 7 fields of the PlayerRecordsBattle structure (see PlayerSubordinates.hh). These are"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "number of times placed 1st, 2nd, 3rd, and 4th, respectively [0]"
+          - type: int
+            read: true
+            name: "number of times placed 1st, 2nd, 3rd, and 4th, respectively [1]"
+          - type: int
+            read: true
+            name: "number of times placed 1st, 2nd, 3rd, and 4th, respectively [2]"
+          - type: int
+            read: true
+            name: "number of times placed 1st, 2nd, 3rd, and 4th, respectively [3]"
+          - type: int
+            read: true
+            name: "number of disconnects"
+          - type: int
+            read: true
+            name: "unknown [0]"
+            doc: "unknown (TODO)"
+          - type: int
+            read: true
+            name: "unknown [1]"
+            doc: "unknown (TODO)"
+
+  - code: 0xf8ac
+    mnemonic: get_cmode_prize_rank
+    doc: "Returns the current player's challenge mode rank. Reads from the state corresponding to the current game mode (that is, reads from online Ep1 records in online Ep1 challenge mode, reads from offline Ep1 records in offline challenge mode, reads from Ep2 records in Ep2). Return values: 0 = challenge mode not completed 1 = B rank 2 = A rank 3 = S rank"
+    params:
+      - type: reg
+        registers:
+          - type: int
             write: true
 
   - code: 0xf8ad
     mnemonic: get_number_of_player2
+    doc: "Returns the number of players (in regA). Unlike get_number_of_players, this counts the number of objects that have entity IDs assigned in the players' ID space, whereas get_number_of_players counds the number of TObjPlayer objects. For all practical purposes, these should result in the same number."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf8ae
+    mnemonic: party_has_name
+    doc: "Returns 1 (in regA) if the current game has a nonempty name. The game name is set by command 8A from the server."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf8af
+    mnemonic: someone_has_spoken
+    doc: "Returns 1 (in regA) if there is a chat message available (that is, if anyone has sent a chat message in the current game)."
+    params:
+      - type: reg
+        registers:
+          - type: int
             write: true
 
   - code: 0xf8b0
@@ -2679,8 +3957,8 @@ opcodes:
     params:
       - type: int
         doc: Address to write to.
-      - type: byte
-        doc: Value to be written.
+      - type: int
+        doc: Value to be written (low byte used).
     stack: pop
 
   - code: 0xf8b4
@@ -2689,8 +3967,8 @@ opcodes:
     params:
       - type: int
         doc: Address to write to.
-      - type: short
-        doc: Value to be written.
+      - type: int
+        doc: Value to be written (low 2 bytes used).
     stack: pop
 
   - code: 0xf8b5
@@ -2703,17 +3981,124 @@ opcodes:
         doc: Value to be written.
     stack: pop
 
+  - code: 0xf8b6
+    mnemonic: check_for_hacking
+    doc: "Returns a bitmask of 5 different types of detectable hacking. This opcode only works on DCv2 - it crashes on all other versions, since it tries to access memory at 8C007220, which is only a valid address on DC. The bits are: 0x01 = any byte in [8C007220, 8C0072E0) is nonzero (crashes on non-DC) 0x02 = has cheat device save files on VMU (always zero on non-DC); looks for names: CDX_CODES_00, CDX_SETTINGS, XT-CHEATS, FCDCHEATS 0x04 = any of the first 3 VMU-like devices (with function_code & 0x0E not equal to zero) on any of the 4 Maple buses reports power usage (standby or max) above 4 amps; always zero on non-DC systems 0x08 = hacked item flag has been set (see implementation of are_rare_drops_allowed in ItemCreator.cc) 0x10 = any bits in validation_flags in the character file are set (see PSOGCCharacterFile::Character)"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf8b7
+    mnemonic: chl_set_min_time_online
+    doc: "Challenge mode cannot be completed unless this many seconds have passed since the stage began. If not set or if offline, 5 minutes is used as the threshold instead."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf8b8
+    mnemonic: disable_retry_menu
+    doc: "Disables the challenge mode retry menu"
+    params: []
+
   - code: 0xf8b9
     mnemonic: chl_recovery
+    doc: "Shows the list of dead players in challenge mode"
     params: []
+
+  - code: 0xf8ba
+    mnemonic: load_guild_card_file_creation_time_to_flag_buf
+    doc: "Loads the Guild Card file creation time to the flag buffer. (See F8A3 and F8A4 for more details.)"
+    params: []
+
+  - code: 0xf8bb
+    mnemonic: write_flag_buf_to_event_flags2
+    doc: "Behaves exactly the same as write_flag_buf_to_event_flags (F8A4)."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
 
   - code: 0xf8bc
     mnemonic: set_episode
+    doc: "Returns (in regB) the Guild Card number of the player in the slot specified by regA. If there is no player in that slot, returns FFFFFFFF. This opcode is only implemented on certain later versions of PC v2, and not on any v3 or later versions."
     params:
       - type: int
 
+  - code: 0xf8bd
+    mnemonic: get_current_symbol_chat
+    doc: "Returns (in regsB) the full symbol chat data for the symbol chat currently being said by the player specified in regA. The symbol chat data is only returned for 120 frames (4 seconds) after the corresponding 6x07 command is received; after that, this opcode will return a blank symbol chat instead. This opcode only works if create_symbol_chat_monitor is run first. This opcode is only implemented on certain later versions of PC v2, and not on any v3 or later versions."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "client ID"
+      - type: reg
+        registers:
+          - type: int
+            write: true
+            name: "symbol chat data [0]"
+          - type: int
+            write: true
+            name: "symbol chat data [1]"
+          - type: int
+            write: true
+            name: "symbol chat data [2]"
+          - type: int
+            write: true
+            name: "symbol chat data [3]"
+          - type: int
+            write: true
+            name: "symbol chat data [4]"
+          - type: int
+            write: true
+            name: "symbol chat data [5]"
+          - type: int
+            write: true
+            name: "symbol chat data [6]"
+          - type: int
+            write: true
+            name: "symbol chat data [7]"
+          - type: int
+            write: true
+            name: "symbol chat data [8]"
+          - type: int
+            write: true
+            name: "symbol chat data [9]"
+          - type: int
+            write: true
+            name: "symbol chat data [10]"
+          - type: int
+            write: true
+            name: "symbol chat data [11]"
+          - type: int
+            write: true
+            name: "symbol chat data [12]"
+          - type: int
+            write: true
+            name: "symbol chat data [13]"
+          - type: int
+            write: true
+            name: "symbol chat data [14]"
+
+  - code: 0xf8be
+    mnemonic: create_symbol_chat_monitor
+    doc: "Enables the usage of get_current_symbol_chat. This opcode is only implemented on certain later versions of PC v2, and not on any v3 or later versions."
+    params: []
+
+  - code: 0xf8bf
+    mnemonic: save_system_and_gc_files
+    doc: "Causes the client to immediately save the PSO______COM (system) and PSO______GUD (Guild Card) files to disk. This opcode is only implemented on certain later versions of PC v2, and not on v3 or later versions."
+    params: []
+
   - code: 0xf8c0
     mnemonic: file_dl_req
+    doc: "Requests a file from the server by sending a D7 command. valueA specifies header.flag, strB is the file name (up to 16 characters). This opcode works on Xbox, but the GBA opcodes do not, so it's ultimately not useful there. This opcode does nothing on BB."
     params:
       - type: int
       - type: string
@@ -2721,237 +4106,317 @@ opcodes:
 
   - code: 0xf8c1
     mnemonic: get_dl_status
+    doc: "Returns the status of the download requested with file_dl_req. Return values (in regA): 0 = failed (server sent a D7 command) 1 = pending 2 = complete"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf8c2
     mnemonic: gba_unknown4
+    doc: "Prepares to load a GBA ROM from a previous file_dl_req opcode. Does nothing on Xbox and BB."
     params: []
 
   - code: 0xf8c3
     mnemonic: get_gba_state
+    doc: "Starts loading a GBA ROM to a connected GBA, or checks the status of a previous load request. One of prepare_gba_rom_from_download or prepare_gba_rom_from_disk must be called before calling this, then this should be called repeatedly until it succeeds or fails. Return values: 0 = not started 1 = failed 2 = timed out 3 = in progress 4 = complete This opcode always returns 0 on Xbox, and does nothing (doesn't even affect regA) on BB."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf8c4
+    mnemonic: congrats_msg_multi_cm
+    doc: "Shows the challenge mode result window in split-screen mode. Does nothing on BB"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "completion time in seconds"
+            doc: "completion time in seconds, as returned by chl_get_timerecord"
 
   - code: 0xf8c5
+    mnemonic: stage_in_progress_multi_cm
+    doc: "Checks if the stage is done in offline challenge mode. Returns 1 if the stage is still in progress, or 0 if it's completed or failed."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf8c6
     mnemonic: qexit
+    doc: "Causes a fade to black, then exits the game. This is the same result as receiving a 6x73 command."
     params: []
 
   - code: 0xf8c7
     mnemonic: use_animation
+    doc: "Causes a player to perform an animation."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
+            name: "client ID"
       - type: reg
         doc: Animation ID and duration in number of frames.
         registers:
           - type: int
-            name: animation
             read: true
+            name: "animation ID"
           - type: int
-            name: duration
             read: true
+            name: "duration in frames"
 
   - code: 0xf8c8
     mnemonic: stop_animation
+    doc: "Stops an animation started with use_animation"
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
+            name: "client ID"
 
   - code: 0xf8c9
     mnemonic: run_to_coord
+    doc: "Causes a player to run to a location, as 6x42 does. Sends 6x42"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
+          - type: int
+            read: true
+            name: "client ID"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8ca
     mnemonic: set_slot_invincible
+    doc: "Makes a player invincible, or removes their invincibility"
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
+            name: "client ID"
       - type: reg
         registers:
           - type: int
             read: true
+            name: "enable invincibility"
+            doc: "enable invincibility (1 = enable, 0 = disable)"
 
   - code: 0xf8cb
+    mnemonic: set_slot_targetable
+    doc: "Removes a player's invicibility. clear_slot_invincible rXX is equivalent to set_slot_invincible rXX, 0"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "client ID"
 
   - code: 0xf8cc
     mnemonic: set_slot_poison
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21"
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
+            name: "client ID"
 
   - code: 0xf8cd
     mnemonic: set_slot_paralyze
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8ce
     mnemonic: set_slot_shock
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8cf
     mnemonic: set_slot_freeze
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8d0
     mnemonic: set_slot_slow
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8d1
     mnemonic: set_slot_confuse
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8d2
     mnemonic: set_slot_shifta
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8d3
     mnemonic: set_slot_deband
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8d4
     mnemonic: set_slot_jellen
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8d5
     mnemonic: set_slot_zalure
+    doc: "These opcodes inflict various status conditions on a player. In the case of Shifta/Deband/Jellen/Zalure, the effective technique level is 21."
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
 
   - code: 0xf8d6
     mnemonic: fleti_fixed_camera
+    doc: "Same as leti_fixed_camera, but takes floating-point arguments"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "camera location X"
+          - type: int
+            read: true
+            name: "camera location Y"
+          - type: int
+            read: true
+            name: "camera location Z"
+          - type: int
+            read: true
+            name: "camera focus location X"
+          - type: int
+            read: true
+            name: "camera focus location Y"
+          - type: int
+            read: true
+            name: "camera focus location Z"
     stack: pop
 
   - code: 0xf8d7
     mnemonic: fleti_locked_camera
+    doc: "Sets the camera to follow the player at a fixed angle"
     params:
       - type: int
+        name: "client ID"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "camera angle X"
+          - type: int
+            read: true
+            name: "camera angle Y"
+          - type: int
+            read: true
+            name: "camera angle Z"
     stack: pop
 
   - code: 0xf8d8
     mnemonic: default_camera_pos2
+    doc: "This opcode appears to be exactly the same as default_camera_pos. TODO: Is there any difference?"
     params: []
 
   - code: 0xf8d9
     mnemonic: set_motion_blur
+    doc: "Enables a motion blur visual effect."
     params: []
 
   - code: 0xf8da
     mnemonic: set_screen_bw
+    doc: "Enables a monochrome visual effect."
     params: []
 
   - code: 0xf8db
+    mnemonic: get_vector_from_path
+    doc: "Computes a point along a path composed of multiple control points"
     params:
       - type: int
+        name: "number of control points"
       - type: int
+        name: "speed along path"
       - type: int
+        name: "current position along path"
       - type: int
+        name: "loop flag"
+        doc: "loop flag (0 = no, 1 = yes)"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
-      - type: short
+            name: "result point X"
+          - type: int
+            read: true
+            name: "result point Y"
+          - type: int
+            read: true
+            name: "result point Z"
+          - type: int
+            read: true
+            name: "result code"
+            doc: "result code (0 = failed, 1 = success)"
+      - type: dlabel
+        name: "control point entries"
+        doc: "control point entries (array of valueA VectorXYZTF structures)"
     stack: pop
 
   - code: 0xf8dc
     mnemonic: npc_action_string
+    doc: "Same as npc_text, but only applies to a specific player slot"
     params:
       - type: reg
         registers:
@@ -2962,204 +4427,282 @@ opcodes:
           - type: int
             read: true
       - type: slabel
+        name: "string for NPC to say"
+        doc: "string for NPC to say (up to 52 characters)"
 
   - code: 0xf8dd
     mnemonic: get_pad_cond
+    doc: "Returns a bitmask of the buttons which are currently pressed or held on this frame"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "controller port number"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "returned button flags"
 
   - code: 0xf8de
     mnemonic: get_button_cond
+    doc: "Returns a bitmask of the buttons which were newly pressed on this frame. Buttons which were pressed on previous frames and still held down are not returned. Same arguments as get_held_buttons."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf8df
     mnemonic: freeze_enemies
+    doc: "Freezes enemies and makes them untargetable, or unfreezes them and makes them targetable again. Internally, this toggles a flag that disables updates for every child object of TL_04."
     params: []
 
   - code: 0xf8e0
     mnemonic: unfreeze_enemies
+    doc: "Unfreezes enemies and makes them targetable again."
     params: []
 
   - code: 0xf8e1
     mnemonic: freeze_everything
+    doc: "Freezes (almost) everything, or unfreezes (almost) everything. Internally, this toggles the disable-updates flag for every child of all root objects except TL_SU, TL_00, TL_CAMERA, and TL_01."
     params: []
 
   - code: 0xf8e2
     mnemonic: unfreeze_everything
+    doc: "Unfreezes (almost) everything, if toggle_freeze_everything has been executed before."
     params: []
 
   - code: 0xf8e3
     mnemonic: restore_hp
+    doc: "Sets a player's HP or TP to their maximum HP or TP"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "client ID"
 
   - code: 0xf8e4
     mnemonic: restore_tp
+    doc: "Sets a player's HP or TP to their maximum HP or TP."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8e5
     mnemonic: close_chat_bubble
+    doc: "Closes a chat bubble for a player, if one is open"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "client ID"
 
   - code: 0xf8e6
     mnemonic: move_coords_object
+    doc: "Moves a dynamic collision object"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
 
   - code: 0xf8e7
     mnemonic: at_coords_call_ex
+    doc: "These are the same as their counterparts without _ex, but these also return the object ID (which is distinct from the object token) in regB. There is a bug in set_obj_param_ex - the object token is not returned anywhere, and only the object ID is returned in regB."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8e8
+    mnemonic: at_coords_talk_ex
+    doc: "These are the same as their counterparts without _ex, but these also return the object ID (which is distinct from the object token) in regB. There is a bug in set_obj_param_ex - the object token is not returned anywhere, and only the object ID is returned in regB."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8e9
+    mnemonic: npc_coords_call_ex
+    doc: "These are the same as their counterparts without _ex, but these also return the object ID (which is distinct from the object token) in regB. There is a bug in set_obj_param_ex - the object token is not returned anywhere, and only the object ID is returned in regB."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8ea
+    mnemonic: party_coords_call_ex
+    doc: "These are the same as their counterparts without _ex, but these also return the object ID (which is distinct from the object token) in regB. There is a bug in set_obj_param_ex - the object token is not returned anywhere, and only the object ID is returned in regB."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8eb
+    mnemonic: set_obj_param_ex
+    doc: "These are the same as their counterparts without _ex, but these also return the object ID (which is distinct from the object token) in regB. There is a bug in set_obj_param_ex - the object token is not returned anywhere, and only the object ID is returned in regB."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8ec
+    mnemonic: npc_check_straggle_ex
+    doc: "These are the same as their counterparts without _ex, but these also return the object ID (which is distinct from the object token) in regB. There is a bug in set_obj_param_ex - the object token is not returned anywhere, and only the object ID is returned in regB."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
 
   - code: 0xf8ed
     mnemonic: animation_check
+    doc: "Returns 1 if the player is doing certain animations. (TODO: Which ones?)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "client ID"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "returned value"
 
   - code: 0xf8ee
     mnemonic: call_image_data
+    doc: "Specifies which image to use for the image board in Pioneer 2 (if placed). Only one image may be loaded at a time. Images must be square and dimensions must be a power of two, similar to the B9 command on Ep3. On DC or PCv2, the image data is expected to be a PVR file; on GC, it should be a GVR file; on Xbox and BB it should be an XVR file"
     params:
       - type: int
-      - type: short
+        name: "decompressed size"
+      - type: dlabel
+        name: "label containing PRS-compressed image file data"
     stack: pop
+
+  - code: 0xf8ef
+    mnemonic: nop_f8ef
+    doc: "This opcode does nothing on all versions where it's implemented."
+    params: []
 
   - code: 0xf8f0
     mnemonic: turn_off_bgm_p2
+    doc: "Disables or enables the background music on Pioneer 2. If the BGM has not been overridden with create_bgmctrl and set_bgm, the music will resume at the points where it would normally change (e.g. entering or leaving the shop area). turn_off_bgm_p2 may be repeated every frame to avoid this consequence."
     params: []
 
   - code: 0xf8f1
     mnemonic: turn_on_bgm_p2
+    doc: "Disables or enables the background music on Pioneer 2. If the BGM has not been overridden with create_bgmctrl and set_bgm, the music will resume at the points where it would normally change (e.g. entering or leaving the shop area). turn_off_bgm_p2 may be repeated every frame to avoid this consequence."
     params: []
 
   - code: 0xf8f2
     mnemonic: load_unk_data
+    doc: "Computes a point along a Bezier curve defined by a sequence of vectors. This is similar to get_vector_from_path, but results in a smoother curve. Arguments"
     params:
       - type: int
+        name: "number of control points"
       - type: int
+        name: "speed along path"
       - type: int
+        name: "current position along path"
       - type: int
+        name: "loop flag"
+        doc: "loop flag (0 = no, 1 = yes)"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "result point X"
+          - type: int
+            read: true
+            name: "result point Y"
+          - type: int
+            read: true
+            name: "result point Z"
+          - type: int
+            read: true
+            name: "result code"
+            doc: "result code (0 = failed, 1 = success)"
       - type: dlabel
+        name: "control point entries"
+        doc: "control point entries (array of valueA VectorXYZTF structures)"
     stack: pop
 
   - code: 0xf8f3
     mnemonic: particle2
+    doc: "Creates a timed particle emitter. Coordinates come from integer registers and are numerically converted to float; the immediate float duration is truncated toward zero"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
       - type: int
+        name: "particle effect ID"
       - type: float
+        name: "duration as float"
+        doc: "duration as float (in frames; 30 frames/sec)"
     stack: pop
 
   - code: 0xf901
     mnemonic: dec2float
+    doc: "Converts the integer in regB into a float in regA."
     params:
       - type: reg
         registers:
@@ -3172,6 +4715,7 @@ opcodes:
 
   - code: 0xf902
     mnemonic: float2dec
+    doc: "Converts the float in regB into an integer in regA."
     params:
       - type: reg
         registers:
@@ -3184,6 +4728,7 @@ opcodes:
 
   - code: 0xf903
     mnemonic: flet
+    doc: "These are the same as let and leti. Nominally regB/valueB should be a float, but the implementation treats it as an int (which is still correct, since the float is already encoded before the handler function is called)."
     params:
       - type: reg
         registers:
@@ -3196,6 +4741,7 @@ opcodes:
 
   - code: 0xf904
     mnemonic: fleti
+    doc: "These are the same as let and leti. Nominally regB/valueB should be a float, but the implementation treats it as an int (which is still correct, since the float is already encoded before the handler function is called)."
     params:
       - type: reg
         registers:
@@ -3205,6 +4751,7 @@ opcodes:
 
   - code: 0xf908
     mnemonic: fadd
+    doc: "regA += regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3217,6 +4764,7 @@ opcodes:
 
   - code: 0xf909
     mnemonic: faddi
+    doc: "regA += regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3226,6 +4774,7 @@ opcodes:
 
   - code: 0xf90a
     mnemonic: fsub
+    doc: "regA -= regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3238,6 +4787,7 @@ opcodes:
 
   - code: 0xf90b
     mnemonic: fsubi
+    doc: "regA -= regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3247,6 +4797,7 @@ opcodes:
 
   - code: 0xf90c
     mnemonic: fmul
+    doc: "regA *= regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3259,6 +4810,7 @@ opcodes:
 
   - code: 0xf90d
     mnemonic: fmuli
+    doc: "regA *= regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3268,6 +4820,7 @@ opcodes:
 
   - code: 0xf90e
     mnemonic: fdiv
+    doc: "regA /= regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3280,6 +4833,7 @@ opcodes:
 
   - code: 0xf90f
     mnemonic: fdivi
+    doc: "regA /= regB (or valueB), as floats"
     params:
       - type: reg
         registers:
@@ -3289,8 +4843,10 @@ opcodes:
 
   - code: 0xf910
     mnemonic: get_unknown_count
+    doc: "Returns the number of times a player has ever died - not just in the current quest/game/session!"
     params:
       - type: int
+        name: "client ID"
       - type: reg
         registers:
           - type: int
@@ -3299,18 +4855,22 @@ opcodes:
 
   - code: 0xf911
     mnemonic: get_stackable_item_count
+    doc: "Returns the stack size of the specified item in the player's inventory"
     params:
       - type: reg
         registers:
           - type: int
-            name: slot
             read: true
+            name: "client ID"
           - type: int
             read: true
+            name: "item.data1[0-2] [0]"
           - type: int
             read: true
+            name: "item.data1[0-2] [1]"
           - type: int
             read: true
+            name: "item.data1[0-2] [2]"
       - type: reg
         registers:
           - type: int
@@ -3318,14 +4878,17 @@ opcodes:
 
   - code: 0xf912
     mnemonic: freeze_and_hide_equip
+    doc: "Freezes a character and hides their equips, or does the opposite. Internally, this toggles the disable-update flag on TL_03."
     params: []
 
   - code: 0xf913
     mnemonic: thaw_and_show_equip
+    doc: "Undoes the effect of toggle_freeze_and_hide_equip, if it has been run an odd number of times. (Otherwise, does nothing.)"
     params: []
 
   - code: 0xf914
     mnemonic: set_palettex_callback
+    doc: "These opcodes are generally used in the following sequence: set_palettex_callback r:client_id, callback_label activate_palettex r:client_id enable_palettex r:client_id ... (X button now runs a quest function when pressed) disable_palettex r:client_id restore_palettex r:client_id ... (X button now behaves normally) Arguments: labelB (for set_palettex_callback only) = function to call when X button is pressed"
     params:
       - type: int
         name: slot
@@ -3334,6 +4897,7 @@ opcodes:
 
   - code: 0xf915
     mnemonic: activate_palettex
+    doc: "These opcodes are generally used in the following sequence: set_palettex_callback r:client_id, callback_label activate_palettex r:client_id enable_palettex r:client_id ... (X button now runs a quest function when pressed) disable_palettex r:client_id restore_palettex r:client_id ... (X button now behaves normally) Arguments: labelB (for set_palettex_callback only) = function to call when X button is pressed"
     params:
       - type: int
         name: slot
@@ -3341,6 +4905,7 @@ opcodes:
 
   - code: 0xf916
     mnemonic: enable_palettex
+    doc: "These opcodes are generally used in the following sequence: set_palettex_callback r:client_id, callback_label activate_palettex r:client_id enable_palettex r:client_id ... (X button now runs a quest function when pressed) disable_palettex r:client_id restore_palettex r:client_id ... (X button now behaves normally) Arguments: labelB (for set_palettex_callback only) = function to call when X button is pressed"
     params:
       - type: int
         name: slot
@@ -3348,6 +4913,7 @@ opcodes:
 
   - code: 0xf917
     mnemonic: restore_palettex
+    doc: "These opcodes are generally used in the following sequence: set_palettex_callback r:client_id, callback_label activate_palettex r:client_id enable_palettex r:client_id ... (X button now runs a quest function when pressed) disable_palettex r:client_id restore_palettex r:client_id ... (X button now behaves normally) Arguments: labelB (for set_palettex_callback only) = function to call when X button is pressed"
     params:
       - type: int
         name: slot
@@ -3355,6 +4921,7 @@ opcodes:
 
   - code: 0xf918
     mnemonic: disable_palettex
+    doc: "These opcodes are generally used in the following sequence: set_palettex_callback r:client_id, callback_label activate_palettex r:client_id enable_palettex r:client_id ... (X button now runs a quest function when pressed) disable_palettex r:client_id restore_palettex r:client_id ... (X button now behaves normally) Arguments: labelB (for set_palettex_callback only) = function to call when X button is pressed"
     params:
       - type: int
         name: slot
@@ -3362,6 +4929,7 @@ opcodes:
 
   - code: 0xf919
     mnemonic: get_palettex_activated
+    doc: "Checks if activate_palettex has been run for a player"
     params:
       - type: int
         name: slot
@@ -3372,9 +4940,13 @@ opcodes:
     stack: pop
 
   - code: 0xf91a
-    mnemonic: get_unknown_palettex_status
+    mnemonic: get_palettex_enabled
+    doc: "Checks if activate_palettex has been run for a player. The ignored argument here seems to be a bug. At least one official quest uses this opcode preceded by only two arg_push opcodes, implying that it was intended to take two arguments, but the client really does only use quest_arg_list[0] and quest_arg_list[2]"
     params:
       - type: int
+        name: "client ID"
+      - type: int
+        name: "ignored"
       - type: reg
         registers:
           - type: int
@@ -3383,6 +4955,7 @@ opcodes:
 
   - code: 0xf91b
     mnemonic: disable_movement2
+    doc: "Disables/enables movement for a player. Unlike disable_movement1, this does not send 6x2C"
     params:
       - type: int
         name: slot
@@ -3390,6 +4963,7 @@ opcodes:
 
   - code: 0xf91c
     mnemonic: enable_movement2
+    doc: "Disables/enables movement for a player. Unlike disable_movement1, this does not send 6x2C."
     params:
       - type: int
         name: slot
@@ -3397,30 +4971,38 @@ opcodes:
 
   - code: 0xf91d
     mnemonic: get_time_played
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: int
-            write: true
-
-  - code: 0xf91e
-    mnemonic: get_guildcard_total
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: int
-            write: true
-
-  - code: 0xf91f
-    mnemonic: get_slot_meseta
+    doc: "Returns the local player's play time in seconds."
     params:
       - type: reg
         registers:
           - type: int
             write: true
 
+  - code: 0xf91e
+    mnemonic: get_guildcard_total
+    doc: "Returns the number of Guild Cards saved to the Guild Card file."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf91f
+    mnemonic: get_slot_meseta
+    doc: "Returns the amount of Meseta the player has in both their inventory and bank"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+            name: "returned Meseta amount in inventory"
+          - type: int
+            write: true
+            name: "returned Meseta amount in bank"
+
   - code: 0xf920
     mnemonic: get_player_level
+    doc: "Returns a player's level"
     params:
       - type: int
         name: slot
@@ -3432,6 +5014,7 @@ opcodes:
 
   - code: 0xf921
     mnemonic: get_section_id
+    doc: "Returns a player's section ID"
     params:
       - type: int
         name: slot
@@ -3443,27 +5026,29 @@ opcodes:
 
   - code: 0xf922
     mnemonic: get_player_hp
+    doc: "Returns a player's maximum and current HP and TP. If there's no player in the given slot, the returned values are all FFFFFFFF"
     params:
       - type: int
         name: slot
       - type: reg
         registers:
           - type: int
-            name: max_hp
             write: true
+            name: "returned maximum HP"
           - type: int
-            name: hp
             write: true
+            name: "returned current HP"
           - type: int
-            name: max_tp
             write: true
+            name: "returned maximum TP"
           - type: int
-            name: tp
             write: true
+            name: "returned current TP"
     stack: pop
 
   - code: 0xf923
     mnemonic: get_floor_number
+    doc: "Returns the floor and room ID of the given player. If there's no player in the given slot, the returned values are both FFFFFFFF"
     params:
       - type: int
         name: slot
@@ -3471,25 +5056,55 @@ opcodes:
         registers:
           - type: int
             write: true
+            name: "returned floor number"
+          - type: int
+            write: true
+            name: "returned room number"
     stack: pop
 
   - code: 0xf924
     mnemonic: get_coord_player_detect
+    doc: "Checks if each player (individually) is near the given location"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            name: slot
+        registers:
+          - type: int
             read: true
+            name: "location [0]"
+            doc: "location (x, z as integers; y not included)"
+          - type: int
+            read: true
+            name: "location [1]"
+            doc: "location (x, z as integers; y not included)"
+          - type: int
+            read: true
+            name: "radius as integer"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             read: true
+            name: "results for each player [0]"
+            doc: "results for each player (0 = player not present or outside radius; 1 = player within radius)"
+          - type: int
+            read: true
+            name: "results for each player [1]"
+            doc: "results for each player (0 = player not present or outside radius; 1 = player within radius)"
+          - type: int
+            read: true
+            name: "results for each player [2]"
+            doc: "results for each player (0 = player not present or outside radius; 1 = player within radius)"
+          - type: int
+            read: true
+            name: "results for each player [3]"
+            doc: "results for each player (0 = player not present or outside radius; 1 = player within radius)"
 
   - code: 0xf925
     mnemonic: read_global_flag
+    doc: "Reads the value of a quest counter"
     params:
       - type: int
+        name: "counter index"
+        doc: "counter index (0-15)"
       - type: reg
         registers:
           - type: int
@@ -3498,74 +5113,108 @@ opcodes:
 
   - code: 0xf926
     mnemonic: write_global_flag
+    doc: "Writes a value to a quest counter"
     params:
       - type: int
+        name: "counter index"
+        doc: "counter index (0-15)"
       - type: int
+        name: "value to write"
     stack: pop
 
   - code: 0xf927
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            write: true
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: any
-            write: true
-
-  - code: 0xf928
-    mnemonic: floor_player_detect
+    mnemonic: item_detect_bank2
+    doc: "Checks if an item exists in the local player's bank. The matching logic is the same as in find_inventory_item"
     params:
       - type: reg
         registers:
           - type: int
             write: true
+            name: "item.data1[0-2] [0]"
           - type: int
             write: true
+            name: "item.data1[0-2] [1]"
           - type: int
             write: true
+            name: "item.data1[0-2] [2]"
+          - type: int
+            write: true
+            name: "item.data1[4]"
+      - type: reg
+        registers:
           - type: int
             write: true
 
+  - code: 0xf928
+    mnemonic: floor_player_detect
+    doc: "Returns whether each player is present"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+            name: "returned flags [0]"
+            doc: "returned flags (for each player: 0 if absent, 1 if present)"
+          - type: int
+            write: true
+            name: "returned flags [1]"
+            doc: "returned flags (for each player: 0 if absent, 1 if present)"
+          - type: int
+            write: true
+            name: "returned flags [2]"
+            doc: "returned flags (for each player: 0 if absent, 1 if present)"
+          - type: int
+            write: true
+            name: "returned flags [3]"
+            doc: "returned flags (for each player: 0 if absent, 1 if present)"
+
   - code: 0xf929
     mnemonic: read_disk_file
+    doc: "Prepares to load a GBA ROM from a local GSL file. Does nothing on Xbox and BB."
     params:
       - type: string
     stack: pop
 
   - code: 0xf92a
     mnemonic: open_pack_select
+    doc: "Opens a window for the player to choose an item."
     params: []
 
   - code: 0xf92b
     mnemonic: item_select
+    doc: "Prevents the player from choosing a specific item in the item select window opened by open_pack_select. Generally used for subsequent item choices when trading multiple items"
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "item ID"
 
   - code: 0xf92c
     mnemonic: get_item_id
+    doc: "Returns the item chosen by the player in an open_pack_select window, or 0xFFFFFFFF if they canceled it."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
 
   - code: 0xf92d
     mnemonic: color_change
+    doc: "Adds a color overlay on the player's screen. The overlay fades in linearly over the given number of frames. The overlay is not deleted until the player changes areas or leaves the game, but it can be overwritten with another overlay with this same opcode. The overlay is under 2-dimensional objects like the HUD, pause menu, minimap, and text messages from the server, but is above everything else. valueA, valueB, valueC, valueD = red, green, blue, alpha components of color (00-FF each)"
     params:
       - type: int
       - type: int
       - type: int
       - type: int
       - type: int
+        name: "fade speed"
+        doc: "fade speed (number of frames; 30 frames/sec)"
     stack: pop
 
   - code: 0xf92e
     mnemonic: send_statistic
+    doc: "Sends a statistic to the server via the AA command. The server is expected to respond with an AB command containing one of the label indexes set by prepare_statistic. The arguments to this opcode are sent verbatim in the params field of the AA command; the other fields in the AA command come from prepare_statistic."
     params:
       - type: int
       - type: int
@@ -3578,6 +5227,8 @@ opcodes:
     stack: pop
 
   - code: 0xf92f
+    mnemonic: gba_write_identifiers
+    doc: "Enables patching a GBA ROM before sending it to the GBA. valueA is ignored. If valueB is 1, the game writes two 32-bit values to the GBA ROM data before sending it: At offset 0x2C0, writes system_file->creation_timestamp At offset 0x2C4, writes current_time + rand(0, 100) current_time is in seconds since 00:00:00 on 1 January 2000. On Xbox and BB, this opcode does nothing."
     params:
       - type: int
       - type: int
@@ -3585,116 +5236,228 @@ opcodes:
 
   - code: 0xf930
     mnemonic: chat_box
+    doc: "Shows a message in a chat window. Can be closed with the winend opcode"
     params:
       - type: int
+        name: "X position on screen"
       - type: int
+        name: "Y position on screen"
       - type: int
+        name: "window width"
       - type: int
+        name: "window height"
       - type: int
+        name: "window style"
+        doc: "window style (0 = white window, 1 = chat box, anything else = no window, just text)"
       - type: string
+        name: "initial message"
     stack: pop
 
   - code: 0xf931
     mnemonic: chat_bubble
+    doc: "Shows a chat bubble linked to the given entity ID"
     params:
       - type: int
+        name: "entity"
+        doc: "entity (client ID, 0x1000 + enemy ID, or 0x4000 + object ID)"
       - type: string
+        name: "message"
     stack: pop
 
-  - code: 0xf933
+  - code: 0xf932
+    mnemonic: set_episode2
+    doc: "Sets the episode to be loaded the next time an area is loaded (e.g. by the player changing floors). regA is the same as for set_episode. Like set_episode, it resets the floor configuration to the defaults, but this happens at the time the player changes floors, not when the opcode is executed."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
+            read: true
+
+  - code: 0xf933
+    mnemonic: item_create_multi_cm
+    doc: "Sets the rank prizes in offline challenge mode"
+    params:
+      - type: reg
+        registers:
+          - type: int
             write: true
+            name: "rank"
+            doc: "rank (unusual value order: 0 = S, 1 = B, 2 = A)"
+          - type: int
+            write: true
+            name: "item.data1[0-5] [0]"
+          - type: int
+            write: true
+            name: "item.data1[0-5] [1]"
+          - type: int
+            write: true
+            name: "item.data1[0-5] [2]"
+          - type: int
+            write: true
+            name: "item.data1[0-5] [3]"
+          - type: int
+            write: true
+            name: "item.data1[0-5] [4]"
+          - type: int
+            write: true
+            name: "item.data1[0-5] [5]"
 
   - code: 0xf934
     mnemonic: scroll_text
+    doc: "Shows a scrolling text window"
     params:
       - type: int
+        name: "X position on screen"
       - type: int
+        name: "Y position on screen"
       - type: int
+        name: "window width"
       - type: int
+        name: "window height"
       - type: int
+        name: "window style"
+        doc: "window style (same as for chat_box)"
       - type: float
+        name: "scrolling speed"
       - type: reg
         registers:
           - type: int
             write: true
       - type: string
+        name: "message"
     stack: pop
 
   - code: 0xf935
     mnemonic: gba_unknown1
+    doc: "Creates, destroys, or updates the GBA loading progress bar (same as the quest download progress bar). These opcodes do nothing on Xbox and BB."
     params: []
 
   - code: 0xf936
     mnemonic: gba_unknown2
+    doc: "Creates, destroys, or updates the GBA loading progress bar (same as the quest download progress bar). These opcodes do nothing on Xbox and BB."
     params: []
 
   - code: 0xf937
     mnemonic: gba_unknown3
+    doc: "Creates, destroys, or updates the GBA loading progress bar (same as the quest download progress bar). These opcodes do nothing on Xbox and BB."
     params: []
 
   - code: 0xf938
     mnemonic: add_damage_to
+    doc: "Damages a player"
     params:
       - type: int
+        name: "client ID"
       - type: int
+        name: "amount"
     stack: pop
 
   - code: 0xf939
     mnemonic: item_delete3
+    doc: "Deletes an item from the local player's inventory. Like item_delete, but doesn't return anything"
     params:
       - type: int
+        name: "item ID"
     stack: pop
 
   - code: 0xf93a
     mnemonic: get_item_info
+    doc: "Returns the item data for an item chosen with open_pack_select. If the item doesn't exist, regsB[0] is set to 0xFFFFFFFF and the rest of regsB are unaffected"
     params:
       - type: int
+        name: "item ID"
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
+            name: "returned item.data1[0-11] [0]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [1]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [2]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [3]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [4]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [5]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [6]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [7]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [8]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [9]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [10]"
+          - type: int
+            write: true
+            name: "returned item.data1[0-11] [11]"
     stack: pop
 
   - code: 0xf93b
     mnemonic: item_packing1
+    doc: "Wraps an item in the player's inventory. The specified item is deleted and a new one is created with the wrapped flag set. The new item has a different item ID, which is not returned. Sends 6x29, then 6x26 if deleting the item causes the player's equipped weapon to no longer be usable, then 6x2B. It appears Sega did not intend for this to be used on BB, since the behavior wasn't changed - normally, item-related functions should be done by the server on BB, as the following opcode does"
     params:
       - type: int
+        name: "item ID"
     stack: pop
 
   - code: 0xf93c
     mnemonic: item_packing2
+    doc: "Like wrap_item, but also sets the present color. On BB, sends 6xD6, and the server should respond with the sequence of 6x29, 6x26 (if it was equipped), then 6xBE"
     params:
       - type: int
+        name: "item ID"
       - type: int
+        name: "present color"
+        doc: "present color (0-15; high 4 bits are masked out)"
     stack: pop
 
   - code: 0xf93d
     mnemonic: get_lang_setting
+    doc: "Returns the local player's language setting. For values, see name_for_language in StaticGameData.cc."
     params:
       - type: reg
-        registers: # TODO: determine type and access
-          - type: any
+        registers:
+          - type: int
             write: true
     stack: pop
 
   - code: 0xf93e
     mnemonic: prepare_statistic
+    doc: "Sets some values to be sent to the server with send_statistic. starts, but that is overwritten by prepare_statistic"
     params:
       - type: int
+        name: "stat_id"
+        doc: "stat_id (used in send_statistic); this is set to the quest number from the header when the quest"
       - type: ilabel
+        name: "label1"
+        doc: "label1 (used in send_statistic)"
       - type: ilabel
+        name: "label2"
+        doc: "label2 (used in send_statistic)"
     stack: pop
 
   - code: 0xf93f
     mnemonic: keyword_detect
+    doc: "Enables use of the check_for_keyword opcode."
     params: []
 
   - code: 0xf940
     mnemonic: keyword
+    doc: "Checks if a word was said by a specific player. All of the same behaviors surrounding the message string apply as for set_chat_callback. Generally, this should be called every frame until the keyword is found (or the quest no longer cares if it is), since it will only return a match on the first frame that a string is said"
     params:
       - type: reg
         registers:
@@ -3703,10 +5466,13 @@ opcodes:
       - type: int
         name: slot
       - type: string
+        name: "string to match"
+        doc: "string to match (same semantics as for set_chat_callback)"
     stack: pop
 
   - code: 0xf941
     mnemonic: get_guildcard_num
+    doc: "Returns a player's Guild Card number"
     params:
       - type: int
         name: slot
@@ -3716,8 +5482,69 @@ opcodes:
             write: true
     stack: pop
 
+  - code: 0xf942
+    mnemonic: get_recent_symbol_chat
+    doc: "Returns the last symbol chat that a player said (at least, since the capture buffer was created). Use create_symbol_chat_capture_buffer before using this opcode. The data is returned as raw values in a sequence of 15 registers, in the same internal format as the game uses. On GC, this is SymbolChatBE; on all other platforms, it is SymbolChat (see SymbolChatT in PlayerSubordinates.hh for details)"
+    params:
+      - type: int
+        name: "client ID"
+      - type: reg
+        registers:
+          - type: int
+            read: true
+            name: "returned symbol chat data [0]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [1]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [2]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [3]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [4]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [5]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [6]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [7]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [8]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [9]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [10]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [11]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [12]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [13]"
+          - type: int
+            read: true
+            name: "returned symbol chat data [14]"
+    stack: pop
+
+  - code: 0xf943
+    mnemonic: create_symbol_chat_capture_buffer
+    doc: "Creates the capture buffer required by get_recent_symbol_chat."
+    params: []
+
   - code: 0xf944
     mnemonic: get_wrap_status
+    doc: "Checks whether an item is stackable"
     params:
       - type: int
         name: slot
@@ -3729,76 +5556,151 @@ opcodes:
 
   - code: 0xf945
     mnemonic: initial_floor
+    doc: "Sets the floor where the players will start. This generally should be used in the start label (where map_designate, etc. are used). This is exactly the same as ba_initial_floor, except the floor numbers are not remapped: in Episode 1, 0 means Pioneer 2, 1 means Forest 1, etc. The warning on ba_initial_floor about common and rare item tables also applies to this opcode."
     params:
       - type: int
     stack: pop
 
   - code: 0xf946
     mnemonic: sin
+    doc: "Computes the sine, cosine, or tangent of the input angle. Angles are in the range [0, 65535]"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
       - type: int
+        name: "input angle"
     stack: pop
 
   - code: 0xf947
     mnemonic: cos
+    doc: "Computes the sine, cosine, or tangent of the input angle. Angles are in the range [0, 65535]."
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
       - type: int
     stack: pop
 
-  - code: 0xf94a
-    mnemonic: boss_is_dead2
+  - code: 0xf948
+    mnemonic: tan
+    doc: "Computes the sine, cosine, or tangent of the input angle. Angles are in the range [0, 65535]."
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
+          - type: int
+            write: true
+      - type: int
+    stack: pop
+
+  - code: 0xf949
+    mnemonic: atan2_int
+    doc: "Computes the arctangent of the input ratio"
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+      - type: float
+        name: "numerator as float"
+      - type: float
+        name: "denominator as float"
+    stack: pop
+
+  - code: 0xf94a
+    mnemonic: boss_is_dead2
+    doc: "Sets regA to 1 if Olga Flow has been defeated, or 0 otherwise."
+    params:
+      - type: reg
+        registers:
           - type: int
             write: true
 
   - code: 0xf94b
+    mnemonic: particle_effect_nc
+    doc: "Creates a timed particle effect. Like particle_v3, but bypasses the camera-distance check that stops the emitter from creating new particles"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
-            write: true
+            read: true
+            name: "location X"
+          - type: int
+            read: true
+            name: "location Y"
+          - type: int
+            read: true
+            name: "location Z"
+          - type: int
+            read: true
+            name: "particle effect ID"
+          - type: int
+            read: true
+            name: "duration"
+            doc: "duration (in frames; 30 frames/sec)"
 
   - code: 0xf94c
+    mnemonic: player_effect_nc
+    doc: "Creates a particle effect at an entity's current position. Like particle_id_v3, but bypasses the camera-distance check that stops the emitter from creating new particles"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
-            write: true
+            read: true
+            name: "particle effect ID"
+          - type: int
+            read: true
+            name: "duration in frames"
+          - type: int
+            read: true
+            name: "entity"
+            doc: "entity (client ID, 0x1000 + enemy ID, or 0x4000 + object ID)"
+          - type: int
+            read: true
+            name: "y offset"
+            doc: "y offset (as integer)"
 
   - code: 0xf94d
-    mnemonic: is_there_cardbattle
-    params:
-      - type: reg
-        registers: # TODO: determine type and access
-          - type: int
-            write: true
+    mnemonic: nop_f94d
+    doc: "On BB this opcode is a no-op. Newserv documents four other variants of 0xF94D for other versions: has_ep3_save_file on GC PSO Plus (returns 1 if a PSO3_CHARACTER file is present), give_card / give_or_take_card on EP3, and unknown_F94D on Xbox."
+    params: []
+
+  - code: 0xf94e
+    mnemonic: nop_f94e
+    doc: "These opcodes all do nothing on BB. F94D is presumably the voice chat opcode from Xbox, which was removed, but it's not clear what the other two might have originally been."
+    params: []
+
+  - code: 0xf94f
+    mnemonic: nop_f94f
+    doc: "These opcodes all do nothing on BB. F94D is presumably the voice chat opcode from Xbox, which was removed, but it's not clear what the other two might have originally been."
+    params: []
 
   - code: 0xf950
     mnemonic: bb_p2_menu
+    doc: "Opens one of the Pioneer 2 counter menus, specified by valueA. Values: 0 = weapon shop 1 = medical center 2 = armor shop 3 = item shop 4 = Hunter's Guild quest counter 5 = bank 6 = tekker 7 = government quest counter 8 = Momoka item exchange (this opens a menu displaying the items specified in the quest header, which sends 6xD9 when the player chooses an item) valueA is not bounds-checked, so it could be used to write a byte with the value 1 anywhere in memory."
     params:
       - type: int
     stack: pop
 
   - code: 0xf951
     mnemonic: bb_map_designate
+    doc: "Behaves exactly the same as map_designate_ex, but the arguments are specified as immediate values and not via registers or arg_push. Sega probably added this opcode so their quest authoring tools could easily generate the necessary header fields without doing any fancy script analysis"
     params:
       - type: byte
+        name: "floor number"
       - type: short
+        name: "area number"
       - type: byte
+        name: "type"
+        doc: "type (0: use layout, 1: use offline template, 2: use online template, 3: nothing)"
       - type: byte
+        name: "major variation"
 
   - code: 0xf952
     mnemonic: bb_get_number_in_pack
+    doc: "Returns the number of items in the player's inventory."
     params:
       - type: reg
         registers:
@@ -3807,6 +5709,7 @@ opcodes:
 
   - code: 0xf953
     mnemonic: bb_swap_item
+    doc: "Requests an item exchange in the player's inventory. Sends 6xD5. The requested item must match one of the item creation masks in the quest script's header. valueA/valueB/valueC = item.data1[0-2] to search for valueD/valueE/valueF = item.data1[0-2] to replace it with"
     params:
       - type: int
       - type: int
@@ -3815,118 +5718,205 @@ opcodes:
       - type: int
       - type: int
       - type: ilabel
+        name: "label to call on success"
       - type: ilabel
+        name: "label to call on failure"
     stack: pop
 
   - code: 0xf954
     mnemonic: bb_check_wrap
+    doc: "Checks if an item can be wrapped"
     params:
       - type: int
+        name: "item ID"
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
     stack: pop
 
   - code: 0xf955
     mnemonic: bb_exchange_pd_item
-    params: # TODO: determine types
+    doc: "Requests an item exchange for Photon Drops. Sends 6xD7. The requested item must match one of the item creation masks in the quest script's header. valueA/valueB/valueC = item.data1[0-2] for requested item"
+    params:
       - type: int
+        name: "item.data1[0]"
       - type: int
+        name: "item.data1[1]"
       - type: int
+        name: "item.data1[2]"
       - type: ilabel
+        name: "label to call on success"
       - type: ilabel
+        name: "label to call on failure"
     stack: pop
 
   - code: 0xf956
     mnemonic: bb_exchange_pd_srank
-    params: # TODO: determine types
+    doc: "Requests an S-rank special upgrade in exchange for Photon Drops. Sends 6xD8. valueB/valueC/valueD = item.data1[0-2]"
+    params:
       - type: int
       - type: int
+        name: "item.data1[0]"
       - type: int
+        name: "item.data1[1]"
       - type: int
+        name: "item.data1[2]"
       - type: int
       - type: ilabel
+        name: "label to call on success"
       - type: ilabel
+        name: "label to call on failure"
     stack: pop
 
   - code: 0xf957
-    mnemonic: bb_exchange_pd_special
-    params: # TODO: determine types
+    mnemonic: bb_exchange_pd_percent
+    doc: "Requests a weapon attribute upgrade in exchange for Photon Drops. Sends 6xDA. valueB/valueC/valueD = item.data1[0-2]"
+    params:
       - type: int
       - type: int
+        name: "item.data1[0]"
+      - type: int
+        name: "item.data1[1]"
+      - type: int
+        name: "item.data1[2]"
       - type: int
       - type: int
-      - type: int
-      - type: int
+        name: "payment count"
+        doc: "payment count (number of PDs)"
       - type: ilabel
+        name: "label to call on success"
       - type: ilabel
+        name: "label to call on failure"
     stack: pop
 
   - code: 0xf958
-    mnemonic: bb_exchange_pd_percent
-    params: # TODO: determine types
+    mnemonic: bb_exchange_ps_percent
+    doc: "Requests a weapon attribute upgrade in exchange for Photon Spheres. Sends 6xDA. Same arguments as bb_exchange_pd_percent, except Photon Spheres are used instead."
+    params:
       - type: int
       - type: int
+        name: "item.data1[0]"
+      - type: int
+        name: "item.data1[1]"
+      - type: int
+        name: "item.data1[2]"
       - type: int
       - type: int
-      - type: int
-      - type: int
+        name: "payment count"
+        doc: "payment count (number of PSes)"
       - type: ilabel
+        name: "label to call on success"
       - type: ilabel
+        name: "label to call on failure"
     stack: pop
 
   - code: 0xf959
+    mnemonic: bb_set_ep4_boss_can_escape
+    doc: "Determines whether the Episode 4 boss can escape if undefeated after 20 minutes"
     params:
       - type: int
+        name: "boss can escape"
+        doc: "boss can escape (0 = no, 1 = yes (default))"
+    stack: pop
+
+  - code: 0xf95a
+    mnemonic: bb_is_ep4_boss_dying
+    doc: "Returns 1 if the Episode 4 boss death cutscene is playing, or 0 if not (even if the boss is already defeated)."
+    params:
+      - type: reg
+        registers:
+          - type: int
+            write: true
+
+  - code: 0xf95b
+    mnemonic: bb_send_6xd9
+    doc: "Requests an item exchange. Sends 6xD9. The requested item must match one of the item creation masks in the quest script's header"
+    params:
+      - type: int
+        name: "find_item.data1[0-2]"
+        doc: "find_item.data1[0-2] (low 3 bytes; high byte unused)"
+      - type: int
+        name: "replace_item.data1[0-2]"
+        doc: "replace_item.data1[0-2] (low 3 bytes; high byte unused)"
+      - type: int
+        name: "token1"
+        doc: "token1 (see 6xD9 in CommandFormats.hh)"
+      - type: int
+        name: "token2"
+        doc: "token2 (see 6xD9 in CommandFormats.hh)"
+      - type: ilabel
+        name: "label to call on success"
+      - type: ilabel
+        name: "label to call on failure"
     stack: pop
 
   - code: 0xf95c
     mnemonic: bb_exchange_slt
+    doc: "Requests an exchange of Secret Lottery Tickets for items. Sends 6xDE. The pool of items that can be returned by this opcode is determined by the quest's header; newserv assembles/disassembles this field as .allow_create_item directives. The first entry in the header is the currency item (which is to be deleted from the inventory); the others are the items the server randomly chooses from"
     params:
       - type: int
+        name: "index"
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
       - type: ilabel
+        name: "label to call on success"
       - type: ilabel
+        name: "label to call on failure"
+        doc: "label to call on failure (unused because of a client bug; see 6xDE description in CommandFormats.hh)"
     stack: pop
 
   - code: 0xf95d
     mnemonic: bb_exchange_pc
+    doc: "Removes a Photon Crystal from the player's inventory, and disables drops for the rest of the quest. Sends 6xDF."
     params: []
 
   - code: 0xf95e
     mnemonic: bb_box_create_bp
+    doc: "Requests an item drop within a quest. Sends 6xE0. valueB/valueC = x, z coordinates as floats"
     params:
       - type: int
+        name: "type"
+        doc: "type (corresponds to QuestF95EResultItems in config.json)"
       - type: float
       - type: float
     stack: pop
 
   - code: 0xf95f
     mnemonic: bb_exchange_pt
+    doc: "Requests an exchange of Photon Tickets for items. Sends 6xE1. 0 = success 1 = player doesn't have enough Photon Tickets 2 = inventory is full 3, 4, or 5 = \"server send error\" (from Gallon's Plan script; newserv never sends these)"
     params:
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
       - type: reg
-        registers: # TODO: determine type and access
+        registers:
           - type: int
             write: true
       - type: int
+        name: "result index"
+        doc: "result index (index into QuestF95FResultItems in config.json)"
       - type: ilabel
+        name: "label to call on success"
       - type: ilabel
+        name: "label to call on failure"
     stack: pop
 
   - code: 0xf960
+    mnemonic: bb_send_6xe2
+    doc: "Requests a prize from the Meseta gambling prize list. Sends 6xE2. The server responds with 6xE3, which sets the <meseta_slot_prize> replacement token in message strings. The status of this can be checked with bb_get_6xE3_status"
     params:
       - type: int
+        name: "result tier"
+        doc: "result tier (see QuestF960SuccessResultItems and QuestF960FailureResultItems in config.json)"
     stack: pop
 
   - code: 0xf961
+    mnemonic: bb_get_6xe3_status
+    doc: "Returns the status of the expected 6xE3 command from a preceding bb_send_6xE2 opcode. Return values: 0 = 6xE3 hasn't been received 1 = the received item is valid 2 = the received item is invalid, or the item ID was already in use"
     params:
       - type: reg
         registers:

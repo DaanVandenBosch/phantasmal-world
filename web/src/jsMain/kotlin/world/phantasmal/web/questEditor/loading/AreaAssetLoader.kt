@@ -92,7 +92,9 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
 
     private fun addSectionsToCollisionGeometry(collisionGeom: Object3D, renderGeom: Object3D) {
         for (collisionMesh in collisionGeom.children) {
-            val origin = ((collisionMesh as Mesh).geometry).boundingBox!!.getCenter(tmpVec)
+            val geometry = (collisionMesh as Mesh).geometry
+            geometry.computeBoundingBox()
+            val origin = geometry.boundingBox?.getCenter(tmpVec) ?: continue
 
             // Cast a ray downward from the center of the section.
             raycaster.set(origin, DOWN)
@@ -128,19 +130,12 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
         areaVariant: AreaVariantModel,
         type: AssetType,
     ): String {
-        var areaId = areaVariant.area.id
-        var areaVariantId = areaVariant.id
+        val areaId = areaVariant.area.id
+        var variantId = areaVariant.id
 
-        // Exception for Seaside Area at Night, variant 1.
-        // Phantasmal World 4 and Lost heart breaker use this to have two tower maps.
-        if (episode == Episode.II && areaId == 16 && areaVariantId == 1) {
-            areaId = 17
-            areaVariantId = 1
-        }
-
-        // Exception for Crater Route 1-4, naming is slightly different.
+        // Crater Route 1-4: variant ID is derived from area ID.
         if (episode == Episode.IV && areaId in 1..4) {
-            areaVariantId = areaId - 1
+            variantId = areaId - 1
         }
 
         val episodeBaseNames = AREA_BASE_NAMES.getValue(episode)
@@ -149,21 +144,30 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
             "Unknown episode $episode area $areaId."
         }
 
-        val (baseName, addVariant) = episodeBaseNames[areaId]
+        val (baseName, hasVariants) = episodeBaseNames[areaId]
+        val isLobby = areaVariant.area.name == "Lobby"
 
-        val variant = if (addVariant && type != AssetType.Texture) {
-            "_" + areaVariantId.toString().padStart(2, '0')
+        // Lobby variant 0 has no dedicated texture; use variant 1 instead.
+        if (isLobby && variantId == 0 && type == AssetType.Texture) {
+            variantId = 1
+        }
+
+        // Build the variant suffix (e.g. "_01"). Most areas omit the variant suffix for textures
+        // because all variants share the same texture file. The lobby is an exception: each lobby
+        // variant has its own texture.
+        val variantSuffix = if (hasVariants && (type != AssetType.Texture || isLobby)) {
+            "_${variantId.toString().padStart(2, '0')}"
         } else {
             ""
         }
 
-        val suffix = when (type) {
+        val typeSuffix = when (type) {
             AssetType.Render -> "n.rel"
             AssetType.Collision -> "c.rel"
             AssetType.Texture -> ".xvm"
         }
 
-        return "/areas/map_${baseName}${variant}${suffix}"
+        return "/areas/map_${baseName}${variantSuffix}${typeSuffix}"
     }
 
     private fun areaGeometryToObject3DAndSections(
@@ -297,6 +301,9 @@ class AreaAssetLoader(private val assetLoader: AssetLoader) : DisposableContaine
                 Pair("boss02", false),
                 Pair("boss03", false),
                 Pair("darkfalz00", false),
+                Pair("lobby", true),
+                Pair("vs01", true),
+                Pair("vs02", true),
             ),
             Episode.II to listOf(
                 Pair("labo00", true),

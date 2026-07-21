@@ -1,6 +1,10 @@
 package world.phantasmal.web.questEditor.stores
 
 import kotlinx.browser.window
+import mu.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import world.phantasmal.core.Severity
 import world.phantasmal.core.disposable.Disposer
@@ -9,8 +13,10 @@ import world.phantasmal.cell.Cell
 import world.phantasmal.cell.list.ListCell
 import world.phantasmal.cell.mutableCell
 import world.phantasmal.cell.mutateDeferred
+import world.phantasmal.psolib.asm.IntFormat
 import world.phantasmal.psolib.asm.assemble
 import world.phantasmal.psolib.asm.disassemble
+import world.phantasmal.web.core.observable.Emitter
 import world.phantasmal.web.core.observable.Observable
 import world.phantasmal.web.core.undo.UndoManager
 import world.phantasmal.web.externals.monacoEditor.*
@@ -21,8 +27,13 @@ import world.phantasmal.web.questEditor.undo.TextModelUndo
 import world.phantasmal.web.shared.messages.AsmChange
 import world.phantasmal.web.shared.messages.AsmRange
 import world.phantasmal.web.shared.messages.AssemblyProblem
+import world.phantasmal.web.shared.messages.Label
+import world.phantasmal.web.shared.messages.RegisterInfo
+import world.phantasmal.web.shared.messages.SegmentInfo
 import world.phantasmal.webui.obj
 import world.phantasmal.webui.stores.Store
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * Depends on a global [AsmAnalyser], instantiate at most once.
@@ -31,10 +42,13 @@ class AsmStore(
     private val questEditorStore: QuestEditorStore,
     private val undoManager: UndoManager,
 ) : Store() {
-    private val _inlineStackArgs = mutableCell(true)
+    private val _hexFormat = mutableCell(false)
+    private val _hideNops = mutableCell(false)
     private var _textModel = mutableCell<ITextModel?>(null)
-
     private var setBytecodeIrTimeout: Int? = null
+    // The quest that was active when the pending setBytecodeIr timeout was scheduled.
+    // Used to guard against writing assembled code to a newly-loaded quest.
+    private var setBytecodeIrQuest: QuestModel? = null
 
     /**
      * Contains all model-related disposables. All contained disposables are disposed whenever a new
@@ -44,7 +58,11 @@ class AsmStore(
 
     private val undo = addDisposable(TextModelUndo(undoManager, "Script edits", _textModel))
 
-    val inlineStackArgs: Cell<Boolean> = _inlineStackArgs
+    val hexFormat: Cell<Boolean> = _hexFormat
+    val hideNops: Cell<Boolean> = _hideNops
+    val labels: ListCell<Label> = asmAnalyser.labels
+    val registers: ListCell<RegisterInfo> = asmAnalyser.registers
+    val segments: ListCell<SegmentInfo> = asmAnalyser.segments
 
     val textModel: Cell<ITextModel?> = _textModel
 
@@ -53,24 +71,30 @@ class AsmStore(
     val didUndo: Observable<Unit> = undo.didUndo
     val didRedo: Observable<Unit> = undo.didRedo
 
+    private val _goToLabelEvent = Emitter<AsmRange>()
+    val goToLabelEvent: Observable<AsmRange> = _goToLabelEvent
+
     val problems: ListCell<AssemblyProblem> = asmAnalyser.problems
 
     init {
         observeNow(questEditorStore.currentQuest) { quest ->
-            setTextModel(quest, inlineStackArgs.value)
+            setTextModel(quest)
         }
 
-        observeNow(inlineStackArgs) { inlineStackArgs ->
+        val refreshTextModel = {
             // Ensure we have the most up-to-date bytecode before we disassemble it again.
             if (setBytecodeIrTimeout != null) {
                 setBytecodeIr()
             }
 
-            setTextModel(questEditorStore.currentQuest.value, inlineStackArgs)
+            setTextModel(questEditorStore.currentQuest.value)
         }
 
-        observe(asmAnalyser.mapDesignations) {
-            scope.launch { questEditorStore.setMapDesignations(it) }
+        observe(hexFormat) { refreshTextModel() }
+        observe(hideNops) { refreshTextModel() }
+
+        observe(asmAnalyser.floorMappings) {
+            scope.launch { questEditorStore.setFloorMappings(it) }
         }
 
         observeNow(problems) { problems ->
@@ -107,23 +131,40 @@ class AsmStore(
         undoManager.setCurrent(undo)
     }
 
-    fun setInlineStackArgs(inline: Boolean) {
-        _inlineStackArgs.value = inline
+    fun goToLabel(labelId: Int) {
+        val label = labels.value.find { it.name == labelId }
+        if (label != null) {
+            _goToLabelEvent.emit(label.range)
+        }
     }
 
-    private fun setTextModel(quest: QuestModel?, inlineStackArgs: Boolean) {
+    fun setHexFormat(hex: Boolean) {
+        _hexFormat.value = hex
+    }
+
+    fun setHideNops(hide: Boolean) {
+        _hideNops.value = hide
+    }
+
+    fun goToLabelRange(range: AsmRange) {
+        _goToLabelEvent.emit(range)
+    }
+
+    private fun setTextModel(quest: QuestModel?) {
         mutateDeferred {
             setBytecodeIrTimeout?.let { it ->
                 window.clearTimeout(it)
                 setBytecodeIrTimeout = null
             }
+            setBytecodeIrQuest = null
 
             modelDisposer.disposeAll()
 
             quest ?: return@mutateDeferred
 
-            val asm = disassemble(quest.bytecodeIr, inlineStackArgs)
-            asmAnalyser.setAsm(asm, inlineStackArgs)
+            val intFmt = if (hexFormat.value) IntFormat.HEX else IntFormat.DECIMAL
+            val asm = disassemble(quest.bytecodeIr, intFmt, hideNops.value)
+            asmAnalyser.setAsm(asm)
 
             _textModel.value = createModel(asm.joinToString("\n"), ASM_LANG_ID).also { model ->
                 modelDisposer.add(disposable { model.dispose() })
@@ -142,6 +183,7 @@ class AsmStore(
                     })
 
                     setBytecodeIrTimeout?.let(window::clearTimeout)
+                    setBytecodeIrQuest = questEditorStore.currentQuest.value
                     setBytecodeIrTimeout = window.setTimeout(::setBytecodeIr, 1000)
 
                     // TODO: Update breakpoints.
@@ -155,16 +197,24 @@ class AsmStore(
 
         setBytecodeIrTimeout = null
 
-        val model = textModel.value ?: return
-        val quest = questEditorStore.currentQuest.value ?: return
+        val quest = setBytecodeIrQuest ?: return
+        setBytecodeIrQuest = null
 
-        assemble(model.getLinesContent().toList(), inlineStackArgs.value)
+        // Guard: only write if the quest is still the active one.
+        // Prevents stale ASM from being written to a newly-loaded quest.
+        if (quest !== questEditorStore.currentQuest.value) return
+
+        val model = textModel.value ?: return
+
+        assemble(model.getLinesContent().toList())
             .getOrNull()
             ?.let(quest::setBytecodeIr)
     }
 
     companion object {
         private val asmAnalyser = AsmAnalyser()
+        // Page-lifetime scope for Monaco providers that need coroutines.
+        private val providerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         const val ASM_LANG_ID = "psoasm"
 
@@ -176,7 +226,7 @@ class AsmStore(
             registerSignatureHelpProvider(ASM_LANG_ID, AsmSignatureHelpProvider(asmAnalyser))
             registerHoverProvider(ASM_LANG_ID, AsmHoverProvider(asmAnalyser))
             registerDefinitionProvider(ASM_LANG_ID, AsmDefinitionProvider(asmAnalyser))
-            registerDocumentSymbolProvider(ASM_LANG_ID, AsmDocumentSymbolProvider(asmAnalyser))
+            registerDocumentSymbolProvider(ASM_LANG_ID, createDocumentSymbolProvider(providerScope, asmAnalyser))
             registerDocumentHighlightProvider(
                 ASM_LANG_ID,
                 AsmDocumentHighlightProvider(asmAnalyser)

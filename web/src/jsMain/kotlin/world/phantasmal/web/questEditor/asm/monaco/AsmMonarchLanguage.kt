@@ -40,7 +40,7 @@ object AsmMonarchLanguage : IMonarchLanguage {
 
             // Numbers.
             obj {
-                regex = RegExp("""0x[0-9a-fA-F]+""")
+                regex = RegExp("""-?0x[0-9a-fA-F]+""")
                 action = obj { token = "number.hex" }
             },
             obj {

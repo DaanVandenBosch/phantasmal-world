@@ -17,13 +17,19 @@ class AsmToolbarWidget(private val ctrl: AsmEditorController) : Widget() {
                     enabled = ctrl.enabled,
                     children = listOf(
                         Checkbox(
-                            enabled = ctrl.inlineStackArgsEnabled,
-                            tooltip = ctrl.inlineStackArgsTooltip,
-                        label = "Inline args",
-                        checked = ctrl.inlineStackArgs,
-                        onChange = ctrl::setInlineStackArgs,
+                            enabled = ctrl.hexFormatEnabled,
+                            label = "Hex",
+                            checked = ctrl.hexFormat,
+                            onChange = ctrl::setHexFormat,
+                        ),
+                        Checkbox(
+                            enabled = ctrl.hideNopsEnabled,
+                            label = "Hide NOPs",
+                            checked = ctrl.hideNops,
+                            onChange = ctrl::setHideNops,
+                        ),
                     )
                 )
-            ))
+            )
         }
 }

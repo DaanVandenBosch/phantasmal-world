@@ -1,5 +1,7 @@
 package world.phantasmal.web.questEditor.rendering.input.state
 
+import world.phantasmal.psolib.asm.dataFlowAnalysis.ParticleSpawnOrigin
+import world.phantasmal.psolib.asm.dataFlowAnalysis.ParticleSpawnSource
 import world.phantasmal.web.core.minus
 import world.phantasmal.web.externals.three.Mesh
 import world.phantasmal.web.externals.three.Vector2
@@ -116,6 +118,7 @@ class IdleState(
             is PointerOutEvt -> {
                 ctx.setHighlightedEntity(null)
                 shouldCheckHighlight = false
+                ctx.renderContext.canvas.title = ""
             }
 
             is EntityDragEnterEvt -> {
@@ -136,6 +139,27 @@ class IdleState(
     override fun beforeRender() {
         if (shouldCheckHighlight) {
             ctx.setHighlightedEntity(pickEntity(pointerDevicePosition)?.entity)
+
+            // Update particle marker tooltip via the canvas's title attribute. The browser
+            // shows a native tooltip after the user hovers for ~1s.
+            val particle = ctx.pickParticle(pointerDevicePosition)
+            ctx.renderContext.canvas.title = if (particle != null) {
+                val origin = when (val value = particle.origin) {
+                    is ParticleSpawnOrigin.WorldPosition ->
+                        "(${value.x}, ${value.y}, ${value.z})"
+                    is ParticleSpawnOrigin.EntityPosition ->
+                        "entity 0x${value.entityId.toString(16).uppercase()} +Y ${value.yOffset}"
+                }
+                val drawRange = if (particle.hasExtendedDrawRange) ", extended draw range" else ""
+                val lifetime = when (particle.source) {
+                    is ParticleSpawnSource.DatObject -> "persistent DAT object"
+                    is ParticleSpawnSource.Opcode -> "${particle.lifetimeFrames} frames"
+                }
+                "Particle ${particle.particleId} @ $origin, $lifetime$drawRange"
+            } else {
+                ""
+            }
+
             shouldCheckHighlight = false
         }
     }

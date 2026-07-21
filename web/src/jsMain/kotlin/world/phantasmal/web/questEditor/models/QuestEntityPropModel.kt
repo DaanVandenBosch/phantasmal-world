@@ -14,6 +14,7 @@ class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: Ent
         when (prop.type) {
             EntityPropType.I32 -> entity.entity.data.getInt(prop.offset)
             EntityPropType.F32 -> entity.entity.data.getFloat(prop.offset)
+            EntityPropType.U16 -> entity.entity.data.getUShort(prop.offset).toInt()
             EntityPropType.Angle -> angleToRad(entity.entity.data.getInt(prop.offset))
         }
     )
@@ -49,6 +50,10 @@ class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: Ent
             EntityPropType.F32 -> {
                 require(value is Float)
                 entity.entity.data.setFloat(offset, value)
+            }
+            EntityPropType.U16 -> {
+                require(value is Int)
+                entity.entity.data.setShort(offset, (value and 0xFFFF).toShort())
             }
             EntityPropType.Angle -> {
                 require(value is Float)
@@ -88,10 +93,17 @@ class QuestEntityPropModel(private val entity: QuestEntityModel<*, *>, prop: Ent
         _value.value = when (type) {
             EntityPropType.I32 -> entity.entity.data.getInt(offset)
             EntityPropType.F32 -> entity.entity.data.getFloat(offset)
+            EntityPropType.U16 -> entity.entity.data.getUShort(offset).toInt()
             EntityPropType.Angle -> angleToRad(entity.entity.data.getInt(offset))
         }
     }
 
+    /** Byte size of this prop's storage. */
+    val sizeBytes: Int = when (type) {
+        EntityPropType.U16 -> 2
+        else -> 4
+    }
+
     fun overlaps(offset: Int, size: Int): Boolean =
-        this.offset < offset + size && this.offset + 4 > offset
+        this.offset < offset + size && this.offset + sizeBytes > offset
 }

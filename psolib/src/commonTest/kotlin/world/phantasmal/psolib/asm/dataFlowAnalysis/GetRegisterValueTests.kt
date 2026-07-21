@@ -10,6 +10,18 @@ private const val MAX_REGISTER_VALUES_SIZE: Long = 1L shl 32
 
 class GetRegisterValueTests : LibTestSuite {
     @Test
+    fun stack_based_assignment_without_normalized_arguments_is_unknown() {
+        val syncRegister = Instruction(OP_SYNC_REGISTER, emptyList(), valid = true, srcLoc = null)
+        val ret = Instruction(OP_RET, emptyList(), valid = true, srcLoc = null)
+        val segment = InstructionSegment(mutableListOf(0), mutableListOf(syncRegister, ret))
+        val cfg = ControlFlowGraph.create(listOf(segment))
+
+        val values = getRegisterValue(cfg, ret, 6)
+
+        assertEquals(MAX_REGISTER_VALUES_SIZE, values.size)
+    }
+
+    @Test
     fun when_no_instruction_sets_the_register_all_values_are_returned() {
         val im = toInstructions("""
             0:

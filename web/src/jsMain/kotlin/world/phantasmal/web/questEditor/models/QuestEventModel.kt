@@ -14,12 +14,14 @@ class QuestEventModel(
     delay: Int,
     val unknown: Int,
     actions: MutableList<QuestEventActionModel>,
+    cmWaveSettings: Int? = null,
 ) {
     private val _id = mutableCell(id)
     private val _sectionId = mutableCell(sectionId)
     private val _waveId = mutableCell(waveId)
     private val _delay = mutableCell(delay)
     private val _actions = mutableListCell(actions)
+    private val _cmWaveSettings = mutableCell(cmWaveSettings)
 
     val id: Cell<Int> = _id
     val sectionId: Cell<Int> = _sectionId
@@ -28,6 +30,12 @@ class QuestEventModel(
     }
     val delay: Cell<Int> = _delay
     val actions: ListCell<QuestEventActionModel> = _actions
+    val cmWaveSettings: Cell<Int?> = _cmWaveSettings
+
+    // Challenge mode wave settings - decoded from cmWaveSettings
+    val cmMinEnemies: Cell<Int> = _cmWaveSettings.map { it?.let { v -> v and 0xFF } ?: 0 }
+    val cmMaxEnemies: Cell<Int> = _cmWaveSettings.map { it?.let { v -> (v shr 8) and 0xFF } ?: 0 }
+    val cmMaxWaves: Cell<Int> = _cmWaveSettings.map { it?.let { v -> (v shr 16) and 0xFF } ?: 0 }
 
     fun setId(id: Int) {
         _id.value = id
@@ -43,6 +51,21 @@ class QuestEventModel(
 
     fun setDelay(delay: Int) {
         _delay.value = delay
+    }
+
+    fun setCmMinEnemies(value: Int) {
+        val current = _cmWaveSettings.value ?: 0
+        _cmWaveSettings.value = (current and 0xFFFFFF00.toInt()) or (value and 0xFF)
+    }
+
+    fun setCmMaxEnemies(value: Int) {
+        val current = _cmWaveSettings.value ?: 0
+        _cmWaveSettings.value = (current and 0xFFFF00FF.toInt()) or ((value and 0xFF) shl 8)
+    }
+
+    fun setCmMaxWaves(value: Int) {
+        val current = _cmWaveSettings.value ?: 0
+        _cmWaveSettings.value = (current and 0xFF00FFFF.toInt()) or ((value and 0xFF) shl 16)
     }
 
     fun addAction(action: QuestEventActionModel) {

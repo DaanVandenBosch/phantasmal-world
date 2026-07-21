@@ -1,5 +1,7 @@
 package world.phantasmal.web.core.controllers
 
+import world.phantasmal.web.core.observable.Emitter
+import world.phantasmal.web.core.observable.Observable
 import world.phantasmal.webui.controllers.Controller
 
 sealed class DockedItem {
@@ -33,7 +35,14 @@ class DockedWidget(
 ) : DockedItem()
 
 abstract class DockController : Controller() {
+    private val _activateWidgetEvent = Emitter<String>()
+    val activateWidgetEvent: Observable<String> = _activateWidgetEvent
+
     abstract suspend fun initialConfig(): DockedItem
 
     abstract suspend fun configChanged(config: DockedItem)
+
+    fun requestActivateWidget(widgetId: String) {
+        _activateWidgetEvent.emit(widgetId)
+    }
 }

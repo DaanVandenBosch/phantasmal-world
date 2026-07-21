@@ -1,7 +1,6 @@
 package world.phantasmal.psolib.fileFormats.quest
 
 import world.phantasmal.psolib.Episode
-import world.phantasmal.psolib.fileFormats.quest.NpcType.values
 
 enum class ObjectType(
     override val uniqueName: String,
@@ -42,6 +41,15 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 1,
+        // TObjParticle params per newserv Map.cc and the PSOBB client constructor.
+        properties = listOf(
+            EntityProp(name = "Particle type", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Param 2", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Param 3", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Long range (1=1500)", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Param 5", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Param 6", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     Teleporter(
         uniqueName = "Teleporter",
@@ -211,8 +219,8 @@ enum class ObjectType(
         typeId = 14,
         properties = listOf(
             EntityProp(name = "SCL_TAMA", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Next section", offset = 44, type = EntityPropType.F32),
-            EntityProp(name = "Previous section ", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Next Room", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Previous Room", offset = 48, type = EntityPropType.F32),
         ),
     ),
     Sensor(
@@ -221,6 +229,9 @@ enum class ObjectType(
             Episode.I to listOf(1, 2, 4, 5, 6, 7),
         ),
         typeId = 15,
+        properties = listOf(
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem16(
         uniqueName = "Unknown Item (16)",
@@ -233,6 +244,9 @@ enum class ObjectType(
             Episode.I to listOf(1, 2, 3, 4, 8, 14),
         ),
         typeId = 17,
+        properties = listOf(
+            EntityProp(name = "Visibility radius", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     ScriptCollision(
         uniqueName = "Script Collision",
@@ -244,6 +258,7 @@ enum class ObjectType(
         typeId = 18,
         properties = listOf(
             EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Function", offset = 52, type = EntityPropType.I32),
         ),
     ),
     HealRing(
@@ -263,6 +278,10 @@ enum class ObjectType(
             Episode.IV to listOf(0),
         ),
         typeId = 20,
+        properties = listOf(
+            EntityProp(name = "Wall type", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Flags", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     ScriptCollisionA(
         uniqueName = "Script Collision A",
@@ -320,6 +339,9 @@ enum class ObjectType(
             Episode.IV to listOf(5, 6, 7, 8, 0),
         ),
         typeId = 25,
+        properties = listOf(
+            EntityProp(name = "Unlock ID", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     ImageBoard(
         uniqueName = "Image Board",
@@ -342,6 +364,11 @@ enum class ObjectType(
             Episode.IV to listOf(9),
         ),
         typeId = 27,
+        properties = listOf(
+            EntityProp(name = "Player set ID", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Destination floor", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Color", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     Epilogue(
         uniqueName = "Epilogue",
@@ -351,16 +378,19 @@ enum class ObjectType(
             Episode.IV to listOf(9),
         ),
         typeId = 28,
+        properties = listOf(
+            EntityProp(name = "Color", offset = 60, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem29(
-        uniqueName = "Unknown Item (29)",
+    StarLight2D(
+        uniqueName = "Star Light 2D",
         areaIds = mapOf(
             Episode.I to listOf(1),
         ),
         typeId = 29,
     ),
-    UnknownItem30(
-        uniqueName = "Unknown Item (30)",
+    LensFlare2(
+        uniqueName = "Lens Flare 2",
         areaIds = mapOf(
             Episode.I to listOf(1, 2, 17),
             Episode.II to listOf(1, 2, 14),
@@ -368,14 +398,17 @@ enum class ObjectType(
         ),
         typeId = 30,
     ),
-    UnknownItem31(
-        uniqueName = "Unknown Item (31)",
+    RadarHideCollision(
+        uniqueName = "Radar Hide Collision",
         areaIds = mapOf(
             Episode.I to listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17),
             Episode.II to listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17),
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8),
         ),
         typeId = 31,
+        properties = listOf(
+            EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     BoxDetectObject(
         uniqueName = "Box Detect Object",
@@ -388,6 +421,8 @@ enum class ObjectType(
         properties = listOf(
             EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
             EntityProp(name = "Plate ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Item Type", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Amount", offset = 60, type = EntityPropType.I32),
         ),
     ),
     SymbolChatObject(
@@ -398,8 +433,17 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 33,
+        // 3 spec slots, each packing (sc_index : low u16, switch_flag : high u16).
+        // The display order matches qedit (FEdit.pas:561) and the spec semantics
+        // are documented in newserv Map.cc TOSymbolchatColli.
         properties = listOf(
-            EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Radius",        offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "SC ID 1",       offset = 52, type = EntityPropType.U16),
+            EntityProp(name = "SC Flag 1", offset = 54, type = EntityPropType.U16),
+            EntityProp(name = "SC ID 2",       offset = 56, type = EntityPropType.U16),
+            EntityProp(name = "SC Flag 2", offset = 58, type = EntityPropType.U16),
+            EntityProp(name = "SC ID 3",       offset = 60, type = EntityPropType.U16),
+            EntityProp(name = "SC Flag 3", offset = 62, type = EntityPropType.U16),
         ),
     ),
     TouchPlateObject(
@@ -413,6 +457,7 @@ enum class ObjectType(
         properties = listOf(
             EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Stay active", offset = 56, type = EntityPropType.I32),
         ),
     ),
     TargetableObject(
@@ -424,6 +469,8 @@ enum class ObjectType(
         ),
         typeId = 35,
         properties = listOf(
+            EntityProp(name = "Active ID", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Target Type", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "HP", offset = 52, type = EntityPropType.I32),
         ),
@@ -436,6 +483,14 @@ enum class ObjectType(
             Episode.IV to listOf(0),
         ),
         typeId = 36,
+        properties = listOf(
+            EntityProp(name = "Damage Radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Damage Multiplier", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Scale", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Switch-Off ID", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Stay active", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     CountDownObject(
         uniqueName = "Count Down Object",
@@ -445,41 +500,64 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 37,
+        properties = listOf(
+            EntityProp(name = "Switch ID 1", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Activation Switch", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Switch ID 2", offset = 60, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem38(
-        uniqueName = "Unknown Item (38)",
+    ChatSensor(
+        uniqueName = "Chat Sensor",
         areaIds = mapOf(
             Episode.I to listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17),
             Episode.II to listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17),
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 38,
+        properties = listOf(
+            EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Switch flag number or quest label number", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Trigger string", offset = 56, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem39(
-        uniqueName = "Unknown Item (39)",
+    RadarIcon(
+        uniqueName = "Radar Icon",
         areaIds = mapOf(
             Episode.II to listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17),
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8),
         ),
         typeId = 39,
+        properties = listOf(
+            EntityProp(name = "Width Scale", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Depth Scale", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Invisible", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Num Locks", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "First Lock ID", offset = 60, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem40(
-        uniqueName = "Unknown Item (40)",
+    EnvSoundEx(
+        uniqueName = "Env Sound Ex",
         areaIds = mapOf(
             Episode.I to listOf(0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 13, 16, 17),
             Episode.II to listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 16, 17),
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 40,
+        properties = listOf(
+            EntityProp(name = "Sound Effect", offset = 52, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem41(
-        uniqueName = "Unknown Item (41)",
+    EnvSoundGlobal(
+        uniqueName = "Env Sound Global",
         areaIds = mapOf(
             Episode.I to listOf(0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 13, 16, 17),
             Episode.II to listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 16, 17),
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 41,
+        properties = listOf(
+            EntityProp(name = "Sound", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     MenuActivation(
         uniqueName = "Menu activation",
@@ -513,6 +591,10 @@ enum class ObjectType(
             Episode.IV to listOf(0),
         ),
         typeId = 66,
+        properties = listOf(
+            EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Which music to play", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     MainRagolTeleporter(
         uniqueName = "Main Ragol Teleporter",
@@ -522,6 +604,9 @@ enum class ObjectType(
             Episode.IV to listOf(0),
         ),
         typeId = 67,
+        properties = listOf(
+            EntityProp(name = "Main warp type", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     LobbyTeleporter(
         uniqueName = "Lobby Teleporter",
@@ -596,6 +681,9 @@ enum class ObjectType(
             Episode.IV to listOf(0),
         ),
         typeId = 75,
+        properties = listOf(
+            EntityProp(name = "Model index", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     ValentinesHeart(
         uniqueName = "Valentines Heart",
@@ -695,6 +783,10 @@ enum class ObjectType(
             Episode.IV to listOf(0),
         ),
         typeId = 85,
+        properties = listOf(
+            EntityProp(name = "Destination floor", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Switch flag number", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     LabTeleporterDoor(
         uniqueName = "Lab Teleporter Door",
@@ -702,6 +794,11 @@ enum class ObjectType(
             Episode.II to listOf(0),
         ),
         typeId = 86,
+        properties = listOf(
+            EntityProp(name = "Switch flag number and activation mode", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Model", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "If negative, all switches must be active simultaneously to unlock the door", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     Pioneer2InvisibleTouchplate(
         uniqueName = "Pioneer 2 Invisible Touchplate",
@@ -723,6 +820,7 @@ enum class ObjectType(
         typeId = 128,
         properties = listOf(
             EntityProp(name = "Door ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Switch", offset = 56, type = EntityPropType.I32),
         ),
     ),
     ForestSwitch(
@@ -818,6 +916,10 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8),
         ),
         typeId = 136,
+        properties = listOf(
+            EntityProp(name = "If positive, box is specialized to drop a specific item or type of item", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "If zero, then only data1[0-1]", offset = 48, type = EntityPropType.F32),
+        ),
     ),
     ForestWeatherStation(
         uniqueName = "Forest Weather Station",
@@ -865,6 +967,11 @@ enum class ObjectType(
             Episode.I to listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13),
         ),
         typeId = 141,
+        properties = listOf(
+            EntityProp(name = "Active", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Message ID", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Function", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     EnergyBarrier(
         uniqueName = "Energy Barrier",
@@ -924,6 +1031,8 @@ enum class ObjectType(
             EntityProp(name = "Random item", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Fixed item", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Item parameter", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Item parameter 2", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Item parameter 3", offset = 60, type = EntityPropType.I32),
         ),
     ),
     EnemyBoxBrown(
@@ -959,8 +1068,8 @@ enum class ObjectType(
         typeId = 150,
         properties = listOf(
             EntityProp(name = "Color", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Collision width", offset = 44, type = EntityPropType.F32),
-            EntityProp(name = "Collision depth", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Collision depth", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Collision width", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
             EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
@@ -971,8 +1080,8 @@ enum class ObjectType(
         typeId = 151,
         properties = listOf(
             EntityProp(name = "Color", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Collision width", offset = 44, type = EntityPropType.F32),
-            EntityProp(name = "Collision depth", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Collision depth", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Collision width", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
             EntityProp(name = "Model", offset = 60, type = EntityPropType.I32),
         ),
@@ -986,9 +1095,9 @@ enum class ObjectType(
         ),
         typeId = 192,
         properties = listOf(
-            EntityProp(name = "Scale  x", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Scale  y", offset = 44, type = EntityPropType.F32),
-            EntityProp(name = "Scale  z", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Scale x", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Scale y", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Scale z", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
             EntityProp(name = "Stay active", offset = 56, type = EntityPropType.I32),
         ),
@@ -1022,6 +1131,13 @@ enum class ObjectType(
             Episode.II to listOf(1, 2, 3, 4, 17),
         ),
         typeId = 195,
+        properties = listOf(
+            EntityProp(name = "Duration", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Damage", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Global Sync", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Behavior", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     CavesSign1(
         uniqueName = "Caves Sign 1",
@@ -1065,6 +1181,9 @@ enum class ObjectType(
             Episode.IV to listOf(5),
         ),
         typeId = 201,
+        properties = listOf(
+            EntityProp(name = "Rotation speed in degrees per frame", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     Rainbow(
         uniqueName = "Rainbow",
@@ -1073,9 +1192,9 @@ enum class ObjectType(
         ),
         typeId = 203,
         properties = listOf(
-            EntityProp(name = "Scale  x", offset = 40, type = EntityPropType.F32),
-            EntityProp(name = "Scale  y", offset = 44, type = EntityPropType.F32),
-            EntityProp(name = "Scale  z", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Scale x", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Scale y", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Scale z", offset = 48, type = EntityPropType.F32),
         ),
     ),
     FloatingJellyfish(
@@ -1085,6 +1204,11 @@ enum class ObjectType(
             Episode.II to listOf(10, 11),
         ),
         typeId = 204,
+        properties = listOf(
+            EntityProp(name = "Visibility radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Move radius", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Rebirth radius", offset = 48, type = EntityPropType.F32),
+        ),
     ),
     FloatingDragonfly(
         uniqueName = "Floating Dragonfly",
@@ -1094,6 +1218,9 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 205,
+        properties = listOf(
+            EntityProp(name = "Max distance from home?", offset = 48, type = EntityPropType.F32),
+        ),
     ),
     CavesSwitchDoor(
         uniqueName = "Caves Switch Door",
@@ -1112,6 +1239,9 @@ enum class ObjectType(
             Episode.II to listOf(17),
         ),
         typeId = 207,
+        properties = listOf(
+            EntityProp(name = "Quest register number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     CavesCakeShop(
         uniqueName = "Caves Cake Shop",
@@ -1227,6 +1357,9 @@ enum class ObjectType(
             Episode.I to listOf(3),
         ),
         typeId = 223,
+        properties = listOf(
+            EntityProp(name = "Switch flag number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     DestructableRockCaves2(
         uniqueName = "Destructable Rock (Caves 2)",
@@ -1306,6 +1439,9 @@ enum class ObjectType(
             Episode.II to listOf(17),
         ),
         typeId = 261,
+        properties = listOf(
+            EntityProp(name = "Initial state?", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     FloatingRobot(
         uniqueName = "Floating Robot",
@@ -1320,6 +1456,11 @@ enum class ObjectType(
             Episode.I to listOf(6, 7),
         ),
         typeId = 263,
+        properties = listOf(
+            EntityProp(name = "Float cycles per second", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Max float distance", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Rotation speed in angle units per frame", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     SelfDestructingObject1(
         uniqueName = "Self Destructing Object 1",
@@ -1327,6 +1468,9 @@ enum class ObjectType(
             Episode.I to listOf(6, 7),
         ),
         typeId = 264,
+        properties = listOf(
+            EntityProp(name = "Radius delta", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     SelfDestructingObject2(
         uniqueName = "Self Destructing Object 2",
@@ -1360,6 +1504,9 @@ enum class ObjectType(
             Episode.I to listOf(6, 7),
         ),
         typeId = 268,
+        properties = listOf(
+            EntityProp(name = "If > 0, a gray box is present in the left half of the stall", offset = 44, type = EntityPropType.F32),
+        ),
     ),
     RuinsSeal(
         uniqueName = "Ruins Seal",
@@ -1508,6 +1655,12 @@ enum class ObjectType(
             Episode.I to listOf(8, 9, 10),
         ),
         typeId = 332,
+        properties = listOf(
+            EntityProp(name = "Activation radius delta", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Switch flag number", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "If negative, sensor is always on", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Texture index", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     RuinsFenceSwitch(
         uniqueName = "Ruins Fence Switch",
@@ -1574,6 +1727,12 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 338,
+        properties = listOf(
+            EntityProp(name = "Maximum phase 0 duration in frames", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Duration of phase 2 in frames", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Poison radius squared", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "How often to create more particles during spewing phase", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     RuinsPillarTrap(
         uniqueName = "Ruins Pillar Trap",
@@ -1582,6 +1741,9 @@ enum class ObjectType(
             Episode.II to listOf(1, 2, 3, 4),
         ),
         typeId = 339,
+        properties = listOf(
+            EntityProp(name = "Trigger radius delta", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     PopupTrapNoTech(
         uniqueName = "Popup Trap (No Tech)",
@@ -1685,6 +1847,7 @@ enum class ObjectType(
             EntityProp(name = "Random item", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Fixed item", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Item parameter", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Item parameter 2", offset = 56, type = EntityPropType.I32),
         ),
     ),
     RandomBoxTypeRuins(
@@ -1702,6 +1865,9 @@ enum class ObjectType(
             Episode.II to listOf(1, 2, 3, 4),
         ),
         typeId = 355,
+        properties = listOf(
+            EntityProp(name = "Event", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     EnemyTypeBoxBlue(
         uniqueName = "Enemy Type Box (Blue)",
@@ -1725,6 +1891,9 @@ enum class ObjectType(
             Episode.I to listOf(8, 9, 10),
         ),
         typeId = 358,
+        properties = listOf(
+            EntityProp(name = "Switch flag number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     PopupTrapsTechs(
         uniqueName = "Popup Traps (techs)",
@@ -1747,6 +1916,9 @@ enum class ObjectType(
             Episode.II to listOf(3, 4),
         ),
         typeId = 368,
+        properties = listOf(
+            EntityProp(name = "Number of birds?", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     Tower(
         uniqueName = "Tower",
@@ -1761,6 +1933,10 @@ enum class ObjectType(
             Episode.I to listOf(14),
         ),
         typeId = 370,
+        properties = listOf(
+            EntityProp(name = "X/z range delta?", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Number of rocks?", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     FloatingSoul(
         uniqueName = "Floating Soul",
@@ -1775,6 +1951,9 @@ enum class ObjectType(
             Episode.I to listOf(14),
         ),
         typeId = 372,
+        properties = listOf(
+            EntityProp(name = "Model number?", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     LobbyGameMenu(
         uniqueName = "Lobby Game menu",
@@ -1782,6 +1961,9 @@ enum class ObjectType(
             Episode.I to listOf(15),
         ),
         typeId = 384,
+        properties = listOf(
+            EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     LobbyWarpObject(
         uniqueName = "Lobby Warp Object",
@@ -1789,6 +1971,9 @@ enum class ObjectType(
             Episode.I to listOf(15),
         ),
         typeId = 385,
+        properties = listOf(
+            EntityProp(name = "Hide beams", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     Lobby1EventObjectDefaultTree(
         uniqueName = "Lobby 1 Event Object (Default Tree)",
@@ -1796,23 +1981,32 @@ enum class ObjectType(
             Episode.I to listOf(15),
         ),
         typeId = 386,
+        properties = listOf(
+            EntityProp(name = "Default decorations when there is no event", offset = 52, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem387(
-        uniqueName = "Unknown Item (387)",
+    LobbyPigeon(
+        uniqueName = "Lobby Pigeon",
         areaIds = mapOf(
             Episode.I to listOf(15),
         ),
         typeId = 387,
+        properties = listOf(
+            EntityProp(name = "Model number?", offset = 52, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem388(
-        uniqueName = "Unknown Item (388)",
+    ButterflyLobby(
+        uniqueName = "Butterfly Lobby",
         areaIds = mapOf(
             Episode.I to listOf(15),
         ),
         typeId = 388,
+        properties = listOf(
+            EntityProp(name = "Model number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem389(
-        uniqueName = "Unknown Item (389)",
+    RainbowLobby(
+        uniqueName = "Rainbow Lobby",
         areaIds = mapOf(
             Episode.I to listOf(15),
         ),
@@ -1831,6 +2025,9 @@ enum class ObjectType(
             Episode.I to listOf(15),
         ),
         typeId = 391,
+        properties = listOf(
+            EntityProp(name = "Event flag", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     LobbyEventObjectRedAndWhiteCurtain(
         uniqueName = "Lobby Event Object (Red and White Curtain)",
@@ -1839,15 +2036,15 @@ enum class ObjectType(
         ),
         typeId = 392,
     ),
-    UnknownItem393(
-        uniqueName = "Unknown Item (393)",
+    WeddingLobby(
+        uniqueName = "Wedding Lobby",
         areaIds = mapOf(
             Episode.I to listOf(15),
         ),
         typeId = 393,
     ),
-    UnknownItem394(
-        uniqueName = "Unknown Item (394)",
+    TreeLobby(
+        uniqueName = "Tree Lobby",
         areaIds = mapOf(
             Episode.I to listOf(15),
         ),
@@ -1866,9 +2063,15 @@ enum class ObjectType(
             Episode.I to listOf(15),
         ),
         typeId = 396,
+        properties = listOf(
+            EntityProp(name = "Same as param3 from 0001", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Particle type", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Same as param4", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Same as param5", offset = 60, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem400(
-        uniqueName = "Unknown Item (400)",
+    Camera(
+        uniqueName = "Camera",
         areaIds = mapOf(
             Episode.I to listOf(16),
             Episode.II to listOf(3, 4),
@@ -1968,6 +2171,9 @@ enum class ObjectType(
             Episode.II to listOf(1, 2),
         ),
         typeId = 423,
+        properties = listOf(
+            EntityProp(name = "HP", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     TempleMapDetect(
         uniqueName = "Temple Map Detect",
@@ -1977,6 +2183,9 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5),
         ),
         typeId = 424,
+        properties = listOf(
+            EntityProp(name = "If > 0, enable lens flare rendering", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     SmallBrownBrickRisingBridge(
         uniqueName = "small brown brick rising bridge",
@@ -1985,6 +2194,11 @@ enum class ObjectType(
             Episode.II to listOf(1, 2),
         ),
         typeId = 425,
+        properties = listOf(
+            EntityProp(name = "Extra depth when lowered", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Rise speed in units per frame", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Switch flag number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     LongRisingBridgeWithPinkHighEdges(
         uniqueName = "long rising bridge (with pink high edges)",
@@ -1993,6 +2207,10 @@ enum class ObjectType(
             Episode.II to listOf(1, 2),
         ),
         typeId = 426,
+        properties = listOf(
+            EntityProp(name = "Raise Speed", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     FourSwitchTempleDoor(
         uniqueName = "4 Switch Temple Door",
@@ -2000,6 +2218,11 @@ enum class ObjectType(
             Episode.II to listOf(1, 2),
         ),
         typeId = 427,
+        properties = listOf(
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Switch total", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Stay active", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     FourButtonSpaceshipDoor(
         uniqueName = "4 button Spaceship Door",
@@ -2007,6 +2230,11 @@ enum class ObjectType(
             Episode.II to listOf(3, 4),
         ),
         typeId = 448,
+        properties = listOf(
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Switch total", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Stay active", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     ItemBoxCca(
         uniqueName = "Item Box CCA",
@@ -2022,6 +2250,9 @@ enum class ObjectType(
             Episode.II to listOf(5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17),
         ),
         typeId = 513,
+        properties = listOf(
+            EntityProp(name = "Floor ID", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     CcaDoor(
         uniqueName = "CCA Door",
@@ -2045,6 +2276,14 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5),
         ),
         typeId = 515,
+        properties = listOf(
+            EntityProp(name = "Full random", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Random item", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Fixed item", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Item parameter", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Item parameter 2", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Item parameter 3", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     BigCcaDoor(
         uniqueName = "Big CCA Door",
@@ -2059,6 +2298,9 @@ enum class ObjectType(
             Episode.II to listOf(5, 6, 7, 8, 9, 16, 17),
         ),
         typeId = 517,
+        properties = listOf(
+            EntityProp(name = "Quest flag index", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     LittleRock(
         uniqueName = "Little Rock",
@@ -2066,6 +2308,9 @@ enum class ObjectType(
             Episode.II to listOf(5, 6, 7, 8, 9, 16),
         ),
         typeId = 518,
+        properties = listOf(
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     Little3StoneWall(
         uniqueName = "Little 3 Stone Wall",
@@ -2090,6 +2335,9 @@ enum class ObjectType(
             Episode.II to listOf(5, 6, 7, 8, 9, 16),
         ),
         typeId = 521,
+        properties = listOf(
+            EntityProp(name = "Model number?", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     CcaAreaTeleporter(
         uniqueName = "CCA Area Teleporter",
@@ -2097,13 +2345,22 @@ enum class ObjectType(
             Episode.II to listOf(5, 6, 7, 8, 9, 16, 17),
         ),
         typeId = 522,
+        properties = listOf(
+            EntityProp(name = "Color", offset = 60, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem523(
-        uniqueName = "Unknown Item (523)",
+    LightningController(
+        uniqueName = "Lightning Controller",
         areaIds = mapOf(
             Episode.II to listOf(5, 12),
         ),
         typeId = 523,
+        properties = listOf(
+            EntityProp(name = "Lightning distance from player", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Lightning height", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Minimum frames between strikes", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Interval randomness", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     WhiteBird(
         uniqueName = "White Bird",
@@ -2112,6 +2369,9 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 524,
+        properties = listOf(
+            EntityProp(name = "Model number?", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     OrangeBird(
         uniqueName = "Orange Bird",
@@ -2119,6 +2379,17 @@ enum class ObjectType(
             Episode.II to listOf(6, 7, 9, 17),
         ),
         typeId = 525,
+    ),
+    ContainerJungEnemy(
+        uniqueName = "Container Jung Enemy",
+        areaIds = mapOf(
+            Episode.II to listOf(6, 7, 9, 17),
+        ),
+        typeId = 526,
+        properties = listOf(
+            EntityProp(name = "Event number", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Model number", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     Saw(
         uniqueName = "Saw",
@@ -2131,7 +2402,7 @@ enum class ObjectType(
             EntityProp(name = "Model", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
             EntityProp(name = "Arc", offset = 56, type = EntityPropType.I32),
-            EntityProp(name = "Switch flag", offset = 60, type = EntityPropType.I32),
+            EntityProp(name = "SC Flag", offset = 60, type = EntityPropType.I32),
         ),
     ),
     LaserDetect(
@@ -2146,20 +2417,23 @@ enum class ObjectType(
             EntityProp(name = "Arc", offset = 56, type = EntityPropType.I32),
         ),
     ),
-    UnknownItem529(
-        uniqueName = "Unknown Item (529)",
+    BiwaMushi(
+        uniqueName = "Biwa Mushi",
         areaIds = mapOf(
             Episode.II to listOf(5, 6, 7),
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 529,
     ),
-    UnknownItem530(
-        uniqueName = "Unknown Item (530)",
+    JungleDesign(
+        uniqueName = "Jungle Design",
         areaIds = mapOf(
             Episode.II to listOf(5, 6, 7, 8, 9, 17),
         ),
         typeId = 530,
+        properties = listOf(
+            EntityProp(name = "Model number?", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     Seagull(
         uniqueName = "Seagull",
@@ -2168,6 +2442,9 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 531,
+        properties = listOf(
+            EntityProp(name = "Model number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     Fish(
         uniqueName = "Fish",
@@ -2215,6 +2492,10 @@ enum class ObjectType(
             Episode.II to listOf(10, 11),
         ),
         typeId = 548,
+        properties = listOf(
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Model", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     BlueFloatingRobot(
         uniqueName = "Blue Floating Robot",
@@ -2236,6 +2517,9 @@ enum class ObjectType(
             Episode.II to listOf(10, 11),
         ),
         typeId = 551,
+        properties = listOf(
+            EntityProp(name = "Model number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     CaptureTrap(
         uniqueName = "Capture Trap",
@@ -2243,6 +2527,13 @@ enum class ObjectType(
             Episode.II to listOf(5, 6, 7, 8, 9, 10, 11, 16, 17),
         ),
         typeId = 552,
+        properties = listOf(
+            EntityProp(name = "Speed", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Damage", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Duration", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Invisible", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Tech", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     VRLink(
         uniqueName = "VR Link",
@@ -2250,13 +2541,25 @@ enum class ObjectType(
             Episode.II to listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17),
         ),
         typeId = 553,
+        properties = listOf(
+            EntityProp(name = "Switch ID", offset = 52, type = EntityPropType.I32),
+        ),
     ),
-    UnknownItem576(
-        uniqueName = "Unknown Item (576)",
+    Ep2Particle(
+        uniqueName = "EP2 Particle",
         areaIds = mapOf(
             Episode.II to listOf(12),
         ),
         typeId = 576,
+        // Type 0x0240 is an exact constructor alias for TObjParticle (0x0001).
+        properties = listOf(
+            EntityProp(name = "Particle type", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Param 2", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Param 3", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Long range", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Param 5", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Param 6", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     WarpInBarbaRayRoom(
         uniqueName = "Warp in Barba Ray Room",
@@ -2265,8 +2568,8 @@ enum class ObjectType(
         ),
         typeId = 640,
     ),
-    UnknownItem672(
-        uniqueName = "Unknown Item (672)",
+    LiveCamera(
+        uniqueName = "Live Camera",
         areaIds = mapOf(
             Episode.II to listOf(15),
         ),
@@ -2327,6 +2630,9 @@ enum class ObjectType(
         uniqueName = "GBA Station",
         areaIds = mapOf(),
         typeId = 695,
+        properties = listOf(
+            EntityProp(name = "Function", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     TalkLinkToSupport(
         uniqueName = "Talk (Link to Support)",
@@ -2336,6 +2642,10 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 696,
+        properties = listOf(
+            EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Function", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     InstaWarp(
         uniqueName = "Insta-Warp",
@@ -2345,6 +2655,14 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 0),
         ),
         typeId = 697,
+        properties = listOf(
+            EntityProp(name = "Dest X", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Dest Y", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Dest Z", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Dest Rotation", offset = 52, type = EntityPropType.Angle),
+            EntityProp(name = "Floor", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Disable Floor Disp", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     LabInvisibleObject(
         uniqueName = "Lab Invisible Object",
@@ -2354,6 +2672,11 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8, 0),
         ),
         typeId = 698,
+        properties = listOf(
+            EntityProp(name = "Radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Function", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Activator", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     LabGlassWindowDoor(
         uniqueName = "Lab Glass Window Door",
@@ -2362,8 +2685,8 @@ enum class ObjectType(
         ),
         typeId = 699,
     ),
-    UnknownItem700(
-        uniqueName = "Unknown Item (700)",
+    AreaWarpEndingJung(
+        uniqueName = "Area Warp Ending Jung",
         areaIds = mapOf(
             Episode.II to listOf(13),
         ),
@@ -2375,6 +2698,10 @@ enum class ObjectType(
             Episode.II to listOf(0),
         ),
         typeId = 701,
+        properties = listOf(
+            EntityProp(name = "Destination angle", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Destination text", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     Ep4LightSource(
         uniqueName = "Ep. IV Light Source",
@@ -2394,6 +2721,7 @@ enum class ObjectType(
             EntityProp(name = "Scale y", offset = 44, type = EntityPropType.F32),
             EntityProp(name = "Scale z", offset = 48, type = EntityPropType.F32),
             EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Damage Power", offset = 56, type = EntityPropType.I32),
         ),
     ),
     BigBrownRock(
@@ -2412,16 +2740,26 @@ enum class ObjectType(
             Episode.IV to listOf(1, 2, 3, 4, 5, 6, 7, 8),
         ),
         typeId = 771,
+        properties = listOf(
+            EntityProp(name = "Switch", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem832(
         uniqueName = "Unknown Item (832)",
         areaIds = mapOf(),
         typeId = 832,
+        properties = listOf(
+            EntityProp(name = "Object identifier", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem833(
         uniqueName = "Unknown Item (833)",
         areaIds = mapOf(),
         typeId = 833,
+        properties = listOf(
+            EntityProp(name = "Object identifier", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Child index?", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     PoisonPlant(
         uniqueName = "Poison Plant",
@@ -2436,6 +2774,9 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 897,
+        properties = listOf(
+            EntityProp(name = "Model number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem898(
         uniqueName = "Unknown Item (898)",
@@ -2450,6 +2791,11 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 899,
+        properties = listOf(
+            EntityProp(name = "Animation speed?", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Scale factor", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Model number", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem901(
         uniqueName = "Unknown Item (901)",
@@ -2457,6 +2803,9 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 901,
+        properties = listOf(
+            EntityProp(name = "Animation speed?", offset = 40, type = EntityPropType.F32),
+        ),
     ),
     BigBlackRocks(
         uniqueName = "Big Black Rocks",
@@ -2474,6 +2823,12 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 903,
+        properties = listOf(
+            EntityProp(name = "Area radius", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Area power", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Hole radius", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Hole power", offset = 56, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem904(
         uniqueName = "Unknown Item (904)",
@@ -2481,16 +2836,31 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 904,
+        properties = listOf(
+            EntityProp(name = "Hitbox width", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Hitbox radius", offset = 44, type = EntityPropType.F32),
+            EntityProp(name = "Hitbox depth", offset = 48, type = EntityPropType.F32),
+            EntityProp(name = "Hitbox type", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem905(
         uniqueName = "Unknown Item (905)",
         areaIds = mapOf(),
         typeId = 905,
+        properties = listOf(
+            EntityProp(name = "Game flags to set", offset = 52, type = EntityPropType.I32),
+            EntityProp(name = "Game flags to clear", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Same as for 0x0388", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     UnknownItem906(
         uniqueName = "Unknown Item (906)",
         areaIds = mapOf(),
         typeId = 906,
+        properties = listOf(
+            EntityProp(name = "Interval", offset = 56, type = EntityPropType.I32),
+            EntityProp(name = "Same as for 0x0388", offset = 60, type = EntityPropType.I32),
+        ),
     ),
     FallingRock(
         uniqueName = "Falling Rock",
@@ -2505,6 +2875,10 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 908,
+        properties = listOf(
+            EntityProp(name = "Horizontal scale factor", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Vertical scale factor", offset = 44, type = EntityPropType.F32),
+        ),
     ),
     DesertFixedTypeBoxBreakableCrystals(
         uniqueName = "Desert Fixed Type Box (Breakable Crystals)",
@@ -2512,9 +2886,12 @@ enum class ObjectType(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 909,
+        properties = listOf(
+            EntityProp(name = "Contents type", offset = 40, type = EntityPropType.F32),
+        ),
     ),
-    UnknownItem910(
-        uniqueName = "Unknown Item (910)",
+    Ep4TestDoor(
+        uniqueName = "EP4 Test Door",
         areaIds = mapOf(),
         typeId = 910,
     ),
@@ -2528,12 +2905,16 @@ enum class ObjectType(
             EntityProp(name = "Model", offset = 52, type = EntityPropType.I32),
         ),
     ),
-    UnknownItem912(
-        uniqueName = "Unknown Item (912)",
+    Ep4TestParticle(
+        uniqueName = "EP4 Test Particle",
         areaIds = mapOf(
             Episode.IV to listOf(6, 7, 8),
         ),
         typeId = 912,
+        properties = listOf(
+            EntityProp(name = "Particle distance?", offset = 40, type = EntityPropType.F32),
+            EntityProp(name = "Frames between effects", offset = 52, type = EntityPropType.I32),
+        ),
     ),
     Heat(
         uniqueName = "Heat",
@@ -2553,12 +2934,15 @@ enum class ObjectType(
         ),
         typeId = 960,
     ),
-    UnknownItem961(
-        uniqueName = "Unknown Item (961)",
+    Ep4BossRockSpawner(
+        uniqueName = "EP4 Boss Rock Spawner",
         areaIds = mapOf(
             Episode.IV to listOf(9),
         ),
         typeId = 961,
+        properties = listOf(
+            EntityProp(name = "Type", offset = 52, type = EntityPropType.I32),
+        ),
     );
 
     override val simpleName = uniqueName
@@ -2567,6 +2951,6 @@ enum class ObjectType(
         /**
          * Use this instead of [values] to avoid unnecessary copying.
          */
-        val VALUES: Array<ObjectType> = values()
+        val VALUES: Array<ObjectType> = entries.toTypedArray()
     }
 }

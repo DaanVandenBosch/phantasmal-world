@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import world.phantasmal.core.asJsArray
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.flatMapNull
+import world.phantasmal.psolib.asm.dataFlowAnalysis.ParticleSpawn
 import world.phantasmal.psolib.fileFormats.ninja.XjObject
 import world.phantasmal.web.core.dot
 import world.phantasmal.web.core.minusAssign
@@ -19,6 +20,7 @@ import world.phantasmal.web.questEditor.loading.AreaUserData
 import world.phantasmal.web.questEditor.models.*
 import world.phantasmal.web.questEditor.rendering.QuestRenderContext
 import world.phantasmal.web.questEditor.stores.QuestEditorStore
+import world.phantasmal.web.questEditor.stores.QuestEditorUiStore
 import kotlin.math.PI
 import kotlin.math.atan2
 
@@ -26,6 +28,7 @@ private val logger = KotlinLogging.logger {}
 
 class StateContext(
     private val questEditorStore: QuestEditorStore,
+    private val questEditorUiStore: QuestEditorUiStore,
     val renderContext: QuestRenderContext,
     val cameraInputManager: OrbitalCameraInputManager,
 ) {
@@ -34,7 +37,7 @@ class StateContext(
      */
     private var highlightedMesh: Pair<Mesh, List<Color>>? = null
 
-    val devMode: Cell<Boolean> = questEditorStore.devMode
+    val devMode: Cell<Boolean> = questEditorUiStore.devMode
     val quest: Cell<QuestModel?> = questEditorStore.currentQuest
     val area: Cell<AreaModel?> = questEditorStore.currentArea
     val wave: Cell<WaveModel?> = questEditorStore.selectedEvent.flatMapNull { it?.wave }
@@ -213,6 +216,20 @@ class StateContext(
             quest,
             entity,
         ))
+    }
+
+    /**
+     * Returns the [ParticleSpawn] under the pointer (if any). Used for the hover tooltip on
+     * particle markers.
+     *
+     * @param pointerPosition pointer coordinates in normalized device space.
+     */
+    fun pickParticle(pointerPosition: Vector2): ParticleSpawn? {
+        val intersection = intersectObject(
+            pointerPosition,
+            renderContext.particleMarkers,
+        ) { it.`object`.visible }
+        return intersection?.`object`?.userData as? ParticleSpawn
     }
 
     /**

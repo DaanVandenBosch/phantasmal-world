@@ -74,13 +74,21 @@ val generateOpcodes = tasks.register("generateOpcodes") {
     }
 }
 
+/**
+ * Escape characters that are special inside a Kotlin double-quoted string literal:
+ *   \ → \\,  " → \",  $ → \$ (avoid template substitution), newline → \n.
+ */
+fun escapeKotlinString(s: String): String =
+    s.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\$", "\\\$")
+        .replace("\n", "\\n")
+
 fun opcodeToCode(writer: PrintWriter, opcode: Map<String, Any>) {
     val code = (opcode["code"] as String).drop(2).toInt(16)
     val codeStr = code.toString(16).uppercase().padStart(2, '0')
     val mnemonic = opcode["mnemonic"] as String? ?: "unknown_${codeStr.lowercase()}"
-    val doc = (opcode["doc"] as String?)?.let {
-        "\"${it.replace("\n", "\\n")}\""
-    }
+    val doc = (opcode["doc"] as String?)?.let { "\"${escapeKotlinString(it)}\"" }
     val stack = opcode["stack"] as String?
 
     val valName = "OP_" + mnemonic
@@ -162,8 +170,8 @@ fun paramsToCode(params: List<Map<String, Any>>, indent: Int): String {
             else -> error("Type ${param["type"]} not implemented.")
         }
 
-        val name = (param["name"] as String?)?.let { "\"$it\"" } ?: "null"
-        val doc = (param["doc"] as String?)?.let { "\"$it\"" } ?: "null"
+        val name = (param["name"] as String?)?.let { "\"${escapeKotlinString(it)}\"" } ?: "null"
+        val doc = (param["doc"] as String?)?.let { "\"${escapeKotlinString(it)}\"" } ?: "null"
         val read = param["read"] as Boolean? == true
         val write = param["write"] as Boolean? == true
 

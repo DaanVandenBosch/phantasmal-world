@@ -19,6 +19,12 @@ class DoubleInput(
     value: Cell<Double> = cell(0.0),
     onChange: (Double) -> Unit = {},
     roundTo: Int = 2,
+    /**
+     * Optional paste interceptor. Receives the raw clipboard text and should return `true` to
+     * suppress the browser's default single-value paste — useful when the pasted text is a tuple
+     * the caller wants to distribute across multiple inputs.
+     */
+    private val onPaste: ((String) -> Boolean)? = null,
 ) : NumberInput<Double>(
     visible,
     enabled,
@@ -34,6 +40,20 @@ class DoubleInput(
 ) {
     private val roundingFactor: Double =
         if (roundTo < 0) 1.0 else (10.0).pow(roundTo)
+
+    override fun interceptInputElement(input: HTMLInputElement) {
+        super.interceptInputElement(input)
+
+        if (onPaste != null) {
+            input.onpaste = { e ->
+                val text = e.clipboardData?.getData("text") ?: ""
+                if (onPaste.invoke(text)) {
+                    e.preventDefault()
+                }
+                null
+            }
+        }
+    }
 
     override fun getInputValue(input: HTMLInputElement): Double = input.valueAsNumber
 

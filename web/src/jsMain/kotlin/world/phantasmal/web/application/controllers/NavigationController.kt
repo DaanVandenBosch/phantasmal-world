@@ -1,11 +1,9 @@
 package world.phantasmal.web.application.controllers
 
 import kotlinx.browser.window
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import world.phantasmal.cell.Cell
 import world.phantasmal.cell.mutableCell
+import world.phantasmal.web.core.Clock
 import world.phantasmal.web.core.PwToolType
 import world.phantasmal.web.core.stores.UiStore
 import world.phantasmal.webui.controllers.Controller
@@ -33,14 +31,16 @@ class NavigationController(private val uiStore: UiStore, private val clock: Cloc
     }
 
     private fun updateInternetTime() {
-        val now = clock.now().toLocalDateTime(INTERNET_TIME_TZ)
-        _internetTime.value = "@" + floor((now.second + 60 * (now.minute + 60 * now.hour)) / 86.4)
+        // Swatch Internet Time: 1000 beats per day from Biel Mean Time (UTC+01:00).
+        // Compute without any date-time library to keep the bundle small.
+        val utcSeconds = floor(clock.nowMillis() / 1000.0)
+        val bielSeconds = ((utcSeconds + BIEL_OFFSET_SECONDS) % SECONDS_PER_DAY + SECONDS_PER_DAY) % SECONDS_PER_DAY
+        _internetTime.value = "@" + floor(bielSeconds / SECONDS_PER_BEAT).toInt()
     }
 
     companion object {
-        /**
-         * Internet time is calculated from UTC+01:00.
-         */
-        private val INTERNET_TIME_TZ = TimeZone.of("UTC+01:00")
+        private const val BIEL_OFFSET_SECONDS = 3600.0 // UTC+01:00
+        private const val SECONDS_PER_DAY = 86400.0
+        private const val SECONDS_PER_BEAT = 86.4 // 86400 / 1000
     }
 }

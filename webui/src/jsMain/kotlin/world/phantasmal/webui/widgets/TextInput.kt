@@ -16,6 +16,9 @@ class TextInput(
     value: Cell<String> = emptyStringCell(),
     onChange: (String) -> Unit = {},
     private val maxLength: Int? = null,
+    private val placeholder: String? = null,
+    /** Additional class name applied to the inner `<input>` element for custom styling. */
+    private val extraClassName: String? = null,
 ) : Input<String>(
     visible,
     enabled,
@@ -32,6 +35,8 @@ class TextInput(
 
         input.type = "text"
         maxLength?.let { input.maxLength = it }
+        placeholder?.let { input.placeholder = it }
+        extraClassName?.let { input.classList.add(it) }
     }
 
     override fun getInputValue(input: HTMLInputElement): String = input.value

@@ -197,6 +197,16 @@ external class Box3(min: Vector3 = definedExternally, max: Vector3 = definedExte
     fun intersectsBox(box: Box3): Boolean
 
     fun union(box: Box3): Box3
+
+    fun setFromObject(`object`: Object3D): Box3
+
+    fun containsPoint(point: Vector3): Boolean
+
+    fun expandByScalar(scalar: Double): Box3
+
+    fun isEmpty(): Boolean
+
+    fun makeEmpty(): Box3
 }
 
 external class Sphere(center: Vector3 = definedExternally, radius: Double = definedExternally) {
@@ -513,6 +523,7 @@ external class Color() {
     fun set(color: Int): Color
 
     fun setHSL(h: Double, s: Double, l: Double): Color
+    fun setRGB(r: Double, g: Double, b: Double): Color
 
     fun clone(): Color
 }
@@ -534,6 +545,8 @@ open external class BufferGeometry : EventDispatcher {
     fun rotateX(radians: Double): BufferGeometry
     fun rotateY(radians: Double): BufferGeometry
     fun rotateZ(radians: Double): BufferGeometry
+
+    fun clone(): BufferGeometry
 
     fun scale(x: Double, y: Double, z: Double): BufferGeometry
 
@@ -581,6 +594,15 @@ external class SphereGeometry(
     thetaLength: Double = definedExternally,
 ) : BufferGeometry
 
+external class RingGeometry(
+    innerRadius: Double = definedExternally,
+    outerRadius: Double = definedExternally,
+    thetaSegments: Int = definedExternally,
+    phiSegments: Int = definedExternally,
+    thetaStart: Double = definedExternally,
+    thetaLength: Double = definedExternally,
+) : BufferGeometry
+
 open external class BufferAttribute {
     var needsUpdate: Boolean
 
@@ -622,9 +644,18 @@ external object SubtractiveBlending : Blending
 external object MultiplyBlending : Blending
 external object CustomBlending : Blending
 
+external interface BlendingFactor
+external object SrcAlphaFactor : BlendingFactor
+external object OneMinusSrcAlphaFactor : BlendingFactor
+external object DstAlphaFactor : BlendingFactor
+external object OneMinusDstAlphaFactor : BlendingFactor
+external object OneMinusDstColorFactor : BlendingFactor
+
 external interface MaterialParameters {
     var alphaTest: Double
     var blending: Blending
+    var blendSrc: BlendingFactor
+    var blendDst: BlendingFactor
     var side: Side
     var transparent: Boolean
     var opacity: Double
@@ -652,6 +683,25 @@ external class MeshBasicMaterial(
 ) : Material {
     var color: Color
     var map: Texture?
+}
+
+external interface SpriteMaterialParameters : MaterialParameters {
+    var color: Color
+    var map: Texture?
+    var rotation: Double
+}
+
+external class SpriteMaterial(
+    parameters: SpriteMaterialParameters = definedExternally,
+) : Material {
+    var color: Color
+    var map: Texture?
+    var rotation: Double
+    var opacity: Double
+}
+
+external class Sprite(material: SpriteMaterial = definedExternally) : Object3D {
+    var material: SpriteMaterial
 }
 
 external interface MeshLambertMaterialParameters : MaterialParameters {

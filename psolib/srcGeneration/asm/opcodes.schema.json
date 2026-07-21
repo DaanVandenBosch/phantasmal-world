@@ -43,6 +43,17 @@
                 "stack": {
                     "enum": ["push", "pop"],
                     "description": "Stack interaction. \"push\" if the instruction takes immediate arguments and pushes its arguments onto the stack. \"pop\" if the instruction doesn't take immediate arguments but pops its arguments off the stack."
+                },
+                "versions": {
+                    "type": "string",
+                    "enum": ["V0_V2", "V3_V4", "V0_V4", "V1_V2", "V1_V4", "V2", "V2_V3", "V2_V4", "V3", "V4"],
+                    "default": "V0_V4",
+                    "description": "Which PSO version range this opcode definition applies to. Shortcuts mirror newserv F_* constants. Default V0_V4 (all versions)."
+                },
+                "args": {
+                    "type": "string",
+                    "enum": ["stack", "inline", "none"],
+                    "description": "Where arguments come from on V3_V4. If omitted, inferred: stack if `stack: pop` and params non-empty; inline if params non-empty and stack absent; none if params empty."
                 }
             }
         },

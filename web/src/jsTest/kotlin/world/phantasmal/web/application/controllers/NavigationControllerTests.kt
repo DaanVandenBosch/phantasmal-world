@@ -1,8 +1,8 @@
 package world.phantasmal.web.application.controllers
 
-import kotlinx.datetime.Instant
 import world.phantasmal.web.test.StubClock
 import world.phantasmal.web.test.WebTestSuite
+import kotlin.js.Date
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -13,13 +13,22 @@ class NavigationControllerTests : WebTestSuite {
         components.clock = clock
 
         listOf(
-            Pair("00:00:00", 41),
-            Pair("13:10:12", 590),
-            Pair("22:59:59", 999),
-            Pair("23:00:00", 0),
-            Pair("23:59:59", 41),
-        ).forEach { (time, beats) ->
-            clock.currentTime = Instant.parse("2020-01-01T${time}Z")
+            Triple(0, 0, 0) to 41,
+            Triple(13, 10, 12) to 590,
+            Triple(22, 59, 59) to 999,
+            Triple(23, 0, 0) to 0,
+            Triple(23, 59, 59) to 41,
+        ).forEach { (hms, beats) ->
+            val (h, m, s) = hms
+            // 2020-01-01T${hh:mm:ss}Z
+            clock.currentTimeMillis = Date.UTC(
+                year = 2020,
+                month = 0,
+                day = 1,
+                hour = h,
+                minute = m,
+                second = s,
+            )
             val ctrl = disposer.add(NavigationController(components.uiStore, components.clock))
 
             assertEquals("@$beats", ctrl.internetTime.value)

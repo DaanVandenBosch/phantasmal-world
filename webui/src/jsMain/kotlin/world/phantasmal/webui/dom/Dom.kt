@@ -115,8 +115,11 @@ enum class Icon {
     LevelUp,
     LongArrowRight,
     NewFile,
+    Pause,
     Play,
     Plus,
+    StepBackward,
+    StepForward,
     Redo,
     Remove,
     Save,
@@ -141,8 +144,11 @@ fun Node.icon(icon: Icon): HTMLElement {
         Icon.LevelUp -> faLevelUpAlt
         Icon.LongArrowRight -> faLongArrowAltRight
         Icon.NewFile -> faFileMedical
+        Icon.Pause -> faPause
         Icon.Play -> faPlay
         Icon.Plus -> faPlus
+        Icon.StepBackward -> faStepBackward
+        Icon.StepForward -> faStepForward
         Icon.Redo -> faRedo
         Icon.Remove -> faTrashAlt
         Icon.Save -> faSave
